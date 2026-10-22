@@ -3,7 +3,7 @@ import type { Ref } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Tous les commentaires visibles, réponses comprises */
@@ -20,6 +20,7 @@ const TEXTE_DEMO = "Potes d'exemple : tes commentaires de démo restent sur ton 
 
 /** Le haut de la feuille des commentaires : combien il y en a, la croix pour la fermer, et (en démo) le bandeau des potes d'exemple. */
 export function EnTeteCommentaires({ nombre, demo, onFermer, refTitre }: Props) {
+  const couleurs = utiliserCouleurs();
   const titre = nombre === 0 ? "Commentaires" : `${formaterNombreCourt(nombre)} commentaire${nombre > 1 ? "s" : ""}`;
   return (
     <>

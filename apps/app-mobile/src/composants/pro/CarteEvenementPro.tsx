@@ -21,7 +21,7 @@ export function CarteEvenementPro({ evenement: e, onPress }: Props) {
       accessibilityHint={onPress ? "Ouvre l'événement pour le modifier ou l'annuler" : undefined}
       disabled={!onPress}
       onPress={onPress}
-      className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${etiquette ? "bg-creme" : "bg-white"}`}
+      className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${etiquette ? "bg-creme" : "bg-carte"}`}
     >
       <Text className="text-3xl">{type.emoji}</Text>
       <View className="flex-1 gap-1">

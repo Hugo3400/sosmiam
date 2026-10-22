@@ -6,16 +6,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ConsigneComptoirMiamSafe } from "~/composants/miam-safe/ConsigneComptoirMiamSafe";
 import { PhraseComptoirMiamSafe } from "~/composants/miam-safe/PhraseComptoirMiamSafe";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 export default function EcranMiamSafeComptoir() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { phrase } = useLocalSearchParams<{ phrase?: string }>();
   const avecCompte = utiliserProfil().profil !== null;
   useKeepAwake();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.encre }} edges={["top", "bottom"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.nuit }} edges={["top", "bottom"]}>
       <StatusBar style="light" />
       <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1, paddingVertical: 24 }}>
         {phrase === "1" && avecCompte ? <PhraseComptoirMiamSafe /> : <ConsigneComptoirMiamSafe />}

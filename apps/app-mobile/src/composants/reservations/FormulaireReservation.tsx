@@ -27,8 +27,9 @@ import { lireRaisonSansCreneau } from "~/fonctions/reservations/lire-raison-sans
 import { rangerCreneauxParService } from "~/fonctions/reservations/ranger-creneaux-par-service";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import type { utiliserFormulaireReservation } from "~/hooks/utiliser-formulaire-reservation";
-import couleurs from "~/theme/couleurs";
+import type { Palette } from "~/hooks/utiliser-theme";
 
 type Props = {
   lieu: Lieu;
@@ -39,7 +40,7 @@ type Props = {
   onChangerPetitMot: (texte: string) => void;
 };
 
-function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props) {
+function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props, couleurs: Palette) {
   const deLieu = direDeLieu(lieu.nom);
   if (!f.jours.pret) {
     return (
@@ -102,6 +103,7 @@ function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props) {
 }
 
 export function FormulaireReservation(props: Props) {
+  const couleurs = utiliserCouleurs();
   const { lieu, formulaire: f, maintenantMs, petitMot, erreurPetitMot } = props;
   const petitMotEnvoye = petitMot.trim().replace(/\s+/g, " ");
   const estBar = lieu.type === "bar";
@@ -138,7 +140,7 @@ export function FormulaireReservation(props: Props) {
 
       <View className="gap-3">
         <TitreEtapeReservation titre={T.heure} />
-        {dessinerHeures(props)}
+        {dessinerHeures(props, couleurs)}
       </View>
 
       <View className="gap-3">

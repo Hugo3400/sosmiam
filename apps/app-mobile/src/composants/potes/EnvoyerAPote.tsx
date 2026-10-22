@@ -145,7 +145,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       </View>
 
       {demo ? (
-        <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+        <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5">
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
             🧪
           </Text>
@@ -192,7 +192,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
                     @{pote.pseudo}
                   </Text>
                 </View>
-                <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-encre" : "bg-white"}`}>
+                <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-nuit" : "bg-carte"}`}>
                   {choisi ? <Text className="font-texte-gras text-sm text-jaune">✓</Text> : null}
                 </View>
               </Pressable>
@@ -229,7 +229,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
         </>
       ) : null}
 
-      <Pressable accessibilityRole="button" onPress={onFermer} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+      <Pressable accessibilityRole="button" onPress={onFermer} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
         <Text className="font-texte-gras text-base text-encre">Annuler</Text>
       </Pressable>
     </View>

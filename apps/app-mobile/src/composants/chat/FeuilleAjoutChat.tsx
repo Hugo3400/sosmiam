@@ -11,9 +11,9 @@ import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -41,6 +41,7 @@ const surLeWeb = Platform.OS === "web";
 
 /** Le « + » du chat, dans une feuille qui monte du bas : partager un lieu, une photo de ta galerie, ou en prendre une. */
 export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -191,7 +192,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
               );
             })}
 
-            <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+            <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
               <Text className="font-texte-gras text-base text-encre">Annuler</Text>
             </Pressable>
           </ScrollView>

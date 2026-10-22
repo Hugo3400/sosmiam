@@ -9,7 +9,7 @@ import { TEXTES_ETIQUETTES } from "~/contenus/textes-etiquettes";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres, type PeriodeEvenements } from "~/contenus/type-filtres-explorer";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Le type FiltresExplorer de ~/contenus/type-filtres-explorer (renommé ici : le composant porte le même nom) */
@@ -50,7 +50,7 @@ const PERIODES: { cle: PeriodeEvenements; libelle: string; lu: string }[] = [
 ];
 
 const classePastille = (choisi: boolean) =>
-  `min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-3.5 active:opacity-80 ${choisi ? "bg-encre" : "bg-white"}`;
+  `min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-3.5 active:opacity-80 ${choisi ? "bg-nuit" : "bg-carte"}`;
 const classeTexte = (choisi: boolean) => `font-texte-semi text-[14px] ${choisi ? "text-jaune" : "text-encre"}`;
 
 /** Ce que montre la pastille de zone, et ce qu'elle dit au lecteur d'écran */
@@ -68,6 +68,7 @@ function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): 
  * « Effacer » apparaît dès qu'un filtre est actif ; il garde la recherche tapée (la barre a sa propre croix) et la zone.
  */
 export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, region, autourDe, onChangerZone, etiquettesPossibles }: Props) {
+  const couleurs = utiliserCouleurs();
   const [choixZoneOuvert, setChoixZoneOuvert] = useState(false);
   const [choixEtiquetteOuvert, setChoixEtiquetteOuvert] = useState(false);
   const pastilleEtiquette = useRef<View>(null);
@@ -141,11 +142,11 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           }}
           className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-3.5 active:opacity-80"
         >
-          <Ionicons name={zoneDecrite.icone} size={16} color={couleurs.encre} />
-          <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[14px] text-encre">
+          <Ionicons name={zoneDecrite.icone} size={16} color={couleurs.nuit} />
+          <Text numberOfLines={1} className="max-w-[220px] font-texte-gras text-[14px] text-nuit">
             {zoneDecrite.texte}
           </Text>
-          <Ionicons name="chevron-down" size={16} color={couleurs.encre} />
+          <Ionicons name="chevron-down" size={16} color={couleurs.nuit} />
         </Pressable>
 
         <View className="h-6 w-0.5 rounded-full bg-encre/20" />
@@ -157,8 +158,8 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
             onPress={effacer}
             className="min-h-11 flex-row items-center gap-1 rounded-full border-2 border-encre bg-jaune px-3.5 active:opacity-80"
           >
-            <Ionicons name="close" size={16} color={couleurs.encre} />
-            <Text className="font-texte-gras text-[14px] text-encre">Effacer les filtres</Text>
+            <Ionicons name="close" size={16} color={couleurs.nuit} />
+            <Text className="font-texte-gras text-[14px] text-nuit">Effacer les filtres</Text>
           </Pressable>
         ) : null}
 

@@ -7,12 +7,13 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 const TAILLE_ROND = 60;
 
 /** Ta bande en rangée qui défile (toucher un pote ouvre son profil), avec de quoi en ajouter d'autres. */
 export function RangeeBande() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { potes } = utiliserCommunaute();
   const ajouter = () => router.push("/potes/ajouter");
@@ -43,7 +44,7 @@ export function RangeeBande() {
         >
           <View
             style={{ width: TAILLE_ROND, height: TAILLE_ROND, borderRadius: TAILLE_ROND / 2 }}
-            className="items-center justify-center border-2 border-dashed border-encre bg-white"
+            className="items-center justify-center border-2 border-dashed border-encre bg-carte"
           >
             <Ionicons name="add" size={28} color={couleurs.encre} />
           </View>

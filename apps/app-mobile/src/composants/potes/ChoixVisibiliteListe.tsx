@@ -4,7 +4,7 @@ import { Platform, Pressable, Text, View } from "react-native";
 import type { VisibiliteListe } from "@sos-miam/commun/types/listes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   choisie: VisibiliteListe;
@@ -18,6 +18,7 @@ const CHOIX: { cle: VisibiliteListe; emoji: string; nom: string; detail: string 
 
 /** « Qui la voit ? » : tout le monde (ceux qui voient ton profil) ou seulement ta bande. Un seul choix. */
 export function ChoixVisibiliteListe({ choisie, onChoisir }: Props) {
+  const couleurs = utiliserCouleurs();
   const ios = Platform.OS === "ios";
   return (
     <View accessibilityRole="radiogroup" className="gap-2">
@@ -37,7 +38,7 @@ export function ChoixVisibiliteListe({ choisie, onChoisir }: Props) {
               vibrerLegerement();
               onChoisir(c.cle);
             }}
-            className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-3.5 py-2.5 active:opacity-80 ${actif ? "border-encre bg-jaune-clair" : "border-ligne bg-white"}`}
+            className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-3.5 py-2.5 active:opacity-80 ${actif ? "border-encre bg-jaune-clair" : "border-ligne bg-carte"}`}
           >
             <Text allowFontScaling={false} className="text-2xl">
               {c.emoji}
@@ -46,7 +47,7 @@ export function ChoixVisibiliteListe({ choisie, onChoisir }: Props) {
               <Text className="font-texte-gras text-base text-encre">{c.nom}</Text>
               <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(c.detail)}</Text>
             </View>
-            <View className={`h-6 w-6 items-center justify-center rounded-full border-2 border-encre ${actif ? "bg-encre" : "bg-white"}`}>
+            <View className={`h-6 w-6 items-center justify-center rounded-full border-2 border-encre ${actif ? "bg-nuit" : "bg-carte"}`}>
               {actif ? <Ionicons name="checkmark" size={14} color={couleurs.jaune} /> : null}
             </View>
           </Pressable>

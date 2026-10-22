@@ -11,8 +11,8 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { nettoyerNomVille } from "~/fonctions/texte/nettoyer-nom-ville";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { verifierNomVille } from "~/fonctions/texte/verifier-nom-ville";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserVilleParPosition, type ResultatVilleParPosition } from "~/hooks/utiliser-ville-par-position";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Ville choisie, ou null */
@@ -62,6 +62,7 @@ function proposerVilles(texte: string): string[] {
 
 /** Choix de la ville : avec la position du téléphone (lue une fois, jamais gardée), ou tapée à la main avec des suggestions. */
 export function ChoixVille({ valeur, onChangeVille }: Props) {
+  const couleurs = utiliserCouleurs();
   const [texte, setTexte] = useState(valeur ?? "");
   // Le champ a été quitté au moins une fois depuis la dernière saisie : on peut dire s'il manque un bout
   const [quitte, setQuitte] = useState(false);
@@ -153,7 +154,7 @@ export function ChoixVille({ valeur, onChangeVille }: Props) {
             accessibilityState={{ busy: recherche, disabled: recherche }}
             disabled={recherche}
             onPress={utiliserPosition}
-            className="min-h-12 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre bg-white px-5 active:opacity-80"
+            className="min-h-12 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre bg-carte px-5 active:opacity-80"
           >
             {recherche ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="navigate" size={18} color={couleurs.encre} />}
             <Text className="font-texte-gras text-base text-encre">{recherche ? "On cherche ta ville…" : "Utiliser ma position"}</Text>
@@ -184,7 +185,7 @@ export function ChoixVille({ valeur, onChangeVille }: Props) {
               accessibilityLabel={ville}
               accessibilityHint="Choisit cette ville"
               onPress={() => choisir(ville)}
-              className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-white px-4 py-2 active:opacity-80"
+              className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-carte px-4 py-2 active:opacity-80"
             >
               <Text className="text-sm">📍</Text>
               <Text className="font-texte-semi text-[15px] text-encre">{ville}</Text>

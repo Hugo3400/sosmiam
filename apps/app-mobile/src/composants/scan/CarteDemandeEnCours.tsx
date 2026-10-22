@@ -5,8 +5,8 @@ import { Pressable, Text, View } from "react-native";
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** La demande d'addition en attente (statut « demandee ») */
@@ -26,6 +26,7 @@ function decrireExpiration(expireLe: string, maintenant: Date): string | null {
 /** Ta demande d'addition en attente, en haut de l'onglet Scan : le lieu, le code à montrer et le temps qu'il reste. */
 export function CarteDemandeEnCours({ visite, onPress }: Props) {
   // « Expire dans 27 min » se met à jour toute seule, une fois par minute
+  const couleurs = utiliserCouleurs();
   const [maintenant, setMaintenant] = useState(() => new Date());
   useEffect(() => {
     const minuterie = setInterval(() => setMaintenant(new Date()), UNE_MINUTE);
@@ -67,7 +68,7 @@ export function CarteDemandeEnCours({ visite, onPress }: Props) {
           {attente ? <Text className="font-texte text-sm text-gris">{lierPonctuation(attente)}</Text> : null}
         </View>
         {code ? (
-          <View className="rounded-2xl border-2 border-encre bg-white px-3 py-1.5">
+          <View className="rounded-2xl border-2 border-encre bg-carte px-3 py-1.5">
             <Text className="font-titre text-[28px] tracking-[6px] text-encre">{code}</Text>
           </View>
         ) : null}

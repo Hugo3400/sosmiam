@@ -12,7 +12,7 @@ type Props = {
   centre?: boolean;
 };
 
-const FONDS = { paye: "bg-white border-encre", reduction: "bg-jaune-clair border-encre", offert: "bg-rose-alerte border-encre" } as const;
+const FONDS = { paye: "bg-carte border-encre", reduction: "bg-jaune-clair border-encre", offert: "bg-rose-alerte border-encre" } as const;
 
 /**
  * Comment la visite a été réglée, en étiquettes : la principale (payée, avec réduction, offerte) puis les avantages.
@@ -37,7 +37,7 @@ export function EtiquettesReglement({ reglement, pour, taille = "normale", centr
       {etiquettes.map((etiquette) => {
         const commerciale = etiquette === "Collaboration commerciale";
         return (
-          <View key={etiquette} className={`rounded-full border ${marge} ${commerciale ? "border-encre bg-encre" : "border-ligne bg-creme"}`}>
+          <View key={etiquette} className={`rounded-full border ${marge} ${commerciale ? "border-encre bg-nuit" : "border-ligne bg-creme"}`}>
             <Text className={`font-texte-semi ${texte} ${commerciale ? "text-white" : "text-encre"}`}>{etiquette}</Text>
           </View>
         );

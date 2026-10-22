@@ -29,7 +29,7 @@ export function CarteModeAcceptation({ mode, choisi, desactive, indiceDesactive,
         vibrerLegerement();
         onPress();
       }}
-      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 border-encre px-4 py-3 active:opacity-80 ${choisi ? "bg-jaune-clair" : "bg-white"} ${desactive && !choisi ? "opacity-40" : ""}`}
+      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 border-encre px-4 py-3 active:opacity-80 ${choisi ? "bg-jaune-clair" : "bg-carte"} ${desactive && !choisi ? "opacity-40" : ""}`}
     >
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
         {emoji}
@@ -38,7 +38,7 @@ export function CarteModeAcceptation({ mode, choisi, desactive, indiceDesactive,
         <Text className="font-texte-gras text-base text-encre">{titre}</Text>
         <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(texte)}</Text>
       </View>
-      <View className="h-6 w-6 items-center justify-center rounded-full border-2 border-encre bg-white">
+      <View className="h-6 w-6 items-center justify-center rounded-full border-2 border-encre bg-carte">
         {choisi ? <View className="h-3 w-3 rounded-full bg-encre" /> : null}
       </View>
     </Pressable>

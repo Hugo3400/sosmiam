@@ -7,26 +7,27 @@ import { TEXTES_SORTIE_MIAMIS } from "~/contenus/textes-sorties-miamis";
 import { decrirePublicSortie } from "~/fonctions/miamis/decrire-public-sortie";
 import { ecrireQuandLong } from "~/fonctions/miamis/ecrire-quand-long";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   sortie: SortieMiamisApi;
 };
 
 export function EnTeteSortieMiamis({ sortie }: Props) {
+  const couleurs = utiliserCouleurs();
   const { nom, quiVoit } = decrirePublicSortie(sortie.public);
   return (
     <View className="gap-3">
       <View className="flex-row flex-wrap gap-2">
         <View className="rounded-full border-2 border-encre bg-jaune px-3 py-1">
-          <Text className="font-texte-gras text-xs text-encre">{ecrireQuandLong(sortie.quand)}</Text>
+          <Text className="font-texte-gras text-xs text-nuit">{ecrireQuandLong(sortie.quand)}</Text>
         </View>
-        <View className={`flex-row items-center gap-1.5 rounded-full border-2 px-3 py-1 ${quiVoit ? "border-encre bg-encre" : "border-ligne bg-white"}`}>
+        <View className={`flex-row items-center gap-1.5 rounded-full border-2 px-3 py-1 ${quiVoit ? "border-encre bg-nuit" : "border-ligne bg-carte"}`}>
           {quiVoit ? <Ionicons name="lock-closed" size={12} color={couleurs.jaune} /> : null}
           <Text className={`font-texte-gras text-xs ${quiVoit ? "text-jaune" : "text-encre"}`}>{quiVoit ? `${nom} · ${quiVoit}` : nom}</Text>
         </View>
         {sortie.recurrente ? (
-          <View className="flex-row items-center gap-1.5 rounded-full border-2 border-ligne bg-white px-3 py-1">
+          <View className="flex-row items-center gap-1.5 rounded-full border-2 border-ligne bg-carte px-3 py-1">
             <Ionicons name="refresh" size={12} color={couleurs.encre} />
             <Text className="font-texte-gras text-xs text-encre">{TEXTES_SORTIE_MIAMIS.recurrente(sortie.habitues)}</Text>
           </View>

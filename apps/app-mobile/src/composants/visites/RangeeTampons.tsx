@@ -62,7 +62,7 @@ export function RangeeTampons({ tampons, sur, animerDernier = false, taille = "p
         const cadeau = i === total - 1;
         const rond = { width: dim.rond, height: dim.rond, borderRadius: dim.rond / 2 };
         const vide = (
-          <View style={rond} className="items-center justify-center border-2 border-dashed border-gris/40 bg-white">
+          <View style={rond} className="items-center justify-center border-2 border-dashed border-gris/40 bg-carte">
             {cadeau ? <Text className={`${dim.cadeau} opacity-60`}>🎁</Text> : null}
           </View>
         );
@@ -72,7 +72,7 @@ export function RangeeTampons({ tampons, sur, animerDernier = false, taille = "p
             style={[rond, { transform: [{ rotate: `${INCLINAISONS[i % INCLINAISONS.length]}deg` }] }]}
             className={`items-center justify-center border-2 border-encre ${cadeau ? "bg-tomate" : "bg-jaune"}`}
           >
-            <Text className={`font-titre ${dim.marque} ${cadeau ? "text-white" : "text-encre"}`}>{cadeau ? "★" : "✓"}</Text>
+            <Text className={`font-titre ${dim.marque} ${cadeau ? "text-white" : "text-nuit"}`}>{cadeau ? "★" : "✓"}</Text>
           </View>
         );
         if (!animer || i !== poses - 1) return <View key={i}>{marque}</View>;

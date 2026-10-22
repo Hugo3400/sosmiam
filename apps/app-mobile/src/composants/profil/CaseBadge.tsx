@@ -17,7 +17,7 @@ export function CaseBadge({ badge, obtenu, selectionne = false, commentObtenir =
   const petitEcran = useWindowDimensions().width < LARGEUR_PETIT_ECRAN;
   const taille = petitEcran ? "text-[10px] leading-[13px]" : "text-xs leading-4";
   const dessin = (
-    <View className={`min-h-24 flex-1 items-center justify-center gap-1 rounded-2xl border-2 px-0.5 py-1.5 ${selectionne ? "border-tomate" : "border-encre"} ${obtenu ? "bg-jaune-clair" : "bg-white"}`}>
+    <View className={`min-h-24 flex-1 items-center justify-center gap-1 rounded-2xl border-2 px-0.5 py-1.5 ${selectionne ? "border-tomate" : "border-encre"} ${obtenu ? "bg-jaune-clair" : "bg-carte"}`}>
       <View className="items-center gap-1">
         <Text className={`text-3xl ${obtenu ? "" : "opacity-40"}`}>{badge.emoji}</Text>
         <Text numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.85} className={`text-center font-texte-semi ${taille} ${obtenu ? "text-encre" : "text-gris"}`}>

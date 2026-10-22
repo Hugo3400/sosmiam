@@ -54,7 +54,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
         delayLongPress={350}
         {...actionsLecteur}
         style={{ width: largeur }}
-        className="flex-row items-center gap-3 rounded-carte border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-3"
+        className="flex-row items-center gap-3 rounded-carte border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-3"
       >
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
           🗺️
@@ -76,7 +76,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   }
 
   return (
-    <View style={{ width: largeur }} className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+    <View style={{ width: largeur }} className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={lu}
@@ -102,7 +102,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
             {lieu.info} · {lieu.ville}
           </Text>
           {sos ? (
-            <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-xs text-encre">
+            <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-xs text-nuit">
               🛟 SOS · {sos}
             </Text>
           ) : lieu.alerte ? (

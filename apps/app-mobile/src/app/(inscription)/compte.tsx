@@ -116,7 +116,7 @@ export default function Compte() {
           accessibilityHint={demo.actif ? "L'app se relance avec les vraies données" : "L'app se relance avec les lieux, les potes et les visites d'exemple"}
           disabled={demo.enCours}
           onPress={demo.actif ? demo.sortir : demo.entrer}
-          className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-white p-4 active:opacity-70"
+          className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-carte p-4 active:opacity-70"
         >
           <Text className="text-xl">🧪</Text>
           <Text className="flex-1 font-texte text-[15px] leading-[22px] text-gris">

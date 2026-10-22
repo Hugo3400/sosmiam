@@ -100,8 +100,8 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
     return (
       <View className="gap-4">
         <View accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
-          <Text className="font-texte-gras text-base text-encre">{"⚠️ L'équipe n'a rien reçu"}</Text>
-          <Text className="font-texte text-base leading-6 text-encre">
+          <Text className="font-texte-gras text-base text-nuit">{"⚠️ L'équipe n'a rien reçu"}</Text>
+          <Text className="font-texte text-base leading-6 text-nuit">
             {lierPonctuation("Aucun téléphone de l'équipe n'a reçu l'alerte. Va voir quelqu'un de l'équipe si tu peux, ou préviens un pote.")}
           </Text>
         </View>
@@ -119,9 +119,9 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
       : decrireEnvoi(suivie.telephones, ecrireHeure(new Date(suivie.envoyeeLe)));
     return (
       <View className="gap-4">
-        <View accessible accessibilityLiveRegion="polite" className={`gap-1 rounded-2xl p-4 ${enRoute ? "bg-jaune" : "bg-white"}`}>
-          <Text className="font-texte-gras text-lg text-encre">{enRoute ? "L'équipe arrive" : "Alerte envoyée"}</Text>
-          <Text className="font-texte text-base leading-6 text-encre">{texte}</Text>
+        <View accessible accessibilityLiveRegion="polite" className={`gap-1 rounded-2xl p-4 ${enRoute ? "bg-jaune" : "bg-carte"}`}>
+          <Text className={`font-texte-gras text-lg ${enRoute ? "text-nuit" : "text-encre"}`}>{enRoute ? "L'équipe arrive" : "Alerte envoyée"}</Text>
+          <Text className={`font-texte text-base leading-6 ${enRoute ? "text-nuit" : "text-encre"}`}>{texte}</Text>
         </View>
         {enRoute ? null : (
           <Text className="font-texte text-sm leading-5 text-gris">
@@ -139,8 +139,8 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
       {echec ? (
         <>
           <View ref={refEchec} accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
-            <Text className="font-texte-gras text-base text-encre">{"⚠️ L'alerte n'est pas partie"}</Text>
-            <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(`${ECHECS_ALERTE_MIAM_SAFE[echec] ?? ECHEC_ALERTE_MIAM_SAFE} ${PAS_SEUL}`)}</Text>
+            <Text className="font-texte-gras text-base text-nuit">{"⚠️ L'alerte n'est pas partie"}</Text>
+            <Text className="font-texte text-base leading-6 text-nuit">{lierPonctuation(`${ECHECS_ALERTE_MIAM_SAFE[echec] ?? ECHEC_ALERTE_MIAM_SAFE} ${PAS_SEUL}`)}</Text>
           </View>
           <NumerosUrgence />
           <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />

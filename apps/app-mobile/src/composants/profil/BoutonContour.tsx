@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { Pressable, Text } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   libelle: string;
@@ -15,9 +15,10 @@ type Props = {
   grand?: boolean;
 };
 
-const FONDS = { creme: "bg-creme", blanc: "bg-white" } as const;
+const FONDS = { creme: "bg-creme", blanc: "bg-carte" } as const;
 
 export function BoutonContour({ libelle, onPress, libelleLu, indice, icone, fond = "creme", grand = false }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <Pressable
       accessibilityRole="button"

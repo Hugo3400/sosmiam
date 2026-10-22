@@ -8,11 +8,12 @@ import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /** Les messages de l'équipe SOS Miam, le plus récent d'abord : ouvrir un message le marque lu. */
 export default function EcranMessagesAmbassadeur() {
+  const couleurs = utiliserCouleurs();
   const { ambassadeur } = utiliserServices();
   const [messages, setMessages] = useState<MessageAmbassadeur[] | null>(null);
   const [ouvert, setOuvert] = useState<number | null>(null);
@@ -60,13 +61,13 @@ export default function EcranMessagesAmbassadeur() {
                   accessibilityState={{ expanded: ouvert === m.id }}
                   accessibilityLabel={`${nonLu ? "Non lu : " : ""}${m.titre}, ${ecrireJourLong(m.creeLe)}`}
                   onPress={() => ouvrir(m)}
-                  className={`gap-2 rounded-carte border-2 border-encre p-4 active:opacity-80 ${nonLu ? "bg-jaune" : "bg-white"}`}
+                  className={`gap-2 rounded-carte border-2 border-encre p-4 active:opacity-80 ${nonLu ? "bg-jaune" : "bg-carte"}`}
                 >
                   <View className="flex-row items-center gap-2">
-                    <Text className="flex-1 font-texte-gras text-base text-encre">{`${nonLu ? "📬 " : ""}${m.titre}`}</Text>
-                    <Text className="font-texte text-xs text-encre/70">{ecrireJourLong(m.creeLe).split(" ").slice(1).join(" ")}</Text>
+                    <Text className={`flex-1 font-texte-gras text-base ${nonLu ? "text-nuit" : "text-encre"}`}>{`${nonLu ? "📬 " : ""}${m.titre}`}</Text>
+                    <Text className={`font-texte text-xs ${nonLu ? "text-nuit/70" : "text-encre/70"}`}>{ecrireJourLong(m.creeLe).split(" ").slice(1).join(" ")}</Text>
                   </View>
-                  {ouvert === m.id ? <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(m.texte)}</Text> : null}
+                  {ouvert === m.id ? <Text className={`font-texte text-[15px] leading-[22px] ${nonLu ? "text-nuit" : "text-encre"}`}>{lierPonctuation(m.texte)}</Text> : null}
                 </Pressable>
               );
             })}

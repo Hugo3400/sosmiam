@@ -20,7 +20,7 @@ export function CarteAvisARelire({ avis: a, desactive, onOk, onLouche, onPasser 
   const lireSourcePhoto = utiliserSourcePhotoAvis();
   const sourcePhoto = lireSourcePhoto(a.photo);
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <Text className="font-texte-gras text-base text-encre">{`${a.lieu.emoji} ${a.lieu.nom} · ${a.lieu.ville}`}</Text>
       <EtoilesAvis note={a.note} taille={22} />
       <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(a.texte)}</Text>

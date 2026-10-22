@@ -17,6 +17,7 @@ import { regrouperLieuxCarte } from "~/fonctions/geo/regrouper-lieux-carte";
 import { decrireLieuCarte } from "~/fonctions/lieux/decrire-lieu-carte";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
+import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
   /** Lieux filtrés et triés */
@@ -80,6 +81,7 @@ function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu 
  * qui arrive), cadre les lieux trouvés quand les filtres changent, et va doucement vers le lieu sélectionné.
  */
 export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, position, selection, onSelection, margeHaut, margeBas }: Props) {
+  const { schema } = utiliserTheme();
   const carte = useRef<MapView>(null);
   const animationsReduites = useReducedMotion();
   const [chargee, setChargee] = useState(false);
@@ -312,7 +314,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
         style={StyleSheet.absoluteFill}
         initialRegion={regionDepart}
         mapPadding={{ top: haut, right: 0, bottom: bas, left: 0 }}
-        userInterfaceStyle="light"
+        userInterfaceStyle={schema === "sombre" ? "dark" : "light"}
         // Pas de point bleu natif : il suivrait ta position en continu ; on pose la position lue une fois (MarqueurPosition)
         showsUserLocation={false}
         showsMyLocationButton={false}

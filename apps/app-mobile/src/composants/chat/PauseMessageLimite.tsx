@@ -5,7 +5,7 @@ import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 import { BULLE_EN_PAUSE, REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Retire la bulle de l'écran (utiliserConversations().retirerEnPause) : elle n'est jamais partie. Absent : pas de « Retirer » */
@@ -18,6 +18,7 @@ type Props = {
  * quoi contester) ; « Retirer » efface la bulle du téléphone, pendant la limitation comme après.
  */
 export function PauseMessageLimite({ onRetirer }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   return (
     <View className="mt-0.5 flex-row flex-wrap items-center justify-end gap-x-3">

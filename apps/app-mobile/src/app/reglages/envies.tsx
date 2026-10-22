@@ -78,7 +78,7 @@ export default function ReglagesEnvies() {
               </View>
               <GrilleChoix choix={etape.choix} coches={coches} onBasculer={(id) => basculer(etape.categorie, id)} />
               {etape.note ? (
-                <View className="flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-white p-4">
+                <View className="flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-carte p-4">
                   <Text accessibilityElementsHidden importantForAccessibility="no" className="text-xl">
                     🔒
                   </Text>

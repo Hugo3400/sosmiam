@@ -2,7 +2,7 @@ import { ActivityIndicator, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   enCours: boolean;
@@ -11,6 +11,7 @@ type Props = {
 };
 
 export function EncartPhotoLocale({ enCours, onMontrer, onLaisser }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
       <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">

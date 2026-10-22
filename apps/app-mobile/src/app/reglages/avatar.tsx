@@ -17,11 +17,11 @@ import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
 import { preparerPhotoProfil } from "~/fonctions/compte/preparer-photo-profil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { AVATAR_PAR_DEFAUT, garderPhotoAvatar, supprimerPhotoAvatar, type Avatar } from "~/stockage/avatar-local";
 import { enregistrerEncartPhotoLocaleVu, lireEncartPhotoLocaleVu } from "~/stockage/encart-photo-locale";
-import couleurs from "~/theme/couleurs";
 
 // Options du sélecteur : une image carrée, recadrable, assez légère pour un rond de profil
 const OPTIONS_PHOTO: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7 };
@@ -41,6 +41,7 @@ function decrireAvatar(avatar: Avatar): string {
 
 /** Réglages > Avatar : un Miami (en tête), un emoji de la liste, ou une photo (appareil photo ou galerie). */
 export default function ReglagesAvatar() {
+  const couleurs = utiliserCouleurs();
   const { avatar, changerAvatar, retirerPhoto: retirerPhotoProfil, etatPhoto, profil } = utiliserProfil();
   const sourceSociale = utiliserSourceSociale();
   const partage = sourceSociale === "demo" ? "demo" : profil !== null ? "compte" : "visite";
@@ -258,7 +259,7 @@ export default function ReglagesAvatar() {
                 choisirEmoji(emoji);
               }}
               style={{ width: tailleRond, height: tailleRond, borderRadius: tailleRond / 2 }}
-              className={`items-center justify-center border-2 active:opacity-80 ${choisi ? "border-encre bg-encre" : "border-ligne bg-white"}`}
+              className={`items-center justify-center border-2 active:opacity-80 ${choisi ? "border-encre bg-nuit" : "border-ligne bg-carte"}`}
             >
               <Text allowFontScaling={false} style={{ fontSize: tailleRond * 0.5, lineHeight: tailleRond * 0.64 }}>
                 {emoji}
@@ -310,7 +311,7 @@ export default function ReglagesAvatar() {
       ) : null}
 
       {cameraRefusee ? (
-        <View className="mt-4 gap-3 rounded-carte border-2 border-encre bg-white p-4">
+        <View className="mt-4 gap-3 rounded-carte border-2 border-encre bg-carte p-4">
           <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">
             {"Pas d'accès à l'appareil photo"}
           </Text>

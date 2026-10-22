@@ -12,7 +12,7 @@ type Props = {
 
 export function DetailBadge({ badge, obtenu, commentObtenir }: Props) {
   return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row items-start gap-3.5 rounded-carte border-2 border-encre bg-white p-4">
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row items-start gap-3.5 rounded-carte border-2 border-encre bg-carte p-4">
       <Text className="text-[34px] leading-10">{badge.emoji}</Text>
       <View className="flex-1 gap-0.5">
         <Text className="font-texte-gras text-base leading-[22px] text-encre">{badge.nom}</Text>

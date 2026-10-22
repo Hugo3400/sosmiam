@@ -3,7 +3,7 @@ import { Pressable, Text } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   lieu: Pick<Lieu, "nom" | "emoji">;
@@ -14,6 +14,7 @@ type Props = {
 
 /** Pour le gérant du lieu de la publication, au-dessus du champ : écrire sous son prénom, ou au nom du lieu. */
 export function PastilleAuNomDuLieu({ lieu, active, onBasculer }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <Pressable
       accessibilityRole="switch"
@@ -25,13 +26,13 @@ export function PastilleAuNomDuLieu({ lieu, active, onBasculer }: Props) {
         vibrerLegerement();
         onBasculer(!active);
       }}
-      className={`mb-2 min-h-9 flex-row items-center gap-1.5 self-start rounded-full border-2 border-encre px-3 active:opacity-70 ${active ? "bg-jaune" : "bg-white"}`}
+      className={`mb-2 min-h-9 flex-row items-center gap-1.5 self-start rounded-full border-2 border-encre px-3 active:opacity-70 ${active ? "bg-jaune" : "bg-carte"}`}
     >
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" allowFontScaling={false} className="text-base">
         {lieu.emoji}
       </Text>
-      <Text className="font-texte-gras text-[13px] text-encre">Répondre au nom du lieu</Text>
-      <Ionicons name={active ? "checkmark-circle" : "ellipse-outline"} size={18} color={couleurs.encre} />
+      <Text className={`font-texte-gras text-[13px] ${active ? "text-nuit" : "text-encre"}`}>Répondre au nom du lieu</Text>
+      <Ionicons name={active ? "checkmark-circle" : "ellipse-outline"} size={18} color={active ? couleurs.nuit : couleurs.encre} />
     </Pressable>
   );
 }

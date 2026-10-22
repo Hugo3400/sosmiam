@@ -31,15 +31,16 @@ import { rangerReservationsPro } from "~/fonctions/reservations/ranger-reservati
 import { repererNouvellesTables } from "~/fonctions/reservations/reperer-nouvelles-tables";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserJoursFermesPro } from "~/hooks/utiliser-jours-fermes-pro";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserReponsesReservationsPro } from "~/hooks/utiliser-reponses-reservations-pro";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 export default function EcranReservationsPro() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const focus = useIsFocused();

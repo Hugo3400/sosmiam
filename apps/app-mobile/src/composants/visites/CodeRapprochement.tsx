@@ -35,7 +35,7 @@ export function CodeRapprochement({ code, prenom, avatar, legende, taille = "gra
       <View
         accessible
         accessibilityLabel={`${legende}. Code ${formaterCodeLu(code)}. Au nom de ${prenom}${prenom.endsWith(".") ? "" : "."}`}
-        className={`items-center rounded-carte border-2 border-encre bg-white ${taille === "grand" ? "px-4 py-5" : "px-3 py-4"}`}
+        className={`items-center rounded-carte border-2 border-encre bg-carte ${taille === "grand" ? "px-4 py-5" : "px-3 py-4"}`}
       >
         <Text className="text-center font-texte-semi text-sm text-gris">{lierPonctuation(legende)}</Text>
         <View className="mt-3 flex-row justify-center gap-2 self-stretch">
@@ -46,7 +46,7 @@ export function CodeRapprochement({ code, prenom, avatar, legende, taille = "gra
               className="flex-1 items-center justify-center rounded-2xl border-2 border-encre bg-jaune"
             >
               {/* Déjà énormes : ils grossissent un peu avec la taille du texte, sans jamais sortir de leur case */}
-              <Text maxFontSizeMultiplier={1.2} style={{ fontSize: t.police, lineHeight: t.interligne }} className="font-titre text-encre">
+              <Text maxFontSizeMultiplier={1.2} style={{ fontSize: t.police, lineHeight: t.interligne }} className="font-titre text-nuit">
                 {chiffre}
               </Text>
             </View>

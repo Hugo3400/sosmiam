@@ -12,7 +12,7 @@ type Props = {
 
 export function EtatMiamis({ emoji, titre, texte, action }: Props) {
   return (
-    <View className="items-center gap-3 rounded-3xl border-2 border-dashed border-gris/40 bg-white/70 px-6 py-8">
+    <View className="items-center gap-3 rounded-3xl border-2 border-dashed border-gris/40 bg-carte/70 px-6 py-8">
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-5xl">
         {emoji}
       </Text>

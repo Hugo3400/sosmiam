@@ -190,9 +190,9 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
               vibrerLegerement();
               onCreerCompte();
             }}
-            className="h-9 flex-row items-center rounded-full border-2 border-encre bg-jaune px-3.5 active:opacity-80"
+            className="h-9 flex-row items-center rounded-full border-2 border-nuit bg-jaune px-3.5 active:opacity-80"
           >
-            <Text numberOfLines={1} maxFontSizeMultiplier={1.2} className="font-texte-semi text-[13px] text-encre">
+            <Text numberOfLines={1} maxFontSizeMultiplier={1.2} className="font-texte-semi text-[13px] text-nuit">
               👀 Visite · <Text className="font-texte-gras">Crée ton compte</Text>
             </Text>
           </Pressable>

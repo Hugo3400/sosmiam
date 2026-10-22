@@ -4,8 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   emoji: string;
@@ -22,6 +22,7 @@ type Props = {
 export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
   // Retour à l'écran d'avant ; premier écran d'une pile en plein écran (Scan, mode pro…) : la pile entière se referme
   const revenir = utiliserFermerPile();
+  const couleurs = utiliserCouleurs();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -32,7 +33,7 @@ export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
             accessibilityLabel="Retour"
             hitSlop={12}
             onPress={revenir}
-            className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>
@@ -47,7 +48,7 @@ export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
         </Text>
         <Text className="text-center font-texte text-base text-gris">{lierPonctuation(texte)}</Text>
         <View className="mt-4 rounded-full border-2 border-encre bg-jaune px-5 py-2">
-          <Text className="font-texte-gras text-encre">Bientôt dans l'app</Text>
+          <Text className="font-texte-gras text-nuit">Bientôt dans l'app</Text>
         </View>
         {action ? <Bouton libelle={action.libelle} onPress={action.onPress} variante="blanc" className="mt-6 self-stretch" /> : null}
       </ScrollView>

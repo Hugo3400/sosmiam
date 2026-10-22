@@ -28,7 +28,7 @@ export function OptionGenre({ nom, effet, choisi, desactive, position, total, on
         vibrerLegerement();
         onPress();
       }}
-      className={`min-h-14 flex-row items-center gap-3 rounded-2xl px-3.5 py-3 active:opacity-80 ${choisi ? "border-2 border-encre bg-white" : "border border-ligne"} ${desactive ? "opacity-50" : ""}`}
+      className={`min-h-14 flex-row items-center gap-3 rounded-2xl px-3.5 py-3 active:opacity-80 ${choisi ? "border-2 border-encre bg-carte" : "border border-ligne"} ${desactive ? "opacity-50" : ""}`}
     >
       <View className="h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-encre">
         <View className={`h-3 w-3 rounded-full ${choisi ? "bg-jaune" : ""}`} />

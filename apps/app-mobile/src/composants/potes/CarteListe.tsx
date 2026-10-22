@@ -7,7 +7,7 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { compterAbonnesListe } from "~/fonctions/communaute/compter-abonnes-liste";
 import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   liste: ListePartagee;
@@ -27,6 +27,7 @@ const MAX_VIGNETTES = 3;
 
 /** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipal }: Props) {
+  const couleurs = utiliserCouleurs();
   // Compte connecté : le nombre du serveur (la liste n'est souvent lue qu'en résumé) ; démo : ses lieux encore dans l'app
   const nombre = liste.serveur ? compterLieuxListe(liste) : lieux.length;
   const abonnes = compterAbonnesListe(liste);
@@ -44,7 +45,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipa
         vibrerLegerement();
         onOuvrir(liste.id);
       }}
-      className={`min-h-20 flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-3.5 active:opacity-80 ${onMenu ? "pr-14" : ""}`}
+      className={`min-h-20 flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-3.5 active:opacity-80 ${onMenu ? "pr-14" : ""}`}
     >
       <View style={{ width: 52, height: 52 }} className="items-center justify-center rounded-2xl border-2 border-encre bg-jaune-clair">
         <Text allowFontScaling={false} className="text-[26px]">
@@ -65,7 +66,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipa
       {lieux.length > 0 ? (
         <View className="flex-row pl-3">
           {lieux.slice(0, MAX_VIGNETTES).map(({ lieu, image }) => (
-            <View key={lieu.id} className="-ml-3 rounded-[12px] border-2 border-white">
+            <View key={lieu.id} className="-ml-3 rounded-[12px] border-2 border-carte">
               <VignetteLieu lieu={lieu} image={image} hauteur={TAILLE_VIGNETTE} arrondi={10} />
             </View>
           ))}

@@ -20,17 +20,18 @@ import { decrireAnnulationReservation, type TextesAnnulationReservation } from "
 import { rangerReservations } from "~/fonctions/reservations/ranger-reservations";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserClientReservation } from "~/hooks/utiliser-client-reservation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserGestesReservation } from "~/hooks/utiliser-gestes-reservation";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserMesReservations } from "~/hooks/utiliser-mes-reservations";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 type AnnulationDemandee = { reservation: Reservation; textes: TextesAnnulationReservation };
 
 export default function EcranMesReservations() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const fermer = utiliserFermerPile();
   const { source } = utiliserServices();

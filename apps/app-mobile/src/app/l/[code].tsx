@@ -4,17 +4,18 @@ import { ActivityIndicator, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Le QR de vitrine d'un lieu, ouvert dans l'app (sosmiam.fr/l/<code>) : on retrouve le lieu et on ouvre sa fiche. Sans
  * compte, on entre en visite (regarder une fiche ne demande pas de compte).
  */
 export default function OuvrirQrVitrine() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { code = "" } = useLocalSearchParams<{ code: string }>();
   const { contenu } = utiliserSession();

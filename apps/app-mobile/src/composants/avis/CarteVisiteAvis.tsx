@@ -18,7 +18,7 @@ export function CarteVisiteAvis({ visite }: Props) {
   const { lieu, reglement } = visite;
   const reglementAMontrer = reglement !== null && (reglement.type !== "paye" || reglement.avantages.length > 0);
   return (
-    <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"

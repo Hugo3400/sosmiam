@@ -4,8 +4,8 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { ReglagesSociaux } from "@sos-miam/commun/types/social";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserReglagesSociaux } from "~/hooks/utiliser-reglages-sociaux";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Dit pourquoi un interrupteur est revenu en arrière (petit message en haut de l'écran, lu par VoiceOver) */
@@ -46,6 +46,7 @@ function expliquerRefus(erreur: ErreurService): string {
  * serveur refuse, il revient en arrière et on dit pourquoi.
  */
 export function BlocTaBande({ onAnnoncer }: Props) {
+  const couleurs = utiliserCouleurs();
   const { disponible, pret, reglages, changer } = utiliserReglagesSociaux();
   if (!disponible) return null;
 

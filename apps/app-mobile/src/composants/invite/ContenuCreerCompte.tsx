@@ -58,7 +58,7 @@ export function ContenuCreerCompte({ raison, refTitre, geste, onInscrire, onPlus
       <ScrollView style={{ flexGrow: 0 }} contentContainerClassName="px-5">
         {titreDansPoignee ? null : enTete}
         <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(phrase)}</Text>
-        <View className="mt-5 gap-2 rounded-carte border-2 border-encre bg-white p-4">
+        <View className="mt-5 gap-2 rounded-carte border-2 border-encre bg-carte p-4">
           {AVANTAGES.map((avantage) => (
             <View key={avantage.texte} accessible accessibilityLabel={avantage.texte} className="flex-row items-center gap-3">
               <Text className="text-xl">{avantage.emoji}</Text>
@@ -73,7 +73,7 @@ export function ContenuCreerCompte({ raison, refTitre, geste, onInscrire, onPlus
           accessibilityRole="button"
           accessibilityHint="Tu continues ta visite sans compte"
           onPress={onPlusTard}
-          className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Text className="font-texte-gras text-base text-encre">Plus tard</Text>
         </Pressable>

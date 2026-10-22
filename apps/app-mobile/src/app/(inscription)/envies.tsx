@@ -36,7 +36,7 @@ export default function Envies() {
       </Text>
       <GrilleChoix choix={etape.choix} coches={coches} onBasculer={(id) => basculerEnvie(etape.categorie, id)} />
       {etape.note ? (
-        <View className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-white p-4">
+        <View className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-carte p-4">
           <Text className="text-xl">🔒</Text>
           <Text className="flex-1 font-texte text-[15px] leading-[22px] text-gris">{etape.note}</Text>
         </View>

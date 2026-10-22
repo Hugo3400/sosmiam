@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   emoji: string;
@@ -15,6 +15,7 @@ type Props = {
 
 /** Une entrée de « Mon lieu » : un emoji, un titre, où on en est, et la flèche (ou « Bientôt »). 64 pt de haut au moins. */
 export function LigneMonLieu({ emoji, titre, detail, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const bientot = !onPress;
   return (
     <Pressable
@@ -26,7 +27,7 @@ export function LigneMonLieu({ emoji, titre, detail, onPress }: Props) {
         vibrerLegerement();
         onPress?.();
       }}
-      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 px-4 py-3 active:opacity-80 ${bientot ? "border-ligne bg-white/60" : "border-encre bg-white"}`}
+      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 px-4 py-3 active:opacity-80 ${bientot ? "border-ligne bg-carte/60" : "border-encre bg-carte"}`}
     >
       <View className={`h-11 w-11 items-center justify-center rounded-2xl ${bientot ? "bg-ligne" : "bg-jaune-clair"}`}>
         <Text className="text-2xl">{emoji}</Text>

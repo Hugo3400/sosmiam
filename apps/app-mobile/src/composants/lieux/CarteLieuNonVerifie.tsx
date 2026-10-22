@@ -12,7 +12,7 @@ import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 export function CarteLieuNonVerifie({ lieu }: { lieu: Pick<Lieu, "nom"> }) {
   const inviter = utiliserInviterLieu();
   return (
-    <View className="gap-3 rounded-carte border-2 border-dashed border-gris/60 bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-dashed border-gris/60 bg-carte p-4">
       <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">
         Ce lieu n'a pas encore de compte SOS Miam
       </Text>

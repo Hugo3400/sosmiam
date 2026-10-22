@@ -8,9 +8,9 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 type Mesure = "vues" | "rescousses" | "visitesValidees" | "nouveauxClients";
 
@@ -26,6 +26,7 @@ const MESURES: { cle: Mesure; emoji: string; libelle: string }[] = [
  * précédente, et les 8 dernières semaines en petites barres. Les vues sont comptées sans savoir qui (une par jour et par visiteur).
  */
 export default function EcranStatistiques() {
+  const couleurs = utiliserCouleurs();
   const { lieuPro } = utiliserModes();
   const { lieuPro: service } = utiliserServices();
   const [semaines, setSemaines] = useState<StatistiquesSemaine[] | null>(null);

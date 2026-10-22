@@ -15,8 +15,8 @@ import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import type { ResultatCommentaire } from "~/hooks/utiliser-commentaires-publication";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   valeur: string;
@@ -70,6 +70,7 @@ function annoncer(texte: string) {
 
 /** Le champ en bas de la feuille des commentaires : réponse ou modification en cours, mentions de tes potes avec « @ », compteur, envoi. */
 export function ChampCommentaire(props: Props) {
+  const couleurs = utiliserCouleurs();
   const { valeur, onChanger, reponseA, onAnnulerReponse, edition, onAnnulerEdition, onEnvoyer, margeBas, lieuGere, commeLieu, onCommeLieu, ref } = props;
   const { moi, potes } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -203,7 +204,7 @@ export function ChampCommentaire(props: Props) {
           multiline
           maxLength={LONGUEUR_MAX_COMMENTAIRE}
           autoCapitalize="sentences"
-          className={`max-h-[120px] min-h-11 flex-1 rounded-3xl border-2 bg-white px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
+          className={`max-h-[120px] min-h-11 flex-1 rounded-3xl border-2 bg-carte px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
         />
         <Pressable
           accessibilityRole="button"
@@ -213,7 +214,7 @@ export function ChampCommentaire(props: Props) {
           onPress={() => void envoyer()}
           className={`mb-0.5 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:scale-90 ${vide ? "opacity-40" : ""}`}
         >
-          {occupe ? <ActivityIndicator size="small" color={couleurs.encre} /> : <Ionicons name={edition ? "checkmark" : "arrow-up"} size={22} color={couleurs.encre} />}
+          {occupe ? <ActivityIndicator size="small" color={couleurs.nuit} /> : <Ionicons name={edition ? "checkmark" : "arrow-up"} size={22} color={couleurs.nuit} />}
         </Pressable>
       </View>
 

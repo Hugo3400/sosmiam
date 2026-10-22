@@ -51,7 +51,7 @@ export const ElementCarte = memo(function ElementCarte({ element, separe = false
       {element.signature || etiquettes.length > 0 ? (
         <View className="flex-row flex-wrap gap-1.5">
           {element.signature ? (
-            <Text className="overflow-hidden rounded-full bg-encre px-2.5 py-1 font-texte-semi text-xs text-jaune">⭐ Signature</Text>
+            <Text className="overflow-hidden rounded-full border-2 border-encre bg-nuit px-2 py-0.5 font-texte-semi text-xs text-jaune">⭐ Signature</Text>
           ) : null}
           {etiquettes.map((etiquette) => (
             <Text key={etiquette} className="overflow-hidden rounded-full bg-jaune-clair px-2.5 py-1 font-texte-moyen text-xs text-encre">

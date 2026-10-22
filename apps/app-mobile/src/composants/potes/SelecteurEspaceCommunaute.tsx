@@ -17,7 +17,7 @@ const ESPACES: { cle: EspaceCommunaute; nom: string }[] = [
 
 export function SelecteurEspaceCommunaute({ espace, onChoisir }: Props) {
   return (
-    <View accessibilityRole="tablist" accessibilityLabel={TEXTES_ESPACE_COMMUNAUTE.choisir} className="flex-row gap-1 rounded-2xl border-2 border-encre bg-white p-1">
+    <View accessibilityRole="tablist" accessibilityLabel={TEXTES_ESPACE_COMMUNAUTE.choisir} className="flex-row gap-1 rounded-2xl border-2 border-encre bg-carte p-1">
       {ESPACES.map((e, i) => {
         const actif = e.cle === espace;
         return (
@@ -33,7 +33,7 @@ export function SelecteurEspaceCommunaute({ espace, onChoisir }: Props) {
             }}
             className={`min-h-11 flex-1 items-center justify-center rounded-xl active:opacity-80 ${actif ? "bg-jaune" : ""}`}
           >
-            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`text-[15px] ${actif ? "font-texte-gras text-encre" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`text-[15px] ${actif ? "font-texte-gras text-nuit" : "font-texte-semi text-gris"}`}>{e.nom}</Text>
           </Pressable>
         );
       })}

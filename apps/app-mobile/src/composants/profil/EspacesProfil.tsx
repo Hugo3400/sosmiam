@@ -15,7 +15,7 @@ export function EspacesProfil() {
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
         {TEXTES_ESPACES.titre}
       </Text>
-      <View className="rounded-carte border-2 border-encre bg-white px-4 py-1">
+      <View className="rounded-carte border-2 border-encre bg-carte px-4 py-1">
         {pro ? (
           <LigneEspace
             emoji="🧑‍🍳"

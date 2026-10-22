@@ -7,8 +7,8 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { SelecteurEspaceCommunaute, type EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Ton profil communautaire (utiliserCommunaute().moi) */
@@ -19,6 +19,7 @@ type Props = {
 
 /** Le haut de Communauté : « Ma bande / Les Miamis », les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
 export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { nonLus } = utiliserConversations();
   const monId = utiliserMonId();
@@ -37,11 +38,11 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
             vibrerLegerement();
             router.push("/potes/messages");
           }}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="chatbubbles" size={20} color={couleurs.encre} />
           {nonLus > 0 ? (
-            <View className="absolute -right-2 -top-2 min-w-5 items-center rounded-full border-2 border-creme bg-rouge-texte px-1">
+            <View className="absolute -right-2 -top-2 min-w-5 items-center rounded-full border-2 border-creme bg-rouge-sos px-1">
               <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-white">
                 {nonLus > 99 ? "99+" : nonLus}
               </Text>
@@ -58,7 +59,7 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
           }}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
         >
-          <Ionicons name="person-add" size={18} color={couleurs.encre} />
+          <Ionicons name="person-add" size={18} color={couleurs.nuit} />
         </Pressable>
       </View>
 
@@ -72,7 +73,7 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
             vibrerLegerement();
             router.push({ pathname: "/potes/profil/[id]", params: { id: monId } });
           }}
-          className="min-h-11 flex-row items-center gap-2.5 self-start rounded-full border-2 border-encre bg-white py-1 pl-1 pr-3 active:opacity-80"
+          className="min-h-11 flex-row items-center gap-2.5 self-start rounded-full border-2 border-encre bg-carte py-1 pl-1 pr-3 active:opacity-80"
         >
           <RondPote pote={moi} taille={40} />
           <View className="shrink">

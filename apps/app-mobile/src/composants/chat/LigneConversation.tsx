@@ -108,7 +108,7 @@ export function LigneConversation({ conversation, maintenant }: Props) {
             {lierPonctuation(apercu)}
           </Text>
           {nonLus > 0 ? (
-            <View className="min-w-6 items-center rounded-full bg-rouge-texte px-1.5 py-0.5">
+            <View className="min-w-6 items-center rounded-full bg-rouge-sos px-1.5 py-0.5">
               <Text allowFontScaling={false} className="font-texte-gras text-xs text-white">
                 {nonLus > 99 ? "99+" : nonLus}
               </Text>

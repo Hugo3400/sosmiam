@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Adresse de la photo dans les fichiers de l'app */
@@ -48,6 +48,7 @@ function existeEncore(fichier: string): boolean {
  * Fichier disparu ou illisible : un joli remplaçant plutôt qu'un trou.
  */
 export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui, actionsLecteur }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -80,7 +81,7 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
         delayLongPress={350}
         {...actionsLecteur}
         style={{ width: largeur }}
-        className={`items-center gap-1 border-2 border-dashed border-gris/40 bg-white/70 px-4 py-6 ${coins}`}
+        className={`items-center gap-1 border-2 border-dashed border-gris/40 bg-carte/70 px-4 py-6 ${coins}`}
       >
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
           📷
@@ -172,7 +173,7 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
             style={{ position: "absolute", top: marges.top + 8, right: 16 }}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-black/60 active:opacity-70"
           >
-            <Ionicons name="close" size={24} color={couleurs.creme} />
+            <Ionicons name="close" size={24} color={couleurs.lait} />
           </Pressable>
           <Text
             accessibilityElementsHidden

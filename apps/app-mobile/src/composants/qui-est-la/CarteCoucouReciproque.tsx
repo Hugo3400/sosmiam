@@ -15,8 +15,8 @@ type Props = {
 export function CarteCoucouReciproque({ pseudo, demande, enCours, onAjouter, onFermer }: Props) {
   const ajoutPossible = !demande && !enCours;
   return (
-    <View accessibilityLiveRegion="polite" className="gap-2.5 rounded-[20px] bg-encre p-4">
-      <Text accessibilityRole="header" className="font-titre text-[19px] leading-6 text-creme">
+    <View accessibilityLiveRegion="polite" className="gap-2.5 rounded-[20px] bg-nuit p-4">
+      <Text accessibilityRole="header" className="font-titre text-[19px] leading-6 text-lait">
         {lierPonctuation(TEXTES_QUI_EST_LA.mutuelTitre(pseudo))}
       </Text>
       <Text className="font-texte text-[13px] leading-5 text-gris-nuit">{lierPonctuation(TEXTES_QUI_EST_LA.mutuelTexte)}</Text>
@@ -32,14 +32,14 @@ export function CarteCoucouReciproque({ pseudo, demande, enCours, onAjouter, onF
           }}
           className={`min-h-[46px] flex-1 items-center justify-center rounded-[14px] px-2 active:opacity-80 ${demande ? "bg-gris-nuit" : "bg-jaune"} ${enCours ? "opacity-60" : ""}`}
         >
-          <Text className="text-center font-texte-gras text-sm text-encre">{demande ? TEXTES_QUI_EST_LA.demandeEnvoyee : TEXTES_QUI_EST_LA.ajouter}</Text>
+          <Text className="text-center font-texte-gras text-sm text-nuit">{demande ? TEXTES_QUI_EST_LA.demandeEnvoyee : TEXTES_QUI_EST_LA.ajouter}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           onPress={onFermer}
-          className="min-h-[46px] flex-1 items-center justify-center rounded-[14px] border-[1.5px] border-creme px-2 active:opacity-80"
+          className="min-h-[46px] flex-1 items-center justify-center rounded-[14px] border-[1.5px] border-lait px-2 active:opacity-80"
         >
-          <Text className="text-center font-texte-semi text-sm text-creme">{demande ? TEXTES_QUI_EST_LA.fermer : TEXTES_QUI_EST_LA.plusTard}</Text>
+          <Text className="text-center font-texte-semi text-sm text-lait">{demande ? TEXTES_QUI_EST_LA.fermer : TEXTES_QUI_EST_LA.plusTard}</Text>
         </Pressable>
       </View>
     </View>

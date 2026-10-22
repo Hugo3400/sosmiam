@@ -10,7 +10,7 @@ import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSi
 import { MerciSignalement } from "~/composants/signalement/MerciSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /** Ce que la personne a choisi et écrit ; le fil y ajoute la publication et la date. */
 export type ChoixSignalement = Pick<Signalement, "raison" | "precision" | "explication">;
@@ -30,6 +30,7 @@ type Props = {
 
 /** Signaler une publication, en trois temps : la raison, les précisions et le pourquoi, puis merci. */
 export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoyer, onRetourMenu, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);
   const [explication, setExplication] = useState("");

@@ -9,8 +9,8 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
  */
 export function NumerosUrgence() {
   return (
-    <View className="gap-3 rounded-2xl bg-encre p-4">
-      <Text accessibilityRole="header" className="font-texte-gras text-base text-creme">
+    <View className="gap-3 rounded-2xl bg-nuit p-4">
+      <Text accessibilityRole="header" className="font-texte-gras text-base text-lait">
         {lierPonctuation("Danger réel ? Appelle tout de suite.")}
       </Text>
       <View className="flex-row flex-wrap gap-2">
@@ -22,8 +22,8 @@ export function NumerosUrgence() {
             onPress={() => Linking.openURL(n.lien).catch(() => {})}
             className="min-h-14 min-w-[30%] grow items-center justify-center rounded-2xl bg-tomate px-3 py-2 active:opacity-80"
           >
-            <Text className="font-titre-gras text-2xl text-encre">{n.numero}</Text>
-            <Text className="font-texte-semi text-xs text-encre">{n.libelle}</Text>
+            <Text className="font-titre-gras text-2xl text-nuit">{n.numero}</Text>
+            <Text className="font-texte-semi text-xs text-nuit">{n.libelle}</Text>
           </Pressable>
         ))}
       </View>

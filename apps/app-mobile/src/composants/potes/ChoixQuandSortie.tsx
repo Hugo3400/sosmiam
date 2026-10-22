@@ -9,7 +9,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { formaterSaisieDate } from "~/fonctions/dates/formater-saisie-date";
 import { lireDateSaisie } from "~/fonctions/dates/lire-date-saisie";
-import couleurs from "~/theme/couleurs";
+import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
   /** Jour et heure choisis */
@@ -50,6 +50,7 @@ const formaterSaisieHeure = (texte: string) => {
  * Sur le web (aperçu de développement), deux simples champs « JJ/MM/AAAA » et « HH:MM ».
  */
 export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Props) {
+  const { couleurs, schema } = utiliserTheme();
   const marges = useSafeAreaInsets();
   const animationsReduites = useReducedMotion();
   // Le mode reste gardé pendant que le tiroir se referme (pas de changement de titre en pleine animation)
@@ -146,7 +147,7 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
             accessibilityHint={c.mode === "date" ? "Ouvre le choix du jour" : "Ouvre le choix de l'heure"}
             onPress={() => ouvrir(c.mode)}
             style={{ flex: c.largeur }}
-            className={`min-h-[52px] flex-row items-center justify-between gap-2 rounded-2xl border-2 bg-white px-4 py-3 active:opacity-80 ${erreur ? "border-rouge-texte" : "border-encre"}`}
+            className={`min-h-[52px] flex-row items-center justify-between gap-2 rounded-2xl border-2 bg-carte px-4 py-3 active:opacity-80 ${erreur ? "border-rouge-texte" : "border-encre"}`}
           >
             <Text numberOfLines={1} className="shrink font-texte text-[17px] text-encre">
               {c.valeur}
@@ -163,7 +164,7 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
 
       {Platform.OS === "ios" ? (
         <Modal visible={tiroirOuvert} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={() => setTiroirOuvert(false)}>
-          <View className="flex-1 justify-end bg-encre/40">
+          <View className="flex-1 justify-end bg-nuit/40">
             <Pressable accessibilityRole="button" accessibilityLabel="Fermer sans rien changer" onPress={() => setTiroirOuvert(false)} className="flex-1" />
             <View
               accessibilityViewIsModal
@@ -186,7 +187,7 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
                 minimumDate={tiroir === "date" ? debutDAujourdhui() : undefined}
                 maximumDate={tiroir === "date" ? dansUnAn() : undefined}
                 textColor={couleurs.encre}
-                themeVariant="light"
+                themeVariant={schema === "sombre" ? "dark" : "light"}
                 onValueChange={(_evenement, date) => setEnCours(date)}
               />
               <Bouton

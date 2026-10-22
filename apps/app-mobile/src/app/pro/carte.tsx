@@ -23,11 +23,11 @@ import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-e
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonCarte } from "~/hooks/utiliser-brouillon-carte";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 const CARTE_VIDE: CarteLieu = { sections: [] };
 
@@ -56,6 +56,7 @@ type FeuilleOuverte =
  * partir avant redemande. L'alcool est caché sur la fiche tant qu'on ne connaît pas l'âge (visite sans compte), et l'app prévient quand un nom y fait penser.
  */
 export default function EcranCartePro() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const navigation = useNavigation();
   const marges = useSafeAreaInsets();
@@ -207,7 +208,7 @@ export default function EcranCartePro() {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -228,7 +229,7 @@ export default function EcranCartePro() {
               vibrerLegerement();
               setRangement((r) => !r);
             }}
-            className={`min-h-11 items-center justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${rangement ? "bg-encre" : "bg-white"}`}
+            className={`min-h-11 items-center justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${rangement ? "bg-nuit" : "bg-carte"}`}
           >
             <Text className={`font-texte-gras text-[15px] ${rangement ? "text-jaune" : "text-encre"}`}>{rangement ? "Terminé" : "Ranger"}</Text>
           </Pressable>
@@ -252,7 +253,7 @@ export default function EcranCartePro() {
             {erreurLecture ? <Bouton libelle="Retour" variante="blanc" petit onPress={fermer} /> : null}
           </View>
         ) : carte.sections.length === 0 ? (
-          <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne bg-white px-6 py-8">
+          <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne bg-carte px-6 py-8">
             <Mascotte expression="surprise" taille={110} />
             <Text className="text-center font-titre-gras text-xl text-encre">{formules ? "Pas encore de formules" : "Ta carte est encore vide"}</Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">

@@ -7,7 +7,7 @@ import { TEXTES_IDEES } from "~/contenus/textes-idees";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { ecrireIlYa } from "~/fonctions/miamis/ecrire-il-y-a";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   commentaire: CommentaireIdee;
@@ -20,6 +20,7 @@ type Props = {
 };
 
 export function LigneCommentaireIdee({ commentaire, reponse, monId, peutRepondre, onAimer, onRepondre, onOptions }: Props) {
+  const couleurs = utiliserCouleurs();
   const { auteur } = commentaire;
   const nom = auteur.id === monId ? TEXTES_IDEES.parToi : `@${auteur.pseudo}`;
   const quand = ecrireIlYa(commentaire.date);

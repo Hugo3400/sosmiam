@@ -26,7 +26,7 @@ export function QuestionSentiBien({ lieuId, nomLieu }: Props) {
 
   if (reponse === "visite-requise") {
     return (
-      <View accessible accessibilityLiveRegion="polite" className="gap-1 rounded-carte border-2 border-encre bg-white p-4">
+      <View accessible accessibilityLiveRegion="polite" className="gap-1 rounded-carte border-2 border-encre bg-carte p-4">
         <Text className="font-texte-gras text-base text-encre">Merci pour ta réponse.</Text>
         <Text className="font-texte text-base leading-6 text-gris">{VISITE_PAS_ENCORE_VUE}</Text>
       </View>
@@ -35,14 +35,14 @@ export function QuestionSentiBien({ lieuId, nomLieu }: Props) {
 
   if (reponse === "oui") {
     return (
-      <View accessible accessibilityLiveRegion="polite" className="rounded-carte border-2 border-encre bg-white p-4">
+      <View accessible accessibilityLiveRegion="polite" className="rounded-carte border-2 border-encre bg-carte p-4">
         <Text className="font-texte-gras text-base text-encre">Merci, ça compte pour {nomLieu}.</Text>
       </View>
     );
   }
 
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <Text accessibilityRole="header" className="font-texte-gras text-lg text-encre">
         Tu t'es senti·e bien ici ?
       </Text>

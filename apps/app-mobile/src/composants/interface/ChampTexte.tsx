@@ -1,7 +1,7 @@
 import { useEffect, useState, type Ref } from "react";
 import { AccessibilityInfo, Platform, Text, TextInput, View, type TextInputProps } from "react-native";
 
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = Omit<TextInputProps, "value" | "onChangeText" | "className" | "style"> & {
   /** Libellé affiché au-dessus du champ (et lu par VoiceOver) */
@@ -19,6 +19,7 @@ type Props = Omit<TextInputProps, "value" | "onChangeText" | "className" | "styl
 
 /** Champ de saisie SOS Miam : libellé visible, bord noir arrondi, ombre décalée quand on écrit dedans, aide ou erreur dessous. */
 export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erreur, ref, onFocus, onBlur, ...autres }: Props) {
+  const couleurs = utiliserCouleurs();
   const [actif, setActif] = useState(false);
   const message = erreur ?? aide;
   const libelleComplet = mention ? `${libelle}, ${mention}` : libelle;
@@ -57,7 +58,7 @@ export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erre
           placeholderTextColor={couleurs.gris}
           selectionColor={couleurs.encre}
           cursorColor={couleurs.encre}
-          className={`relative min-h-[52px] rounded-2xl border-2 bg-white px-4 py-3 font-texte text-[17px] text-encre
+          className={`relative min-h-[52px] rounded-2xl border-2 bg-carte px-4 py-3 font-texte text-[17px] text-encre
             ${erreur ? "border-rouge-texte" : "border-encre"}`}
           {...autres}
         />

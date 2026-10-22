@@ -13,8 +13,8 @@ import { trouverAuteurCommentaire } from "~/fonctions/commentaires/trouver-auteu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   commentaire: Commentaire;
@@ -63,6 +63,7 @@ function formaterIlYa(dateIso: string, maintenant: number, long: boolean): strin
  * « Commentaire supprimé » (il a encore des réponses) n'a plus que sa place.
  */
 export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onAimer, onOptions, onOuvrirProfil, appuiLong, gerant }: Props) {
+  const couleurs = utiliserCouleurs();
   const { trouverPote } = utiliserCommunaute();
   const monId = utiliserMonId();
   const zoneTexte = useRef<View>(null);
@@ -113,7 +114,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           style={{ width: taille, height: taille, borderRadius: taille / 2 }}
-          className={`items-center justify-center border-2 border-encre ${estLieu ? "bg-jaune" : "bg-white"}`}
+          className={`items-center justify-center border-2 border-encre ${estLieu ? "bg-jaune" : "bg-carte"}`}
         >
           <Text allowFontScaling={false} style={{ fontSize: taille * 0.5, lineHeight: taille * 0.64 }}>
             {estLieu ? lieu.emoji : "🙂"}
@@ -149,7 +150,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
               {nom}
             </Text>
             {estLieu ? (
-              <Text className="overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-[11px] text-encre">Le lieu</Text>
+              <Text className="overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-[11px] text-nuit">Le lieu</Text>
             ) : null}
             {pseudo ? (
               <Text numberOfLines={1} className="shrink font-texte text-[13px] text-gris">

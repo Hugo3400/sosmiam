@@ -16,7 +16,7 @@ type Props = {
 export function VoteIdee({ idee, monId, idsBloques, occupe, onVoter }: Props) {
   const { visages, texte } = decrireVotantsIdee(idee, monId, idsBloques);
   return (
-    <View className="flex-row items-center gap-3.5 rounded-carte border border-ligne bg-white p-3">
+    <View className="flex-row items-center gap-3.5 rounded-carte border border-ligne bg-carte p-3">
       <BoutonMiamIdee idee={idee} grand occupe={occupe} onVoter={onVoter} />
       <View className="min-w-0 flex-1 gap-1">
         {visages.length > 0 ? (

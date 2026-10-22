@@ -13,9 +13,9 @@ import { TEXTES_IDEES } from "~/contenus/textes-idees";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 export type ContenuIdeeAuMenu = { type: "idee" | "commentaire"; id: string; auteur: PersonneResume | null; mien: boolean };
 
@@ -49,6 +49,7 @@ function lireChoix({ type, auteur, mien }: ContenuIdeeAuMenu): Choix[] {
 }
 
 export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const animationsReduites = useReducedMotion();
@@ -143,7 +144,7 @@ export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
                       <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                     </Pressable>
                   ))}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">{MENU.annuler}</Text>
                   </Pressable>
                 </>

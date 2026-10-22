@@ -22,10 +22,10 @@ export function CarteQuiEstLaAccueil({ ville, total, presents }: Props) {
   const reste = Math.max(0, total - montres.length);
 
   return (
-    <View className="gap-4 rounded-3xl border-2 border-encre bg-encre p-5">
+    <View className="gap-4 rounded-3xl border-2 border-encre bg-nuit p-5">
       <View className="gap-1">
         <Text className="font-texte-gras text-xs uppercase tracking-widest text-jaune">{TEXTES_ACCUEIL_MIAMIS.presentsSurtitre(ville)}</Text>
-        <Text accessibilityRole="header" className="font-titre text-[22px] leading-7 text-creme">
+        <Text accessibilityRole="header" className="font-titre text-[22px] leading-7 text-lait">
           {lierPonctuation(TEXTES_ACCUEIL_MIAMIS.presentsTitre(total))}
         </Text>
       </View>
@@ -46,7 +46,7 @@ export function CarteQuiEstLaAccueil({ ville, total, presents }: Props) {
           }}
           className="min-h-11 items-center justify-center rounded-full border-2 border-jaune bg-jaune px-4 active:opacity-80"
         >
-          <Text className="font-texte-gras text-sm text-encre">{TEXTES_ACCUEIL_MIAMIS.presentsBouton}</Text>
+          <Text className="font-texte-gras text-sm text-nuit">{TEXTES_ACCUEIL_MIAMIS.presentsBouton}</Text>
         </Pressable>
       </View>
       <Text className="font-texte text-xs leading-4 text-gris-nuit">{lierPonctuation(TEXTES_ACCUEIL_MIAMIS.presentsNote)}</Text>

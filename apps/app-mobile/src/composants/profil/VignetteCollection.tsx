@@ -28,7 +28,7 @@ export function VignetteCollection({ lieu, image, libelle, onPress }: Props) {
       style={{ width: "33.333%", aspectRatio: 1 }}
       className="p-0.5 active:opacity-80"
     >
-      <View className="flex-1 overflow-hidden rounded-xl bg-encre">
+      <View className="flex-1 overflow-hidden rounded-xl bg-nuit">
         <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
         {image ? (
           <Image source={image} contentFit="cover" style={{ position: "absolute", inset: 0 }} />

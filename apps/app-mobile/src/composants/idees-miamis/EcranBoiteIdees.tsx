@@ -20,9 +20,9 @@ import { expliquerGesteRateIdee } from "~/fonctions/idees-miamis/expliquer-geste
 import { trierIdees } from "~/fonctions/idees-miamis/trier-idees";
 import { trouverIdeeDuMois } from "~/fonctions/idees-miamis/trouver-idee-du-mois";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserIdeesMiamis } from "~/hooks/utiliser-idees-miamis";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 const AUCUNE_IDEE: IdeeMiamis[] = [];
 
@@ -34,6 +34,7 @@ const VIDE_PAR_FILTRE: Readonly<Record<FiltreIdees, string>> = {
 };
 
 export function EcranBoiteIdees() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const monId = utiliserMonId();
@@ -126,7 +127,7 @@ export function EcranBoiteIdees() {
           ItemSeparatorComponent={() => <View className="h-2.5" />}
           ListHeaderComponent={enTete}
           ListEmptyComponent={vide}
-          refreshControl={<RefreshControl refreshing={tire} onRefresh={() => void rafraichir()} tintColor={couleurs.encre} colors={[couleurs.encre]} />}
+          refreshControl={<RefreshControl refreshing={tire} onRefresh={() => void rafraichir()} tintColor={couleurs.encre} colors={[couleurs.encre]} progressBackgroundColor={couleurs.carte} />}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: marges.bottom + 24 }}
           keyboardShouldPersistTaps="handled"
         />

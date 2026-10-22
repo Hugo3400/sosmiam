@@ -63,8 +63,8 @@ export function ChoixAideMiamSafe({ charte, alerte = null, aRelire = false, onCh
           className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 border-encre px-4 py-3 active:opacity-80 ${alerte?.statut === "en-route" ? "bg-jaune" : "bg-jaune-clair"}`}
         >
           <Text className="text-lg">🤫</Text>
-          <Text className="shrink grow font-texte-semi text-sm leading-5 text-encre">{suivi}</Text>
-          <Text className="font-texte-gras text-sm text-encre">Voir</Text>
+          <Text className={`shrink grow font-texte-semi text-sm leading-5 ${alerte?.statut === "en-route" ? "text-nuit" : "text-encre"}`}>{suivi}</Text>
+          <Text className={`font-texte-gras text-sm ${alerte?.statut === "en-route" ? "text-nuit" : "text-encre"}`}>Voir</Text>
         </Pressable>
       ) : null}
       <View className="gap-2">
@@ -74,7 +74,7 @@ export function ChoixAideMiamSafe({ charte, alerte = null, aRelire = false, onCh
             accessibilityRole="button"
             accessibilityLabel={`${c.titre}. ${c.detail}`}
             onPress={() => onChoisir(c.vue)}
-            className="min-h-14 flex-row items-center gap-3 rounded-2xl border-2 border-encre bg-white px-4 py-3 active:opacity-80"
+            className="min-h-14 flex-row items-center gap-3 rounded-2xl border-2 border-encre bg-carte px-4 py-3 active:opacity-80"
           >
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-jaune-clair">
               <Text className="text-lg">{c.emoji}</Text>

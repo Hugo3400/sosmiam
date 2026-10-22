@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --couleur-jaune: 255 214 10;
+  --couleur-jaune-clair: 255 241 168;
+  --couleur-creme: 255 248 231;
+  --couleur-encre: 26 26 26;
+  --couleur-gris: 92 90 85;
+  --couleur-ligne: 237 230 211;
+  --couleur-tomate: 255 77 61;
+  --couleur-rouge-sos: 198 40 40;
+  --couleur-rouge-texte: 179 38 30;
+  --couleur-rose-alerte: 255 225 221;
+  --couleur-gris-nuit: 189 179 160;
+  --couleur-trait-nuit: 90 82 70;
+  --couleur-carte: 255 255 255;
+  --couleur-nuit: 26 26 26;
+  --couleur-lait: 255 248 231;
+  --couleur-vert: 29 92 54;
+}

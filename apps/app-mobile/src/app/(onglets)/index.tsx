@@ -31,6 +31,7 @@ import { ordonnerParPage } from "~/fonctions/publications/ordonner-par-page";
 import { estPublieeParSuivi } from "~/fonctions/publications/est-publiee-par-suivi";
 import { envoyerSignalementPublication } from "~/fonctions/signalement/envoyer-signalement-publication";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserNombresCommentaires } from "~/hooks/utiliser-nombres-commentaires";
 import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
@@ -40,7 +41,6 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import couleurs from "~/theme/couleurs";
 
 // Une publication compte comme « à l'écran » dès qu'on en voit la moitié : pendant un glissé, il y en a toujours une
 // (à 60 %, entre 40 et 60 % du geste, aucune ne l'était : la vidéo qu'on quittait se figeait encore à l'écran)
@@ -72,6 +72,7 @@ type AuteurSuivi = { nom: string; emoji: string; cle: string };
  * et le reste du menu ouvrent la feuille « Crée ton compte ». Une fois le compte créé, on retrouve la même publication.
  */
 export default function PourToi() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const focus = useIsFocused();
   // Quitter le fil met la vidéo en pause un instant après : la fiche ouverte se dessine d'abord, sans attendre le fil
@@ -373,7 +374,7 @@ export default function PourToi() {
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: couleurs.encre }}
+      style={{ flex: 1, backgroundColor: couleurs.nuit }}
       onLayout={(e) => setTaille({ largeur: e.nativeEvent.layout.width, hauteur: e.nativeEvent.layout.height })}
     >
       {focus ? <StatusBar style="light" /> : null}

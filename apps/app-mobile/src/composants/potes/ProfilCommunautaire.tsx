@@ -118,7 +118,7 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
       <View
         accessible
         accessibilityLabel={`${estMoi ? "Ton" : "Son"} palier Ambassadeur : ${actuel.nom}, ${pote.points} point${pote.points > 1 ? "s" : ""}, dont ${pote.pointsDuMois} ce mois-ci`}
-        className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-4"
+        className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-4"
       >
         <Text className="text-4xl">{actuel.emoji}</Text>
         <View className="flex-1">
@@ -127,7 +127,7 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
           <Text className="font-texte text-sm text-gris">+{pote.pointsDuMois} ce mois-ci</Text>
         </View>
         <View className="rounded-full border-2 border-encre bg-jaune px-3 py-1">
-          <Text className="font-texte-gras text-sm text-encre">{pote.points} pts</Text>
+          <Text className="font-texte-gras text-sm text-nuit">{pote.points} pts</Text>
         </View>
       </View>
 

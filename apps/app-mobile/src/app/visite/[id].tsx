@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DELAI_ANNULATION_LIEU_MS } from "@sos-miam/commun/regles/visites";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { QuestionSentiBien } from "~/composants/miam-safe/QuestionSentiBien";
 import { CarteAttenteAddition } from "~/composants/visites/CarteAttenteAddition";
@@ -15,10 +15,10 @@ import { FeuilleContestation } from "~/composants/visites/FeuilleContestation";
 import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
-import couleurs from "~/theme/couleurs";
 
 /** Visites déjà fêtées depuis le lancement de l'app : rouvertes, elles montrent leur résumé (ou « C'est déjà validé ») */
 const visitesFetees = new Set<number>();
@@ -33,6 +33,7 @@ const DELAI_FOCUS_MS = 450;
  * À chaque changement d'état, le lecteur d'écran se place sur le titre (la fête, elle, se lit d'un bloc).
  */
 export default function EcranVisite() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const navigation = useNavigation();
   const { id, celebrer, deja } = useLocalSearchParams<{ id: string; celebrer?: string; deja?: string }>();
@@ -141,14 +142,14 @@ export default function EcranVisite() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Fermer"
           hitSlop={8}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="close" size={20} color={couleurs.encre} />
         </Pressable>
@@ -158,7 +159,7 @@ export default function EcranVisite() {
             <View
               accessible
               accessibilityLabel="Visite de démo : elle reste sur ce téléphone"
-              className="rotate-3 rounded-full border-2 border-encre bg-encre px-3 py-0.5"
+              className="rotate-3 rounded-full border-2 border-encre bg-nuit px-3 py-0.5"
             >
               <Text className="font-texte-gras text-xs text-jaune">Démo</Text>
             </View>
@@ -170,7 +171,7 @@ export default function EcranVisite() {
               accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
               hitSlop={8}
               onPress={() => setMiamSafeOuvert(true)}
-              className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+              className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
             >
               <Text className="text-lg">🚨</Text>
             </Pressable>

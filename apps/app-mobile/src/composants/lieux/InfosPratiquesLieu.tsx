@@ -5,7 +5,7 @@ import { Linking, Pressable, Text, View } from "react-native";
 import { LIBELLES_ANIMAUX, LIBELLES_PAIEMENT, LIBELLES_RESERVATION } from "@sos-miam/commun/contenus/libelles-infos-pratiques";
 import type { InfosPratiques } from "@sos-miam/commun/types/infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Le nom du lieu, lu par VoiceOver sur les boutons (« Appeler Chez Nonna Lia ») */
@@ -24,6 +24,7 @@ const listerAvecEt = (mots: string[]) => (mots.length <= 1 ? mots.join("") : `${
  * Une info inconnue n'est jamais affichée ; sans aucune info, le bloc ne s'affiche pas.
  */
 export function InfosPratiquesLieu({ nom, pratique }: Props) {
+  const couleurs = utiliserCouleurs();
   const p = pratique;
   if (!p) return null;
 
@@ -58,7 +59,7 @@ export function InfosPratiquesLieu({ nom, pratique }: Props) {
   if (contacts.length === 0 && faits.length === 0) return null;
 
   return (
-    <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
+    <View className="gap-4 rounded-carte border-2 border-encre bg-carte p-5">
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
         Infos pratiques
       </Text>
@@ -74,10 +75,10 @@ export function InfosPratiquesLieu({ nom, pratique }: Props) {
                 vibrerLegerement();
                 Linking.openURL(c.adresse).catch(() => {});
               }}
-              className={`min-h-11 flex-row items-center gap-2 rounded-full border-2 border-encre px-4 active:opacity-80 ${c.cle === "tel" ? "bg-jaune" : "bg-white"}`}
+              className={`min-h-11 flex-row items-center gap-2 rounded-full border-2 border-encre px-4 active:opacity-80 ${c.cle === "tel" ? "bg-jaune" : "bg-carte"}`}
             >
-              <Ionicons name={c.icone} size={18} color={couleurs.encre} />
-              <Text className="font-texte-gras text-[15px] text-encre">{c.texte}</Text>
+              <Ionicons name={c.icone} size={18} color={c.cle === "tel" ? couleurs.nuit : couleurs.encre} />
+              <Text className={`font-texte-gras text-[15px] ${c.cle === "tel" ? "text-nuit" : "text-encre"}`}>{c.texte}</Text>
             </Pressable>
           ))}
         </View>

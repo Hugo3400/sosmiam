@@ -6,7 +6,7 @@ import { BoutonIconeRond } from "~/composants/interface/BoutonIconeRond";
 import { LigneElementCartePro } from "~/composants/pro/LigneElementCartePro";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   section: SectionCarte;
@@ -29,6 +29,7 @@ type Props = {
  * ajouter un à la fin. Une section vide le dit gentiment.
  */
 export function SectionCartePro({ section, index, total, rangement, formules, onRenommer, onDeplacer, onAjouter, onModifierElement, onDeplacerElement, cle }: Props) {
+  const couleurs = utiliserCouleurs();
   const nombre = section.elements.length;
   const quoi = formules ? "une formule" : "un plat ou une boisson";
 
@@ -51,7 +52,7 @@ export function SectionCartePro({ section, index, total, rangement, formules, on
         )}
       </View>
 
-      <View className="rounded-carte border-2 border-encre bg-white px-4 py-1">
+      <View className="rounded-carte border-2 border-encre bg-carte px-4 py-1">
         {section.elements.map((element, rang) => (
           <LigneElementCartePro
             key={cle(element)}
@@ -75,7 +76,7 @@ export function SectionCartePro({ section, index, total, rangement, formules, on
             className={`min-h-12 flex-row items-center gap-2 py-3 active:opacity-70 ${nombre > 0 ? "border-t border-ligne" : ""}`}
           >
             <View className="h-7 w-7 items-center justify-center rounded-full bg-jaune">
-              <Ionicons name="add" size={18} color={couleurs.encre} />
+              <Ionicons name="add" size={18} color={couleurs.nuit} />
             </View>
             <Text className="font-texte-gras text-[15px] text-encre">Ajouter {quoi}</Text>
           </Pressable>

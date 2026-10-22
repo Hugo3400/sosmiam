@@ -6,7 +6,7 @@ import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   texte: string;
@@ -37,9 +37,10 @@ const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "reti
  * prénom. Compte connecté : « Envoi… » le temps qu'il parte, « Pas parti. Touche pour réessayer. » s'il n'est pas parti.
  */
 export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false, onRetirer }: Props) {
+  const couleurs = utiliserCouleurs();
   // Supprimé, masqué, retiré par la modération ou illisible : le texte dit ce qu'il en est, en discret
   const cache = ETATS_CACHES.has(etat);
-  const texteBulle = <Text className={cache ? "font-texte text-sm italic text-gris" : "font-texte text-base leading-[22px] text-encre"}>{lierPonctuation(texte)}</Text>;
+  const texteBulle = <Text className={cache ? "font-texte text-sm italic text-gris" : `font-texte text-base leading-[22px] ${deMoi && etat !== "echec" ? "text-nuit" : "text-encre"}`}>{lierPonctuation(texte)}</Text>;
 
   if (deMoi) {
     const echec = etat === "echec";
@@ -48,7 +49,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
         <View accessible accessibilityLabel={`Toi, ${heure} : ${texte}${etat === "envoi" ? ". En cours d'envoi" : ""}`} className="items-end">
           <View
             className={`rounded-2xl rounded-br-md border-2 px-3.5 py-2.5 ${
-              cache ? "border-dashed border-gris/50 bg-white/60" : echec ? "border-rouge-texte bg-jaune-clair" : `border-encre bg-jaune ${etat === "envoi" ? "opacity-70" : ""}`
+              cache ? "border-dashed border-gris/50 bg-carte/60" : echec ? "border-rouge-texte bg-jaune-clair" : `border-encre bg-jaune ${etat === "envoi" ? "opacity-70" : ""}`
             }`}
           >
             {texteBulle}
@@ -106,7 +107,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
             {prenom}
           </Text>
         ) : null}
-        <View className={`rounded-2xl rounded-tl-md border-2 px-3.5 py-2.5 ${cache ? "border-dashed border-gris/50 bg-white/60" : "border-encre bg-white"}`}>{texteBulle}</View>
+        <View className={`rounded-2xl rounded-tl-md border-2 px-3.5 py-2.5 ${cache ? "border-dashed border-gris/50 bg-carte/60" : "border-encre bg-carte"}`}>{texteBulle}</View>
         <Text className="ml-1 mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>
       </Pressable>
       {onOptions ? (

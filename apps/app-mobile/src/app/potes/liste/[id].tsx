@@ -27,11 +27,11 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import couleurs from "~/theme/couleurs";
 
 type Confirmation = "supprimer" | "quitter" | null;
 
@@ -42,6 +42,7 @@ type Confirmation = "supprimer" | "quitter" | null;
  * en entier à l'ouverture (ses lieux arrivent juste après).
  */
 export default function EcranListePartagee() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -79,7 +80,7 @@ export default function EcranListePartagee() {
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={retour}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -257,7 +258,7 @@ export default function EcranListePartagee() {
                 <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(texteVide)}</Text>
               </View>
             ) : (
-              <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+              <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
                 {lieux.map((lieu, i) => (
                   <LigneLieuListe
                     key={lieu.id}

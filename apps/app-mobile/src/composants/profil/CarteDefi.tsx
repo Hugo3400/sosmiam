@@ -58,7 +58,7 @@ export function CarteDefi({ defi }: Props) {
     .join(". ");
 
   return (
-    <View accessible accessibilityLabel={lu} className={`gap-3 rounded-carte border-2 border-encre p-4 ${reussi ? "bg-jaune-clair" : "bg-white"}`}>
+    <View accessible accessibilityLabel={lu} className={`gap-3 rounded-carte border-2 border-encre p-4 ${reussi ? "bg-jaune-clair" : "bg-carte"}`}>
       <View className="flex-row gap-3">
         <Text className="text-3xl">{defi.emoji}</Text>
         <View className="flex-1 gap-0.5">
@@ -75,7 +75,7 @@ export function CarteDefi({ defi }: Props) {
       )}
 
       <View className="self-start rounded-full bg-jaune px-3 py-1">
-        <Text className="font-texte-semi text-[13px] text-encre">{pastille}</Text>
+        <Text className="font-texte-semi text-[13px] text-nuit">{pastille}</Text>
       </View>
       {note ? <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(note)}</Text> : null}
     </View>

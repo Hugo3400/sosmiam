@@ -20,9 +20,9 @@ import { ecrireResultatAjoutQuiEstLa } from "~/fonctions/qui-est-la/ecrire-resul
 import { estVisibleEnCeMoment } from "~/fonctions/qui-est-la/est-visible-en-ce-moment";
 import { trouverCoucouReciproque } from "~/fonctions/qui-est-la/trouver-coucou-reciproque";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserQuiEstLa } from "~/hooks/utiliser-qui-est-la";
-import couleurs from "~/theme/couleurs";
 
 const HEURE_MS = 3_600_000;
 
@@ -34,6 +34,7 @@ function decrirePresence(donnees: QuiEstLaApi, present: boolean): string {
 }
 
 export function EcranQuiEstLa() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const qui = utiliserQuiEstLa();

@@ -13,13 +13,14 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /**
  * Messages : les invitations à rejoindre un groupe (compte connecté), tes conversations privées et de groupe, la plus récente
  * d'abord, et de quoi en lancer une nouvelle.
  */
 export default function Messages() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { pret, conversations, nonLus, invitations } = utiliserConversations();
@@ -37,8 +38,8 @@ export default function Messages() {
   const pretes = pret && communautePrete;
 
   const actions = [
-    { cle: "message", libelle: "Nouveau message", icone: "create" as const, fond: "bg-jaune", indice: "Écris à un pote de ta bande", faire: () => setFeuilleOuverte(true) },
-    { cle: "groupe", libelle: "Nouveau groupe", icone: "people" as const, fond: "bg-white", indice: "Pour discuter à plusieurs", faire: () => router.push("/potes/nouveau-groupe") },
+    { cle: "message", libelle: "Nouveau message", icone: "create" as const, fond: "bg-jaune", texte: "text-nuit", teinte: couleurs.nuit, indice: "Écris à un pote de ta bande", faire: () => setFeuilleOuverte(true) },
+    { cle: "groupe", libelle: "Nouveau groupe", icone: "people" as const, fond: "bg-carte", texte: "text-encre", teinte: couleurs.encre, indice: "Pour discuter à plusieurs", faire: () => router.push("/potes/nouveau-groupe") },
   ];
 
   return (
@@ -49,7 +50,7 @@ export default function Messages() {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={retour}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -90,8 +91,8 @@ export default function Messages() {
                     }}
                     className={`min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-4 active:opacity-80 ${a.fond}`}
                   >
-                    <Ionicons name={a.icone} size={16} color={couleurs.encre} />
-                    <Text className="font-texte-gras text-[15px] text-encre">{a.libelle}</Text>
+                    <Ionicons name={a.icone} size={16} color={a.teinte} />
+                    <Text className={`font-texte-gras text-[15px] ${a.texte}`}>{a.libelle}</Text>
                   </Pressable>
                 ))}
               </View>

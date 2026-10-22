@@ -8,7 +8,7 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   carte: CarteFidelite;
@@ -24,6 +24,7 @@ const minuscule = (texte: string) => texte.charAt(0).toLocaleLowerCase("fr-FR") 
  * et « programme en pause » si le lieu l'a arrêté. On la touche pour l'ouvrir en grand.
  */
 export function CarteFideliteListe({ carte, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const prete = carte.pretes[0];
   const restantes = Math.max(0, carte.sur - carte.tampons);
   // Une récompense prête garde l'alcool de son gain ; sinon, celle vers laquelle on avance
@@ -50,7 +51,7 @@ export function CarteFideliteListe({ carte, onPress }: Props) {
         vibrerLegerement();
         onPress();
       }}
-      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${prete ? "bg-jaune-clair" : "bg-white"}`}
+      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${prete ? "bg-jaune-clair" : "bg-carte"}`}
     >
       <View className="flex-row items-center gap-2">
         <Text className="text-2xl">{carte.lieu.emoji}</Text>

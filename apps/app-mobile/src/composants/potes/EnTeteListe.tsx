@@ -93,7 +93,7 @@ export function EnTeteListe({ liste, auteur, estAMoi, abonnes, nombreAbonnes, co
             vibrerLegerement();
             onOuvrirAuteur(auteur.id);
           }}
-          className="min-h-11 flex-row items-center gap-2 rounded-full border-2 border-encre bg-white py-1 pl-1 pr-4 active:opacity-70"
+          className="min-h-11 flex-row items-center gap-2 rounded-full border-2 border-encre bg-carte py-1 pl-1 pr-4 active:opacity-70"
         >
           <RondPote pote={auteur} taille={32} />
           <Text className="font-texte-semi text-[15px] text-encre">{estAMoi ? "Par toi" : `Par ${auteur.prenom}`}</Text>

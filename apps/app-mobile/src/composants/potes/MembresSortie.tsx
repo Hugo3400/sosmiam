@@ -60,7 +60,7 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
         Qui vient ?
       </Text>
-      <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+      <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
         {membres.map((m, i) => {
           const estMoi = m.pote.id === monId;
           const estOrganisateur = m.pote.id === sortie.organisateur && !m.enAttente;
@@ -83,7 +83,7 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
                 </View>
                 {etiquette ? (
                   <View className={`rounded-full px-2.5 py-1 ${m.enAttente ? "bg-ligne" : "bg-jaune"}`}>
-                    <Text className="font-texte-semi text-[12px] text-encre">{etiquette}</Text>
+                    <Text className={`font-texte-semi text-[12px] ${m.enAttente ? "text-encre" : "text-nuit"}`}>{etiquette}</Text>
                   </View>
                 ) : null}
               </View>
@@ -98,7 +98,7 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
                     setARetirer(m);
                     setConfirmationOuverte(true);
                   }}
-                  className="h-9 min-w-20 items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
+                  className="h-9 min-w-20 items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
                 >
                   <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
                 </Pressable>

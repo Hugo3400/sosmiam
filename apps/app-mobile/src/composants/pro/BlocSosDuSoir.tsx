@@ -10,6 +10,7 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { CompteurPlusMoins } from "~/composants/interface/CompteurPlusMoins";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { ChoixFin } from "~/composants/pro/ChoixFin";
+import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { listerFinsCeSoir } from "~/fonctions/pro/lister-fins-ce-soir";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -50,13 +51,15 @@ export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLa
   if (sos?.enCours) {
     return (
       <View className="gap-4 rounded-carte border-2 border-encre bg-jaune p-4">
-        <Text className="font-titre text-2xl text-encre">🛟 SOS en cours</Text>
-        <Text className="font-texte text-base leading-6 text-encre">
+        <Text className="font-titre text-2xl text-nuit">🛟 SOS en cours</Text>
+        <Text className="font-texte text-base leading-6 text-nuit">
           {lierPonctuation(`${sos.places} place${sos.places > 1 ? "s" : ""} à remplir jusqu'à ${ecrireHeure(sos.jusqua)}${sos.offre ? ` · ${sos.offre}` : ""}.`)}
         </Text>
-        <Text className="font-texte text-sm text-encre/75">{`Lancé à ${ecrireHeure(sos.lanceLe)}${sos.lancePar ? ` par ${sos.lancePar}` : ""}. Les gourmands du coin le voient dans l'app.`}</Text>
-        <RefusLimitationEnPlace texte={refusArreter} />
-        <Bouton libelle="Arrêter le SOS" variante="blanc" desactive={enCours} onPress={() => setConfirmation("arreter")} />
+        <Text className="font-texte text-sm text-nuit/75">{`Lancé à ${ecrireHeure(sos.lanceLe)}${sos.lancePar ? ` par ${sos.lancePar}` : ""}. Les gourmands du coin le voient dans l'app.`}</Text>
+        <ZoneClaire className="gap-4">
+          <RefusLimitationEnPlace texte={refusArreter} />
+          <Bouton libelle="Arrêter le SOS" variante="blanc" desactive={enCours} onPress={() => setConfirmation("arreter")} />
+        </ZoneClaire>
         <FeuilleConfirmation
           visible={confirmation === "arreter"}
           emoji="🛟"
@@ -74,7 +77,7 @@ export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLa
   if (sos || !moment.sosPossible) {
     const fini = sos?.arreteLe ? `arrêté à ${ecrireHeure(sos.arreteLe)}` : sos ? `fini à ${ecrireHeure(sos.jusqua)}` : "déjà lancé";
     return (
-      <View className="gap-2 rounded-carte border-2 border-encre bg-white p-4">
+      <View className="gap-2 rounded-carte border-2 border-encre bg-carte p-4">
         <Text className="font-texte-gras text-base text-encre">{`🌙 Le SOS de ce soir est ${fini}`}</Text>
         <Text className="font-texte text-sm leading-5 text-gris">Un SOS par jour : le prochain se lance demain. Le message du moment, lui, reste à ta main.</Text>
       </View>

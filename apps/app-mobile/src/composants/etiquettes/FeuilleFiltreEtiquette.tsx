@@ -32,7 +32,7 @@ export function FeuilleFiltreEtiquette({ visible, choisie, onChoisir, onFermer }
                 vibrerLegerement();
                 onChoisir(choix.nom);
               }}
-              className={`min-h-11 justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${actif ? "bg-encre" : "bg-white"}`}
+              className={`min-h-11 justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${actif ? "bg-nuit" : "bg-carte"}`}
             >
               <Text className={`font-texte-semi text-[14px] ${actif ? "text-jaune" : "text-encre"}`}>{choix.libelle}</Text>
             </Pressable>

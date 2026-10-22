@@ -1,7 +1,8 @@
-import { Text, View } from "react-native";
+import { Text } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
@@ -14,12 +15,12 @@ type Props = {
 /** Fil « Pour toi » sans aucune publication : les lieux préparent leurs vidéos (ou pas de réseau). Explorer reste ouvert. */
 export function FilVidePourToi({ hauteur, horsLigne, onVoirAdresses }: Props) {
   return (
-    <View style={{ height: hauteur }} className="items-center justify-center gap-4 bg-jaune px-8">
+    <ZoneClaire style={{ height: hauteur }} className="items-center justify-center gap-4 bg-jaune px-8">
       <Mascotte expression={horsLigne ? "surprise" : "clin"} taille={140} />
-      <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
+      <Text accessibilityRole="header" className="text-center font-titre text-3xl text-nuit">
         {horsLigne ? "Pas de réseau" : "Le fil chauffe encore"}
       </Text>
-      <Text className="text-center font-texte text-base leading-6 text-encre/75">
+      <Text className="text-center font-texte text-base leading-6 text-nuit/75">
         {lierPonctuation(
           horsLigne
             ? "Impossible de charger le fil pour l'instant. Il revient dès que ta connexion aussi !"
@@ -27,6 +28,6 @@ export function FilVidePourToi({ hauteur, horsLigne, onVoirAdresses }: Props) {
         )}
       </Text>
       <Bouton libelle="Voir les adresses" variante="blanc" onPress={onVoirAdresses} className="mt-2 self-stretch" />
-    </View>
+    </ZoneClaire>
   );
 }

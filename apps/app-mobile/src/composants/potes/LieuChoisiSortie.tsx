@@ -22,7 +22,7 @@ type Props = {
 export function LieuChoisiSortie({ lieu, image, km, votes, onFiche, onItineraire }: Props) {
   const detailVotes = votes === 0 ? "Personne n'a voté, alors on a pris le premier proposé." : `${votes} vote${votes > 1 ? "s" : ""}, la bande a parlé.`;
   return (
-    <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+    <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
       <VignetteLieu lieu={lieu} image={image} hauteur={150} largeur="100%" arrondi={0} />
       <View className="gap-1 p-4">
         <Text accessibilityRole="header" accessibilityLabel={`On y va ! Le lieu retenu : ${lieu.nom}`} className="font-titre text-[28px] leading-[32px] text-encre">

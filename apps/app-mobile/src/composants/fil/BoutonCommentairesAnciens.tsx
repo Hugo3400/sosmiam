@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   onCharger: () => void;
@@ -16,6 +16,7 @@ const DUREE_MAX = 6000;
 
 /** Au bout de la liste des commentaires, quand il en reste de plus anciens à lire (100 par page). */
 export function BoutonCommentairesAnciens({ onCharger, charges }: Props) {
+  const couleurs = utiliserCouleurs();
   const [enCours, setEnCours] = useState(false);
   const [vus, setVus] = useState(charges);
   if (charges !== vus) {

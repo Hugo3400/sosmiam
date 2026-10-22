@@ -37,7 +37,7 @@ export function BandeauValidationsQr({ qr, validees, maintenant }: Props) {
           {scannes.map((v) => (
             <View key={v.visiteId} className="flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-3 py-1">
               <EmojiOuMiami valeur={v.avatar} taille={20} className="text-base" />
-              <Text className="font-texte-gras text-sm text-encre">✓ {v.initialeNom ? `${v.prenom} ${v.initialeNom}.` : v.prenom}</Text>
+              <Text className="font-texte-gras text-sm text-nuit">✓ {v.initialeNom ? `${v.prenom} ${v.initialeNom}.` : v.prenom}</Text>
             </View>
           ))}
         </View>

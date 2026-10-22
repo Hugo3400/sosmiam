@@ -8,9 +8,9 @@ import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalementPublication, type ChoixSignalement, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 /** « signaler » n'arrive au fil qu'en visite sans compte (avec un compte, le signalement se fait dans le menu) */
 export type ChoixMenu = "rescousse" | "inviter" | "adresse" | "envoyer" | "pas-interesse" | "signaler";
@@ -47,6 +47,7 @@ const SECOURS_IOS = 1000;
  * En visite sans compte, un cadenas sur tout sauf l'adresse : le fil referme le menu et propose de créer un compte.
  */
 export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, verifie, restantes, avecCompte, onChoisir, onSignaler, onFermer, onRefermee }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -190,7 +191,7 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
                       </Pressable>
                     );
                   })}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
                 </>

@@ -47,14 +47,14 @@ export function AlertesMiamSafeComptoir({ lieuId, onRepondre }: Props) {
           <View
             key={a.id}
             accessibilityRole={prise ? undefined : "alert"}
-            className={`gap-3 rounded-carte border-2 p-4 ${prise ? "border-ligne bg-white" : "border-jaune bg-encre"}`}
+            className={`gap-3 rounded-carte border-2 p-4 ${prise ? "border-ligne bg-carte" : "border-jaune bg-nuit"}`}
           >
             <Text className={`font-texte-gras text-xs ${prise ? "text-gris" : "text-jaune"}`}>
               🛡 MIAM SAFE · {new Date(a.creeLe).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
               {prise ? " · quelqu'un y va" : a.statut === "sans-reponse" ? " · sans réponse depuis 2 min" : ""}
             </Text>
-            <Text className={`font-titre-gras text-2xl ${prise ? "text-encre" : "text-creme"}`}>{a.prenom} a besoin d'aide</Text>
-            <Text className={`font-texte-semi text-base ${prise ? "text-encre" : "text-creme"}`}>{ou}</Text>
+            <Text className={`font-titre-gras text-2xl ${prise ? "text-encre" : "text-lait"}`}>{a.prenom} a besoin d'aide</Text>
+            <Text className={`font-texte-semi text-base ${prise ? "text-encre" : "text-lait"}`}>{ou}</Text>
             {prise ? null : (
               <>
                 <Text className="font-texte text-sm leading-5 text-gris-nuit">Va discrètement à sa rencontre. Pas d'annonce en salle.</Text>

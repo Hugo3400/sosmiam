@@ -4,10 +4,10 @@ import { ActivityIndicator, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Le QR d'un appareil à connecter, ouvert par l'appareil photo du téléphone (sosmiam.fr/q/<code>) : avec un compte connecté,
@@ -15,6 +15,7 @@ import couleurs from "~/theme/couleurs";
  * sans compte, on explique. En démo (pas de vraie session), on y file aussi : la demande montrée est un exemple.
  */
 export default function OuvrirQrConnexion() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { code = "" } = useLocalSearchParams<{ code: string }>();
   const { connecte } = utiliserSession();

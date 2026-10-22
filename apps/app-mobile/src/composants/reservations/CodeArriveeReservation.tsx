@@ -13,7 +13,7 @@ export function CodeArriveeReservation({ code }: Props) {
       <View className="flex-row gap-1">
         {Array.from(code).map((chiffre, i) => (
           <View key={`${i}-${chiffre}`} className="h-9 w-8 items-center justify-center rounded-lg border-2 border-encre bg-jaune">
-            <Text maxFontSizeMultiplier={1.2} className="font-titre text-lg text-encre">
+            <Text maxFontSizeMultiplier={1.2} className="font-titre text-lg text-nuit">
               {chiffre}
             </Text>
           </View>

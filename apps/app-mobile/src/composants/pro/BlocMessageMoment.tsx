@@ -48,7 +48,7 @@ export function BlocMessageMoment({ moment, enCours, refusLimite, refusEffacer, 
   return (
     <View className="gap-5">
       {actuel ? (
-        <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+        <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">{`📣 « ${actuel.texte} »`}</Text>
           <Text className="font-texte text-sm text-gris">{actuel.jusqua ? `Affiché sur ta fiche jusqu'à ${ecrireHeure(actuel.jusqua)}.` : "Affiché sur ta fiche par l'équipe SOS Miam."}</Text>
           <RefusLimitationEnPlace texte={refusEffacer} />

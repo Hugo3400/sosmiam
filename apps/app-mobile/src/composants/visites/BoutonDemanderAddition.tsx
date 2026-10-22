@@ -5,19 +5,21 @@ import { AccessibilityInfo, ActivityIndicator, Linking, Text, View } from "react
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { Bouton } from "~/composants/interface/Bouton";
+import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { FeuilleEchecVisite, type EchecVisite } from "~/composants/visites/FeuilleEchecVisite";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import type { ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   lieu: Lieu;
   variante?: "jaune" | "blanc";
   libelle?: string;
+  surJaune?: boolean;
 };
 
 type Etape = "repos" | "position" | "envoi";
@@ -48,7 +50,8 @@ const DELAI_ANNONCE_ETAPE = 700;
  * envoie la demande et ouvre l'écran du code. Si ça coince (position, réseau, une addition déjà en attente…), une feuille
  * dit pourquoi, avec « Réessayer », « Ouvrir les réglages » ou « Voir ma demande ». Une seule demande à la fois.
  */
-export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "Demander l'addition SOS Miam" }: Props) {
+export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "Demander l'addition SOS Miam", surJaune = false }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const services = utiliserServices();
   const demanderCompte = utiliserDemandeCompte();
@@ -117,27 +120,29 @@ export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "De
 
   return (
     <>
-      {etape === "repos" ? (
-        <Bouton
-          libelle={libelle}
-          // Dans « Tu es chez qui ? », chaque ligne dit « Demander l'addition ici » : VoiceOver, lui, entend le lieu
-          libelleLu={libelle.endsWith(" ici") ? `${libelle.slice(0, -" ici".length)} ${direChezLieu(lieu.nom)}` : undefined}
-          variante={variante}
-          indice={`On vérifie que tu es bien ${direChezLieu(lieu.nom)}, puis tu reçois un code à montrer en payant`}
-          onPress={() => void demander()}
-        />
-      ) : (
-        // Même place que le bouton : rien ne saute pendant qu'on cherche ta position
-        <View
-          accessible
-          accessibilityLabel={TEXTES_ETAPE[etape]}
-          accessibilityLiveRegion="polite"
-          className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-6 py-2"
-        >
-          <ActivityIndicator color={couleurs.encre} />
-          <Text className="font-texte-gras text-base text-encre">{TEXTES_ETAPE[etape]}</Text>
-        </View>
-      )}
+      <ZoneClaire active={surJaune}>
+        {etape === "repos" ? (
+          <Bouton
+            libelle={libelle}
+            // Dans « Tu es chez qui ? », chaque ligne dit « Demander l'addition ici » : VoiceOver, lui, entend le lieu
+            libelleLu={libelle.endsWith(" ici") ? `${libelle.slice(0, -" ici".length)} ${direChezLieu(lieu.nom)}` : undefined}
+            variante={variante}
+            indice={`On vérifie que tu es bien ${direChezLieu(lieu.nom)}, puis tu reçois un code à montrer en payant`}
+            onPress={() => void demander()}
+          />
+        ) : (
+          // Même place que le bouton : rien ne saute pendant qu'on cherche ta position
+          <View
+            accessible
+            accessibilityLabel={TEXTES_ETAPE[etape]}
+            accessibilityLiveRegion="polite"
+            className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-carte px-6 py-2"
+          >
+            <ActivityIndicator color={surJaune ? couleurs.nuit : couleurs.encre} />
+            <Text className="font-texte-gras text-base text-encre">{TEXTES_ETAPE[etape]}</Text>
+          </View>
+        )}
+      </ZoneClaire>
       <FeuillePositionVisite {...position.propsFeuille} />
       <FeuilleEchecVisite echec={echec} lieuNom={lieu.nom} actions={actions} onFermer={() => setEchec(null)} />
     </>

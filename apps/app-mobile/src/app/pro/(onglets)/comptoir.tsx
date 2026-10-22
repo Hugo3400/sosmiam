@@ -23,9 +23,9 @@ import { ListeValideesInstant } from "~/composants/pro/ListeValideesInstant";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserComptoir } from "~/hooks/utiliser-comptoir";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 const nomDe = (d: { prenom: string; initialeNom: string | null }) => (d.initialeNom ? `${d.prenom} ${d.initialeNom}.` : d.prenom);
 
@@ -34,6 +34,7 @@ const nomDe = (d: { prenom: string; initialeNom: string | null }) => (d.initiale
  * encore annulables. Suivi en direct (utiliserComptoir) ; chaque geste dit ce qui s'est passé, en une phrase.
  */
 export default function EcranComptoir() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { lieuPro } = utiliserModes();

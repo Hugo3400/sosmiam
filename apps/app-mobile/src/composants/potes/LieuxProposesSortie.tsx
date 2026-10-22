@@ -11,9 +11,9 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Lieux proposés au départ, dans l'ordre où ils ont été choisis */
@@ -27,6 +27,7 @@ type Props = {
 
 /** Les lieux proposés au départ d'une nouvelle sortie : la liste (avec de quoi en retirer) et « Ajouter un lieu ». */
 export function LieuxProposesSortie({ lieux, max, onAjouter, onRetirer, erreur }: Props) {
+  const couleurs = utiliserCouleurs();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const depart = utiliserPointDeDepart();

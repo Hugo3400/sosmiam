@@ -66,7 +66,7 @@ export function RetourAjoutPote({ retour }: Props) {
   }, [retour, titre, detail]);
 
   return (
-    <View className={`gap-3 rounded-2xl border-2 px-4 py-4 ${reussi ? "border-encre bg-jaune-clair" : "border-ligne bg-white"}`}>
+    <View className={`gap-3 rounded-2xl border-2 px-4 py-4 ${reussi ? "border-encre bg-jaune-clair" : "border-ligne bg-carte"}`}>
       <View className="flex-row items-center gap-3">
         {pote ? (
           <RondPote pote={pote} taille={48} />

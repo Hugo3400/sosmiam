@@ -32,7 +32,7 @@ export function RecapitulatifReservation({ nomLieu, emojiLieu, quand, secours, p
   return (
     <View className="relative">
       <View className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-carte bg-jaune" />
-      <View accessible accessibilityLabel={libelle} className="gap-3 rounded-carte border-2 border-encre bg-white p-5">
+      <View accessible accessibilityLabel={libelle} className="gap-3 rounded-carte border-2 border-encre bg-carte p-5">
         <Text className="font-titre-gras text-xl text-encre">{titre}</Text>
         <View className="gap-2.5">
           {lignes.map((ligne) => (

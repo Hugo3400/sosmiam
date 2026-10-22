@@ -55,12 +55,12 @@ export const CarrouselSos = memo(function CarrouselSos({ sos, vignettes, onOuvri
                 onOuvrir(lieu.id);
               }}
               style={{ width: LARGEUR_CARTE }}
-              className="overflow-hidden rounded-carte border-2 border-encre bg-white active:opacity-80"
+              className="overflow-hidden rounded-carte border-2 border-encre bg-carte active:opacity-80"
             >
               <View>
                 <VignetteLieu lieu={lieu} image={vignettes.get(lieu.id) ?? null} hauteur={84} largeur="100%" arrondi={0} />
                 <Text
-                  className={`absolute left-2 top-2 overflow-hidden rounded-full px-2 py-0.5 font-texte-gras text-xs ${lieu.sos ? "border border-encre bg-jaune text-encre" : "bg-rose-alerte text-rouge-texte"}`}
+                  className={`absolute left-2 top-2 overflow-hidden rounded-full px-2 py-0.5 font-texte-gras text-xs ${lieu.sos ? "border border-encre bg-jaune text-nuit" : "bg-rose-alerte text-rouge-texte"}`}
                 >
                   {lieu.sos ? "🛟 SOS" : "🔥 Ce soir"}
                 </Text>

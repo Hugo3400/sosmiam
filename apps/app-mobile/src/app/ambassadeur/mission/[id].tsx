@@ -19,10 +19,10 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserPositionValidation } from "~/hooks/utiliser-position-validation";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { enregistrerExplicationPositionVue, lireExplicationPositionVue } from "~/stockage/explication-position-vue";
-import couleurs from "~/theme/couleurs";
 
 const COMPTE_RENDU_MIN = 5;
 const COMPTE_RENDU_MAX = 2000;
@@ -47,6 +47,7 @@ const A_REESSAYER: readonly ErreurService[] = [
  * première fois expliquée), puis « J'ai fini la mission » avec un petit compte rendu pour l'équipe.
  */
 export default function EcranMission() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { ambassadeur } = utiliserServices();
@@ -159,7 +160,7 @@ export default function EcranMission() {
       <View className="gap-5">
         {mission.detail ? <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(mission.detail)}</Text> : null}
         {lieu ? (
-          <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+          <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
             <Text className="font-texte-gras text-base text-encre">{`${lieu.emoji} ${lieu.nom}`}</Text>
             <Text className="font-texte text-sm text-gris">{lieu.ville}</Text>
             {surPlace ? <Text className="font-texte-gras text-base text-encre">{surPlace}</Text> : null}
@@ -178,7 +179,7 @@ export default function EcranMission() {
                     accessible
                     accessibilityLabel={TEXTES_PRESENCE[presence]}
                     accessibilityLiveRegion="polite"
-                    className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-6 py-2"
+                    className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-carte px-6 py-2"
                   >
                     <ActivityIndicator color={couleurs.encre} />
                     <Text className="font-texte-gras text-base text-encre">{TEXTES_PRESENCE[presence]}</Text>

@@ -16,7 +16,7 @@ export function CarteEvenementLieu({ evenement: e, interesse, onInteret }: Props
   const quand = `${ecrireJourLong(e.debut)} · ${ecrireHeure(e.debut)}${e.fin ? ` – ${ecrireHeure(e.fin)}` : ""}${e.hebdoJusqua ? " · chaque semaine" : ""}`;
   const prix = e.tarif === "prix" && e.prixCentimes !== null ? formaterPrix(e.prixCentimes / 100) : TARIFS_EVENEMENT_ECRITS[e.tarif];
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View className="flex-row gap-3">
         <Text className="text-3xl">{type.emoji}</Text>
         <View className="flex-1 gap-0.5">
@@ -37,9 +37,9 @@ export function CarteEvenementLieu({ evenement: e, interesse, onInteret }: Props
         accessibilityLabel={interesse ? `Ça t'intéresse : ${e.titre}` : `Ça m'intéresse : ${e.titre}`}
         accessibilityHint={interesse ? "Touche pour ne plus le garder" : "On te le garde de côté"}
         onPress={onInteret}
-        className={`min-h-11 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre px-4 py-2.5 active:opacity-80 ${interesse ? "bg-encre" : "bg-jaune"}`}
+        className={`min-h-11 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre px-4 py-2.5 active:opacity-80 ${interesse ? "bg-nuit" : "bg-jaune"}`}
       >
-        <Text className={`font-texte-gras text-[15px] ${interesse ? "text-jaune" : "text-encre"}`}>{interesse ? "✓ Ça m'intéresse" : "🎟️ Ça m'intéresse"}</Text>
+        <Text className={`font-texte-gras text-[15px] ${interesse ? "text-jaune" : "text-nuit"}`}>{interesse ? "✓ Ça m'intéresse" : "🎟️ Ça m'intéresse"}</Text>
       </Pressable>
     </View>
   );

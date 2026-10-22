@@ -5,7 +5,7 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   lieu: Lieu;
@@ -22,6 +22,7 @@ type Props = {
 
 /** Une adresse d'une liste partagée : vignette, nom, ce que c'est, ville et distance ; la toucher ouvre sa fiche. */
 export function LigneLieuListe({ lieu, km, image, derniere, onOuvrir, onRetirer }: Props) {
+  const couleurs = utiliserCouleurs();
   const distance = km === null ? null : formaterDistance(km);
 
   return (

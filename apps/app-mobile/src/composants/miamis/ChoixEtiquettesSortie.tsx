@@ -62,7 +62,7 @@ export function ChoixEtiquettesSortie({ etiquettes, onChanger, erreur }: Props) 
               onPress={() => onChanger(etiquettes.filter((x) => x.nom !== e.nom))}
               className="min-h-11 flex-row items-center gap-1 rounded-full border-2 border-dashed border-encre bg-jaune px-3.5 active:opacity-80"
             >
-              <Text className="font-texte-semi text-[13px] text-encre">{`${e.nom} ×`}</Text>
+              <Text className="font-texte-semi text-[13px] text-nuit">{`${e.nom} ×`}</Text>
             </Pressable>
           ))}
         </View>

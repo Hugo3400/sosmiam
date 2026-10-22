@@ -3,7 +3,7 @@ import { View } from "react-native";
 import Animated, { Easing, cancelAnimation, useAnimatedProps, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Côté de l'anneau, en points */
@@ -24,6 +24,7 @@ const EPAISSEUR = 8;
  * que le QR est vivant. « Réduire les animations » : l'anneau reste fixe (le texte dit le temps restant).
  */
 export function AnneauCompteARebours({ taille, changeDansMs, dureeMs, fenetre }: Props) {
+  const couleurs = utiliserCouleurs();
   const animationsReduites = useReducedMotion();
   const rayon = (taille - EPAISSEUR) / 2;
   const circonference = 2 * Math.PI * rayon;

@@ -14,14 +14,15 @@ import { grouperBadgesParFamille } from "~/fonctions/ambassadeur/grouper-badges-
 import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import couleurs from "~/theme/couleurs";
 
 const FAMILLES = grouperBadgesParFamille(BADGES, FAMILLES_BADGES);
 const MARGE_EN_VUE = 16;
 
 export default function Badges() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { connecte, compte } = utiliserSession();
   const activite = utiliserActivite();
@@ -63,7 +64,7 @@ export default function Badges() {
           accessibilityLabel={TEXTES_BADGES.retour}
           hitSlop={12}
           onPress={revenir}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -105,7 +106,7 @@ export default function Badges() {
                 ))}
               </View>
             ) : (
-              <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-5">
+              <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-5">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
                   {connecte ? "📶" : "🔑"}
                 </Text>

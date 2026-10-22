@@ -5,6 +5,7 @@ import { Marker } from "react-native-maps";
 import { DIAMETRE_GROSSE_BULLE_POINTS, DIAMETRE_MARQUEUR_POINTS, NOMBRE_GROSSE_BULLE } from "~/contenus/regroupement-carte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
+import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
   cle: string;
@@ -21,12 +22,14 @@ const DECALAGE_OMBRE = 3;
 const PLAN_DEVANT = 4;
 
 export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitude, longitude, devant, onPress }: Props) {
-  const [nombreFige, setNombreFige] = useState<number | null>(null);
+  const { schema } = utiliserTheme();
+  const apparence = `${nombre}|${schema}`;
+  const [apparenceFigee, setApparenceFigee] = useState<string | null>(null);
   useEffect(() => {
     if (Platform.OS !== "android") return;
-    const minuterie = setTimeout(() => setNombreFige(nombre), DUREE_SUIVI);
+    const minuterie = setTimeout(() => setApparenceFigee(apparence), DUREE_SUIVI);
     return () => clearTimeout(minuterie);
-  }, [nombre]);
+  }, [apparence]);
 
   const texte = formaterNombreCourt(nombre).replace(" ", "\u202f");
   const diametre = nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS : DIAMETRE_MARQUEUR_POINTS;
@@ -39,7 +42,7 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
       coordinate={{ latitude, longitude }}
       anchor={{ x: 0.5, y: 0.5 }}
       zIndex={devant ? PLAN_DEVANT : 0}
-      tracksViewChanges={nombre !== nombreFige}
+      tracksViewChanges={apparence !== apparenceFigee}
       stopPropagation
       onPress={() => {
         vibrerLegerement();
@@ -58,7 +61,7 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
           style={{ width: diametre, height: diametre, borderRadius: diametre / 2, borderWidth: 2 }}
           className="items-center justify-center overflow-hidden border-encre bg-jaune"
         >
-          <Text allowFontScaling={false} className={`font-titre text-encre ${police}`}>
+          <Text allowFontScaling={false} className={`font-titre text-nuit ${police}`}>
             {texte}
           </Text>
         </View>

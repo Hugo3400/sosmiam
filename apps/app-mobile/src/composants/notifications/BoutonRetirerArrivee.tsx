@@ -54,7 +54,7 @@ export function BoutonRetirerArrivee({ id, prenom, onAnnoncer }: Props) {
         setRetire(true);
         onAnnoncer(`${prenom} n'est plus dans ta bande. En toute discrétion 🤫`);
       }}
-      className="mb-3 h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
+      className="mb-3 h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
     >
       <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
     </Pressable>

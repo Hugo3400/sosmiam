@@ -19,8 +19,8 @@ import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Lieux filtrés et triés */
@@ -79,6 +79,7 @@ const lireCleLieu = (element: LieuExplorer) => String(element.lieu.id);
  */
 export function FeuilleLieux(props: Props) {
   const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis, maintenant, etiquettesLigne } = props;
+  const couleurs = utiliserCouleurs();
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();

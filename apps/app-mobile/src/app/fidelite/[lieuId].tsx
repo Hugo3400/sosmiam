@@ -16,12 +16,12 @@ import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 
 const minuscule = (texte: string) => texte.charAt(0).toLocaleLowerCase("fr-FR") + texte.slice(1);
 
@@ -30,6 +30,7 @@ const minuscule = (texte: string) => texte.charAt(0).toLocaleLowerCase("fr-FR") 
  * à montrer à l'équipe), et tes visites validées dans ce lieu. Relue toute seule quand l'équipe t'offre la récompense.
  */
 export default function EcranCarteFidelite() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const fermer = utiliserFermerPile();
   const { lieuId } = useLocalSearchParams<{ lieuId: string }>();
@@ -64,7 +65,7 @@ export default function EcranCarteFidelite() {
         accessibilityLabel="Retour"
         hitSlop={8}
         onPress={fermer}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
       </Pressable>
@@ -110,7 +111,7 @@ export default function EcranCarteFidelite() {
         <View
           accessible
           accessibilityLabel={`${carte.lieu.nom}. ${carte.tampons} tampon${carte.tampons > 1 ? "s" : ""} sur ${carte.sur}. Encore ${restantes} visite${restantes > 1 ? "s" : ""} pour ${minuscule(carte.recompense)}.`}
-          className="items-center gap-4 rounded-carte border-2 border-encre bg-white px-5 py-6"
+          className="items-center gap-4 rounded-carte border-2 border-encre bg-carte px-5 py-6"
         >
           <Text className="text-5xl">{carte.lieu.emoji}</Text>
           <Text className="text-center font-titre text-2xl text-encre">{carte.lieu.nom}</Text>

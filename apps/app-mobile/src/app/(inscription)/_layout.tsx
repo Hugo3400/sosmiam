@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 
 import { FournisseurBrouillon } from "~/composants/inscription/FournisseurBrouillon";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 // Premier écran du parcours (le groupe n'a pas d'index : « / » appartient aux onglets)
 export const unstable_settings = { initialRouteName: "bienvenue" };
@@ -12,6 +12,7 @@ export const unstable_settings = { initialRouteName: "bienvenue" };
  * brouillon suit d'un écran à l'autre.
  */
 export default function MiseEnPageInscription() {
+  const couleurs = utiliserCouleurs();
   return (
     <FournisseurBrouillon>
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: couleurs.creme } }}>

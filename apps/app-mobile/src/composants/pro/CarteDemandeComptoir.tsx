@@ -31,7 +31,7 @@ export function CarteDemandeComptoir({ demande, maintenant, onRegler, onRefuser,
   const codeLu = demande.code.split("").join(", ");
 
   return (
-    <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${recompense ? "bg-jaune-clair" : "bg-white"}`}>
+    <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${recompense ? "bg-jaune-clair" : "bg-carte"}`}>
       <View accessible accessibilityLabel={`${nom}, ${attente}. ${detail}. Code : ${codeLu}`} className="gap-3">
         <View className="flex-row items-start gap-3">
           <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-creme">

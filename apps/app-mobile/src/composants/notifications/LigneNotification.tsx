@@ -13,7 +13,7 @@ import type { NotificationDecrite } from "~/fonctions/notifications/decrire-noti
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import type { NotificationApp } from "~/hooks/utiliser-notifications";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   notification: NotificationApp;
@@ -48,6 +48,7 @@ const indiceDe = (notification: NotificationApp, description: NotificationDecrit
  * Toucher la ligne ouvre le profil, la page du créateur ou la fiche du lieu. Une nouveauté se lit « Nouveau » en premier.
  */
 export function LigneNotification({ notification, description, pote, nouvelle, derniere, action, onOptions, onEffacer }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const moment = formaterMomentRelatif(notification.date);
   const { ouvrir } = description;

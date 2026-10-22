@@ -9,7 +9,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { raisonsCompte } from "~/contenus/raisons-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** L'onglet réservé aux inscrits (« potes », « profil », « scan »…) */
@@ -28,6 +28,7 @@ type Props = {
  * La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus.
  */
 export function EcranInvite({ raison, emoji, titre, texte, avantages, enPlus }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const hauteurBarreOnglets = useBottomTabBarHeight();
 
@@ -49,11 +50,11 @@ export function EcranInvite({ raison, emoji, titre, texte, avantages, enPlus }: 
         </Text>
         <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(texte)}</Text>
 
-        <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-white p-4">
+        <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-carte p-4">
           {avantages.map((avantage) => (
             <View key={avantage} accessible accessibilityLabel={avantage} className="flex-row items-start gap-3">
               <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full border-2 border-encre bg-jaune">
-                <Ionicons name="checkmark" size={14} color={couleurs.encre} />
+                <Ionicons name="checkmark" size={14} color={couleurs.nuit} />
               </View>
               <Text className="flex-1 font-texte-semi text-[15px] leading-[22px] text-encre">{lierPonctuation(avantage)}</Text>
             </View>

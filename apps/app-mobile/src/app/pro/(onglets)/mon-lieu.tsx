@@ -10,10 +10,10 @@ import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
 import { resumerReglagesReservations } from "~/fonctions/reservations/resumer-reglages-reservations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /** « 5 visites → un tiramisu maison », ou l'invitation à en créer une */
 function decrireProgramme(programme: ProgrammeFidelite | null): string {
@@ -43,6 +43,7 @@ function decrireCharte(charte: CharteMiamSafe | null): string {
  * les statistiques ; l'équipe et ses appareils arrivent ensuite.
  */
 export default function EcranMonLieu() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { lieuPro } = utiliserModes();
   const { comptoir, miamSafe } = utiliserServices();
@@ -77,8 +78,8 @@ export default function EcranMonLieu() {
         <View accessible accessibilityLabel="Lieu vérifié : il a un compte SOS Miam. Il valide les visites, lance des SOS et répond aux avis." className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-jaune p-4">
           <Text className="text-2xl">✓</Text>
           <View className="flex-1 gap-0.5">
-            <Text className="font-texte-gras text-base text-encre">Lieu vérifié</Text>
-            <Text className="font-texte text-[13px] leading-[18px] text-encre">Tu valides les visites, tu lances des SOS et tu réponds aux avis.</Text>
+            <Text className="font-texte-gras text-base text-nuit">Lieu vérifié</Text>
+            <Text className="font-texte text-[13px] leading-[18px] text-nuit">Tu valides les visites, tu lances des SOS et tu réponds aux avis.</Text>
           </View>
         </View>
 

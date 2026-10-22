@@ -31,21 +31,21 @@ export function MiniCarteFidelite({ carte, onPress }: Props) {
         onPress();
       }}
       style={{ width: 220 }}
-      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${prete ? "bg-jaune" : "bg-white"}`}
+      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${prete ? "bg-jaune" : "bg-carte"}`}
     >
       <View className="flex-row items-center gap-2">
         <Text className="text-2xl">{carte.lieu.emoji}</Text>
-        <Text numberOfLines={1} className="flex-1 font-texte-gras text-[15px] text-encre">
+        <Text numberOfLines={1} className={`flex-1 font-texte-gras text-[15px] ${prete ? "text-nuit" : "text-encre"}`}>
           {carte.lieu.nom}
         </Text>
       </View>
       {/* Les tampons en petit : pleins pour ceux gagnés, en pointillé pour ceux qui restent */}
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row flex-wrap gap-1.5">
         {Array.from({ length: carte.sur }, (_, i) => (
-          <View key={i} className={`h-4 w-4 rounded-full border-2 ${i < carte.tampons ? "border-encre bg-encre" : "border-dashed border-encre/40 bg-white"}`} />
+          <View key={i} className={`h-4 w-4 rounded-full border-2 ${i < carte.tampons ? (prete ? "border-nuit bg-nuit" : "border-encre bg-encre") : prete ? "border-dashed border-nuit/40 bg-white" : "border-dashed border-encre/40 bg-carte"}`} />
         ))}
       </View>
-      <Text numberOfLines={2} className="font-texte-semi text-[13px] leading-[18px] text-encre">
+      <Text numberOfLines={2} className={`font-texte-semi text-[13px] leading-[18px] ${prete ? "text-nuit" : "text-encre"}`}>
         {prete ? `🎁 ${carte.recompense} t'attend !` : `${carte.tampons}/${carte.sur} · ${carte.recompense}`}
       </Text>
       {alcool ? <MentionPrevention variante="courte" /> : null}

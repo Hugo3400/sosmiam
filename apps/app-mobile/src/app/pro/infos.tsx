@@ -12,16 +12,17 @@ import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { creerBrouillonInfosPratiques, type BrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Les infos pratiques du lieu, remplies par le gérant : de quoi le joindre, les animaux, l'accès, les équipements, la
  * réservation et les paiements, avec l'aperçu du bloc tel qu'il apparaîtra sur la fiche. Une case non cochée n'est pas affichée.
  */
 export default function EcranInfosPratiquesPro() {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
@@ -72,7 +73,7 @@ export default function EcranInfosPratiquesPro() {
             accessibilityLabel="Retour"
             hitSlop={8}
             onPress={fermer}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>

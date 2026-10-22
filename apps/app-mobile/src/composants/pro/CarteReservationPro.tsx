@@ -16,7 +16,8 @@ import { decrireStatutReservationPro } from "~/fonctions/reservations/decrire-st
 import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { nommerClientReservation } from "~/fonctions/reservations/nommer-client-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import type { Palette } from "~/hooks/utiliser-theme";
 
 type Props = {
   reservation: ReservationPro;
@@ -28,7 +29,7 @@ type Props = {
 
 const ETIQUETTE_AUTO = { texte: TEXTES_COMPTOIR_RESERVATIONS.accepteeAuto, lu: TEXTES_COMPTOIR_RESERVATIONS.accepteeAutoLu, ton: "attente" } as const;
 
-function dessinerActions({ reservation, maintenantMs, enCours, onMarquerArrivee, onAnnuler }: Props) {
+function dessinerActions({ reservation, maintenantMs, enCours, onMarquerArrivee, onAnnuler }: Props, couleurs: Palette) {
   if (enCours) return <ActivityIndicator color={couleurs.encre} accessibilityLabel={TEXTES_COMPTOIR_RESERVATIONS.enCours} />;
   if (reservation.statut !== "acceptee") return null;
   const gestes = calculerGestesReservationPro(reservation, maintenantMs);
@@ -64,6 +65,7 @@ function dessinerActions({ reservation, maintenantMs, enCours, onMarquerArrivee,
 }
 
 export function CarteReservationPro(props: Props) {
+  const couleurs = utiliserCouleurs();
   const { reservation, maintenantMs } = props;
   const nom = nommerClientReservation(reservation);
   const personnes = ecrireNombrePersonnes(reservation.personnes);
@@ -73,7 +75,7 @@ export function CarteReservationPro(props: Props) {
   const auto = reservation.automatique && reservation.statut !== "refusee";
 
   return (
-    <View className={`gap-3 rounded-carte border-2 bg-white p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>
+    <View className={`gap-3 rounded-carte border-2 bg-carte p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>
       <View accessible accessibilityLabel={`${nom}, ${personnes}, ${creneau.lu}. ${etiquette.lu}${auto ? `. ${ETIQUETTE_AUTO.lu}` : ""}`} className="flex-row items-start gap-3">
         <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair">
           <EmojiOuMiami valeur={reservation.avatar} taille={44} allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }} />
@@ -105,7 +107,7 @@ export function CarteReservationPro(props: Props) {
         <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(TEXTES_RESERVATIONS_PRO.presenceNotee)}</Text>
       ) : null}
 
-      {dessinerActions(props)}
+      {dessinerActions(props, couleurs)}
     </View>
   );
 }

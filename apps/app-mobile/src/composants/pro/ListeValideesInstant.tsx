@@ -29,7 +29,7 @@ export function ListeValideesInstant({ validees, maintenant, onAnnuler }: Props)
         const resteMin = Math.max(0, Math.ceil((Date.parse(v.annulableJusqua) - maintenant.getTime()) / MINUTE_MS));
         const reste = resteMin <= 1 ? "encore moins d'une minute" : `encore ${resteMin} min`;
         return (
-          <View key={v.visiteId} className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
+          <View key={v.visiteId} className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-2.5">
             <View accessible accessibilityLabel={`${nom}, validé par ${MODES[v.mode]}. ${decrireReglement(v.reglement, "lieu").titre}. Annulable ${reste}.`} className="flex-1 flex-row items-center gap-3">
               <View className="h-10 w-10 items-center justify-center rounded-full bg-jaune">
                 <EmojiOuMiami valeur={v.avatar} taille={40} className="text-lg" />
@@ -54,7 +54,7 @@ export function ListeValideesInstant({ validees, maintenant, onAnnuler }: Props)
                 vibrerLegerement();
                 onAnnuler(v.visiteId);
               }}
-              className="min-h-11 justify-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+              className="min-h-11 justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
             >
               <Text className="font-texte-gras text-sm text-encre">Annuler</Text>
             </Pressable>

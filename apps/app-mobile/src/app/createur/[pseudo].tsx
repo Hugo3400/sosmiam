@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,6 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { Annonce } from "~/composants/interface/Annonce";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
@@ -20,16 +20,17 @@ import { trouverVignettePublication } from "~/fonctions/publications/trouver-vig
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import couleurs from "~/theme/couleurs";
 
 /**
  * La page d'un créateur (ouverte depuis son avatar dans le fil) : avatar 🎬, @pseudo, « Suivre » ou « Suivi », ses partenariats déclarés
  * (« Collaboration commerciale ») et ses publications, qui mènent à la fiche du lieu. Pseudo inconnu : un message et le retour.
  */
 export default function PageCreateur() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { pseudo = "" } = useLocalSearchParams<{ pseudo: string }>();
@@ -73,14 +74,14 @@ export default function PageCreateur() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -89,7 +90,7 @@ export default function PageCreateur() {
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
         {/* Démo seulement : hors démo, le créateur et ses publications viennent du serveur */}
         {source === "demo" ? (
-          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
               🧪
             </Text>
@@ -140,7 +141,7 @@ export default function PageCreateur() {
                 key={p.cle}
                 accessible
                 accessibilityLabel={`Collaboration commerciale : ${p.partenariat}, avec ${p.lieu.nom}`}
-                className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-4"
+                className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-4"
               >
                 <Text className="text-3xl">{p.lieu.emoji}</Text>
                 <View className="flex-1 gap-1">

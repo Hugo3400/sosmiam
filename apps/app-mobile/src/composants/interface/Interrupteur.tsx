@@ -1,7 +1,8 @@
 import { Pressable, Switch, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserCouleursInterrupteur } from "~/hooks/utiliser-couleurs-interrupteur";
 
 type Props = {
   titre: string;
@@ -20,6 +21,8 @@ type Props = {
  * Un seul élément pour VoiceOver et TalkBack (« interrupteur, activé ») : le Switch dessiné à droite leur est caché.
  */
 export function Interrupteur({ titre, detail, emoji, valeur, onChanger, desactive = false }: Props) {
+  const couleurs = utiliserCouleurs();
+  const { piste, pastille } = utiliserCouleursInterrupteur();
   return (
     <Pressable
       accessibilityRole="switch"
@@ -42,9 +45,9 @@ export function Interrupteur({ titre, detail, emoji, valeur, onChanger, desactiv
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <Switch
           value={valeur}
-          trackColor={{ false: couleurs.ligne, true: couleurs.encre }}
+          trackColor={{ false: couleurs.ligne, true: piste }}
           ios_backgroundColor={couleurs.ligne}
-          thumbColor={valeur ? couleurs.jaune : couleurs.gris}
+          thumbColor={valeur ? pastille : couleurs.gris}
         />
       </View>
     </Pressable>

@@ -16,11 +16,11 @@ import { decrireRefusInfos } from "~/fonctions/compte/decrire-refus-infos";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDisponibilitePseudo } from "~/hooks/utiliser-disponibilite-pseudo";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil, type ChangementsInfos, type ResultatInfos } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import couleurs from "~/theme/couleurs";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 // Mêmes limites qu'à l'inscription (et que estProfilValide pour le prénom)
@@ -62,6 +62,7 @@ type RefusAffiche = { champ: "prenom" | "pseudo" | "nom"; valeur: string; texte:
  * les potes d'exemple).
  */
 export default function ReglagesInfos() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { profil, modifierInfos, pseudoMisDeCote } = utiliserProfil();
   const { connecte } = utiliserSession();
@@ -294,7 +295,7 @@ export default function ReglagesInfos() {
 
         <View accessible accessibilityLabel={`Ta date de naissance : ${dateNaissance}, ${age} ans. ${explicationDate}`} className="gap-2">
           <Text className="font-texte-semi text-base text-encre">Ta date de naissance</Text>
-          <View className="min-h-[52px] flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
+          <View className="min-h-[52px] flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-carte px-4 py-3">
             <Text className="flex-1 font-texte text-[17px] text-encre">{`${dateNaissance} · ${age} ans`}</Text>
             <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
           </View>

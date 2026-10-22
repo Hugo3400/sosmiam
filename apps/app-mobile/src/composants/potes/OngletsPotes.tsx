@@ -63,7 +63,7 @@ export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0,
                 {o.nom}
               </Text>
               {pastille > 0 ? (
-                <View className="min-w-5 items-center rounded-full bg-rouge-texte px-1.5 py-0.5">
+                <View className="min-w-5 items-center rounded-full bg-rouge-sos px-1.5 py-0.5">
                   <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-white">
                     {pastille}
                   </Text>

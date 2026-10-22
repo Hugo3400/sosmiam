@@ -80,7 +80,7 @@ export function SectionDemandesSuivi({ onAnnoncer, onAffichee }: Props) {
       >
         📨 Demandes d'abonnement{enAttente.length > 0 ? ` (${enAttente.length})` : ""}
       </Text>
-      <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+      <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
         {affichees.map((ligne, i) => (
           <LigneDemandeSuivi
             key={ligne.id}

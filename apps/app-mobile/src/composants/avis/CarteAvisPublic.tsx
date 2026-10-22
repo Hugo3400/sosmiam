@@ -10,7 +10,7 @@ import type { SourcePhotoAvis } from "~/contenus/type-donner-avis";
 import { ecrirePreuveAvis } from "~/fonctions/avis/ecrire-preuve-avis";
 import { ecrireMoisAnnee } from "~/fonctions/dates/ecrire-mois-annee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   avis: AvisPublic;
@@ -19,15 +19,16 @@ type Props = {
 };
 
 function listerEtiquettes(avis: AvisPublic): { texte: string; fond: string }[] {
-  const etiquettes = [{ texte: ecrirePreuveAvis(avis), fond: avis.verifie ? "bg-white" : "bg-creme" }];
+  const etiquettes = [{ texte: ecrirePreuveAvis(avis), fond: avis.verifie ? "bg-carte" : "bg-creme" }];
   if (avis.repasOffert && MENTIONS_AVIS_REGLEMENT.offert) etiquettes.push({ texte: `🎁 ${MENTIONS_AVIS_REGLEMENT.offert}`, fond: "bg-rose-alerte" });
   if (avis.avecReduction && MENTIONS_AVIS_REGLEMENT.reduction) etiquettes.push({ texte: MENTIONS_AVIS_REGLEMENT.reduction, fond: "bg-jaune-clair" });
   return etiquettes;
 }
 
 export function CarteAvisPublic({ avis, sourcePhoto, nomLieu }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View className="flex-row items-center justify-between gap-3">
         <View className="flex-1">
           <Text className="font-texte-gras text-base text-encre">{avis.signature}</Text>

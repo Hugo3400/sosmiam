@@ -47,7 +47,7 @@ export function CarteSortieMiamis({ sortie, envies, envoi, onDemander }: Props) 
   const organisateur = sortie.moi.place === "organisateur";
 
   return (
-    <View style={{ width: 276 }} className="gap-2.5 rounded-carte border-2 border-encre bg-white p-4">
+    <View style={{ width: 276 }} className="gap-2.5 rounded-carte border-2 border-encre bg-carte p-4">
       <View className="flex-row items-center justify-between gap-2">
         <View className="rounded-full bg-jaune-clair px-2.5 py-1">
           <Text className="font-texte-gras text-xs text-encre">{quand}</Text>

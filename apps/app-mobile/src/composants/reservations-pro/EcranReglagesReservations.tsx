@@ -28,18 +28,19 @@ import { proposerNouveauService } from "~/fonctions/reservations/proposer-nouvea
 import type { BrouillonService } from "~/fonctions/reservations/verifier-service-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonReglagesReservations } from "~/hooks/utiliser-brouillon-reglages-reservations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEnregistrementReglages } from "~/hooks/utiliser-enregistrement-reglages";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserJoursFermesPro } from "~/hooks/utiliser-jours-fermes-pro";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
-import couleurs from "~/theme/couleurs";
 
 type Props = { lieu: LieuGere };
 
 type FeuilleService = { index: number | null; depart: BrouillonService; titre: string };
 
 export function EcranReglagesReservations({ lieu }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const navigation = useNavigation();
   const marges = useSafeAreaInsets();
@@ -161,7 +162,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>

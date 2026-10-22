@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { BoutonSecoursMiamSafe } from "~/composants/miam-safe/BoutonSecoursMiamSafe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /**
  * À la place de la fiche (ou de la carte) d'un bar, ouverte par un lien en visite sans compte : on ne connaît pas encore ton âge,
@@ -16,20 +16,21 @@ import couleurs from "~/theme/couleurs";
  * créé, la fiche s'ouvre ici), et de quoi trouver une autre adresse. Avec un compte, cet écran ne s'affiche jamais.
  */
 export function LieuReserveAdultes() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   // Ouvert par un lien, sans écran derrière : le retour mène au fil
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={revenir}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>

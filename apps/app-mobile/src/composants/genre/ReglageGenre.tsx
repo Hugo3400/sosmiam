@@ -16,15 +16,16 @@ import { OPTIONS_GENRE, TEXTES_GENRE } from "~/contenus/textes-genre";
 import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGenreMiamis } from "~/hooks/utiliser-genre-miamis";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
-import couleurs from "~/theme/couleurs";
 
 const ecrireDate = (iso: string) => ecrireJourLong(iso).toLowerCase();
 
 export function ReglageGenre() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
+  const couleurs = utiliserCouleurs();
   const { genre, pret, erreur, envoi, relire, choisir, effacer } = utiliserGenreMiamis();
   const { maintenantMs } = utiliserHorlogeMinute();
   const [selection, setSelection] = useState<ChoixGenre | null>(null);
@@ -107,7 +108,7 @@ export function ReglageGenre() {
             </Text>
           </View>
 
-          <View className="gap-1.5 rounded-2xl border border-ligne bg-white p-3.5">
+          <View className="gap-1.5 rounded-2xl border border-ligne bg-carte p-3.5">
             <Text className="font-texte-gras text-sm text-encre">{lierPonctuation(TEXTES_GENRE.jamaisTitre)}</Text>
             <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(TEXTES_GENRE.jamaisTexte)}</Text>
           </View>

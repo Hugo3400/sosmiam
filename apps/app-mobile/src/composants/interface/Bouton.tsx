@@ -20,9 +20,9 @@ type Props = {
   ref?: Ref<View>;
 };
 
-const fonds: Record<Variante, string> = { jaune: "bg-jaune", blanc: "bg-white", encre: "bg-encre" };
-const textes: Record<Variante, string> = { jaune: "text-encre", blanc: "text-encre", encre: "text-jaune" };
-const ombres: Record<Variante, string> = { jaune: "bg-encre", blanc: "bg-encre", encre: "bg-white" };
+const fonds: Record<Variante, string> = { jaune: "bg-jaune", blanc: "bg-carte", encre: "bg-nuit" };
+const textes: Record<Variante, string> = { jaune: "text-nuit", blanc: "text-encre", encre: "text-jaune" };
+const ombres: Record<Variante, string> = { jaune: "bg-encre", blanc: "bg-encre", encre: "bg-encre" };
 
 // Deux appuis plus rapprochés que ça comptent pour un seul (évite d'ouvrir deux fois l'écran suivant)
 const DELAI_ANTI_DOUBLE_APPUI = 700;

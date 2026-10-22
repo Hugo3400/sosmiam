@@ -13,9 +13,9 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 /** Ce qu'un pote a partagé avec toi : un lieu envoyé (identifiant de la recommandation) ou une liste, et ce pote */
 export type ContenuPote = { cible: "recommandation" | "liste"; id: string; pote: Pote };
@@ -57,6 +57,7 @@ const TEXTES = {
  * alors pour toi). Chaque étape a son retour.
  */
 export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(contenu !== null, onFermer);
@@ -207,7 +208,7 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
                       <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                     </Pressable>
                   ))}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
                 </>

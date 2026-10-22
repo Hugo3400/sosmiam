@@ -18,7 +18,7 @@ type Props = {
  */
 export function ScannerQrCode({ pour = "pote" }: Props) {
   return (
-    <View className="flex-row items-center gap-3 rounded-2xl border-2 border-dashed border-ligne bg-white px-4 py-3">
+    <View className="flex-row items-center gap-3 rounded-2xl border-2 border-dashed border-ligne bg-carte px-4 py-3">
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
         📷
       </Text>

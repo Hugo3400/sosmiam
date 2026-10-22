@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DiapoBienvenue } from "~/composants/inscription/DiapoBienvenue";
 import { PointsPagination } from "~/composants/inscription/PointsPagination";
 import { Bouton } from "~/composants/interface/Bouton";
+import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { diaposBienvenue, type DiapoBienvenue as Diapo } from "~/contenus/inscription/diapos-bienvenue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
@@ -26,6 +27,7 @@ export default function Bienvenue() {
   const liste = useRef<FlatList<Diapo>>(null);
   const [actif, setActif] = useState(0);
   const derniere = actif === diaposBienvenue.length - 1;
+  const surJaune = diaposBienvenue[actif]?.fond === "jaune";
   const { invite, entrerEnInvite } = utiliserProfil();
   const { verrouAge, verrouEnLecture } = utiliserBrouillonInscription();
   const [entreeEnCours, setEntreeEnCours] = useState(false);
@@ -78,19 +80,20 @@ export default function Bienvenue() {
       />
 
       {derniere ? null : (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Passer la présentation"
-          hitSlop={12}
-          onPress={continuer}
-          style={{ top: marges.top + 8 }}
-          className="absolute right-5 min-h-11 justify-center rounded-full bg-white/70 px-4 active:opacity-70"
-        >
-          <Text className="font-texte-semi text-base text-encre">Passer</Text>
-        </Pressable>
+        <ZoneClaire active={surJaune} style={{ top: marges.top + 8 }} className="absolute right-5">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Passer la présentation"
+            hitSlop={12}
+            onPress={continuer}
+            className="min-h-11 justify-center rounded-full bg-carte/70 px-4 active:opacity-70"
+          >
+            <Text className="font-texte-semi text-base text-encre">Passer</Text>
+          </Pressable>
+        </ZoneClaire>
       )}
 
-      <View style={{ paddingBottom: marges.bottom + 16 }} className="absolute inset-x-0 bottom-0 gap-6 px-6">
+      <ZoneClaire active={surJaune} style={{ paddingBottom: marges.bottom + 16 }} className="absolute inset-x-0 bottom-0 gap-6 px-6">
         <PointsPagination total={diaposBienvenue.length} actif={actif} />
         <View className="gap-2">
           <Bouton
@@ -116,7 +119,7 @@ export default function Bienvenue() {
             </Pressable>
           ) : null}
         </View>
-      </View>
+      </ZoneClaire>
     </View>
   );
 }

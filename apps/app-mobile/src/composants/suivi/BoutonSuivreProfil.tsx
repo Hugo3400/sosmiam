@@ -11,9 +11,9 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEtatSuivi } from "~/hooks/utiliser-etat-suivi";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Clé de suivi (calculerCleSuivi, ecrireCleSuivi) : « lieu:<id> », « createur:<pseudo> » ou « personne:<id> » */
@@ -48,6 +48,7 @@ type Feuille = { type: "ne-plus-suivre" | "annuler-demande" | "pseudo"; visible:
  * Sans compte (visite), il ouvre la feuille « Crée ton compte ».
  */
 export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "grand" }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const etatSuivi = utiliserEtatSuivi(cle);
   const exiger = utiliserCompteRequis();
@@ -113,6 +114,8 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
   const libelle = suivi ? "Suivi" : demande ? "Demandé" : meSuit && !compact ? "Suivre en retour" : "Suivre";
   const icone = suivi ? "checkmark" : demande ? "time-outline" : "person-add";
   const fondBlanc = suivi || demande;
+  const texteBouton = fondBlanc ? "text-encre" : "text-nuit";
+  const iconeBouton = fondBlanc ? couleurs.encre : couleurs.nuit;
   const indicePourSuivre = surDemande
     ? "Son compte est privé : ça lui envoie une demande"
     : personne
@@ -187,10 +190,10 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
       // 36 pt de haut à l'écran, 48 pt sous le doigt
       hitSlop={6}
       onPress={toucher}
-      className={`h-9 min-w-24 flex-row items-center justify-center gap-1 rounded-full border-2 border-encre px-3 active:opacity-70 ${fondBlanc ? "bg-white" : "bg-jaune"}`}
+      className={`h-9 min-w-24 flex-row items-center justify-center gap-1 rounded-full border-2 border-encre px-3 active:opacity-70 ${fondBlanc ? "bg-carte" : "bg-jaune"}`}
     >
-      <Ionicons name={icone} size={14} color={couleurs.encre} />
-      <Text className="font-texte-gras text-[13px] text-encre">{libelle}</Text>
+      <Ionicons name={icone} size={14} color={iconeBouton} />
+      <Text className={`font-texte-gras text-[13px] ${texteBouton}`}>{libelle}</Text>
       {fondBlanc ? <Ionicons name="chevron-down" size={12} color={couleurs.encre} /> : null}
     </Pressable>
   ) : (
@@ -200,10 +203,10 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         ref={bouton}
         {...accessibilite}
         onPress={toucher}
-        className={`min-h-14 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre px-6 py-3.5 active:translate-x-0.5 active:translate-y-0.5 ${fondBlanc ? "bg-white" : "bg-jaune"}`}
+        className={`min-h-14 flex-row items-center justify-center gap-2 rounded-full border-2 border-encre px-6 py-3.5 active:translate-x-0.5 active:translate-y-0.5 ${fondBlanc ? "bg-carte" : "bg-jaune"}`}
       >
-        <Ionicons name={icone} size={suivi ? 20 : 18} color={couleurs.encre} />
-        <Text className="font-texte-gras text-base text-encre">{libelle}</Text>
+        <Ionicons name={icone} size={suivi ? 20 : 18} color={iconeBouton} />
+        <Text className={`font-texte-gras text-base ${texteBouton}`}>{libelle}</Text>
         {fondBlanc ? <Ionicons name="chevron-down" size={16} color={couleurs.encre} /> : null}
       </Pressable>
     </View>

@@ -21,7 +21,7 @@ export function EnTeteMode({ mode, titre, sousTitre }: Props) {
   return (
     <View className="gap-2">
       <View className="flex-row items-center justify-between gap-3">
-        <View className="rounded-full bg-encre px-3 py-1">
+        <View className="rounded-full border-2 border-encre bg-nuit px-2.5 py-0.5">
           <Text className="font-texte-gras text-xs uppercase tracking-wider text-jaune">{PASTILLES[mode]}</Text>
         </View>
         <Pressable

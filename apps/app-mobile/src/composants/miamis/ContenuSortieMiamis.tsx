@@ -27,10 +27,10 @@ import { TEXTES_SORTIE_MIAMIS } from "~/contenus/textes-sorties-miamis";
 import { estNouveauDansLApp } from "~/fonctions/miamis/est-nouveau-dans-l-app";
 import { estPresenceOuverte } from "~/fonctions/miamis/est-presence-ouverte";
 import { lireOccupationSortie } from "~/fonctions/miamis/lire-occupation-sortie";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSortieMiamis } from "~/hooks/utiliser-sortie-miamis";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   id: string;
@@ -39,6 +39,7 @@ type Props = {
 type Confirmation = "quitter" | "annuler" | "scanner" | null;
 
 export function ContenuSortieMiamis({ id }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const monId = utiliserMonId();

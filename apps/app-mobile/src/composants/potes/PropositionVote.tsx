@@ -7,8 +7,8 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { RondPote } from "~/composants/potes/RondPote";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   lieu: Lieu;
@@ -34,6 +34,7 @@ const AVATARS_MAX = 5;
 
 /** Un lieu proposé dans une sortie : vignette, nom, distance, qui l'a proposé, les votes et leurs avatars, et le bouton pour voter. */
 export function PropositionVote({ lieu, km, image, proposePar, votes, votants, aVote, termine, gagnant, onVoter, onOuvrir }: Props) {
+  const couleurs = utiliserCouleurs();
   const monId = utiliserMonId();
   const prenomDe = (pote: Pote) => (pote.id === monId ? "toi" : pote.prenom);
   const distance = km === null ? null : formaterDistance(km);
@@ -49,7 +50,7 @@ export function PropositionVote({ lieu, km, image, proposePar, votes, votants, a
     .join(". ");
 
   return (
-    <View className={`flex-row items-center gap-2 rounded-carte border-2 p-2.5 ${gagnant && termine ? "border-encre bg-jaune-clair" : "border-encre bg-white"}`}>
+    <View className={`flex-row items-center gap-2 rounded-carte border-2 p-2.5 ${gagnant && termine ? "border-encre bg-jaune-clair" : "border-encre bg-carte"}`}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={lu}
@@ -97,10 +98,10 @@ export function PropositionVote({ lieu, km, image, proposePar, votes, votants, a
             vibrerLegerement();
             onVoter();
           }}
-          className={`min-h-11 min-w-[84px] flex-row items-center justify-center gap-1 rounded-full border-2 border-encre px-3 active:opacity-80 ${aVote ? "bg-encre" : "bg-jaune"}`}
+          className={`min-h-11 min-w-[84px] flex-row items-center justify-center gap-1 rounded-full border-2 border-encre px-3 active:opacity-80 ${aVote ? "bg-nuit" : "bg-jaune"}`}
         >
           {aVote ? <Ionicons name="checkmark" size={16} color={couleurs.jaune} /> : null}
-          <Text className={`font-texte-gras text-sm ${aVote ? "text-jaune" : "text-encre"}`}>{aVote ? "Voté" : "Voter"}</Text>
+          <Text className={`font-texte-gras text-sm ${aVote ? "text-jaune" : "text-nuit"}`}>{aVote ? "Voté" : "Voter"}</Text>
         </Pressable>
       )}
     </View>

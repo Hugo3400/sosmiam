@@ -19,7 +19,7 @@ export function CarteMission({ mission: m, onPress }: { mission: MissionAmbassad
       accessibilityRole="button"
       accessibilityLabel={`${type.nom} : ${m.titre}${m.lieu ? `, ${m.lieu.nom}, ${m.lieu.ville}` : ""}. ${quand}`}
       onPress={onPress}
-      className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${m.statut === "a-faire" ? "bg-white" : "bg-creme"}`}
+      className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${m.statut === "a-faire" ? "bg-carte" : "bg-creme"}`}
     >
       <Text className="text-3xl">{type.emoji}</Text>
       <View className="flex-1 gap-0.5">

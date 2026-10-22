@@ -20,7 +20,7 @@ import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-pe
 import { nommerClientReservation } from "~/fonctions/reservations/nommer-client-reservation";
 import { resumerDemandeReservation } from "~/fonctions/reservations/resumer-demande-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   reservation: ReservationPro;
@@ -35,6 +35,7 @@ type Props = {
 };
 
 export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, maintenantMs, onChoisir, onBasculer, onAccepter, onRefuser }: Props) {
+  const couleurs = utiliserCouleurs();
   const nom = nommerClientReservation(reservation);
   const resume = resumerDemandeReservation(reservation, choisi);
   const jour = decrireJourReservation(calculerJourParis(Date.parse(choisi)), calculerJourParis(maintenantMs)).long;
@@ -48,7 +49,7 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
   const plusieurs = options.length > 1;
 
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View accessible accessibilityLabel={`${resume.lu}. ${jour}`} className="flex-row items-start gap-3">
         <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune-clair">
           <EmojiOuMiami valeur={reservation.avatar} taille={44} allowFontScaling={false} style={{ fontSize: 24, lineHeight: 30 }} />
@@ -97,7 +98,7 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
                   vibrerLegerement();
                   onBasculer();
                 }}
-                className="min-h-12 flex-1 items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-80"
+                className="min-h-12 flex-1 items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-80"
               >
                 <Text className="text-center font-texte-gras text-base text-encre">{deplie ? T.replierHoraires : T.autreHoraire}</Text>
               </Pressable>

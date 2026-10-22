@@ -7,8 +7,8 @@ import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { TEXTES_PARAMETRES } from "~/contenus/textes-parametres";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserExportSocial } from "~/hooks/utiliser-export-social";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Un compte est connecté (le texte sur ce qui est gardé où change) */
@@ -41,6 +41,7 @@ function annoncerExport(resultat: "ok" | "indisponible" | ErreurService): string
 }
 
 export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
+  const couleurs = utiliserCouleurs();
   const exportSocial = utiliserExportSocial();
 
   async function telecharger() {

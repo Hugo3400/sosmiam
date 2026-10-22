@@ -105,7 +105,7 @@ export default function CEstPret() {
       <View className="items-center">
         <Mascotte expression="clin" taille={150} flotte />
       </View>
-      <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-white p-5">
+      <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-carte p-5">
         <Text className="font-texte text-base text-encre">📍 {profil.ville}</Text>
         <Text className="font-texte text-base text-encre">
           💛 {nombreEnvies > 0 ? `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} pour te proposer les bons lieux` : "Pas d'envie choisie : tu pourras en ajouter plus tard"}

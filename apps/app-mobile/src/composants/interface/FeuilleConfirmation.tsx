@@ -126,7 +126,7 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
               accessibilityRole="button"
               accessibilityHint={indiceRester}
               onPress={onFermer}
-              className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+              className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
             >
               <Text className="font-texte-gras text-base text-encre">{libelleRester}</Text>
             </Pressable>

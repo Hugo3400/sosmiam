@@ -13,8 +13,8 @@ import { SectionVideScan } from "~/composants/scan/SectionVideScan";
 import { TitreSectionScan } from "~/composants/scan/TitreSectionScan";
 import { TuileScan } from "~/composants/scan/TuileScan";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 
 // Dans « Mes visites », seulement les dernières : la liste complète est à un toucher
 const VISITES_AFFICHEES = 3;
@@ -25,6 +25,7 @@ const VISITES_AFFICHEES = 3;
  * seulement l'explication et « Ça arrive avec les comptes ».
  */
 export function AccueilScan() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { pret, source, enCours, visites, cartes, reservations } = utiliserVisites();

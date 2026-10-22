@@ -88,9 +88,9 @@ export function FeuilleCoAuteursListe({ visible, liste, onFermer }: Props) {
         disabled={enCours === pote.id || (!statut && complet)}
         hitSlop={6}
         onPress={() => void agir(pote, !statut)}
-        className={`h-9 min-w-20 items-center justify-center rounded-full border-2 border-encre px-3 active:opacity-70 ${statut ? "bg-white" : "bg-jaune"} ${!statut && complet ? "opacity-40" : ""}`}
+        className={`h-9 min-w-20 items-center justify-center rounded-full border-2 border-encre px-3 active:opacity-70 ${statut ? "bg-carte" : "bg-jaune"} ${!statut && complet ? "opacity-40" : ""}`}
       >
-        <Text className="font-texte-gras text-[13px] text-encre">{enCours === pote.id ? "…" : statut ? "Retirer" : "Inviter"}</Text>
+        <Text className={`font-texte-gras text-[13px] ${statut ? "text-encre" : "text-nuit"}`}>{enCours === pote.id ? "…" : statut ? "Retirer" : "Inviter"}</Text>
       </Pressable>
     </View>
   );

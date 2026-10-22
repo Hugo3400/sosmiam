@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DUREE_FENETRE_QR_MS } from "@sos-miam/commun/regles/visites";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BandeauValidationsQr } from "~/composants/pro/BandeauValidationsQr";
 import { ChoixPersonnesQr } from "~/composants/pro/ChoixPersonnesQr";
@@ -12,16 +12,17 @@ import { QrTournant } from "~/composants/pro/QrTournant";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserQrTournant } from "~/hooks/utiliser-qr-tournant";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Le QR du comptoir en grand, à tourner vers le client après le paiement : il change toutes les 30 s (l'anneau le
  * montre), s'éteint après 2 minutes ou quand tout le monde a scanné, et l'écran reste allumé pendant ce temps.
  */
 export default function EcranQrComptoir() {
+  const couleurs = utiliserCouleurs();
   const { width } = useWindowDimensions();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
@@ -40,7 +41,7 @@ export default function EcranQrComptoir() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
@@ -50,7 +51,7 @@ export default function EcranQrComptoir() {
             vibrerLegerement();
             fermer();
           }}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="close" size={22} color={couleurs.encre} />
         </Pressable>

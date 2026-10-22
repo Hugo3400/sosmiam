@@ -40,7 +40,7 @@ export function BoutonSuivre({ suivi, nom, avecCompte, onPress }: Props) {
       className={`h-8 flex-row items-center gap-1 rounded-full px-3 active:opacity-70 ${suivi ? "border border-white/70 bg-black/30" : "bg-jaune"}`}
     >
       {suivi ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
-      <Text className={`font-texte-gras text-[13px] ${suivi ? "text-white" : "text-encre"}`}>{suivi ? "Suivi" : "Suivre"}</Text>
+      <Text className={`font-texte-gras text-[13px] ${suivi ? "text-white" : "text-nuit"}`}>{suivi ? "Suivi" : "Suivre"}</Text>
     </Pressable>
   );
 }

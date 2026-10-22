@@ -6,7 +6,7 @@ import { BarreEcranMiamis } from "~/composants/miamis/BarreEcranMiamis";
 import { EtatMiamis } from "~/composants/miamis/EtatMiamis";
 import { TEXTES_ACCES_MIAMIS } from "~/contenus/textes-miamis";
 import type { RaisonAccesMiamis } from "~/hooks/utiliser-acces-miamis";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   raison: RaisonAccesMiamis;
@@ -16,6 +16,7 @@ type Props = {
 };
 
 export function EcranMiamisFerme({ raison, titre, retourSansHistorique, libelleRetour }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const message = raison === "demo" ? TEXTES_ACCES_MIAMIS.demo : raison === "visite" ? TEXTES_ACCES_MIAMIS.visite : TEXTES_ACCES_MIAMIS.bientot;
   const revenir = retourSansHistorique ? () => (router.canGoBack() ? router.back() : router.replace(retourSansHistorique)) : undefined;

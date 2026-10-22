@@ -35,7 +35,7 @@ export function ChoixHorairesSecours({ groupes, principal, secours, automatique,
           vibrerLegerement();
           onOuvrir();
         }}
-        className="min-h-12 flex-row items-center gap-2 self-start rounded-full border-2 border-dashed border-encre bg-white px-4 active:opacity-80"
+        className="min-h-12 flex-row items-center gap-2 self-start rounded-full border-2 border-dashed border-encre bg-carte px-4 active:opacity-80"
       >
         <Text className="font-texte-gras text-[15px] text-encre">{T.ouvrir}</Text>
         <Text className="font-texte text-[13px] text-gris">{`· ${T.mention}`}</Text>
@@ -44,7 +44,7 @@ export function ChoixHorairesSecours({ groupes, principal, secours, automatique,
   }
   const plein = secours.length >= HORAIRES_PROPOSES_MAX - 1;
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <Text accessibilityRole="header" className="font-titre-gras text-lg text-encre">
         {T.titre}
       </Text>

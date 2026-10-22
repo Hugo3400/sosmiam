@@ -32,8 +32,8 @@ import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import couleurs from "~/theme/couleurs";
 
 type Erreurs = { titre?: string; quand?: string; invites?: string; lieux?: string; envoi?: string };
 
@@ -90,6 +90,7 @@ const lireInvites = (texte: string | undefined, potes: Pote[]) => {
 
 /** Organiser une sortie : un nom et un emoji, le jour et l'heure, les potes invités, les lieux proposés et la fin du vote. */
 export default function NouvelleSortie() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { lieu: lieuDemande, invites: invitesDemandes } = useLocalSearchParams<{ lieu?: string; invites?: string }>();
   const { potes, creerSortie } = utiliserCommunaute();
@@ -182,7 +183,7 @@ export default function NouvelleSortie() {
             accessibilityLabel="Retour"
             hitSlop={8}
             onPress={() => (router.canGoBack() ? router.back() : router.replace("/potes"))}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>

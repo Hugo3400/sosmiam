@@ -202,10 +202,10 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
                   accessibilityLabel={tourne || !affiche ? "La roulette tourne…" : decrire(affiche, depuis)}
                   // Sur iPhone, l'état « busy » est lu en anglais : le libellé « La roulette tourne… » suffit
                   accessibilityState={Platform.OS === "ios" ? undefined : { busy: tourne }}
-                  className="overflow-hidden rounded-carte border-2 border-encre bg-white"
+                  className="overflow-hidden rounded-carte border-2 border-encre bg-carte"
                 >
                   <Animated.View style={styleRouleau}>
-                    <View className="h-36 items-center justify-center overflow-hidden bg-encre">
+                    <View className="h-36 items-center justify-center overflow-hidden bg-nuit">
                       {lieu ? (
                         <>
                           <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
@@ -215,7 +215,7 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
                             <Text className="text-6xl">{lieu.emoji}</Text>
                           )}
                           {lieu.sos ? (
-                            <Text className="absolute left-3 top-3 overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
+                            <Text className="absolute left-3 top-3 overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-nuit">
                               🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
                             </Text>
                           ) : null}

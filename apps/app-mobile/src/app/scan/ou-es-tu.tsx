@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from "react-native";
 
 import { RAYON_LIEUX_PROCHES_M } from "@sos-miam/commun/regles/visites";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
@@ -18,13 +18,13 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { trierLieuxProches } from "~/fonctions/visites/trier-lieux-proches";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /** En dessous, un seul lieu proche, c'est sûrement là : « Tu es chez … ? » en grand */
 const RAYON_EVIDENT_M = 100;
@@ -47,6 +47,7 @@ function chercher(lieux: readonly Lieu[], recherche: string): Lieu[] {
  * bouton « Demander l'addition ici ».
  */
 export default function TuEsChezQui() {
+  const couleurs = utiliserCouleurs();
   const navigation = useNavigation();
   const services = utiliserServices();
   const { reglages } = utiliserReglagesDemo();
@@ -114,14 +115,14 @@ export default function TuEsChezQui() {
   return (
     // Plein écran par-dessus les onglets : les marges viennent de utiliserMargesPleinEcran (jamais sous l'heure ni l'encoche)
     <View style={{ flex: 1, backgroundColor: couleurs.creme, paddingTop: marges.top, paddingBottom: marges.bottom }}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={premier ? "Fermer" : "Retour"}
           hitSlop={12}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name={premier ? "close" : "arrow-back"} size={20} color={couleurs.encre} />
         </Pressable>
@@ -138,7 +139,7 @@ export default function TuEsChezQui() {
         </View>
 
         {indisponible ? (
-          <View className="rounded-carte border-2 border-encre bg-white p-5">
+          <View className="rounded-carte border-2 border-encre bg-carte p-5">
             <MessageEchecVisite erreur="service-indisponible" />
           </View>
         ) : (
@@ -164,13 +165,13 @@ export default function TuEsChezQui() {
             ) : null}
 
             {!demo && lecture.etat === "echec" ? (
-              <View className="rounded-carte border-2 border-encre bg-white p-5">
+              <View className="rounded-carte border-2 border-encre bg-carte p-5">
                 <MessageEchecVisite erreur={lecture.erreur} actions={actionsEchec} />
               </View>
             ) : null}
 
             {!demo && lecture.etat === "annulee" ? (
-              <View className="rounded-carte border-2 border-encre bg-white p-5">
+              <View className="rounded-carte border-2 border-encre bg-carte p-5">
                 <MessageEchecVisite
                   erreur="position-refusee"
                   actions={[{ libelle: "Vérifier ma position", onPress: () => void lirePosition() }]}
@@ -190,14 +191,14 @@ export default function TuEsChezQui() {
                   >
                     <Text className="text-3xl">{evident.lieu.emoji}</Text>
                   </View>
-                  <Text accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
+                  <Text accessibilityRole="header" className="text-center font-titre text-2xl text-nuit">
                     {lierPonctuation(`Tu es ${direChezLieu(evident.lieu.nom)} ?`)}
                   </Text>
-                  <Text className="text-center font-texte-semi text-sm text-encre">
+                  <Text className="text-center font-texte-semi text-sm text-nuit">
                     {lierPonctuation(`À ${formaterDistance(evident.distanceM / 1000)} de toi · ${ecrireQuartierVille(evident.lieu)}`)}
                   </Text>
                   <View className="self-stretch">
-                    <BoutonDemanderAddition lieu={evident.lieu} variante="blanc" libelle="Oui, demander l'addition" />
+                    <BoutonDemanderAddition lieu={evident.lieu} variante="blanc" surJaune libelle="Oui, demander l'addition" />
                   </View>
                 </View>
               </View>

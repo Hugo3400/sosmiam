@@ -8,7 +8,7 @@ import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   suggestion: Suggestion;
@@ -39,11 +39,12 @@ const fondsRond: Record<TypeSuggestion, string> = { personne: "bg-jaune-clair", 
  * compact, et ✕ pour ne plus se la voir proposer. Pour VoiceOver : la carte, puis « Suivre », puis « Masquer la suggestion ».
  */
 export function CarteSuggestion({ suggestion, onAnnoncer, onMasquer, refOuvrir }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { cle, type, emoji, nom, raison, degrade, ouvrir } = suggestion;
 
   return (
-    <View style={{ width: LARGEUR_CARTE_SUGGESTION }} className="rounded-carte border-2 border-encre bg-white">
+    <View style={{ width: LARGEUR_CARTE_SUGGESTION }} className="rounded-carte border-2 border-encre bg-carte">
       <Pressable
         ref={refOuvrir}
         accessibilityRole="button"

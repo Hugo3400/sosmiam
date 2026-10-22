@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { raisonsSignalement, type ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   onChoisir: (raison: ChoixRaisonSignalement) => void;
@@ -11,6 +11,7 @@ type Props = {
 
 /** Première étape du signalement : pourquoi tu signales (une raison à toucher, qui mène à l'étape suivante). */
 export function ListeRaisonsSignalement({ onChoisir }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <View>
       {raisonsSignalement.map((raison) => (

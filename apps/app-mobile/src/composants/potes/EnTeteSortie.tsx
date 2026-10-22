@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { ParticipantsSortie } from "~/composants/potes/ParticipantsSortie";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   sortie: Sortie;
@@ -18,6 +18,7 @@ type Props = {
 
 /** Le haut d'une sortie : retour, emoji et titre, jour et heure, puis les participants et qui organise. */
 export function EnTeteSortie({ sortie, quand, participants, enAttente, organisateur, onRetour }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <View className="flex-row items-start gap-3 px-5 pb-3 pt-2">
       <Pressable
@@ -25,7 +26,7 @@ export function EnTeteSortie({ sortie, quand, participants, enAttente, organisat
         accessibilityLabel="Retour"
         hitSlop={8}
         onPress={onRetour}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
       </Pressable>

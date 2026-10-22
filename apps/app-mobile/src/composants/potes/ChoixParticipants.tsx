@@ -7,7 +7,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Ta bande */
@@ -25,6 +25,7 @@ type Props = {
 
 /** Choisir les potes à inviter dans ta bande : une ligne par pote, cochée ou non. */
 export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, indiceMax }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const complet = choisis.length >= max;
 
@@ -71,7 +72,7 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
                 {ville ? ` · ${ville}` : null}
               </Text>
             </View>
-            <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-encre" : "bg-white"}`}>
+            <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-nuit" : "bg-carte"}`}>
               {choisi ? <Ionicons name="checkmark" size={16} color={couleurs.jaune} /> : null}
             </View>
           </Pressable>

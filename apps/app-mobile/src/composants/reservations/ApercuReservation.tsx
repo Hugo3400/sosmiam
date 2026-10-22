@@ -12,7 +12,7 @@ import { decrireStatutReservation } from "~/fonctions/reservations/decrire-statu
 import { doitPrevenirAlcoolReservation } from "~/fonctions/reservations/doit-prevenir-alcool-reservation";
 import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { lireHorairesReservation } from "~/fonctions/reservations/lire-horaires-reservation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   reservation: Reservation;
@@ -21,6 +21,7 @@ type Props = {
 };
 
 export function ApercuReservation({ reservation, maintenantMs, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs);
   const etiquette = decrireStatutReservation(reservation, maintenantMs);
   const personnes = ecrireNombrePersonnes(reservation.personnes);
@@ -36,7 +37,7 @@ export function ApercuReservation({ reservation, maintenantMs, onPress }: Props)
         vibrerLegerement();
         onPress();
       }}
-      className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-3 active:opacity-80"
+      className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-3 active:opacity-80"
     >
       <View className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-creme">
         <Text allowFontScaling={false} style={{ fontSize: 20, lineHeight: 26 }}>

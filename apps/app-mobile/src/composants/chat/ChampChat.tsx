@@ -12,8 +12,8 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   conversationId: string;
@@ -43,6 +43,7 @@ const MICRO_INDISPONIBLE =
  * le texte, et le rond jaune qui envoie (ou, champ vide, qui enregistre une note vocale).
  */
 export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Props) {
+  const couleurs = utiliserCouleurs();
   const { trouverConversation, envoyerTexte } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -158,7 +159,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
               Keyboard.dismiss();
               setFeuilleOuverte(true);
             }}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="add" size={26} color={couleurs.encre} />
           </Pressable>
@@ -175,7 +176,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
             selectionColor={couleurs.encre}
             cursorColor={couleurs.encre}
             multiline
-            className={`max-h-32 min-h-11 flex-1 rounded-3xl border-2 bg-white px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
+            className={`max-h-32 min-h-11 flex-1 rounded-3xl border-2 bg-carte px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
           />
           {/* Deux boutons distincts (key) : le lecteur d'écran ne reste pas sur un bouton dont l'action vient de changer */}
           {micro ? (
@@ -187,7 +188,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
               onPress={lancerEnregistrement}
               className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${enregistrementPossible ? "" : "opacity-40"}`}
             >
-              <Ionicons name="mic" size={22} color={couleurs.encre} />
+              <Ionicons name="mic" size={22} color={couleurs.nuit} />
             </Pressable>
           ) : (
             <Pressable
@@ -197,7 +198,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
               onPress={envoyer}
               className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
             >
-              <Ionicons name="arrow-up" size={22} color={couleurs.encre} />
+              <Ionicons name="arrow-up" size={22} color={couleurs.nuit} />
             </Pressable>
           )}
         </View>

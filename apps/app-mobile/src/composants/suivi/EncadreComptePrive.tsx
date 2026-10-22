@@ -34,7 +34,7 @@ export function EncadreComptePrive({ prenom, demandeEnvoyee = false, listesSeule
         : "Touche « Suivre » : ça lui envoie une demande.";
 
   return (
-    <View accessible accessibilityLabel={lierPonctuation(`${titre}. ${texte} ${suite}`)} className="gap-1.5 rounded-carte border-2 border-encre bg-white p-4">
+    <View accessible accessibilityLabel={lierPonctuation(`${titre}. ${texte} ${suite}`)} className="gap-1.5 rounded-carte border-2 border-encre bg-carte p-4">
       <Text className="font-titre-gras text-lg text-encre">{`🔒 ${titre}`}</Text>
       <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(texte)}</Text>
       <Text className="font-texte-semi text-sm leading-5 text-encre">{lierPonctuation(suite)}</Text>

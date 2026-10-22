@@ -34,7 +34,7 @@ export function CarteReservation(props: Props) {
   const voirLieu = avecVoirLieu && !estLieuDisparu(reservation.lieu);
 
   return (
-    <View className={`gap-3 rounded-carte border-2 bg-white p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>
+    <View className={`gap-3 rounded-carte border-2 bg-carte p-4 ${enRetrait ? "border-ligne" : "border-encre"}`}>
       <EnTeteReservation reservation={reservation} maintenantMs={maintenantMs} enRetrait={enRetrait} />
 
       {doitPrevenirAlcoolReservation(reservation.lieu.type, reservation.message) ? <MentionPrevention variante="courte" /> : null}

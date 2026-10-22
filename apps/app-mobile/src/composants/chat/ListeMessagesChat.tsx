@@ -25,9 +25,9 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 /** Ce que l'écran peut demander à la liste */
 export type PoigneeListeMessages = {
@@ -61,6 +61,7 @@ const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
  * Reste collée en bas tant qu'on y est ; les messages des potes sont lus par le lecteur d'écran dès qu'ils arrivent.
  */
 export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, ref }: Props) {
+  const couleurs = utiliserCouleurs();
   const { trouverPote } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { trouverLieu } = utiliserLieux();
@@ -203,7 +204,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
               vibrerLegerement();
               chargerPlusAnciens(conversationId);
             }}
-            className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+            className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
           >
             <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
           </Pressable>
@@ -279,8 +280,8 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
             }}
             className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
           >
-            <Ionicons name="arrow-down" size={16} color={couleurs.encre} />
-            <Text className="font-texte-gras text-sm text-encre">{nouveaux > 1 ? `${nouveaux} nouveaux messages` : "1 nouveau message"}</Text>
+            <Ionicons name="arrow-down" size={16} color={couleurs.nuit} />
+            <Text className="font-texte-gras text-sm text-nuit">{nouveaux > 1 ? `${nouveaux} nouveaux messages` : "1 nouveau message"}</Text>
           </Pressable>
         </View>
       ) : null}

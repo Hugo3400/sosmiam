@@ -11,8 +11,9 @@ import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { lirePositionMiamSafe } from "~/fonctions/miam-safe/lire-position-miam-safe";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserCouleursInterrupteur } from "~/hooks/utiliser-couleurs-interrupteur";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   lieuId: number;
@@ -30,6 +31,8 @@ const HEURES = DUREE_PARTAGE_POSITION_MINUTES / 60;
  * on le dit. Les secours restent juste en dessous.
  */
 export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props) {
+  const couleurs = utiliserCouleurs();
+  const interrupteur = utiliserCouleursInterrupteur();
   const { miamSafe } = utiliserServices();
   const { source, pret, potes } = utiliserCommunaute();
   const [choisi, setChoisi] = useState<string | null>(null);
@@ -47,7 +50,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
   if (source !== "compte" || !pret) {
     return (
       <View className="gap-4">
-        <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-white p-4">
+        <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">
             {source === "attente" || !pret ? "Ta bande arrive…" : source === "visite" ? "Il te faut ton compte" : "Rien ne part en démo"}
           </Text>
@@ -91,7 +94,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
       ))}
 
       {potes.length === 0 ? (
-        <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-white p-4">
+        <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">Ta bande est vide</Text>
           <Text className="font-texte text-base leading-6 text-encre">
             On ne peut prévenir qu'un pote de ta bande. Ajoute tes potes depuis l'onglet Potes ; là, appelle plutôt un proche.
@@ -112,7 +115,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
                   accessibilityState={{ checked: selectionne }}
                   accessibilityLabel={`${p.prenom}, @${p.pseudo}`}
                   onPress={() => setChoisi(p.id)}
-                  className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-4 py-2 active:opacity-80 ${selectionne ? "border-encre bg-jaune-clair" : "border-ligne bg-white"}`}
+                  className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-4 py-2 active:opacity-80 ${selectionne ? "border-encre bg-jaune-clair" : "border-ligne bg-carte"}`}
                 >
                   <EmojiOuMiami valeur={p.avatar} taille={32} className="text-2xl" />
                   <View className="shrink grow">
@@ -125,7 +128,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
             })}
           </View>
 
-          <View className="flex-row items-center gap-3 rounded-2xl bg-white p-4">
+          <View className="flex-row items-center gap-3 rounded-2xl bg-carte p-4">
             <View className="shrink grow gap-1">
               <Text className="font-texte-gras text-base text-encre">Partager ma position pendant {HEURES} h</Text>
               <Text className="font-texte text-sm leading-5 text-gris">Ton pote la voit dans son app. Tu arrêtes quand tu veux.</Text>
@@ -134,7 +137,8 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
               accessibilityLabel={`Partager ma position pendant ${HEURES} heure`}
               value={avecPosition}
               onValueChange={setAvecPosition}
-              trackColor={{ true: couleurs.encre, false: couleurs.ligne }}
+              trackColor={{ true: interrupteur.piste, false: couleurs.ligne }}
+              thumbColor={avecPosition ? interrupteur.pastille : undefined}
             />
           </View>
 

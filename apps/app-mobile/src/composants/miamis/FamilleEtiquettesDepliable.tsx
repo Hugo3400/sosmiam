@@ -18,7 +18,7 @@ export function FamilleEtiquettesDepliable({ famille, ouverte, onOuvrir, choisie
   const dedans = famille.etiquettes.filter((nom) => choisies.includes(nom));
   const resume = dedans.length > 0 ? `${dedans.length} choisie${dedans.length > 1 ? "s" : ""} : ${dedans.join(", ")}` : `${famille.etiquettes.length} étiquettes`;
   return (
-    <View className="overflow-hidden rounded-2xl border-2 border-encre bg-white">
+    <View className="overflow-hidden rounded-2xl border-2 border-encre bg-carte">
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${famille.nom}, ${resume}`}

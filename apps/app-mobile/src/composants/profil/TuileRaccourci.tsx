@@ -22,7 +22,7 @@ export function TuileRaccourci({ emoji, titre, detail, indice, onPress }: Props)
         vibrerLegerement();
         onPress();
       }}
-      className="flex-1 gap-2 rounded-carte border-2 border-encre bg-white p-3.5 active:opacity-80"
+      className="flex-1 gap-2 rounded-carte border-2 border-encre bg-carte p-3.5 active:opacity-80"
     >
       <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune">
         <Text className="text-lg">{emoji}</Text>

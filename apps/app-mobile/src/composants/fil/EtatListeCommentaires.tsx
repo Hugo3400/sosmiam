@@ -4,7 +4,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { Bouton } from "~/composants/interface/Bouton";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** « chargement » : première lecture ; « ratee » : la lecture n'est pas arrivée ; « vide » : aucun commentaire */
@@ -23,6 +23,7 @@ const DUREE_RELANCE = 3000;
 
 /** Ce que montre la feuille des commentaires quand la liste est vide : la lecture en cours, une lecture ratée, ou « Sois le premier ». */
 export function EtatListeCommentaires({ etat, compact = false, onReessayer, onEcrire, ref }: Props) {
+  const couleurs = utiliserCouleurs();
   // « Réessayer » touché : la roue tourne le temps que la liste arrive
   const [relance, setRelance] = useState(false);
   useEffect(() => {

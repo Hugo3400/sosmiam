@@ -11,9 +11,9 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -38,6 +38,7 @@ const COMPTEUR_DES = 400;
  * VoiceOver est posé sur le titre à l'ouverture et une fois envoyée, sur le message en cas d'échec. Animations réduites : en fondu.
  */
 export function FeuilleContestation({ visible, visite, onFermer, onContestee }: Props) {
+  const couleurs = utiliserCouleurs();
   const services = utiliserServices();
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -149,7 +150,7 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
                     placeholderTextColor={couleurs.gris}
                     selectionColor={couleurs.encre}
                     cursorColor={couleurs.encre}
-                    className="min-h-[110px] rounded-2xl border-2 border-encre bg-white px-4 py-3 font-texte text-[17px] leading-6 text-encre"
+                    className="min-h-[110px] rounded-2xl border-2 border-encre bg-carte px-4 py-3 font-texte text-[17px] leading-6 text-encre"
                   />
                   {mot.length >= COMPTEUR_DES ? (
                     <Text className="self-end font-texte text-[13px] text-gris">
@@ -180,7 +181,7 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
                 <View
                   accessible
                   accessibilityLabel="Envoi en cours"
-                  className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-encre"
+                  className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-nuit"
                 >
                   <ActivityIndicator color={couleurs.jaune} />
                   <Text className="font-texte-gras text-base text-jaune">On envoie…</Text>
@@ -193,7 +194,7 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
                   accessibilityRole="button"
                   accessibilityHint="Rien n'est envoyé"
                   onPress={onFermer}
-                  className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+                  className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
                 >
                   <Text className="font-texte-gras text-base text-encre">Finalement non</Text>
                 </Pressable>

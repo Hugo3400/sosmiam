@@ -8,7 +8,7 @@ import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estEnregistrementEnCours, jouerNoteVocale, oublierNoteVocale, utiliserAudioChat } from "~/hooks/utiliser-audio-chat";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Adresse de la note dans les fichiers de l'app */
@@ -57,6 +57,7 @@ async function existeEncore(fichier: string): Promise<boolean> {
  * quand la bulle quitte l'écran. Une seule note joue à la fois, et aucune pendant que tu enregistres (utiliserAudioChat).
  */
 export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong, actionsLecteur }: Props) {
+  const couleurs = utiliserCouleurs();
   const { enregistrementEnCours } = utiliserAudioChat();
   const lecteur = useRef<AudioPlayer | null>(null);
   const abonnement = useRef<{ remove: () => void } | null>(null);
@@ -154,7 +155,8 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
     lire().catch(() => setEtat("introuvable"));
   }
 
-  const texte = deMoi ? "text-encre" : "text-gris";
+  const texte = deMoi ? "text-nuit" : "text-gris";
+  const icone = deMoi ? couleurs.encre : couleurs.nuit;
   if (etat === "introuvable") {
     return (
       <View accessible accessibilityLabel={`${libelle} : partie se promener, elle ne se lit plus`} {...actionsLecteur} className="min-h-11 flex-row items-center gap-2.5 py-0.5">
@@ -185,21 +187,21 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
         }}
         delayLongPress={350}
         {...actionsLecteur}
-        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre active:opacity-70 ${deMoi ? "bg-white" : "bg-jaune"} ${enregistrementEnCours ? "opacity-40" : ""}`}
+        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre active:opacity-70 ${deMoi ? "bg-carte" : "bg-jaune"} ${enregistrementEnCours ? "opacity-40" : ""}`}
       >
         {etat === "chargement" ? (
-          <ActivityIndicator size="small" color={couleurs.encre} />
+          <ActivityIndicator size="small" color={icone} />
         ) : (
-          <Ionicons name={etat === "lecture" ? "pause" : "play"} size={20} color={couleurs.encre} style={etat === "lecture" ? undefined : { marginLeft: 2 }} />
+          <Ionicons name={etat === "lecture" ? "pause" : "play"} size={20} color={icone} style={etat === "lecture" ? undefined : { marginLeft: 2 }} />
         )}
       </Pressable>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-1 gap-1.5">
-        <View className="h-1.5 overflow-hidden rounded-full bg-encre/15">
-          <View style={{ width: `${avancee * 100}%` }} className="h-full rounded-full bg-encre" />
+        <View className={`h-1.5 overflow-hidden rounded-full ${deMoi ? "bg-nuit/15" : "bg-encre/15"}`}>
+          <View style={{ width: `${avancee * 100}%` }} className={`h-full rounded-full ${deMoi ? "bg-nuit" : "bg-encre"}`} />
         </View>
         <View className="flex-row items-center justify-between">
           <Text className={`font-texte-semi text-xs ${texte}`}>{formaterDureeVocal(enCours ? position : duree)}</Text>
-          <Ionicons name="mic" size={13} color={deMoi ? couleurs.encre : couleurs.gris} />
+          <Ionicons name="mic" size={13} color={deMoi ? couleurs.nuit : couleurs.gris} />
         </View>
       </View>
     </View>

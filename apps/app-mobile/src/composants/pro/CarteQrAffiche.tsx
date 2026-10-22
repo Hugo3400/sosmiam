@@ -5,7 +5,7 @@ import type { QrAffiche } from "@sos-miam/commun/types/comptoir";
 import type { ReglementVisite } from "@sos-miam/commun/types/visite";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   qr: QrAffiche;
@@ -24,13 +24,14 @@ function formaterReste(finitLe: string, maintenant: Date): string {
 
 /** Le QR est allumé : pour combien de personnes, combien de scans restent, quand il s'éteint, et de quoi le revoir ou le cacher. */
 export function CarteQrAffiche({ qr, reglement = null, maintenant, onVoir, onCacher }: Props) {
+  const couleurs = utiliserCouleurs();
   const reste = formaterReste(qr.finitLe, maintenant);
   const scans = `${qr.restantes} scan${qr.restantes > 1 ? "s" : ""} sur ${qr.personnes}`;
   return (
-    <View className="gap-4 rounded-carte border-2 border-encre bg-encre p-5">
+    <View className="gap-4 rounded-carte border-2 border-encre bg-nuit p-5">
       <View accessible accessibilityLabel={`QR allumé : ${scans} restant${qr.restantes > 1 ? "s" : ""}, il s'éteint dans ${reste}`} className="flex-row items-center gap-4">
         <View className="h-14 w-14 items-center justify-center rounded-2xl bg-jaune">
-          <Ionicons name="qr-code" size={30} color={couleurs.encre} />
+          <Ionicons name="qr-code" size={30} color={couleurs.nuit} />
         </View>
         <View className="flex-1 gap-0.5">
           <Text className="font-titre-gras text-xl text-white">QR allumé</Text>
@@ -50,7 +51,7 @@ export function CarteQrAffiche({ qr, reglement = null, maintenant, onVoir, onCac
           }}
           className="min-h-12 flex-1 items-center justify-center rounded-full border-2 border-jaune bg-jaune active:opacity-80"
         >
-          <Text className="font-texte-gras text-base text-encre">Voir le QR</Text>
+          <Text className="font-texte-gras text-base text-nuit">Voir le QR</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"

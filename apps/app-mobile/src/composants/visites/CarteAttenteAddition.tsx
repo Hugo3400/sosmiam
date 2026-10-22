@@ -58,7 +58,7 @@ export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props
 
       {visite.code ? <CodeRapprochement code={visite.code} prenom={prenom} avatar={avatar} legende="Montre ce code au moment de payer" /> : null}
 
-      <View className="mt-1 gap-3 rounded-carte border-2 border-encre bg-white p-4">
+      <View className="mt-1 gap-3 rounded-carte border-2 border-encre bg-carte p-4">
         <Text className="font-texte text-base leading-6 text-encre">
           {lierPonctuation(`L'équipe ${direDeLieu(lieu.nom)} va la marquer réglée. Tu peux fermer l'app : ta demande reste au chaud.`)}
         </Text>

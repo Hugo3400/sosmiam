@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ADRESSE_PAGE_PREVENTION } from "@sos-miam/commun/contenus/prevention-alcool";
 import { Annonce } from "~/composants/interface/Annonce";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { ChoixApparence } from "~/composants/reglages/ChoixApparence";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
@@ -17,7 +18,7 @@ import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import couleurs from "~/theme/couleurs";
+import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
 
@@ -32,6 +33,7 @@ function ouvrirLien(adresse: string) {
 
 export default function Parametres() {
   const router = useRouter();
+  const { reglage: reglageApparence } = utiliserTheme();
   const { profil } = utiliserProfil();
   const communaute = utiliserCommunaute();
   const suivisPersonnes = utiliserSuivisPersonnes();
@@ -96,7 +98,7 @@ export default function Parametres() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
+    <View className="flex-1 bg-creme">
       <EcranReglage titre={T.titre} sousTitre={T.sousTitre} libelleRetour={T.retour} onRetour={revenir}>
         <SectionReglages titre={T.compte.titre} section="parametres-compte" resume={connecte ? T.compte.resume : T.compte.resumeSansCompte}>
           {connecte ? (
@@ -113,6 +115,10 @@ export default function Parametres() {
             detail="Les alertes qui t'intéressent, et du calme la nuit"
             onPress={() => router.push("/reglages/notifications")}
           />
+        </SectionReglages>
+
+        <SectionReglages titre={T.apparence.titre} section="parametres-apparence" resume={T.apparence.resume[reglageApparence]}>
+          <ChoixApparence />
         </SectionReglages>
 
         <SectionReglages titre={T.securite.titre} section="parametres-securite" resume={resumeSecurite}>

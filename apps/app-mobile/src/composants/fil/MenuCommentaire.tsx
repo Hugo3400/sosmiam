@@ -139,11 +139,11 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
                       else if (confirmation === "masquer") onMasquer(commentaire);
                       else onBloquer(commentaire);
                     }}
-                    className="mt-1 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-rouge-texte active:opacity-80"
+                    className="mt-1 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-rouge-sos active:opacity-80"
                   >
                     <Text className="font-texte-gras text-base text-white">{boutons[confirmation]}</Text>
                   </Pressable>
-                  <Pressable accessibilityRole="button" onPress={() => confirmer(null)} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={() => confirmer(null)} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Non, on garde</Text>
                   </Pressable>
                 </View>
@@ -170,7 +170,7 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
                       </View>
                     </Pressable>
                   ))}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
                 </>

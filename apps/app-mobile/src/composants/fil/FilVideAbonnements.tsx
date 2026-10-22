@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
+import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
@@ -29,9 +30,9 @@ export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, o
   const suitDesPersonnes = pret && abonnements.length > 0;
 
   return (
-    <View style={{ height: hauteur }} className="bg-jaune">
+    <ZoneClaire style={{ height: hauteur }} className="bg-jaune">
       {/* Les onglets du fil sont blancs : ils restent lisibles sur cette bande */}
-      <View style={{ height: margeHaut }} className="bg-encre" />
+      <View style={{ height: margeHaut }} className="bg-nuit" />
       <ScrollView
         className="flex-1"
         contentContainerClassName="gap-4 px-5 pt-6"
@@ -39,14 +40,14 @@ export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, o
       >
         <View className="items-center gap-3">
           <Mascotte expression="clin" taille={110} />
-          <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
+          <Text accessibilityRole="header" className="text-center font-titre text-3xl text-nuit">
             {lierPonctuation("Ton fil Abonnements fait la sieste 😴")}
           </Text>
-          <Text className="text-center font-texte text-base leading-6 text-encre/80">
+          <Text className="text-center font-texte text-base leading-6 text-nuit/80">
             {lierPonctuation("Suis des lieux et des créateurs : leurs vidéos arriveront ici.")}
           </Text>
           {suitDesPersonnes ? (
-            <Text className="text-center font-texte text-base leading-6 text-encre/80">
+            <Text className="text-center font-texte text-base leading-6 text-nuit/80">
               {lierPonctuation("Les personnes que tu suis ne publient pas encore de vidéos : leurs listes t'attendent dans Potes.")}
             </Text>
           ) : null}
@@ -55,7 +56,7 @@ export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, o
         <Bouton libelle="Retour à Pour toi" variante="blanc" indice="Revient au fil de toutes les adresses" onPress={onVoirTout} className="mt-2 self-stretch" />
       </ScrollView>
       {/* Sous la barre d'onglets (blanche, transparente) : sur le jaune, ses icônes ne se verraient pas */}
-      <View style={{ height: margeBas }} className="bg-encre" />
-    </View>
+      <View style={{ height: margeBas }} className="bg-nuit" />
+    </ZoneClaire>
   );
 }

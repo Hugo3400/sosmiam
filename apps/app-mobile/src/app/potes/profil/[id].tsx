@@ -24,11 +24,11 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import couleurs from "~/theme/couleurs";
 
 /** Demande confirmation avant une action qui compte ; sur le web (aperçu de développement), Alert n'existe pas : on agit directement */
 const confirmer = (titre: string, message: string, action: string, faire: () => void) => {
@@ -47,6 +47,7 @@ const confirmer = (titre: string, message: string, action: string, faire: () => 
  * Personne bloquée ou inconnue : un message et le retour.
  */
 export default function ProfilPote() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const navigation = useNavigation();
   const marges = useSafeAreaInsets();
@@ -240,7 +241,7 @@ export default function ProfilPote() {
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -249,7 +250,7 @@ export default function ProfilPote() {
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
         {/* Démo seulement : avec un compte, ce sont de vraies personnes */}
         {estMoi || !communaute.demo ? null : (
-          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
               🧪
             </Text>

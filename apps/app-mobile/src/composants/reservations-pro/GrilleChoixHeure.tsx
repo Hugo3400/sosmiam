@@ -26,7 +26,7 @@ export function GrilleChoixHeure({ valeur, heures, minutesPour, onChoisir }: Pro
   }
 
   return (
-    <View className="gap-3 rounded-2xl border-2 border-ligne bg-white p-3">
+    <View className="gap-3 rounded-2xl border-2 border-ligne bg-carte p-3">
       <Text className="font-texte-semi text-sm text-gris">{T.heure}</Text>
       <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">
         {heures.map((h, i) => (

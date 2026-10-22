@@ -40,7 +40,7 @@ export function ChoixEmojiSortie({ choisi, onChoisir, libelle = "Emoji de la sor
             }}
             className="w-[72px] items-center gap-1 py-1 active:opacity-70"
           >
-            <View className={`h-[52px] w-[52px] items-center justify-center rounded-full border-2 ${actif ? "border-encre bg-jaune" : "border-ligne bg-white"}`}>
+            <View className={`h-[52px] w-[52px] items-center justify-center rounded-full border-2 ${actif ? "border-encre bg-jaune" : "border-ligne bg-carte"}`}>
               <Text allowFontScaling={false} style={{ fontSize: 26, lineHeight: 32 }}>
                 {e.emoji}
               </Text>

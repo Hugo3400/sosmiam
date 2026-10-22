@@ -4,14 +4,15 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Bas de la fiche : « Une info a changé ? Propose une modification ». Ouvre le formulaire (un compte est demandé : l'équipe
  * doit pouvoir répondre et éviter les abus). L'équipe relit chaque proposition avant de toucher à la fiche.
  */
 export function LienProposerModification({ lieu }: { lieu: Pick<Lieu, "id" | "nom"> }) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const exigerCompte = utiliserCompteRequis();
   return (
@@ -23,7 +24,7 @@ export function LienProposerModification({ lieu }: { lieu: Pick<Lieu, "id" | "no
         vibrerLegerement();
         if (exigerCompte("proposer")) router.push({ pathname: "/lieu/[id]/proposer", params: { id: String(lieu.id) } });
       }}
-      className="min-h-14 flex-row items-center gap-3 rounded-carte border-2 border-dashed border-gris/50 bg-white/60 px-4 py-3 active:opacity-70"
+      className="min-h-14 flex-row items-center gap-3 rounded-carte border-2 border-dashed border-gris/50 bg-carte/60 px-4 py-3 active:opacity-70"
     >
       <Text className="text-xl">✏️</Text>
       <View className="flex-1">

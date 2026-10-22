@@ -9,7 +9,7 @@ export function BarreProgression({ etape, total }: { etape: number; total: numbe
       accessibilityRole="progressbar"
       accessibilityLabel={`Étape ${etape} sur ${total}`}
       accessibilityValue={{ min: 0, max: total, now: etape }}
-      className="h-3 flex-1 overflow-hidden rounded-full border-2 border-encre bg-white"
+      className="h-3 flex-1 overflow-hidden rounded-full border-2 border-encre bg-carte"
     >
       <View className="h-full rounded-full bg-tomate" style={{ width: `${pourcentage}%` }} />
     </View>

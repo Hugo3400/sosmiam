@@ -26,7 +26,7 @@ export function CarteChoixRadio({ titre, texte, choisi, onPress, position, total
         vibrerLegerement();
         onPress();
       }}
-      className={`flex-row items-start gap-3 rounded-2xl p-4 active:opacity-80 ${choisi ? "border-2 border-encre bg-white" : "border-2 border-ligne bg-transparent"} ${desactive ? "opacity-40" : ""}`}
+      className={`flex-row items-start gap-3 rounded-2xl p-4 active:opacity-80 ${choisi ? "border-2 border-encre bg-carte" : "border-2 border-ligne bg-transparent"} ${desactive ? "opacity-40" : ""}`}
     >
       <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full border-2 border-encre">
         {choisi ? <View className="h-3 w-3 rounded-full bg-encre" /> : null}

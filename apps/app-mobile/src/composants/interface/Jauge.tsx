@@ -21,7 +21,7 @@ export function Jauge({ avancee, libelle, texteValeur, className = "" }: Props) 
       accessibilityRole={libelle !== undefined ? "progressbar" : undefined}
       accessibilityLabel={libelle}
       accessibilityValue={libelle !== undefined ? { min: 0, max: 100, now: pourcentage, text: texteValeur } : undefined}
-      className={`h-3 overflow-hidden rounded-full border-2 border-encre bg-white ${className}`}
+      className={`h-3 overflow-hidden rounded-full border-2 border-encre bg-carte ${className}`}
     >
       <View className="h-full rounded-full bg-tomate" style={{ width: `${pourcentage}%` }} />
     </View>

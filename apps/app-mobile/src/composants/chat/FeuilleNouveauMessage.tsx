@@ -11,9 +11,9 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -22,6 +22,7 @@ type Props = {
 
 /** « Nouveau message » : une feuille qui monte du bas avec ta bande. Toucher un pote ouvre (ou crée) votre conversation privée. */
 export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
@@ -76,7 +77,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
                   className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
                 >
                   <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune">
-                    <Ionicons name="people" size={20} color={couleurs.encre} />
+                    <Ionicons name="people" size={20} color={couleurs.nuit} />
                   </View>
                   <Text className="flex-1 font-texte-gras text-base text-encre">Nouveau groupe</Text>
                   <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
@@ -112,7 +113,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
               </Pressable>
             )}
             ListFooterComponent={
-              <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+              <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                 <Text className="font-texte-gras text-base text-encre">Annuler</Text>
               </Pressable>
             }

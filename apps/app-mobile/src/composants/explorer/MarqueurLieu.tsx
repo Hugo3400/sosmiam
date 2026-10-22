@@ -3,6 +3,7 @@ import { Platform, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
   id: number;
@@ -32,7 +33,8 @@ const DUREE_SUIVI = 500;
  */
 export const MarqueurLieu = memo(function MarqueurLieu({ id, emoji, latitude, longitude, sos, alerte, verifie, libelle, selectionne, onPress }: Props) {
   // Android dessine le marqueur en image : on suit ses changements le temps de le redessiner, puis on le fige (bien plus fluide)
-  const apparence = `${selectionne ? 1 : 0}|${sos ? 1 : 0}|${alerte ? 1 : 0}|${verifie ? 1 : 0}|${emoji}`;
+  const { schema } = utiliserTheme();
+  const apparence = `${selectionne ? 1 : 0}|${sos ? 1 : 0}|${alerte ? 1 : 0}|${verifie ? 1 : 0}|${emoji}|${schema}`;
   const [apparenceFigee, setApparenceFigee] = useState<string | null>(null);
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -44,7 +46,7 @@ export const MarqueurLieu = memo(function MarqueurLieu({ id, emoji, latitude, lo
   // Le rond est centré dans le marqueur : l'ombre et la pastille se placent depuis son bord
   const autour = (COTE - diametre) / 2;
   const decalageOmbre = selectionne ? 4 : 3;
-  const fond = !verifie ? "bg-creme" : sos ? "bg-jaune" : alerte ? "bg-rose-alerte" : "bg-white";
+  const fond = !verifie ? "bg-creme" : sos ? "bg-jaune" : alerte ? "bg-rose-alerte" : "bg-carte";
   const bordure = verifie ? "border-encre" : "border-gris";
 
   return (
@@ -92,12 +94,12 @@ export const MarqueurLieu = memo(function MarqueurLieu({ id, emoji, latitude, lo
         {sos ? (
           <View style={{ position: "absolute", top: autour - 8, right: autour - 10 }} className="rounded-full border-[1.5px] border-encre bg-tomate px-1.5">
             {/* Encre sur tomate : assez de contraste pour un texte aussi petit */}
-            <Text allowFontScaling={false} className="font-texte-gras text-[10px] leading-[14px] text-encre">
+            <Text allowFontScaling={false} className="font-texte-gras text-[10px] leading-[14px] text-nuit">
               SOS
             </Text>
           </View>
         ) : alerte ? (
-          <View style={{ position: "absolute", top: autour - 8, right: autour - 8 }} className="h-5 w-5 items-center justify-center rounded-full border-[1.5px] border-encre bg-white">
+          <View style={{ position: "absolute", top: autour - 8, right: autour - 8 }} className="h-5 w-5 items-center justify-center rounded-full border-[1.5px] border-encre bg-carte">
             <Text allowFontScaling={false} className="text-[10px]">
               🔥
             </Text>

@@ -168,7 +168,7 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
                           vibrerLegerement();
                           setEmoji(e.emoji);
                         }}
-                        className={`h-12 w-12 items-center justify-center rounded-full border-2 active:opacity-70 ${choisi ? "border-encre bg-jaune" : "border-ligne bg-white"}`}
+                        className={`h-12 w-12 items-center justify-center rounded-full border-2 active:opacity-70 ${choisi ? "border-encre bg-jaune" : "border-ligne bg-carte"}`}
                       >
                         <Text allowFontScaling={false} className="text-2xl">
                           {e.emoji}

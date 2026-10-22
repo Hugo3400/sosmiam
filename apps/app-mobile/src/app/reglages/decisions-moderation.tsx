@@ -13,11 +13,11 @@ import { MessageDecisionsModeration } from "~/composants/signalement/MessageDeci
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDecisionsModeration } from "~/hooks/utiliser-decisions-moderation";
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import { utiliserRetoursPremierPlan } from "~/hooks/utiliser-retours-premier-plan";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
-import couleurs from "~/theme/couleurs";
 
 /** Des refus qui disent que la liste n'est plus à jour (déjà contestée ailleurs, délai passé, décision changée) : on la relit */
 const REFUS_A_RELIRE = ["deja-contestee", "contestation-hors-delai", "decision-inconnue"];
@@ -30,6 +30,7 @@ const REFUS_A_RELIRE = ["deja-contestee", "contestation-hors-delai", "decision-i
  * limité) et l'annonce d'une écriture refusée (« Voir pourquoi »). Démo et visite : ce qui arrivera ici avec un compte.
  */
 export default function DecisionsModeration() {
+  const couleurs = utiliserCouleurs();
   const source = utiliserSourceSociale();
   const moderation = utiliserDecisionsModeration();
   const limitation = utiliserLimitationCompte();

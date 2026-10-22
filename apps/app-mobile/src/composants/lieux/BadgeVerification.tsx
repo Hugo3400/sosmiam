@@ -16,7 +16,7 @@ export function BadgeVerification({ verifie, taille = "normale" }: Props) {
     <View
       accessible
       accessibilityLabel={lu}
-      className={`flex-row items-center self-start rounded-full ${petite ? "px-2 py-0.5" : "px-3 py-1"} ${verifie ? "bg-encre" : "border-2 border-dashed border-gris/60 bg-white"}`}
+      className={`flex-row items-center self-start rounded-full border-2 ${verifie ? `border-encre bg-nuit ${petite ? "px-1.5" : "px-2.5 py-0.5"}` : `border-dashed border-gris/60 bg-carte ${petite ? "px-2 py-0.5" : "px-3 py-1"}`}`}
     >
       <Text className={`font-texte-gras ${petite ? "text-[11px]" : "text-[13px]"} ${verifie ? "text-jaune" : "text-gris"}`}>{verifie ? "✓ Vérifié" : "Non vérifié"}</Text>
     </View>

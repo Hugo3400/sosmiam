@@ -7,7 +7,7 @@ import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { RondPote } from "~/composants/potes/RondPote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   recommandation: Recommandation;
@@ -25,6 +25,7 @@ type Props = {
 
 /** Un lieu envoyé par un pote : qui, le lieu en vignette, son petit mot, et « Nouveau » tant que tu ne l'as pas ouvert. */
 export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir, onMenu, refPrincipal }: Props) {
+  const couleurs = utiliserCouleurs();
   const nouveau = !recommandation.vue;
   const lu = [
     nouveau ? "Nouveau" : null,
@@ -46,7 +47,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
           vibrerLegerement();
           onOuvrir();
         }}
-        className={`gap-3 rounded-carte border-2 border-encre p-3.5 active:opacity-80 ${nouveau ? "bg-jaune-clair" : "bg-white"}`}
+        className={`gap-3 rounded-carte border-2 border-encre p-3.5 active:opacity-80 ${nouveau ? "bg-jaune-clair" : "bg-carte"}`}
       >
         <View className="flex-row items-center gap-2 pr-10">
           <RondPote pote={de} taille={28} />
@@ -54,7 +55,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
             {de.prenom} t'envoie
           </Text>
           {nouveau ? (
-            <View className="rounded-full bg-encre px-2 py-0.5">
+            <View className="rounded-full border border-encre bg-nuit px-2 py-0.5">
               <Text className="font-texte-gras text-[11px] text-jaune">Nouveau</Text>
             </View>
           ) : null}
@@ -74,7 +75,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
         </View>
 
         {recommandation.mot ? (
-          <View className="self-start rounded-2xl rounded-tl-md border border-ligne bg-white px-3 py-2">
+          <View className="self-start rounded-2xl rounded-tl-md border border-ligne bg-carte px-3 py-2">
             <Text className="font-texte text-sm leading-5 text-encre">{`«\u00a0${recommandation.mot}\u00a0»`}</Text>
           </View>
         ) : null}

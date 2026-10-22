@@ -12,7 +12,7 @@ type Props = {
 /** Tes potes à mentionner, proposés au-dessus du champ quand tu tapes « @ ». */
 export function SuggestionsMentions({ potes, onChoisir }: Props) {
   return (
-    <View className="mb-2 overflow-hidden rounded-2xl border-2 border-encre bg-white">
+    <View className="mb-2 overflow-hidden rounded-2xl border-2 border-encre bg-carte">
       {potes.map((pote, index) => (
         <Pressable
           key={pote.id}

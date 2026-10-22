@@ -12,8 +12,8 @@ import { SectionRolesDemo } from "~/composants/reglages/SectionRolesDemo";
 import { SectionSimulationDemo } from "~/composants/reglages/SectionSimulationDemo";
 import { BandeauDemoVisites } from "~/composants/scan/BandeauDemoVisites";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Réglages > Coulisses de la démo (en développement seulement) : les rôles joués (équipe du Restaurant du Capitaine Bouiboui, ambassadeur),
@@ -21,6 +21,7 @@ import couleurs from "~/theme/couleurs";
  * Dans une version publiée, il n'y a pas de démo : l'écran le dit, sans rien proposer.
  */
 export default function CoulissesDemo() {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   const outilsDemo = utiliserOutilsDemo();
   const [feuilleZero, setFeuilleZero] = useState(false);

@@ -122,7 +122,7 @@ export function LigneDemandeSuivi({ pote, issue, derniere, onAccepter, onRefuser
               onPress={() => choisir(onAccepter)}
               className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-70"
             >
-              <Text className="font-texte-gras text-[13px] text-encre">Accepter</Text>
+              <Text className="font-texte-gras text-[13px] text-nuit">Accepter</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -130,7 +130,7 @@ export function LigneDemandeSuivi({ pote, issue, derniere, onAccepter, onRefuser
               accessibilityHint="En toute discrétion : personne n'est prévenu"
               hitSlop={6}
               onPress={() => choisir(onRefuser)}
-              className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-4 active:opacity-70"
+              className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-70"
             >
               <Text className="font-texte-gras text-[13px] text-encre">Refuser</Text>
             </Pressable>

@@ -27,7 +27,8 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import palettes from "~/theme/palettes";
 
 type Props = {
   publication: Publication;
@@ -86,11 +87,13 @@ const DELAI_APPUI_LONG = 400;
 // d'onglets) ; son rail visible est en bas de la zone, elles n'ont pas besoin d'écart en plus
 const ECART_BAS = HAUTEUR_ZONE_PROGRESSION;
 const ombreTexte = { textShadowColor: "rgba(0,0,0,0.5)", textShadowRadius: 6 };
+const ombreRaison = { ...ombreTexte, color: palettes.clair["jaune-clair"] };
 // Le lecteur d'écran passe à la pastille (ou revient à la fiche) une fois la réduction finie
 const DELAI_FOCUS_REDUCTION = 300;
 
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
+  const couleurs = utiliserCouleurs();
   const { publication, lieu, km, depuis, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const pointSos = useSharedValue(1);
@@ -222,7 +225,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     : undefined;
 
   return (
-    <View style={{ height: hauteur, width: largeur }} onMagicTap={video && actif ? basculerPauseLecteurEcran : undefined} className="overflow-hidden bg-encre">
+    <View style={{ height: hauteur, width: largeur }} onMagicTap={video && actif ? basculerPauseLecteurEcran : undefined} className="overflow-hidden bg-nuit">
       <LinearGradient colors={lieu.couleurs} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: "absolute", inset: 0 }} />
       {media ? (
         <MediaPublication
@@ -319,7 +322,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             </View>
             <View accessible accessibilityLabel={description} accessibilityActions={actionsVideo} onAccessibilityAction={video ? actionLecteurEcran : undefined} className="gap-1.5">
               {auteur.type === "createur" && auteur.partenariat ? (
-                <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-encre">
+                <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-nuit">
                   Collaboration commerciale · {auteur.partenariat}
                 </Text>
               ) : null}
@@ -330,7 +333,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                     <View className="h-2 w-2">
                       <Animated.View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurs.tomate }, stylePointSos]} />
                     </View>
-                    <Text className="font-texte-gras text-[13px] text-encre">
+                    <Text className="font-texte-gras text-[13px] text-nuit">
                       SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}
                     </Text>
                   </View>
@@ -340,7 +343,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                 ) : null}
                 {verifie ? null : <BadgeVerification verifie={false} />}
               </View>
-              {raison ? <Text className="font-texte-semi text-sm text-jaune-clair" style={ombreTexte}>💛 {raison}</Text> : null}
+              {raison ? <Text className="font-texte-semi text-sm" style={ombreRaison}>💛 {raison}</Text> : null}
               <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
               <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
                 📍 {ecrireQuartierVille(lieu)}

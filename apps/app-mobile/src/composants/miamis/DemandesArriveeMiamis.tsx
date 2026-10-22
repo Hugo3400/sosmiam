@@ -17,7 +17,7 @@ type Props = {
 export function DemandesArriveeMiamis({ demandes, enCours, onAccepter, onRefuser }: Props) {
   if (demandes.length === 0) return null;
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View className="gap-1">
         <Text accessibilityRole="header" className="font-titre text-xl text-encre">
           {`${TEXTES_SORTIE_MIAMIS.demandesTitre} (${demandes.length})`}

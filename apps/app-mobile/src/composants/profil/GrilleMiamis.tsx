@@ -34,7 +34,7 @@ export function GrilleMiamis({ choisi, taille, ecart, onChoisir }: Props) {
               onChoisir(id);
             }}
             style={{ width: taille, height: taille, borderRadius: taille / 2 }}
-            className={`items-center justify-center overflow-hidden border-2 active:opacity-80 ${estChoisi ? "border-encre bg-encre" : "border-ligne bg-white"}`}
+            className={`items-center justify-center overflow-hidden border-2 active:opacity-80 ${estChoisi ? "border-encre bg-nuit" : "border-ligne bg-carte"}`}
           >
             <Image
               source={IMAGES_MIAMIS[id]}

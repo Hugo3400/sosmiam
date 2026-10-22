@@ -16,9 +16,9 @@ import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   conversationId: string;
@@ -52,6 +52,7 @@ const DELAI_APPUI_LONG = 350;
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un ❤️ ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
+  const couleurs = utiliserCouleurs();
   const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
   // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, mais « Retirer »
   const enPause = message.etat === "echec" && envoisEnPause.has(message.id);
@@ -111,7 +112,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   const prenom = deMoi ? "Toi" : (auteur?.prenom ?? (message.auteur === "" ? "Compte supprimé" : "Quelqu'un"));
   const avecPrenom = !deMoi && groupe && debutSerie;
   const coins = deMoi ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-tl-md";
-  const fond = deMoi ? "bg-jaune" : "bg-white";
+  const fond = deMoi ? "bg-jaune" : "bg-carte";
 
   // VoiceOver : le cœur et le menu en actions (balayer vers le haut ou le bas), sur l'élément qui porte le message
   const actionsLecteur: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction"> = {
@@ -137,7 +138,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
         accessibilityLabel={`${prenom}, ${heure} : ${texte}`}
         onLongPress={ouvrirOptions}
         delayLongPress={DELAI_APPUI_LONG}
-        className={`border-2 border-dashed border-gris/50 px-3.5 py-2.5 ${coins} bg-white/60`}
+        className={`border-2 border-dashed border-gris/50 px-3.5 py-2.5 ${coins} bg-carte/60`}
       >
         <Text className="font-texte text-sm italic text-gris">{lierPonctuation(texte)}</Text>
       </Pressable>
@@ -188,7 +189,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
           </Text>
         ) : (
           // Espace insécable avant « ? ! : ; » : le signe ne part jamais seul à la ligne
-          <Text className="font-texte text-base leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
+          <Text className={`font-texte text-base leading-[22px] ${deMoi ? "text-nuit" : "text-encre"}`}>{lierPonctuation(texte)}</Text>
         )}
       </Pressable>
     );

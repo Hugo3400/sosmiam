@@ -30,8 +30,8 @@ export function PartageEnvoyeMiamSafe({ partage, telephones, arret, onArreter, o
     <View className="gap-4">
       {telephones === 0 ? (
         <View accessible className="gap-2 rounded-2xl bg-tomate p-4">
-          <Text className="font-texte-gras text-base text-encre">⚠️ {prenom} n'a rien reçu</Text>
-          <Text className="font-texte text-base leading-6 text-encre">
+          <Text className="font-texte-gras text-base text-nuit">⚠️ {prenom} n'a rien reçu</Text>
+          <Text className="font-texte text-base leading-6 text-nuit">
             Aucun téléphone de ton pote n'est connecté à SOS Miam : la notification n'est pas partie. Appelle ton pote, ou les
             secours si tu es en danger.
           </Text>
@@ -43,14 +43,14 @@ export function PartageEnvoyeMiamSafe({ partage, telephones, arret, onArreter, o
       ) : null}
 
       {partage.actif && !partage.avecPosition ? (
-        <View className="gap-3 rounded-2xl bg-white p-4">
+        <View className="gap-3 rounded-2xl bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">
             Tu n'as pas partagé ta position : {prenom} voit seulement le lieu, jusqu'à {ecrireHeure(partage.expireLe)}.
           </Text>
           <Bouton libelle={arret ? "Arrêt…" : "Arrêter le partage"} variante="blanc" desactive={arret} onPress={onArreter} />
         </View>
       ) : partage.actif ? (
-        <View className="gap-3 rounded-2xl bg-white p-4">
+        <View className="gap-3 rounded-2xl bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">
             📍 {prenom} voit ta position jusqu'à {ecrireHeure(partage.expireLe)}.
           </Text>
@@ -69,7 +69,7 @@ export function PartageEnvoyeMiamSafe({ partage, telephones, arret, onArreter, o
           <Bouton libelle={arret ? "Arrêt…" : "Arrêter le partage"} variante="blanc" desactive={arret} onPress={onArreter} />
         </View>
       ) : (
-        <View accessible className="gap-1 rounded-2xl border-2 border-dashed border-encre bg-white p-4">
+        <View accessible className="gap-1 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">Partage terminé</Text>
           <Text className="font-texte text-base leading-6 text-encre">{prenom} ne voit plus ta position : elle est effacée.</Text>
         </View>

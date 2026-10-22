@@ -86,7 +86,7 @@ export default function AjouterPote() {
   return (
     <EcranReglage titre="Ajouter un pote" sousTitre="Plus on est de fous, plus on sauve de lieux.">
       {communaute.demo ? (
-        <View className="mb-7 flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5">
+        <View className="mb-7 flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5">
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
             🧪
           </Text>

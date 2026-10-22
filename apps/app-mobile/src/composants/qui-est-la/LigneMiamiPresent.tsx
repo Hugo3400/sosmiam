@@ -21,7 +21,7 @@ export function LigneMiamiPresent({ present, coucouPossible, enCours, demande, o
     present.dansTaBande ? null : present.coucou === "recu" ? TEXTES_QUI_EST_LA.aFaitCoucou : present.coucou === "reciproque" ? TEXTES_QUI_EST_LA.reciproque : null;
 
   return (
-    <View className="flex-row items-center gap-3 rounded-[18px] border border-ligne bg-white px-3 py-2.5">
+    <View className="flex-row items-center gap-3 rounded-[18px] border border-ligne bg-carte px-3 py-2.5">
       <RondMiami personne={present.personne} taille={46} />
       <View className="min-w-0 flex-1 gap-0.5">
         <Text numberOfLines={1} className="font-texte-gras text-sm text-encre">

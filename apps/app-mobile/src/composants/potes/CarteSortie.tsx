@@ -8,8 +8,8 @@ import { RondPote } from "~/composants/potes/RondPote";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   sortie: Sortie;
@@ -54,6 +54,7 @@ const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice
 
 /** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMenu, refPrincipal }: Props) {
+  const couleurs = utiliserCouleurs();
   const { trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const bloquesIds = new Set(bloques.map((b) => b.id));
@@ -78,10 +79,10 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const aVote = sortie.propositions.some((p) => p.votes.includes(monId));
   // « Chez Nonna Lia » → « On va chez Nonna Lia »
   const etat = lieu
-    ? { emoji: "📍", texte: passee ? `Lieu retenu\u00a0: ${lieu.nom}` : `On va chez ${lieu.nom.replace(/^chez\s+/i, "")}`, fond: "bg-jaune" }
+    ? { emoji: "📍", texte: passee ? `Lieu retenu\u00a0: ${lieu.nom}` : `On va chez ${lieu.nom.replace(/^chez\s+/i, "")}`, fond: "bg-jaune", couleurTexte: "text-nuit" }
     : voteEnCours
-      ? { emoji: "🗳️", texte: `Vote en cours, fin ${formaterMoment(sortie.finVote, maintenant)}`, fond: "bg-jaune-clair" }
-      : { emoji: "🤷", texte: "Vote terminé, aucun lieu retenu", fond: "bg-ligne" };
+      ? { emoji: "🗳️", texte: `Vote en cours, fin ${formaterMoment(sortie.finVote, maintenant)}`, fond: "bg-jaune-clair", couleurTexte: "text-encre" }
+      : { emoji: "🤷", texte: "Vote terminé, aucun lieu retenu", fond: "bg-ligne", couleurTexte: "text-encre" };
   const aToiDeVoter = voteEnCours && !aVote;
   const moment = formaterMoment(sortie.quand, maintenant);
   const quand = passee ? `C'était ${moment}` : majuscule(moment);
@@ -113,7 +114,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
         onOuvrir(sortie.id);
       }}
       // Sortie passée : fond crème au lieu d'une opacité, qui ferait passer les textes gris sous le contraste lisible
-      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${passee ? "bg-creme" : "bg-white"}`}
+      className={`gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${passee ? "bg-creme" : "bg-carte"}`}
     >
       <View className="flex-row items-center gap-3">
         <View className={`h-12 w-12 items-center justify-center rounded-2xl border-2 border-encre ${passee ? "bg-ligne" : "bg-jaune-clair"}`}>
@@ -136,14 +137,14 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
       <View className="flex-row items-center gap-3">
         <View className="flex-row pl-2">
           {visibles.map((p) => (
-            <View key={p.id} className={`-ml-2 rounded-full border-2 ${passee ? "border-creme" : "border-white"}`}>
+            <View key={p.id} className={`-ml-2 rounded-full border-2 ${passee ? "border-creme" : "border-carte"}`}>
               <RondPote pote={p} taille={TAILLE_ROND} />
             </View>
           ))}
           {enPlus > 0 ? (
             <View
               style={{ width: TAILLE_ROND + 4, height: TAILLE_ROND + 4 }}
-              className={`-ml-2 items-center justify-center rounded-full border-2 bg-encre ${passee ? "border-creme" : "border-white"}`}
+              className={`-ml-2 items-center justify-center rounded-full border-2 bg-nuit ${passee ? "border-creme" : "border-carte"}`}
             >
               <Text allowFontScaling={false} className="font-texte-gras text-xs text-jaune">
                 +{enPlus}
@@ -160,7 +161,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
       <View className="flex-row flex-wrap gap-2">
         <View className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${etat.fond}`}>
           <Text className="text-sm">{etat.emoji}</Text>
-          <Text className="shrink font-texte-semi text-[13px] text-encre">{etat.texte}</Text>
+          <Text className={`shrink font-texte-semi text-[13px] ${etat.couleurTexte}`}>{etat.texte}</Text>
         </View>
         {aToiDeVoter ? (
           <View className="rounded-full bg-rose-alerte px-3 py-1.5">
@@ -168,7 +169,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
           </View>
         ) : null}
         {nonLus > 0 ? (
-          <View className="flex-row items-center gap-1 rounded-full bg-encre px-3 py-1.5">
+          <View className="flex-row items-center gap-1 rounded-full border border-encre bg-nuit px-3 py-1.5">
             <Text className="text-sm">💬</Text>
             <Text className="font-texte-gras text-[13px] text-jaune">{`${nonLus > 99 ? "99+" : nonLus} nouveau${nonLus > 1 ? "x" : ""}`}</Text>
           </View>

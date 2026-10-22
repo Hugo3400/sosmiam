@@ -40,7 +40,7 @@ export function Annonce({ annonce, haut, onFin }: Props) {
       // tombait sous l'écran, dans le flux de la page)
       style={{ position: "absolute", left: 20, right: 20, top: haut, alignItems: "center" }}
     >
-      <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-4 py-2.5 text-center font-texte-gras text-[15px] text-encre">
+      <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-4 py-2.5 text-center font-texte-gras text-[15px] text-nuit">
         {annonce.texte}
       </Text>
     </Animated.View>

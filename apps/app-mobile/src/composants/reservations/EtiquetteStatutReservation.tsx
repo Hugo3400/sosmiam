@@ -14,7 +14,7 @@ const FONDS: Record<TonEtiquetteReservation, string> = {
 };
 
 const TEXTES: Record<TonEtiquetteReservation, string> = {
-  jaune: "text-encre",
+  jaune: "text-nuit",
   attente: "text-encre",
   rose: "text-rouge-texte",
   doux: "text-gris",

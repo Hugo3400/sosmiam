@@ -17,7 +17,7 @@ export function LigneStatistique({ emoji, libelle, valeur, avant, historique }: 
   const max = Math.max(1, ...historique);
   const tendance = ecart === null || ecart === 0 ? "pareil que la semaine dernière" : ecart > 0 ? `${ecart} de plus que la semaine dernière` : `${-ecart} de moins que la semaine dernière`;
   return (
-    <View accessible accessibilityLabel={`${libelle} : ${valeur} cette semaine, ${tendance}`} className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View accessible accessibilityLabel={`${libelle} : ${valeur} cette semaine, ${tendance}`} className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View className="flex-row items-center gap-3">
         <Text className="text-2xl">{emoji}</Text>
         <View className="flex-1">
@@ -26,7 +26,7 @@ export function LigneStatistique({ emoji, libelle, valeur, avant, historique }: 
         </View>
         {ecart !== null && ecart !== 0 ? (
           <View className={`rounded-full border-2 border-encre px-3 py-1 ${ecart > 0 ? "bg-jaune" : "bg-creme"}`}>
-            <Text className="font-texte-gras text-sm text-encre">{ecart > 0 ? `+${ecart}` : `${ecart}`}</Text>
+            <Text className={`font-texte-gras text-sm ${ecart > 0 ? "text-nuit" : "text-encre"}`}>{ecart > 0 ? `+${ecart}` : `${ecart}`}</Text>
           </View>
         ) : null}
       </View>

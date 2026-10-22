@@ -8,7 +8,7 @@ export function BandeauDemoVisites() {
     <View
       accessible
       accessibilityLabel="Démo : tes visites restent sur ce téléphone et ne comptent pas sur ton vrai compte."
-      className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-white/70 px-3.5 py-2.5"
+      className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5"
     >
       <Text className="text-lg">🧪</Text>
       <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">

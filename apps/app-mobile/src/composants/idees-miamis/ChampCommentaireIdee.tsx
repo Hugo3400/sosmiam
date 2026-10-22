@@ -14,7 +14,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { expliquerRefusCommentaireIdee } from "~/fonctions/idees-miamis/expliquer-refus-commentaire-idee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   reponseA: CommentaireIdee | null;
@@ -26,6 +26,7 @@ type Props = {
 };
 
 export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, occupe, margeBas, ref }: Props) {
+  const couleurs = utiliserCouleurs();
   const [valeur, setValeur] = useState("");
   const [refus, setRefus] = useState<{ limite: boolean; texte: string } | null>(null);
   const vide = valeur.trim() === "";
@@ -87,7 +88,7 @@ export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, oc
           multiline
           maxLength={LONGUEUR_MAX_COMMENTAIRE_IDEE}
           autoCapitalize="sentences"
-          className={`max-h-[120px] min-h-[46px] flex-1 rounded-3xl border bg-white px-4 py-3 font-texte text-[15px] text-encre ${refus && !refus.limite ? "border-rouge-texte" : "border-ligne"}`}
+          className={`max-h-[120px] min-h-[46px] flex-1 rounded-3xl border bg-carte px-4 py-3 font-texte text-[15px] text-encre ${refus && !refus.limite ? "border-rouge-texte" : "border-ligne"}`}
         />
         <Pressable
           accessibilityRole="button"
@@ -97,7 +98,7 @@ export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, oc
           onPress={() => void envoyer()}
           className={`h-[46px] w-[46px] items-center justify-center rounded-full bg-jaune active:scale-90 ${vide ? "opacity-40" : ""}`}
         >
-          {occupe ? <ActivityIndicator size="small" color={couleurs.encre} /> : <Ionicons name="arrow-forward" size={20} color={couleurs.encre} />}
+          {occupe ? <ActivityIndicator size="small" color={couleurs.nuit} /> : <Ionicons name="arrow-forward" size={20} color={couleurs.nuit} />}
         </Pressable>
       </View>
       {refus && !refus.limite ? (

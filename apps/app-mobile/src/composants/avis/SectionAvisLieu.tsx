@@ -10,8 +10,8 @@ import { ecrireResumeAvis } from "~/fonctions/avis/ecrire-resume-avis";
 import { filtrerAvisSelonAge } from "~/fonctions/avis/filtrer-avis-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserAvisLieu } from "~/hooks/utiliser-avis-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserSourcePhotoAvis } from "~/hooks/utiliser-source-photo-avis";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   lieuId: number;
@@ -25,6 +25,7 @@ const AVIS_AU_DEPART = 3;
 const AVIS_EN_PLUS = 5;
 
 export function SectionAvisLieu({ lieuId, nomLieu, age, lieuAlcool }: Props) {
+  const couleurs = utiliserCouleurs();
   const { lecture, suiteEnCours, relire, lireSuite } = utiliserAvisLieu(lieuId);
   const lireSourcePhoto = utiliserSourcePhotoAvis();
   const [montres, setMontres] = useState(AVIS_AU_DEPART);

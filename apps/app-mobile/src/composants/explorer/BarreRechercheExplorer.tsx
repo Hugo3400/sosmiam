@@ -4,7 +4,7 @@ import { Pressable, TextInput, View } from "react-native";
 
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   valeur: string;
@@ -15,6 +15,7 @@ const LONGUEUR_MAX = 60;
 
 /** La recherche d'Explorer, posée sur la carte : bord noir arrondi, loupe, et une croix « Effacer » dès qu'il y a du texte. */
 export function BarreRechercheExplorer({ valeur, onChange }: Props) {
+  const couleurs = utiliserCouleurs();
   const champ = useRef<TextInput>(null);
 
   function effacer() {
@@ -28,7 +29,7 @@ export function BarreRechercheExplorer({ valeur, onChange }: Props) {
     <View className="relative">
       {/* Ombre décalée, comme les boutons : la barre se détache bien de la carte */}
       <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
-      <View className="relative min-h-12 flex-row items-center rounded-full border-2 border-encre bg-white pl-4">
+      <View className="relative min-h-12 flex-row items-center rounded-full border-2 border-encre bg-carte pl-4">
         <Ionicons name="search" size={20} color={couleurs.encre} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
         <TextInput
           ref={champ}

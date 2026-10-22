@@ -16,12 +16,13 @@ import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Erreurs = { titre?: string; membres?: string };
 
 /** Créer un groupe : un nom et un emoji, puis les potes de ta bande à y inviter. */
 export default function NouveauGroupe() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { potes } = utiliserCommunaute();
   const { creerGroupe } = utiliserConversations();
@@ -79,7 +80,7 @@ export default function NouveauGroupe() {
             accessibilityLabel="Retour"
             hitSlop={8}
             onPress={() => (router.canGoBack() ? router.back() : router.replace("/potes/messages"))}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>

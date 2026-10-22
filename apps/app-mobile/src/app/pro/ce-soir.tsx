@@ -12,9 +12,9 @@ import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 // Relu toutes les minutes tant que l'écran est ouvert : un SOS ou un message finit tout seul
 const RELECTURE_MS = 60_000;
@@ -27,6 +27,7 @@ type BlocRefuse = "sos" | "arreter" | "message" | "effacer";
  * affiché sur la fiche. Le serveur relit le rôle et les règles à chaque geste ; ses refus s'affichent sous le bon champ.
  */
 export default function EcranCeSoir() {
+  const couleurs = utiliserCouleurs();
   const { lieuPro } = utiliserModes();
   const { lieuPro: service } = utiliserServices();
   const [moment, setMoment] = useState<MomentLieu | null>(null);

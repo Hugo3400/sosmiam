@@ -37,7 +37,7 @@ export function Pastille({ libelle, emoji, choisi, onPress, role = "checkbox", p
         vibrerLegerement();
         onPress();
       }}
-      className={`min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-4 py-2.5 active:opacity-80 ${choisi ? "bg-encre" : "bg-white"} ${desactive ? "opacity-40" : ""}`}
+      className={`min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-4 py-2.5 active:opacity-80 ${choisi ? "bg-nuit" : "bg-carte"} ${desactive ? "opacity-40" : ""}`}
     >
       {emoji ? <Text className="text-base">{emoji}</Text> : null}
       <Text className={`font-texte-semi text-[15px] ${choisi ? "text-jaune" : "text-encre"}`}>{libelle}</Text>

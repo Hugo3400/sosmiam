@@ -135,7 +135,7 @@ export function RecherchePseudo() {
                   onPress={() => void ajouter(pote)}
                   className="min-h-11 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
                 >
-                  <Text className="font-texte-gras text-sm text-encre">Ajouter</Text>
+                  <Text className="font-texte-gras text-sm text-nuit">Ajouter</Text>
                 </Pressable>
               )}
             </View>

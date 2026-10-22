@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /** Un moment possible pour la fin du vote */
 export type OptionFinVote = {
@@ -21,6 +21,7 @@ type Props = {
 
 /** Choisir quand le vote d'une nouvelle sortie se termine : un seul choix parmi quelques moments. */
 export function ChoixFinVote({ options, choisie, onChoisir }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel="Fin du vote">
       {options.map((o, i) => {

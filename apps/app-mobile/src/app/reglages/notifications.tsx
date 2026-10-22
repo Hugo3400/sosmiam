@@ -13,9 +13,9 @@ import {
   type ReglagesNotifications as ChoixNotifications,
   type TypeNotification,
 } from "~/stockage/reglages-notifications";
-import couleurs from "~/theme/couleurs";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
 import { utiliserChoixOffresEnAttente } from "~/hooks/utiliser-choix-offres-en-attente";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /** Heures proposées pour le mode nuit (au format HH:MM du stockage) */
 const HEURES_DEBUT = ["21:00", "22:00", "23:00", "00:00"];
@@ -35,6 +35,7 @@ const MESSAGE_CHUT_EN_ATTENTE = "📮 Ton « chut » part dès que le réseau re
 
 /** Réglages > Notifications : tout couper, choisir les sortes d'alertes et le mode nuit. Chaque choix est gardé tout de suite. */
 export default function ReglagesNotifications() {
+  const couleurs = utiliserCouleurs();
   const [reglages, setReglages] = useState<ChoixNotifications | null>(null);
   // Dernière version connue, pour enchaîner deux changements rapides sans en perdre un
   const derniers = useRef<ChoixNotifications | null>(null);
@@ -203,7 +204,7 @@ export default function ReglagesNotifications() {
                   ))}
                 </View>
               </View>
-              <View className="rounded-carte bg-white px-4 py-3">
+              <View className="rounded-carte bg-carte px-4 py-3">
                 <Text accessibilityLiveRegion="polite" className="font-texte-semi text-base leading-6 text-encre">
                   De {afficherHeure(reglages.silence.de)} à {afficherHeure(reglages.silence.a)}, ton téléphone reste tranquille.
                 </Text>

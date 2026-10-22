@@ -8,11 +8,12 @@ import { CarteMission } from "~/composants/ambassadeur/CarteMission";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /** Les missions confiées par l'équipe : à faire d'abord (échéance la plus proche), puis faites ou annulées. */
 export default function EcranMissions() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { ambassadeur } = utiliserServices();
   const [missions, setMissions] = useState<MissionAmbassadeur[] | null>(null);

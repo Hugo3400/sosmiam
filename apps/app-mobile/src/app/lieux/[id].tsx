@@ -2,14 +2,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 /**
  * La fiche d'un lieu ouverte depuis un lien du site (sosmiam.fr/lieux/<id>) : on ouvre la même fiche dans l'app. Sans
  * compte, on entre en visite (regarder une fiche ne demande pas de compte).
  */
 export default function OuvrirFicheDuSite() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const { profil, invite, entrerEnInvite } = utiliserProfil();

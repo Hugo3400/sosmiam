@@ -30,13 +30,13 @@ export function CartePalier({ points, lieuxSauves, premiersSauvetages, badgesObt
   const etape = ecrireProchaineEtape(progression);
 
   return (
-    <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
+    <View className="gap-4 rounded-carte border-2 border-encre bg-carte p-5">
       <View accessible accessibilityLabel={`${actuel.nom}, ${TEXTES_PALIER.points(points)}`} className="flex-row items-center gap-3">
         <Text className="text-4xl">{actuel.emoji}</Text>
         <View className="flex-1 flex-row flex-wrap items-center gap-x-2 gap-y-1">
           <Text className="shrink grow font-titre text-2xl text-encre">{actuel.nom}</Text>
           <View className="rounded-full border-2 border-encre bg-jaune px-2.5 py-1">
-            <Text className="font-texte-gras text-sm text-encre">{TEXTES_PALIER.points(points)}</Text>
+            <Text className="font-texte-gras text-sm text-nuit">{TEXTES_PALIER.points(points)}</Text>
           </View>
         </View>
       </View>

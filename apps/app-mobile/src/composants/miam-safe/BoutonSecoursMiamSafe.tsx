@@ -27,7 +27,7 @@ export function BoutonSecoursMiamSafe({ avecCreerCompte = false, sansInternet = 
         accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, et un écran à montrer à l'équipe"
         hitSlop={8}
         onPress={() => setEtat("ouvert")}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Text className="text-lg">🚨</Text>
       </Pressable>

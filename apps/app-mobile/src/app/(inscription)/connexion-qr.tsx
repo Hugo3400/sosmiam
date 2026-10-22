@@ -10,10 +10,10 @@ import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-e
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { type EtatAffichageQr, utiliserAttenteConnexionQr } from "~/hooks/utiliser-attente-connexion-qr";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { montrerErreurCompte, utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { type ServiceConnexionQr, utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
 import { simulerConnexionQrDemo } from "~/services/demo/connexion-qr-demo";
-import couleurs from "~/theme/couleurs";
 
 const TAILLE_QR = 232;
 
@@ -31,6 +31,7 @@ export default function ConnexionQr() {
 }
 
 function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: boolean }) {
+  const couleurs = utiliserCouleurs();
   const { entrer } = utiliserEntreeCompte();
   const [finDemo, setFinDemo] = useState(false);
   // La session rendue par l'API (une seule fois) : gardée pour réessayer d'entrer sans nouveau QR
@@ -92,7 +93,7 @@ function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: bool
           accessibilityLabel="QR code de connexion : scanne-le avec ton téléphone déjà connecté"
           className="rounded-carte border-2 border-encre bg-white p-4"
         >
-          <QRCode value={`https://sosmiam.fr/q/${demande.code}`} size={TAILLE_QR} color={couleurs.encre} backgroundColor="#FFFFFF" ecl="M" />
+          <QRCode value={`https://sosmiam.fr/q/${demande.code}`} size={TAILLE_QR} color={couleurs.nuit} backgroundColor="#FFFFFF" ecl="M" />
         </View>
         <Text className="font-texte text-sm text-gris">
           {attente.secondesRestantes > 0 ? `Valable encore ${attente.secondesRestantes} s · ${textesConnexionQr.renouvele}` : textesConnexionQr.renouvele}
@@ -101,7 +102,7 @@ function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: bool
     );
   } else {
     contenu = (
-      <View className="items-center gap-4 rounded-carte border-2 border-encre bg-white p-5">
+      <View className="items-center gap-4 rounded-carte border-2 border-encre bg-carte p-5">
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-5xl">
           {entreeRatee ? "😕" : (EMOJIS[etat] ?? "😕")}
         </Text>
@@ -124,7 +125,7 @@ function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: bool
         {contenu}
         <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(textesConnexionQr.aideAfficher)}</Text>
         {demo && demande && (etat === "attente" || etat === "scanne") ? (
-          <View className="gap-3 rounded-2xl border-2 border-dashed border-ligne bg-white p-4">
+          <View className="gap-3 rounded-2xl border-2 border-dashed border-ligne bg-carte p-4">
             <Text className="font-texte-semi text-sm text-gris">🧪 Démo : joue l'autre téléphone</Text>
             <View className="flex-row flex-wrap gap-2">
               {etat === "attente" ? <Bouton libelle="Scanné" variante="blanc" petit onPress={() => simulerConnexionQrDemo(demande.secret, "scanne")} /> : null}

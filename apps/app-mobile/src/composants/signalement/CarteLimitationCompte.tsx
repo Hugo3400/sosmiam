@@ -65,19 +65,19 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
   const bloc = (titreBloc: string, texte: string, encadre = false) => (
     <View accessible accessibilityLabel={lierPonctuation(`${titreBloc} : ${texte}`)} className="gap-1">
       <Text className="font-texte-semi text-sm text-gris">{titreBloc}</Text>
-      <View className={encadre ? "rounded-2xl border-2 border-encre bg-white px-3 py-2.5" : ""}>
+      <View className={encadre ? "rounded-2xl border-2 border-encre bg-carte px-3 py-2.5" : ""}>
         <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
       </View>
     </View>
   );
 
   return (
-    <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${etat === "finie" ? "bg-white" : "bg-jaune-clair"}`}>
+    <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${etat === "finie" ? "bg-carte" : "bg-jaune-clair"}`}>
       <View accessible accessibilityLabel={lierPonctuation(`${titre}. ${pastille.texte}. ${intro}`)} className="gap-2">
         <Text accessibilityRole="header" className="font-titre text-xl text-encre">
           {lierPonctuation(titre)}
         </Text>
-        <View className="flex-row items-center gap-1.5 self-start rounded-full border-2 border-encre bg-white px-3 py-1">
+        <View className="flex-row items-center gap-1.5 self-start rounded-full border-2 border-encre bg-carte px-3 py-1">
           <Text className="text-sm">{pastille.emoji}</Text>
           <Text className="flex-shrink font-texte-semi text-sm text-encre">{lierPonctuation(pastille.texte)}</Text>
         </View>
@@ -99,7 +99,7 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
               <Text className="font-texte text-[15px] leading-[22px] text-encre">
                 {lierPonctuation(`📮 ${contesteLe ? remplirModele(t.contestationEnvoyee, { date: contesteLe }) : t.contestationEnvoyeeSansDate}`)}
               </Text>
-              <View className="rounded-2xl border-2 border-encre bg-white px-3 py-2.5">
+              <View className="rounded-2xl border-2 border-encre bg-carte px-3 py-2.5">
                 <Text className="font-texte text-[15px] leading-[22px] text-encre">{contestation}</Text>
               </View>
               <Text className="font-texte-semi text-sm leading-5 text-encre">{lierPonctuation(`${reexamineLe ? "🔁" : "⏳"} ${suiteContestation}`)}</Text>

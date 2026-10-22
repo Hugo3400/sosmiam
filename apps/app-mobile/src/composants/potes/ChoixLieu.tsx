@@ -8,10 +8,10 @@ import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -24,6 +24,7 @@ type Props = {
 
 /** Choisir un lieu dans une feuille qui monte du bas, avec une recherche (nom, plat, quartier, ville). Réservé aux inscrits : tous les lieux. */
 export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -78,7 +79,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
                 placeholderTextColor={couleurs.gris}
                 autoCorrect={false}
                 returnKeyType="search"
-                className="min-h-12 rounded-full border-2 border-encre bg-white px-4 font-texte text-base text-encre"
+                className="min-h-12 rounded-full border-2 border-encre bg-carte px-4 font-texte text-base text-encre"
               />
             </View>
             <FlatList

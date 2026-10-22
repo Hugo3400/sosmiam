@@ -21,9 +21,9 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { convertirBrouillonEvenement } from "~/fonctions/pro/convertir-brouillon-evenement";
 import { creerBrouillonEvenement, type BrouillonEvenement } from "~/fonctions/pro/creer-brouillon-evenement";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 const ERREURS: Record<ChampEvenement, string> = {
   titre: `De ${TITRE_EVENEMENT_MIN} à ${TITRE_EVENEMENT_MAX} caractères, sans gros mot ni « open bar ».`,
@@ -43,6 +43,7 @@ const ERREURS: Record<ChampEvenement, string> = {
  * places et alcool. Vérifié ici comme sur le serveur (validerEvenement) ; un événement à venir peut aussi être annulé.
  */
 export default function EcranEvenementPro() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { lieuPro } = utiliserModes();

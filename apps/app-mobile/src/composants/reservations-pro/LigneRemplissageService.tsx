@@ -11,17 +11,18 @@ import { TEXTES_REMPLISSAGE as T } from "~/contenus/textes-comptoir-reservations
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { RemplissageService } from "~/fonctions/reservations/calculer-remplissage-jour";
 import { ecrireNomService } from "~/fonctions/reservations/ecrire-nom-service";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = { remplissage: RemplissageService; services: readonly ServiceReservation[] };
 
 export function LigneRemplissageService({ remplissage, services }: Props) {
+  const couleurs = utiliserCouleurs();
   const [deplie, setDeplie] = useState(false);
   const { emoji, titre } = ecrireNomService(nommerServiceReservation(remplissage.service, services));
   const valeurs = { acceptes: String(remplissage.acceptes), capacite: String(remplissage.capacite) };
   const total = remplirModele(T.service, valeurs);
   return (
-    <View className="gap-2 rounded-2xl border-2 border-ligne bg-white px-3.5 py-3">
+    <View className="gap-2 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-3">
       <View accessible accessibilityLabel={remplirModele(T.serviceLu, { service: titre, ...valeurs })} className="gap-2">
         <View className="flex-row items-center justify-between gap-3">
           <Text className="font-texte-gras text-base text-encre">{`${emoji} ${titre}`}</Text>

@@ -57,7 +57,7 @@ export function CarteDemandeConnexion({ demande, secondesRestantes, envoi, souci
       <View
         accessible
         accessibilityLabel={`Quelqu'un veut se connecter à ton compte sur ${demande.appareil}${origine ? `, ${origine}` : ""}, demandé à ${ecrireHeure(demande.creeLe)}`}
-        className="gap-2 rounded-carte border-2 border-encre bg-white p-5"
+        className="gap-2 rounded-carte border-2 border-encre bg-carte p-5"
       >
         <Text className="text-4xl">{demande.cible === "app" ? "📱" : "💻"}</Text>
         <Text className="font-texte-semi text-base text-gris">Quelqu'un veut se connecter à TON compte sur :</Text>
@@ -69,7 +69,7 @@ export function CarteDemandeConnexion({ demande, secondesRestantes, envoi, souci
       <Text accessibilityRole="header" className="font-titre text-2xl leading-8 text-encre">
         {textesConnexionQr.questionConfirmer}
       </Text>
-      <View className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-white px-4 py-3">
+      <View className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-carte px-4 py-3">
         <Text accessibilityElementsHidden importantForAccessibility="no" className="text-xl">
           ⚠️
         </Text>

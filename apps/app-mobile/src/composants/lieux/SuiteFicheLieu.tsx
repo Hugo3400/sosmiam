@@ -94,7 +94,7 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
 
   return (
     <Animated.View entering={animationsReduites ? undefined : FadeIn.duration(220)} style={styles.suite}>
-      <View className="gap-3 rounded-carte border-2 border-encre bg-white p-5">
+      <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-5">
         {sections.map((s) => (
           <View key={s.titre} className="flex-row gap-3">
             <Text className="text-xl">{s.emoji}</Text>

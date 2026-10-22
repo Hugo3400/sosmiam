@@ -14,7 +14,7 @@ export function PhraseComptoirMiamSafe() {
       <View className="rounded-full border-2 border-jaune px-3 py-1">
         <Text className="font-texte-gras text-sm text-jaune">🛡 Miam Safe</Text>
       </View>
-      <Text accessibilityRole="header" className="text-center font-titre-gras text-4xl text-creme">
+      <Text accessibilityRole="header" className="text-center font-titre-gras text-4xl text-lait">
         {PHRASE}
       </Text>
       <Text className="max-w-[280px] text-center font-texte-semi text-sm leading-5 text-gris-nuit">

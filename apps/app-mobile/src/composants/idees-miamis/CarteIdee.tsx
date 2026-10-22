@@ -17,7 +17,7 @@ type Props = {
 export function CarteIdee({ idee, monId, occupe, onVoter, onOuvrir }: Props) {
   const enRelecture = idee.statut === "en-relecture";
   return (
-    <View className="flex-row items-start gap-3 rounded-carte border border-ligne bg-white p-3">
+    <View className="flex-row items-start gap-3 rounded-carte border border-ligne bg-carte p-3">
       {enRelecture ? (
         <View
           accessibilityElementsHidden
@@ -39,7 +39,7 @@ export function CarteIdee({ idee, monId, occupe, onVoter, onOuvrir }: Props) {
         <Text className="font-texte-gras text-[15px] leading-5 text-encre">{idee.titre}</Text>
         <AuteurIdee auteur={idee.auteur} monId={monId} taille={20} suite={TEXTES_IDEES.commentaires(idee.commentaires)} />
         {idee.reponseBrigade ? (
-          <View className="self-start rounded-lg bg-encre px-2 py-0.5">
+          <View className="self-start rounded-lg bg-nuit px-2 py-0.5">
             <Text className="font-texte-gras text-xs text-jaune">{TEXTES_IDEES.brigadeARepondu}</Text>
           </View>
         ) : null}

@@ -93,7 +93,7 @@ export function ScannerQrCode({ onLu, onOuvrir, pour = "pote" }: Props) {
           accessible
           accessibilityRole="image"
           accessibilityLabel={textes.viseur}
-          className="overflow-hidden rounded-carte border-2 border-encre bg-encre"
+          className="overflow-hidden rounded-carte border-2 border-encre bg-nuit"
         >
           {/* Pas de className sur CameraView (vue native) : sa taille passe par style */}
           <CameraView
@@ -121,7 +121,7 @@ export function ScannerQrCode({ onLu, onOuvrir, pour = "pote" }: Props) {
     <View className="gap-3">
       <Bouton libelle="Scanner un QR code" indice={textes.indice} onPress={() => void ouvrir()} />
       {souci ? (
-        <View className="gap-3 rounded-2xl border-2 border-ligne bg-white px-4 py-3">
+        <View className="gap-3 rounded-2xl border-2 border-ligne bg-carte px-4 py-3">
           <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(textes.messages[souci])}</Text>
           {souci === "bloque" ? (
             <Bouton libelle="Ouvrir les réglages" variante="blanc" petit onPress={() => Linking.openSettings().catch(() => signaler("panne"))} />

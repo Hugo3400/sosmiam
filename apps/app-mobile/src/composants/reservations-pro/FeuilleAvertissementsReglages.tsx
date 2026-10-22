@@ -30,7 +30,7 @@ export function FeuilleAvertissementsReglages({ visible, avertissements, onEnreg
     >
       <View className="gap-3">
         {avertissements.map((a) => (
-          <View key={a.cle} accessible className="flex-row items-start gap-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-3">
+          <View key={a.cle} accessible className="flex-row items-start gap-3 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-3">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
               {a.emoji}
             </Text>

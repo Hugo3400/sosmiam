@@ -20,9 +20,9 @@ const MARGE_RANGEE = 20;
 const AGRANDISSEMENT_MAX = 1.2;
 
 function lireCouleurs(choisi: boolean, sansCreneau: boolean) {
-  if (choisi) return { cadre: "border-encre bg-encre", haut: "text-jaune", numero: "text-white", bas: "text-jaune" };
+  if (choisi) return { cadre: "border-encre bg-nuit", haut: "text-jaune", numero: "text-white", bas: "text-jaune" };
   if (sansCreneau) return { cadre: "border-dashed border-gris bg-creme", haut: "text-gris", numero: "text-gris", bas: "text-gris" };
-  return { cadre: "border-encre bg-white", haut: "text-encre", numero: "text-encre", bas: "text-gris" };
+  return { cadre: "border-encre bg-carte", haut: "text-encre", numero: "text-encre", bas: "text-gris" };
 }
 
 export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: Props) {

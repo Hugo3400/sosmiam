@@ -7,8 +7,8 @@ import { BoutonConnexion } from "~/composants/inscription/BoutonConnexion";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
-import couleurs from "~/theme/couleurs";
 
 /**
  * « Me connecter » : un compte qui existe déjà (créé dans l'app ou sur le site), par e-mail et mot de passe, Apple, Google, ou
@@ -17,6 +17,7 @@ import couleurs from "~/theme/couleurs";
  * « Fais connaissance ».
  */
 export default function Connexion() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { connecterAvec, connecterParEmail, enCours } = utiliserEntreeCompte();
   const [email, setEmail] = useState("");
@@ -42,7 +43,7 @@ export default function Connexion() {
             vibrerLegerement();
             router.push("/connexion-qr");
           }}
-          className={`min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-5 active:opacity-80 ${enCours !== null ? "opacity-50" : ""}`}
+          className={`min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-carte px-5 active:opacity-80 ${enCours !== null ? "opacity-50" : ""}`}
         >
           <Ionicons name="qr-code-outline" size={22} color={couleurs.encre} />
           <Text className="font-texte-gras text-[17px] text-encre">Me connecter avec un QR code</Text>

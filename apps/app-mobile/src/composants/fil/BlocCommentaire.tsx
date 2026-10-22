@@ -5,7 +5,7 @@ import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/tri
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { LigneCommentaire } from "~/composants/fil/LigneCommentaire";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   fil: FilCommentaire;
@@ -30,6 +30,7 @@ type Props = {
 
 /** Un commentaire et ses réponses, repliables. */
 export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions, onOuvrirProfil, appuiLong, gerant }: Props) {
+  const couleurs = utiliserCouleurs();
   const { commentaire, reponses } = fil;
   const nombre = reponses.length;
   const dontLeLieu = reponses.some((r) => r.auteur === "lieu");

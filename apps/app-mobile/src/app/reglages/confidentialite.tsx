@@ -9,8 +9,8 @@ import { BlocTaBande } from "~/composants/reglages/BlocTaBande";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import couleurs from "~/theme/couleurs";
 
 const ANNONCE_PRIVE = "🔒 Ton compte est privé. Tes abonnés restent ; les prochains devront frapper à la porte.";
 const ANNONCE_PUBLIC = "🔓 Ton compte est public : tout le monde peut te suivre sans demander.";
@@ -26,6 +26,7 @@ const decrireDemandes = (nombre: number) =>
  * en attente (après confirmation). Avec un compte, en plus, le bloc « Ta bande » : qui te trouve et ce que voit ta bande.
  */
 export default function ReglagesConfidentialite() {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   const suivis = utiliserSuivisPersonnes();
   const exigerCompte = utiliserCompteRequis();

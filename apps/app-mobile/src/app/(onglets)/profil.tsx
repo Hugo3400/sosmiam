@@ -23,11 +23,11 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { listerBadgesDuCompte } from "~/fonctions/profil/lister-badges-du-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import couleurs from "~/theme/couleurs";
 
 const PAGES_LEGALES = [
   { titre: "Conditions d'utilisation", adresse: "https://sosmiam.fr/cgu" },
@@ -51,6 +51,7 @@ function ouvrirPageLegale(adresse: string) {
  * Sans compte, on montre ce qui t'attend, avec les pages légales (elles restent ouvertes à tout le monde).
  */
 export default function Profil() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { profil, avatar, invite } = utiliserProfil();
   const activite = utiliserActivite();
@@ -128,7 +129,7 @@ export default function Profil() {
             restantes={activiteConnue ? activite.restantes : null}
           />
         ) : (
-          <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-5">
+          <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-5">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
               {connecte ? "📶" : "🔑"}
             </Text>

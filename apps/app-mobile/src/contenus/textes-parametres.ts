@@ -7,6 +7,19 @@ export const TEXTES_PARAMETRES = {
     resume: "Ton e-mail, ton mot de passe et tes notifications",
     resumeSansCompte: "Tes notifications",
   },
+  apparence: {
+    titre: "Apparence",
+    choix: {
+      automatique: { emoji: "🌗", titre: "Automatique", detail: "Comme ton téléphone, de jour comme de soir" },
+      clair: { emoji: "☀️", titre: "Clair", detail: "Toujours le fond crème" },
+      sombre: { emoji: "🌙", titre: "Sombre", detail: "Toujours le fond nuit, doux pour les yeux le soir" },
+    },
+    resume: {
+      automatique: "Automatique, comme ton téléphone",
+      clair: "Toujours clair",
+      sombre: "Toujours sombre",
+    },
+  },
   securite: {
     titre: "Confidentialité et sécurité",
     comptePrive: "Compte privé",

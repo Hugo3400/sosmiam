@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Affiché, jamais lu (VoiceOver en dirait le nom) */
@@ -21,6 +21,7 @@ type Props = {
 
 /** Une ligne du bloc « Tu passes chez eux ? » de la fiche d'un lieu (carte de fidélité, réserver) : on la touche pour aller plus loin. */
 export function LigneBlocVisite({ emoji, titre, texte, libelleLu, indice, onPress, enPlus }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <Pressable
       accessibilityRole="button"

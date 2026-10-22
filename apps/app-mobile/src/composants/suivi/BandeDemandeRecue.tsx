@@ -62,7 +62,7 @@ export function BandeDemandeRecue({ pote }: Props) {
           ? "Demande refusée, en toute discrétion 🤫"
           : "Cette demande n'est plus valable.";
     return (
-      <View ref={reponse} accessible accessibilityLabel={retirerEmoji(texte)} className="rounded-carte border-2 border-dashed border-encre/40 bg-white/70 px-4 py-3">
+      <View ref={reponse} accessible accessibilityLabel={retirerEmoji(texte)} className="rounded-carte border-2 border-dashed border-encre/40 bg-carte/70 px-4 py-3">
         <Text className="text-center font-texte-semi text-sm leading-5 text-encre">{lierPonctuation(texte)}</Text>
       </View>
     );
@@ -87,14 +87,14 @@ export function BandeDemandeRecue({ pote }: Props) {
           onPress={() => choisir("accepter")}
           className="min-h-11 min-w-28 flex-1 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-70"
         >
-          <Text className="font-texte-gras text-[15px] text-encre">Accepter</Text>
+          <Text className="font-texte-gras text-[15px] text-nuit">Accepter</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Refuser la demande ${eliderDe(pote.prenom)}`}
           accessibilityHint="En toute discrétion : personne n'est prévenu"
           onPress={() => choisir("refuser")}
-          className="min-h-11 min-w-28 flex-1 items-center justify-center rounded-full border-2 border-encre bg-white px-4 active:opacity-70"
+          className="min-h-11 min-w-28 flex-1 items-center justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-70"
         >
           <Text className="font-texte-gras text-[15px] text-encre">Refuser</Text>
         </Pressable>

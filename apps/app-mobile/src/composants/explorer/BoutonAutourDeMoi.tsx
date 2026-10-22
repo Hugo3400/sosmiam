@@ -4,7 +4,7 @@ import { AccessibilityInfo, ActivityIndicator, Platform, Pressable, Text, View }
 
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   actif: boolean;
@@ -18,6 +18,7 @@ const INDICE_INACTIF =
 const INDICE_ACTIF = "Autour de moi est actif : relit où tu es, pour des distances à jour";
 
 export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Props) {
+  const couleurs = utiliserCouleurs();
   const refBouton = useRef<View>(null);
   const precedent = useRef(actif);
   useEffect(() => {
@@ -39,7 +40,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
   return (
     <View className={`relative self-start ${recherche ? "opacity-80" : ""}`}>
       <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
-      <View className={`min-h-11 flex-row items-center rounded-full border-2 border-encre ${actif ? "bg-encre" : "bg-white"}`}>
+      <View className={`min-h-11 flex-row items-center rounded-full border-2 border-encre ${actif ? "bg-nuit" : "bg-carte"}`}>
         <Pressable
           ref={refBouton}
           accessibilityRole="button"
@@ -69,7 +70,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
             className="h-11 w-11 items-center justify-center rounded-r-full active:opacity-60"
           >
             <View className="h-6 w-6 items-center justify-center rounded-full bg-jaune">
-              <Ionicons name="close" size={16} color={couleurs.encre} />
+              <Ionicons name="close" size={16} color={couleurs.nuit} />
             </View>
           </Pressable>
         ) : null}

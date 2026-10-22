@@ -46,14 +46,14 @@ export function ChoixReglement({ valeur, onChange }: Props) {
                 vibrerLegerement();
                 changerType(type);
               }}
-              className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-4 py-3 active:opacity-80 ${choisi ? "border-encre bg-jaune" : "border-ligne bg-white"}`}
+              className={`min-h-14 flex-row items-center gap-3 rounded-2xl border-2 px-4 py-3 active:opacity-80 ${choisi ? "border-encre bg-jaune" : "border-ligne bg-carte"}`}
             >
               <Text className="text-2xl">{emoji}</Text>
               <View className="flex-1 gap-0.5">
-                <Text className="font-texte-gras text-base text-encre">{LIBELLES_REGLEMENT_LIEU[type]}</Text>
-                <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(detail)}</Text>
+                <Text className={`font-texte-gras text-base ${choisi ? "text-nuit" : "text-encre"}`}>{LIBELLES_REGLEMENT_LIEU[type]}</Text>
+                <Text className={`font-texte text-[13px] leading-[18px] ${choisi ? "text-nuit/75" : "text-gris"}`}>{lierPonctuation(detail)}</Text>
               </View>
-              <View className={`h-6 w-6 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-encre" : "bg-white"}`}>
+              <View className={`h-6 w-6 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-nuit" : "bg-carte"}`}>
                 {choisi ? <View className="h-2.5 w-2.5 rounded-full bg-jaune" /> : null}
               </View>
             </Pressable>

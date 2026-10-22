@@ -12,9 +12,9 @@ import { textesConnexionQr } from "~/contenus/connexion-qr";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { type ServiceConnexionQr, utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
 import { type EtapeValidationQr, utiliserValidationConnexionQr } from "~/hooks/utiliser-validation-connexion-qr";
-import couleurs from "~/theme/couleurs";
 
 /**
  * « Connecter un appareil » (Mon compte, ou un lien sosmiam.fr/q/… ouvert dans l'app) : scanner le QR d'un ordinateur ou
@@ -40,6 +40,7 @@ function lireFin(etape: EtapeValidationQr, demo: boolean): { titre: string; emoj
 }
 
 function ValidationConnexion({ service, demo, code }: { service: ServiceConnexionQr; demo: boolean; code?: string }) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const validation = utiliserValidationConnexionQr(service, code);
   const { etape } = validation;
@@ -73,7 +74,7 @@ function ValidationConnexion({ service, demo, code }: { service: ServiceConnexio
       <EcranReglage titre={textesConnexionQr.titreLien}>
         <View className="gap-5">
           {bandeauDemo}
-          <View className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-white px-4 py-3">
+          <View className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-carte px-4 py-3">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
               ⚠️
             </Text>

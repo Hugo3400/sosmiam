@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import type { DiapoBienvenue as Diapo } from "~/contenus/inscription/diapos-bienvenue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   diapo: Diapo;
@@ -18,6 +18,8 @@ type Props = {
 
 /** Une diapo du carrousel de bienvenue : la mascotte, un titre et une phrase, sur la couleur de la diapo. */
 export function DiapoBienvenue({ diapo, largeur, hauteur, active, margeBas }: Props) {
+  const couleurs = utiliserCouleurs();
+  const surJaune = diapo.fond === "jaune";
   const tailleMascotte = Math.min(largeur * 0.58, 240);
   return (
     <View
@@ -27,8 +29,8 @@ export function DiapoBienvenue({ diapo, largeur, hauteur, active, margeBas }: Pr
       className="items-center justify-center px-7"
     >
       <Mascotte expression={diapo.expression} taille={tailleMascotte} flotte={active} />
-      <Text className="mt-8 text-center font-titre text-[34px] leading-[38px] text-encre">{lierPonctuation(diapo.titre)}</Text>
-      <Text className="mt-4 text-center font-texte text-[17px] leading-[26px] text-encre/75">{lierPonctuation(diapo.texte)}</Text>
+      <Text className={`mt-8 text-center font-titre text-[34px] leading-[38px] ${surJaune ? "text-nuit" : "text-encre"}`}>{lierPonctuation(diapo.titre)}</Text>
+      <Text className={`mt-4 text-center font-texte text-[17px] leading-[26px] ${surJaune ? "text-nuit/75" : "text-encre/75"}`}>{lierPonctuation(diapo.texte)}</Text>
     </View>
   );
 }

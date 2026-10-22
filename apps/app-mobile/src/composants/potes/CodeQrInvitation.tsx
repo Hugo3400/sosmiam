@@ -5,9 +5,9 @@ import QRCode from "react-native-qrcode-svg";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLienInvitation } from "~/hooks/utiliser-lien-invitation";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Ton pseudo, sans « @ » ; vide tant que tu n'en as pas choisi */
@@ -26,6 +26,7 @@ const PARTAGE_IMPOSSIBLE = "Le partage n'a pas voulu s'ouvrir ici. Réessaie dan
  * Sans pseudo, l'invitation à en choisir un dans tes infos.
  */
 export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam à un pote" }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { lien, erreur, changer } = utiliserLienInvitation(pseudo);
   // « Démo » seulement en démo : ni pendant que la session d'un compte se relit, ni en visite
@@ -36,7 +37,7 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
 
   if (!pseudo) {
     return (
-      <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne bg-white px-5 py-6">
+      <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne bg-carte px-5 py-6">
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
           🏷️
         </Text>
@@ -80,14 +81,14 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
   }
 
   return (
-    <View className="items-center gap-4 rounded-carte border-2 border-encre bg-white px-5 py-6">
+    <View className="items-center gap-4 rounded-carte border-2 border-encre bg-carte px-5 py-6">
       {/* Fond blanc et marge blanche autour : les appareils photo lisent mieux un QR code bien détouré */}
       <View accessible accessibilityRole="image" accessibilityLabel={lien ? `QR code de ton invitation, @${pseudo}` : "Ton QR code arrive"} className="rounded-2xl border-2 border-encre bg-white p-3">
         {lien ? (
-          <QRCode value={lien} size={TAILLE_QR} color={couleurs.encre} backgroundColor="#FFFFFF" ecl="M" />
+          <QRCode value={lien} size={TAILLE_QR} color={couleurs.nuit} backgroundColor="#FFFFFF" ecl="M" />
         ) : (
           <View style={{ width: TAILLE_QR, height: TAILLE_QR }} className="items-center justify-center">
-            <ActivityIndicator color={couleurs.encre} />
+            <ActivityIndicator color={couleurs.nuit} />
           </View>
         )}
       </View>

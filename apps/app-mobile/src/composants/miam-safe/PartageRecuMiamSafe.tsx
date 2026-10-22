@@ -25,7 +25,7 @@ export function PartageRecuMiamSafe({ partage }: Props) {
 
   return (
     <View className="gap-4">
-      <View className="gap-2 rounded-2xl bg-white p-4">
+      <View className="gap-2 rounded-2xl bg-carte p-4">
         <Text accessibilityRole="header" className="font-titre-gras text-2xl text-encre">
           {prenom} ne se sent pas en sécurité
         </Text>
@@ -48,7 +48,7 @@ export function PartageRecuMiamSafe({ partage }: Props) {
           <Text className="font-texte text-sm leading-5 text-gris">Visible jusqu'à {ecrireHeure(partage.expireLe)}, si le partage n'est pas arrêté avant.</Text>
         </View>
       ) : (
-        <View accessible className="gap-1 rounded-2xl border-2 border-dashed border-encre bg-white p-4">
+        <View accessible className="gap-1 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">Partage terminé</Text>
           <Text className="font-texte text-base leading-6 text-encre">{prenom} l'a arrêté, ou l'heure est passée : la position est effacée.</Text>
         </View>

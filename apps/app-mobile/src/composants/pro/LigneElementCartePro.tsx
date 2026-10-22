@@ -8,7 +8,7 @@ import { etiquettesCarte } from "~/contenus/etiquettes-carte";
 import { formaterPrix } from "~/fonctions/prix/formater-prix";
 import { formaterPrixLu } from "~/fonctions/prix/formater-prix-lu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   element: ElementCarte;
@@ -27,6 +27,7 @@ type Props = {
  * touche pour la modifier ; en mode « Ranger », deux flèches la montent ou la descendent (aussi en actions VoiceOver).
  */
 export const LigneElementCartePro = memo(function LigneElementCartePro({ element, rangement, premier, dernier, separe, onModifier, onDeplacer }: Props) {
+  const couleurs = utiliserCouleurs();
   const etiquettes = element.etiquettes ?? [];
   const prix = element.prix === 0 ? "Gratuit" : formaterPrix(element.prix);
   const prixLu = element.prix === 0 ? "gratuit" : formaterPrixLu(element.prix);

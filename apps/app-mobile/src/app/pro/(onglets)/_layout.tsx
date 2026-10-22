@@ -2,16 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 import { compterDemandesARepondre } from "~/fonctions/reservations/compter-demandes-a-repondre";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReservationsPro } from "~/hooks/utiliser-reservations-pro";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Onglets du mode pro : le Comptoir pour toute l'équipe, « Mon lieu » pour le gérant seulement (un membre de l'équipe
  * valide les visites, il ne règle ni la carte de fidélité ni la fiche).
  */
 export default function MiseEnPageOngletsPro() {
+  const couleurs = utiliserCouleurs();
   const { lieuPro } = utiliserModes();
   const { lecture } = utiliserReservationsPro();
   const { maintenantMs } = utiliserHorlogeMinute();
@@ -42,7 +43,7 @@ export default function MiseEnPageOngletsPro() {
         options={{
           title: "Réservations",
           tabBarBadge: aRepondre > 0 ? aRepondre : undefined,
-          tabBarBadgeStyle: { backgroundColor: couleurs.tomate, color: couleurs.encre, fontWeight: "700" },
+          tabBarBadgeStyle: { backgroundColor: couleurs.tomate, color: couleurs.nuit, fontWeight: "700" },
           tabBarAccessibilityLabel: `Réservations${detailReservations}, onglet 2 sur ${total}`,
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar" color={color} size={size} />,
         }}

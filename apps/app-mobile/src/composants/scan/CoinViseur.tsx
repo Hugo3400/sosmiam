@@ -1,12 +1,13 @@
 import { View } from "react-native";
 
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 const LONGUEUR_COIN = 46;
 const EPAISSEUR_COIN = 6;
 
 /** Un coin jaune du viseur, arrondi côté extérieur */
 export function CoinViseur({ position }: { position: "haut-gauche" | "haut-droite" | "bas-gauche" | "bas-droite" }) {
+  const couleurs = utiliserCouleurs();
   const haut = position.startsWith("haut");
   const gauche = position.endsWith("gauche");
   return (

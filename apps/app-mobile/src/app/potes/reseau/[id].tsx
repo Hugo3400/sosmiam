@@ -22,13 +22,13 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLiensDe } from "~/hooks/utiliser-liens-de";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import couleurs from "~/theme/couleurs";
 
 const TAILLE_ROND = 48;
 /** Une page du serveur (compte connecté) */
@@ -41,6 +41,7 @@ const NOMS = { abonnes: { un: "abonné", des: "abonnés" }, abonnements: { un: "
  * sur chaque ligne, ou l'encadré « Compte privé » si elles te sont fermées. Personne inconnue ou bloquée : un message et le retour.
  */
 export default function ReseauPersonne() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { id = "", onglet: ongletDemande } = useLocalSearchParams<{ id: string; onglet?: "abonnes" | "abonnements" }>();
@@ -158,7 +159,7 @@ export default function ReseauPersonne() {
         {lignes.length === 0 ? (
           videParDefaut("Personne ne te suit encore… Partage ton profil : tes potes t'ajoutent avec ton QR code.")
         ) : (
-          <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+          <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
             {lignes.map(({ pote: p }, i) => {
               const meSuitEncore = suivis.abonnes.some((a) => a.pote.id === p.id);
               return ligne(
@@ -209,7 +210,7 @@ export default function ReseauPersonne() {
     } else {
       contenu = (
         <View className="gap-4">
-          <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+          <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
             {liste.map((p, i) => ligne(p, i === liste.length - 1, p.pseudo ? `@${p.pseudo}` : ""))}
           </View>
           <BoutonVoirPlus restants={liensDe.restants} prochains={Math.min(PAR_PAGE, liensDe.restants)} nom={NOMS[onglet]} onVoirPlus={liensDe.chargerSuite} />
@@ -229,7 +230,7 @@ export default function ReseauPersonne() {
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>

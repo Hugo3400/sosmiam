@@ -46,7 +46,7 @@ export function ReactionsMessage({ conversationId, message, deMoi }: Props) {
             basculerReaction(conversationId, message.id, reaction);
           }}
           className={`min-h-8 flex-row items-center gap-1 rounded-full px-2.5 active:opacity-70 ${
-            dontMoi ? "border-2 border-encre bg-jaune-clair" : "border border-ligne bg-white"
+            dontMoi ? "border-2 border-encre bg-jaune-clair" : "border border-ligne bg-carte"
           }`}
         >
           {/* Taille fixe : la puce reste petite sous la bulle, même avec un grand texte dans les réglages */}

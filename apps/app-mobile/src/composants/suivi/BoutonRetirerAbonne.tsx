@@ -79,7 +79,7 @@ export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props)
           // 36 pt de haut à l'écran, 48 pt sous le doigt
           hitSlop={6}
           onPress={toucher}
-          className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
+          className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
         >
           <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
         </Pressable>

@@ -8,15 +8,16 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
 import { choisirRefusOuvertureAvis } from "~/fonctions/avis/choisir-refus-ouverture-avis";
 import { estRefusOuverturePassager } from "~/fonctions/avis/est-refus-ouverture-passager";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEnvoiAvis } from "~/hooks/utiliser-envoi-avis";
 import { utiliserEtatAvisEnDirect } from "~/hooks/utiliser-etat-avis-en-direct";
 import { utiliserPhotoAvis } from "~/hooks/utiliser-photo-avis";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
-import couleurs from "~/theme/couleurs";
 
 const lireVisiteId = (brut: unknown) => (typeof brut === "string" && /^\d{1,12}$/.test(brut) ? Number(brut) : null);
 
 export default function EcranDonnerAvis() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { visiteId } = useLocalSearchParams<{ visiteId: string }>();
   const { pret, resultat, echec, relire } = utiliserVisiteEnDirect(lireVisiteId(visiteId));

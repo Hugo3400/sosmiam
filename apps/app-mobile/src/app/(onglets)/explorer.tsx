@@ -39,6 +39,7 @@ import { filtrerLieuxTriesExplorer } from "~/fonctions/lieux/filtrer-lieux-tries
 import { retirerSosFinis } from "~/fonctions/lieux/retirer-sos-finis";
 import { retrouverPorteeSansPosition } from "~/fonctions/lieux/retrouver-portee-sans-position";
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
@@ -47,7 +48,6 @@ import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import couleurs from "~/theme/couleurs";
 
 // Sur l'aperçu web, pas de carte : la liste prend toute la place
 const avecCarte = Platform.OS !== "web";
@@ -69,6 +69,7 @@ function lireMinute(): Date {
  * Jusqu'où on regarde (carte et liste) : à quelques km (5 au départ, réglable de 1 à 50 et gardé), ta région, ou toute la France.
  */
 export default function Explorer() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const hauteurBarreOnglets = useBottomTabBarHeight();

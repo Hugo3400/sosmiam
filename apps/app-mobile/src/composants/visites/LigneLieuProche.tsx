@@ -22,7 +22,7 @@ export function LigneLieuProche({ lieu, distanceM = null }: Props) {
   const distance = distanceM === null ? null : `à ${formaterDistance(distanceM / 1000)}`;
   const infos = [lieu.nom, ecrireQuartierVille(lieu), distance, sos ? `SOS en cours, ta visite vaut ${calculerPointsVisite(true)} points` : null];
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View accessible accessibilityLabel={infos.filter(Boolean).join(", ")} className="flex-row items-center gap-3">
         <View
           style={{ backgroundColor: lieu.couleurs[0] }}

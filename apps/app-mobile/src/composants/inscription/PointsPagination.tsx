@@ -5,7 +5,7 @@ export function PointsPagination({ total, actif }: { total: number; actif: numbe
   return (
     <View accessible accessibilityLabel={`Diapo ${actif + 1} sur ${total}`} className="flex-row items-center justify-center gap-2">
       {Array.from({ length: total }, (_, i) => (
-        <View key={i} className={`h-2.5 rounded-full border-2 border-encre ${i === actif ? "w-7 bg-encre" : "w-2.5 bg-white"}`} />
+        <View key={i} className={`h-2.5 rounded-full border-2 border-encre ${i === actif ? "w-7 bg-encre" : "w-2.5 bg-carte"}`} />
       ))}
     </View>
   );

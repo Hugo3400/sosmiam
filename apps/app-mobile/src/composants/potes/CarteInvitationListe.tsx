@@ -43,7 +43,7 @@ export function CarteInvitationListe({ liste, ouvrirApresOui = true }: Props) {
         <View
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
-          className="h-12 w-12 items-center justify-center rounded-2xl border-2 border-encre bg-white"
+          className="h-12 w-12 items-center justify-center rounded-2xl border-2 border-encre bg-carte"
         >
           <Text allowFontScaling={false} className="text-2xl">
             {liste.emoji}
@@ -64,7 +64,7 @@ export function CarteInvitationListe({ liste, ouvrirApresOui = true }: Props) {
           onPress={() => void repondre(true)}
           className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
         >
-          <Text className="font-texte-gras text-sm text-encre">{enCours ? "Un instant…" : "Carrément !"}</Text>
+          <Text className="font-texte-gras text-sm text-nuit">{enCours ? "Un instant…" : "Carrément !"}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -73,7 +73,7 @@ export function CarteInvitationListe({ liste, ouvrirApresOui = true }: Props) {
           accessibilityState={{ disabled: enCours }}
           disabled={enCours}
           onPress={() => void repondre(false)}
-          className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+          className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
         >
           <Text className="font-texte-gras text-sm text-encre">Pas pour moi</Text>
         </Pressable>

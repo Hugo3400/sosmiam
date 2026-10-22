@@ -14,11 +14,11 @@ const TEXTES: Record<StatutAmbassadeur, { emoji: string; titre: string; texte: s
 export function CarteStatutAmbassadeur({ statut }: { statut: StatutAmbassadeur }) {
   const t = TEXTES[statut];
   return (
-    <View accessible accessibilityLabel={`${t.titre}. ${t.texte}`} className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 ${statut === "actif" ? "bg-jaune" : "bg-white"}`}>
+    <View accessible accessibilityLabel={`${t.titre}. ${t.texte}`} className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 ${statut === "actif" ? "bg-jaune" : "bg-carte"}`}>
       <Text className="text-2xl">{t.emoji}</Text>
       <View className="flex-1 gap-1">
-        <Text className="font-texte-gras text-base text-encre">{t.titre}</Text>
-        <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(t.texte)}</Text>
+        <Text className={`font-texte-gras text-base ${statut === "actif" ? "text-nuit" : "text-encre"}`}>{t.titre}</Text>
+        <Text className={`font-texte text-sm leading-5 ${statut === "actif" ? "text-nuit" : "text-encre"}`}>{lierPonctuation(t.texte)}</Text>
       </View>
     </View>
   );

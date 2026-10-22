@@ -6,7 +6,7 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { listerPrenomsDiscussion } from "~/fonctions/chat/lister-prenoms-discussion";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
@@ -23,6 +23,7 @@ const TAILLE = 44;
 
 /** Le haut d'une conversation : retour, puis le pote (vers son profil) ou le groupe (emoji, titre, membres), et « ⋯ » pour le menu. */
 export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, onVoirProfil }: Props) {
+  const couleurs = utiliserCouleurs();
   const groupe = conversation.type === "groupe";
   const pote = groupe ? null : (membres[0] ?? null);
   const prenoms = listerPrenomsDiscussion(membres);
@@ -36,7 +37,7 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
         accessibilityLabel="Retour"
         hitSlop={8}
         onPress={onRetour}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
       </Pressable>
@@ -88,7 +89,7 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
           vibrerLegerement();
           onOptions();
         }}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Ionicons name="ellipsis-horizontal" size={20} color={couleurs.encre} />
       </Pressable>

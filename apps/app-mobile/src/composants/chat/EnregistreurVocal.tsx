@@ -12,7 +12,7 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { signalerEnregistrement } from "~/hooks/utiliser-audio-chat";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /** Pourquoi l'enregistrement s'arrête sans envoi (à montrer sous le champ), et s'il faut proposer d'ouvrir les réglages */
 export type ProblemeEnregistrement = { texte: string; reglages?: boolean };
@@ -66,6 +66,7 @@ function jeterFichierTemporaire(uri: string | null) {
  * Tant qu'il est ouvert, aucune note du chat ne joue (celle qui jouait se met en pause) : voir utiliserAudioChat.
  */
 export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props) {
+  const couleurs = utiliserCouleurs();
   const conversations = utiliserConversations();
   const animationsReduites = useReducedMotion();
   const enregistreur = useAudioRecorder(OPTIONS_VOCAL);
@@ -226,12 +227,12 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         accessibilityState={{ disabled: phase === "envoi" }}
         disabled={phase === "envoi"}
         onPress={() => void annuler()}
-        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80 ${phase === "envoi" ? "opacity-40" : ""}`}
+        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80 ${phase === "envoi" ? "opacity-40" : ""}`}
       >
         <Ionicons name="trash-outline" size={20} color={couleurs["rouge-texte"]} />
       </Pressable>
 
-      <View ref={chrono} accessible accessibilityLabel={libelleChrono} className="min-h-11 flex-1 flex-row items-center gap-2.5 rounded-3xl border-2 border-encre bg-white px-4 py-2">
+      <View ref={chrono} accessible accessibilityLabel={libelleChrono} className="min-h-11 flex-1 flex-row items-center gap-2.5 rounded-3xl border-2 border-encre bg-carte px-4 py-2">
         <View className="h-3 w-3">
           <Animated.View style={[{ flex: 1, borderRadius: 6, backgroundColor: phase === "preparation" ? couleurs.gris : couleurs["rouge-texte"] }, stylePoint]} />
         </View>
@@ -251,7 +252,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         onPress={() => void envoyer()}
         className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${phase === "preparation" ? "opacity-40" : ""}`}
       >
-        {phase === "envoi" ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="arrow-up" size={22} color={couleurs.encre} />}
+        {phase === "envoi" ? <ActivityIndicator color={couleurs.nuit} /> : <Ionicons name="arrow-up" size={22} color={couleurs.nuit} />}
       </Pressable>
     </View>
   );

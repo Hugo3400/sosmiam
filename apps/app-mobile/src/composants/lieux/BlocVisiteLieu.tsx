@@ -16,10 +16,10 @@ import { TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Lecture = { etat: "attente" } | { etat: "lu"; infos: InfosVisiteLieu } | { etat: "erreur"; erreur: ErreurService };
@@ -69,6 +69,7 @@ function decrireGains(lieu: Lieu, infos: InfosVisiteLieu): string {
  * Relu à chaque changement de tes visites (une demande réglée, un tampon posé). Mémorisé : une rescousse ne le redessine pas.
  */
 export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lieu }) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const services = utiliserServices();
   const demanderCompte = utiliserDemandeCompte();
@@ -236,7 +237,7 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
       <View className="relative">
         {/* Ombre décalée jaune, comme la grande tuile du Scan : c'est ici que la visite compte */}
         <View className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-carte bg-jaune" />
-        <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
+        <View className="gap-4 rounded-carte border-2 border-encre bg-carte p-5">
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
             Tu passes chez eux ?
           </Text>

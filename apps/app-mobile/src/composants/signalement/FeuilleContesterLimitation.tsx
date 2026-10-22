@@ -9,8 +9,8 @@ import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import type { ResultatContestationLimitation } from "~/hooks/utiliser-limitation-compte";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -38,6 +38,7 @@ const REFUS_LOCAUX: Readonly<Record<"trop-court" | "trop-long", MessageService>>
  * VoiceOver est posé sur le titre à l'ouverture, puis sur le message (envoyée ou refus).
  */
 export function FeuilleContesterLimitation({ visible, onContester, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const [texte, setTexte] = useState("");
   const [etape, setEtape] = useState<Etape>("ecrire");
   const [refus, setRefus] = useState<MessageService | null>(null);
@@ -90,7 +91,7 @@ export function FeuilleContesterLimitation({ visible, onContester, onFermer }: P
     <>
       {enCours ? (
         // Pas d'état « occupé » (lu en anglais par VoiceOver) : le libellé dit ce qui se passe
-        <View accessible accessibilityLabel="Envoi en cours" className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-encre">
+        <View accessible accessibilityLabel="Envoi en cours" className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-nuit">
           <ActivityIndicator color={couleurs.jaune} />
           <Text className="font-texte-gras text-base text-jaune">On envoie…</Text>
         </View>
@@ -111,7 +112,7 @@ export function FeuilleContesterLimitation({ visible, onContester, onFermer }: P
           vibrerLegerement();
           onFermer();
         }}
-        className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Text className="font-texte-gras text-base text-encre">Finalement non</Text>
       </Pressable>

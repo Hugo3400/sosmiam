@@ -23,9 +23,9 @@ import { expliquerGesteRateIdee } from "~/fonctions/idees-miamis/expliquer-geste
 import { rangerCommentairesIdee } from "~/fonctions/idees-miamis/ranger-commentaires-idee";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserIdeeMiamis } from "~/hooks/utiliser-idee-miamis";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   id: string;
@@ -34,6 +34,7 @@ type Props = {
 type MenuOuvert = { contenu: ContenuIdeeAuMenu; commentaireId: string | null };
 
 export function EcranIdee({ id }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const monId = utiliserMonId();

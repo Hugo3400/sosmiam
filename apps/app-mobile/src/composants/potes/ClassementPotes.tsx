@@ -42,7 +42,7 @@ export function ClassementPotes() {
         </Text>
       </View>
 
-      <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+      <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
         {classement.map(({ personne: pote, rang, estMoi }, i) => {
           const exAequo = classement.some((autre) => autre.rang === rang && autre.personne.id !== pote.id);
           const nom = estMoi ? "Toi" : pote.prenom;

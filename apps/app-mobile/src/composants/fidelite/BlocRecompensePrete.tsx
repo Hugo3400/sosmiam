@@ -3,6 +3,7 @@ import { Text, View } from "react-native";
 
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import { Bouton } from "~/composants/interface/Bouton";
+import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { CodeRapprochement } from "~/composants/visites/CodeRapprochement";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -46,7 +47,7 @@ export function BlocRecompensePrete({ carte, signature, emoji, envoi, onDemander
 
   if (demande) {
     return (
-      <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
+      <View className="gap-4 rounded-carte border-2 border-encre bg-carte p-5">
         <Text accessibilityRole="header" className="text-center font-titre-gras text-xl text-encre">
           🎁 {majuscule(prete.libelle)}
         </Text>
@@ -59,15 +60,17 @@ export function BlocRecompensePrete({ carte, signature, emoji, envoi, onDemander
 
   return (
     <View className="gap-3 rounded-carte border-2 border-encre bg-jaune p-5">
-      <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
+      <Text accessibilityRole="header" className="font-titre-gras text-xl text-nuit">
         🎁 Ta récompense est prête !
       </Text>
-      <Text className="font-texte-semi text-base leading-6 text-encre">
+      <Text className="font-texte-semi text-base leading-6 text-nuit">
         {majuscule(prete.libelle)}
         {autres > 0 ? ` (et ${autres} autre${autres > 1 ? "s" : ""} derrière)` : ""}
       </Text>
-      <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(`Au comptoir ${direDeLieu(carte.lieu.nom)}, touche le bouton : un code s'affiche, l'équipe te l'offre.`)}</Text>
-      <Bouton libelle={envoi ? "Un instant…" : "Demander ma récompense"} variante="encre" desactive={envoi} onPress={onDemander} />
+      <Text className="font-texte text-sm leading-5 text-nuit">{lierPonctuation(`Au comptoir ${direDeLieu(carte.lieu.nom)}, touche le bouton : un code s'affiche, l'équipe te l'offre.`)}</Text>
+      <ZoneClaire>
+        <Bouton libelle={envoi ? "Un instant…" : "Demander ma récompense"} variante="encre" desactive={envoi} onPress={onDemander} />
+      </ZoneClaire>
     </View>
   );
 }

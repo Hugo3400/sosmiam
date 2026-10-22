@@ -12,10 +12,10 @@ import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisit
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserValidationComptoir } from "~/hooks/utiliser-validation-comptoir";
-import couleurs from "~/theme/couleurs";
 
 type Souci = "refuse" | "bloque" | "panne";
 
@@ -41,6 +41,7 @@ const DELAI_MEME_TEXTE_MS = 4000;
  * Aucune adresse lue dans un QR n'est jamais ouverte.
  */
 export function ScannerComptoir() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const fermer = utiliserFermerPile("/scan");
   const marges = utiliserMargesPleinEcran();
@@ -150,7 +151,7 @@ export function ScannerComptoir() {
       ) : (
         <View className="flex-1 items-center justify-center gap-5 px-8">
           <View className="h-24 w-24 items-center justify-center rounded-3xl border-2 border-jaune bg-jaune">
-            <Ionicons name="qr-code-outline" size={48} color={couleurs.encre} />
+            <Ionicons name="qr-code-outline" size={48} color={couleurs.nuit} />
           </View>
           <Text accessibilityRole="header" className="text-center font-titre text-3xl text-white">
             Scanner le QR du comptoir

@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { Visite } from "@sos-miam/commun/types/visite";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BandeauDemoVisites } from "~/composants/scan/BandeauDemoVisites";
 import { EnTeteMesVisites } from "~/composants/visites/EnTeteMesVisites";
@@ -14,9 +14,9 @@ import { LigneVisite } from "~/composants/visites/LigneVisite";
 import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
 import { grouperVisitesParMois } from "~/fonctions/visites/grouper-visites-par-mois";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 
 const TEXTE_VIDE =
   "Aucune visite validée pour l'instant. La prochaine fois que tu manges quelque part, demande l'addition dans l'app : c'est là que la magie opère.";
@@ -49,6 +49,7 @@ function CarteMessage({ emoji, titre, texte, enPlus }: { emoji: string; titre?: 
  * Tirer vers le bas relit tout. Sans comptes (version publiée sans API) : « Ça arrive avec les comptes ».
  */
 export default function MesVisites() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { source, enCours, visites, rafraichir } = utiliserVisites();
   const lecture = utiliserLectureListe("visites");
@@ -126,14 +127,14 @@ export default function MesVisites() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -143,7 +144,7 @@ export default function MesVisites() {
         className="flex-1"
         contentContainerClassName="gap-6 px-5 pb-10"
         refreshControl={
-          source === "indisponible" ? undefined : <RefreshControl refreshing={relecture} onRefresh={() => void relire()} tintColor={couleurs.encre} colors={[couleurs.encre]} />
+          source === "indisponible" ? undefined : <RefreshControl refreshing={relecture} onRefresh={() => void relire()} tintColor={couleurs.encre} colors={[couleurs.encre]} progressBackgroundColor={couleurs.carte} />
         }
       >
         <View className="gap-2">

@@ -5,8 +5,8 @@ import type { ComponentProps } from "react";
 
 import { LibelleOnglet } from "~/composants/interface/LibelleOnglet";
 import { BandeauxOnglets } from "~/composants/visites/BandeauxOnglets";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 
 type NomIcone = ComponentProps<typeof Ionicons>["name"];
 
@@ -24,10 +24,6 @@ const ongletTransparent = {
   tabBarInactiveTintColor: "rgba(255,255,255,0.7)",
 };
 
-// Badge de l'onglet Scan : le nombre d'avis à donner, ou un simple point quand une addition attend
-const STYLE_BADGE = { backgroundColor: couleurs.tomate, color: couleurs.encre, fontFamily: "Inter_700Bold" };
-const STYLE_POINT = { backgroundColor: couleurs.tomate, minWidth: 11, width: 11, height: 11, borderRadius: 5.5, paddingHorizontal: 0, top: -1, end: -1, borderWidth: 1.5, borderColor: couleurs.creme };
-
 /**
  * Barre d'onglets du bas : Pour toi, Explorer, Scan, Potes, Profil. Transparente sur « Pour toi ».
  * Elle est toujours posée par-dessus les écrans : ils gardent la même taille d'un onglet à l'autre (sinon le fil vidéo se recalcule en entier),
@@ -35,7 +31,11 @@ const STYLE_POINT = { backgroundColor: couleurs.tomate, minWidth: 11, width: 11,
  * Au-dessus d'elle, les bandeaux (ta demande d'addition en cours…) ; sur l'onglet Scan, un badge (avis à donner, addition en attente).
  */
 export default function MiseEnPageOnglets() {
+  const couleurs = utiliserCouleurs();
   const { enCours, aEcrire } = utiliserVisites();
+  // Badge de l'onglet Scan : le nombre d'avis à donner, ou un simple point quand une addition attend
+  const styleBadge = { backgroundColor: couleurs.tomate, color: couleurs.nuit, fontFamily: "Inter_700Bold" };
+  const stylePoint = { backgroundColor: couleurs.tomate, minWidth: 11, width: 11, height: 11, borderRadius: 5.5, paddingHorizontal: 0, top: -1, end: -1, borderWidth: 1.5, borderColor: couleurs.creme };
   const badgeScan = aEcrire.length > 0 ? aEcrire.length : enCours ? "" : undefined;
   const infoScan = aEcrire.length > 0 ? `${aEcrire.length} avis à donner` : enCours ? "une addition en attente" : null;
   return (
@@ -66,7 +66,7 @@ export default function MiseEnPageOnglets() {
             tabBarLabel: ({ color, position }) => <LibelleOnglet titre={onglet.titre} color={color} position={position} />,
             // « Pour toi » : barre transparente posée sur les vidéos, icônes blanches
             ...(onglet.nom === "index" ? ongletTransparent : {}),
-            ...(onglet.nom === "scan" ? { tabBarBadge: badgeScan, tabBarBadgeStyle: badgeScan === "" ? STYLE_POINT : STYLE_BADGE } : {}),
+            ...(onglet.nom === "scan" ? { tabBarBadge: badgeScan, tabBarBadgeStyle: badgeScan === "" ? stylePoint : styleBadge } : {}),
           }}
         />
       ))}

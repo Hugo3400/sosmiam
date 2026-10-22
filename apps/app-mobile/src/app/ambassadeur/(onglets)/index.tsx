@@ -9,9 +9,9 @@ import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEspaceAmbassadeur } from "~/hooks/utiliser-espace-ambassadeur";
 import { utiliserModes } from "~/hooks/utiliser-modes";
-import couleurs from "~/theme/couleurs";
 
 const SITE_ESPACE = "https://ambassadeur.sosmiam.fr/espace";
 
@@ -20,6 +20,7 @@ const SITE_ESPACE = "https://ambassadeur.sosmiam.fr/espace";
  * qui ouvrent leur onglet. Le reste (fondateurs, propositions de lieux, ambassadeur certifié) est sur ambassadeur.sosmiam.fr.
  */
 export default function EcranEspaceAmbassadeur() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { roles, revenirAuModePerso } = utiliserModes();
   const { espace, erreur } = utiliserEspaceAmbassadeur();

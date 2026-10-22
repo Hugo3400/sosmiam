@@ -7,10 +7,10 @@ import Animated, { FadeInUp, FadeOutDown, useAnimatedStyle, useReducedMotion, us
 import type { StatutVisite, Visite } from "@sos-miam/commun/types/visite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterCodeLu } from "~/fonctions/visites/formater-code-lu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Rien n'est affiché (le fil plein écran) ; l'issue d'une demande est quand même repérée et annoncée */
@@ -39,14 +39,14 @@ const ISSUES: Record<StatutIssue, { emoji: string; etiquette: (v: Visite) => str
   refusee: {
     emoji: "🧾",
     etiquette: () => "Pas validée cette fois",
-    fond: "bg-white",
+    fond: "bg-carte",
     texte: (v) => `${v.lieu.nom} · voir pourquoi`,
     annonce: (v) => `${v.lieu.nom} n'a pas validé ta visite cette fois.`,
   },
   expiree: {
     emoji: "😴",
     etiquette: () => "Demande endormie",
-    fond: "bg-white",
+    fond: "bg-carte",
     texte: (v) => `${v.lieu.nom} · 30 min sans réponse`,
     annonce: (v) => `Ta demande d'addition à ${v.lieu.nom} s'est endormie : 30 minutes sans réponse.`,
   },
@@ -137,6 +137,7 @@ function utiliserStylePoint(actif: boolean) {
  * que tu la regardes ou la fermes. Un toucher ouvre la demande ; la célébration attend la première ouverture.
  */
 export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const animationsReduites = useReducedMotion();
   const { enCours } = utiliserVisites();
@@ -160,7 +161,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
             vibrerLegerement();
             router.push({ pathname: "/visite/[id]", params: { id: String(enAttente.id) } });
           }}
-          className="min-h-14 flex-row items-center gap-3 rounded-2xl border-2 border-encre bg-encre py-2 pl-4 pr-3 active:opacity-90"
+          className="min-h-14 flex-row items-center gap-3 rounded-2xl border-2 border-encre bg-nuit py-2 pl-4 pr-3 active:opacity-90"
         >
           <View className="h-2.5 w-2.5">
             <Animated.View style={[{ width: 10, height: 10, borderRadius: 5, backgroundColor: couleurs.tomate }, stylePoint]} />
@@ -173,7 +174,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
           </View>
           {code ? (
             <View className="rounded-xl bg-jaune px-2.5 py-1">
-              <Text className="font-titre text-lg tracking-[3px] text-encre">{code}</Text>
+              <Text className="font-titre text-lg tracking-[3px] text-nuit">{code}</Text>
             </View>
           ) : null}
           <Ionicons name="chevron-forward" size={18} color={couleurs.jaune} />
@@ -185,6 +186,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
   if (!issue) return null;
   const { visite, statut } = issue;
   const forme = ISSUES[statut];
+  const surJaune = statut === "validee";
   return (
     <Animated.View key={`issue-${visite.id}`} entering={entree} exiting={sortie} style={{ width: "100%" }}>
       <View className={`min-h-14 flex-row items-center rounded-2xl border-2 border-encre ${forme.fond}`}>
@@ -205,10 +207,10 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
             {forme.emoji}
           </Text>
           <View className="flex-1">
-            <Text numberOfLines={1} className="font-texte-gras text-[11px] uppercase tracking-wide text-encre">
+            <Text numberOfLines={1} className={`font-texte-gras text-[11px] uppercase tracking-wide ${surJaune ? "text-nuit" : "text-encre"}`}>
               {forme.etiquette(visite)}
             </Text>
-            <Text numberOfLines={1} className="font-texte-gras text-[15px] text-encre">
+            <Text numberOfLines={1} className={`font-texte-gras text-[15px] ${surJaune ? "text-nuit" : "text-encre"}`}>
               {forme.texte(visite)}
             </Text>
           </View>
@@ -220,7 +222,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
           onPress={oublier}
           className="h-12 w-12 items-center justify-center active:opacity-60"
         >
-          <Ionicons name="close" size={20} color={couleurs.encre} />
+          <Ionicons name="close" size={20} color={surJaune ? couleurs.nuit : couleurs.encre} />
         </Pressable>
       </View>
     </Animated.View>

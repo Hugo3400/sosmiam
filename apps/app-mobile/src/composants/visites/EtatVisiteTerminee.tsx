@@ -110,7 +110,7 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
           refTitre,
         )}
         {visite.points > 0 || tampon ? (
-          <View className="gap-4 rounded-carte border-2 border-encre bg-white p-5">
+          <View className="gap-4 rounded-carte border-2 border-encre bg-carte p-5">
             {visite.points > 0 ? (
               <View accessible className="items-center gap-1">
                 <Text className="font-titre text-4xl text-encre">+{visite.points} points</Text>

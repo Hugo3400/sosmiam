@@ -26,7 +26,7 @@ export const VignetteLieu = memo(function VignetteLieu({ lieu, image, hauteur, l
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       style={{ width: largeur, height: hauteur, borderRadius: arrondi }}
-      className="items-center justify-center overflow-hidden bg-encre"
+      className="items-center justify-center overflow-hidden bg-nuit"
     >
       <LinearGradient colors={lieu.couleurs} start={DEBUT_DEGRADE} end={FIN_DEGRADE} style={styles.plein} />
       {image ? (

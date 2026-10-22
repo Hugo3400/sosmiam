@@ -6,7 +6,7 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixReglement } from "~/composants/pro/ChoixReglement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   visible: boolean;
@@ -27,6 +27,7 @@ const PAYE: ReglementVisite = { type: "paye", reductionPourcent: null, avantages
  * réduction, offert) et les avantages. Repart de « Payé » à chaque ouverture.
  */
 export function FeuilleReglement({ visible, nom, codeRequis, erreurCode = null, onValider, onFermer }: Props) {
+  const couleurs = utiliserCouleurs();
   const [reglement, setReglement] = useState<ReglementVisite>(PAYE);
   const [code, setCode] = useState("");
 
@@ -66,7 +67,7 @@ export function FeuilleReglement({ visible, nom, codeRequis, erreurCode = null, 
             autoFocus
             placeholder="• • • •"
             placeholderTextColor={couleurs.gris}
-            className={`h-16 rounded-2xl border-2 bg-white text-center font-titre text-3xl tracking-[12px] text-encre ${erreurCode ? "border-rouge-texte" : "border-encre"}`}
+            className={`h-16 rounded-2xl border-2 bg-carte text-center font-titre text-3xl tracking-[12px] text-encre ${erreurCode ? "border-rouge-texte" : "border-encre"}`}
           />
           {erreurCode ? <Text className="font-texte-semi text-sm text-rouge-texte">{lierPonctuation(erreurCode)}</Text> : null}
         </View>

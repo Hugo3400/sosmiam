@@ -20,6 +20,7 @@ import { FournisseurProfil } from "~/composants/profil/FournisseurProfil";
 import { FournisseurServices } from "~/composants/services/FournisseurServices";
 import { FournisseurPoulsSocial } from "~/composants/social/FournisseurPoulsSocial";
 import { FournisseurSuivisPersonnes } from "~/composants/suivi/FournisseurSuivisPersonnes";
+import { FournisseurTheme } from "~/composants/theme/FournisseurTheme";
 import { FournisseurVisites } from "~/composants/visites/FournisseurVisites";
 
 // L'écran de démarrage reste visible jusqu'à ce que tout soit prêt (voir PileRacine)
@@ -41,7 +42,8 @@ export default function RacineApp() {
   });
 
   return (
-    // La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert
+    <FournisseurTheme>
+    {/* La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert */}
     <FournisseurSession>
     <FournisseurProfil>
       {/* L'activité (rescousses, lieux gardés, J'aime, suivis) : celle de la démo sur le téléphone, sinon celle du compte sur
@@ -82,5 +84,6 @@ export default function RacineApp() {
       </FournisseurActivite>
     </FournisseurProfil>
     </FournisseurSession>
+    </FournisseurTheme>
   );
 }

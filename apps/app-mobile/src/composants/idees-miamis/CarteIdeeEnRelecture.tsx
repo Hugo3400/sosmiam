@@ -5,7 +5,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 export function CarteIdeeEnRelecture() {
   return (
-    <View accessible className="flex-row items-start gap-3 rounded-carte border-2 border-dashed border-gris/50 bg-white/70 p-4">
+    <View accessible className="flex-row items-start gap-3 rounded-carte border-2 border-dashed border-gris/50 bg-carte/70 p-4">
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
         🔎
       </Text>

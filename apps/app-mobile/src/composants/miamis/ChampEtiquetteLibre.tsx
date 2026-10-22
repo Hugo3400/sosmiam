@@ -7,7 +7,7 @@ import { REFUS_ETIQUETTE } from "~/contenus/textes-etiquettes";
 import { TEXTES_ORGANISER } from "~/contenus/textes-sorties-miamis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   plein: boolean;
@@ -15,6 +15,7 @@ type Props = {
 };
 
 export function ChampEtiquetteLibre({ plein, onAjouter }: Props) {
+  const couleurs = utiliserCouleurs();
   const [texte, setTexte] = useState("");
   const [refus, setRefus] = useState<string | null>(null);
 
@@ -45,7 +46,7 @@ export function ChampEtiquetteLibre({ plein, onAjouter }: Props) {
           placeholderTextColor={couleurs.gris}
           returnKeyType="done"
           editable={!plein}
-          className={`min-h-12 flex-1 rounded-2xl border-2 bg-white px-3.5 font-texte text-[15px] text-encre ${refus ? "border-rouge-texte" : "border-encre"}`}
+          className={`min-h-12 flex-1 rounded-2xl border-2 bg-carte px-3.5 font-texte text-[15px] text-encre ${refus ? "border-rouge-texte" : "border-encre"}`}
         />
         <Pressable
           accessibilityRole="button"

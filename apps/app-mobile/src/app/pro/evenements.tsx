@@ -9,15 +9,16 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /**
  * Les événements du lieu (gérant et équipe) : à venir (le plus proche d'abord), puis passés ou annulés depuis 30 jours.
  * Ils s'affichent sur la fiche (« À venir »), dans Explorer, et préviennent les personnes qui suivent le lieu.
  */
 export default function EcranEvenementsPro() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { lieuPro } = utiliserModes();
   const { lieuPro: service } = utiliserServices();

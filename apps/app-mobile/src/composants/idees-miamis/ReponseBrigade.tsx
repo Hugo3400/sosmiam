@@ -16,15 +16,15 @@ const BRIGADE: PersonneResume = { id: "brigade", pseudo: "brigade", prenom: TEXT
 
 export function ReponseBrigade({ reponse }: Props) {
   return (
-    <View className="gap-2 rounded-carte bg-encre p-4">
+    <View className="gap-2 rounded-carte bg-nuit p-4">
       <View className="flex-row items-center gap-2.5">
         <RondMiami personne={BRIGADE} taille={34} fond="bg-jaune" />
         <View>
-          <Text className="font-texte-gras text-sm text-creme">{TEXTES_IDEES.brigade}</Text>
+          <Text className="font-texte-gras text-sm text-lait">{TEXTES_IDEES.brigade}</Text>
           <Text className="font-texte text-xs text-gris-nuit">{TEXTES_IDEES.reponseOfficielle(ecrireIlYa(reponse.date))}</Text>
         </View>
       </View>
-      <Text className="font-texte text-sm leading-[21px] text-creme">{lierPonctuation(reponse.texte)}</Text>
+      <Text className="font-texte text-sm leading-[21px] text-lait">{lierPonctuation(reponse.texte)}</Text>
     </View>
   );
 }

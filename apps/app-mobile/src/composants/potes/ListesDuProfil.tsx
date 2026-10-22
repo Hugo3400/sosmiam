@@ -6,8 +6,8 @@ import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Identifiant de la personne (« moi » pour toi) */
@@ -22,6 +22,7 @@ type Props = {
  * Toucher une liste l'ouvre. Affiché seulement quand on peut voir son profil en entier.
  */
 export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { listes } = utiliserCommunaute();
   const { lieux: tousLesLieux } = utiliserLieux();
@@ -40,7 +41,7 @@ export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
           </Text>
         </View>
       ) : (
-        <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+        <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
           {siennes.map((liste, i) => {
             // Compte connecté, lue en résumé : le nombre du serveur ; sinon, ses lieux encore dans l'app
             const nombre = liste.serveur && !liste.serveur.complete ? compterLieuxListe(liste) : liste.lieux.filter((id) => connus.has(id)).length;

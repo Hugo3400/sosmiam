@@ -1,6 +1,7 @@
 import { Switch, Text, View } from "react-native";
 
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserCouleursInterrupteur } from "~/hooks/utiliser-couleurs-interrupteur";
 
 type Props = {
   titre: string;
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export function LigneToujoursActive({ titre, detail }: Props) {
+  const couleurs = utiliserCouleurs();
+  const { piste, pastille } = utiliserCouleursInterrupteur();
   return (
     <View accessible accessibilityRole="switch" accessibilityLabel={titre} accessibilityHint={detail} accessibilityState={{ checked: true, disabled: true }} className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3">
       <View className="flex-1">
@@ -15,7 +18,7 @@ export function LigneToujoursActive({ titre, detail }: Props) {
         <Text className="font-texte text-sm text-gris">{detail}</Text>
       </View>
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Switch value disabled trackColor={{ false: couleurs.ligne, true: couleurs.encre }} thumbColor={couleurs.jaune} />
+        <Switch value disabled trackColor={{ false: couleurs.ligne, true: piste }} thumbColor={pastille} />
       </View>
     </View>
   );

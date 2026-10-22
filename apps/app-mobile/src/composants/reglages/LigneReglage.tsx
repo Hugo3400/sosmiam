@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   emoji: string;
@@ -22,6 +22,7 @@ type Props = {
 
 /** Une ligne d'un écran de réglages : emoji, titre, détail et chevron, au moins 56 points de haut. */
 export function LigneReglage({ emoji, titre, detail, onPress, role = "bouton", danger = false, droite }: Props) {
+  const couleurs = utiliserCouleurs();
   const detailLie = detail ? lierPonctuation(detail) : null;
   return (
     <Pressable

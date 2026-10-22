@@ -8,9 +8,9 @@ import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
 import { PartageEnvoyeMiamSafe } from "~/composants/miam-safe/PartageEnvoyeMiamSafe";
 import { PartageRecuMiamSafe } from "~/composants/miam-safe/PartageRecuMiamSafe";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserPartageMiamSafe } from "~/hooks/utiliser-partage-miam-safe";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /** Le partage est relu toutes les 10 s : le pote voit la position bouger, la personne qui partage voit quand il est fini */
 const RELECTURE_POTE_MS = 10_000;
@@ -20,6 +20,7 @@ const RELECTURE_POTE_MS = 10_000;
  * « telephones » : sur combien de ses téléphones la notification est partie), ou par la notification chez le pote.
  */
 export default function EcranPartageMiamSafe() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { miamSafe } = utiliserServices();
   const params = useLocalSearchParams<{ id: string; telephones?: string }>();
@@ -48,11 +49,11 @@ export default function EcranPartageMiamSafe() {
           accessibilityLabel="Fermer"
           hitSlop={12}
           onPress={fermer}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="close" size={20} color={couleurs.encre} />
         </Pressable>
-        <View className="rounded-full bg-encre px-3 py-1">
+        <View className="rounded-full border-2 border-encre bg-nuit px-3 py-1">
           <Text className="font-texte-gras text-sm text-jaune">🛡 Miam Safe</Text>
         </View>
       </View>
@@ -66,7 +67,7 @@ export default function EcranPartageMiamSafe() {
           <PartageRecuMiamSafe partage={partage} />
         ) : message ? (
           <>
-            <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-white p-4">
+            <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
               <Text className="font-texte-gras text-base text-encre">{message.emoji} {message.titre}</Text>
               <Text className="font-texte text-base leading-6 text-encre">{message.texte}</Text>
             </View>

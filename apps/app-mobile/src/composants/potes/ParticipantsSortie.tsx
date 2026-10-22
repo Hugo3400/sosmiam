@@ -39,7 +39,7 @@ export function ParticipantsSortie({ participants, organisateur, max = 6, enAtte
         {reste > 0 ? (
           <View
             style={{ width: TAILLE, height: TAILLE, borderRadius: TAILLE / 2, marginLeft: -8 }}
-            className="items-center justify-center border-2 border-encre bg-white"
+            className="items-center justify-center border-2 border-encre bg-carte"
           >
             <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-encre">
               +{reste}

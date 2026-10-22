@@ -20,10 +20,10 @@ import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle 
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 /** Ce qu'on dit sous le champ à corriger (mêmes règles que l'API : validerPropositionLieu) */
 const ERREURS: Partial<Record<ChampPropositionLieu, string>> = {
@@ -40,6 +40,7 @@ const ERREURS: Partial<Record<ChampPropositionLieu, string>> = {
  * on ajoute un mot si on veut, et seul ce qui change vraiment part à l'équipe, qui relit avant de toucher à la fiche.
  */
 export default function ProposerModification() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { suggestions: service } = utiliserServices();
@@ -114,7 +115,7 @@ export default function ProposerModification() {
             accessibilityLabel="Retour"
             hitSlop={8}
             onPress={() => router.back()}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>

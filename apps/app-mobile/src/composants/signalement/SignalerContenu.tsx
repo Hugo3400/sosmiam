@@ -10,7 +10,7 @@ import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   cible: SignalementContenu["cible"];
@@ -31,6 +31,7 @@ const CIBLES_CACHEES: readonly SignalementContenu["cible"][] = ["commentaire", "
  * sur le téléphone. À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
  */
 export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
+  const couleurs = utiliserCouleurs();
   const { signaler, source } = utiliserCommunaute();
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);

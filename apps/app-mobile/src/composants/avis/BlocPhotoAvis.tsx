@@ -8,7 +8,7 @@ import type { PhotoAvis } from "~/contenus/type-donner-avis";
 import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   photo: PhotoAvis | null;
@@ -27,6 +27,7 @@ function decrireGainPhoto(pointsPhoto: number, repasOffert: boolean): string {
 }
 
 export function BlocPhotoAvis({ photo, pointsPhoto, repasOffert, preparation, erreur, desactive, onAjouter, onRetirer }: Props) {
+  const couleurs = utiliserCouleurs();
   const gain = decrireGainPhoto(pointsPhoto, repasOffert);
   return (
     <View className="gap-3">
@@ -45,7 +46,7 @@ export function BlocPhotoAvis({ photo, pointsPhoto, repasOffert, preparation, er
           />
           {pointsPhoto > 0 ? (
             <View className="self-start rounded-full border-2 border-encre bg-jaune px-3 py-1">
-              <Text className="font-texte-gras text-[13px] text-encre">{remplirModele(TEXTES_DONNER_AVIS.photoPointsAEnvoi, { points: String(pointsPhoto) })}</Text>
+              <Text className="font-texte-gras text-[13px] text-nuit">{remplirModele(TEXTES_DONNER_AVIS.photoPointsAEnvoi, { points: String(pointsPhoto) })}</Text>
             </View>
           ) : null}
           <Bouton libelle={TEXTES_DONNER_AVIS.photoRetirer} variante="blanc" petit desactive={desactive} indice={TEXTES_DONNER_AVIS.photoRetirerIndice} onPress={onRetirer} />
@@ -61,10 +62,10 @@ export function BlocPhotoAvis({ photo, pointsPhoto, repasOffert, preparation, er
             vibrerLegerement();
             onAjouter();
           }}
-          className="min-h-24 flex-row items-center gap-4 rounded-carte border-2 border-dashed border-encre bg-white px-4 py-4 active:opacity-80"
+          className="min-h-24 flex-row items-center gap-4 rounded-carte border-2 border-dashed border-encre bg-carte px-4 py-4 active:opacity-80"
         >
           <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-jaune">
-            {preparation ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="camera" size={22} color={couleurs.encre} />}
+            {preparation ? <ActivityIndicator color={couleurs.nuit} /> : <Ionicons name="camera" size={22} color={couleurs.nuit} />}
           </View>
           <View className="flex-1 gap-1">
             <Text className="font-texte-gras text-base text-encre">{preparation ? TEXTES_DONNER_AVIS.photoPreparation : TEXTES_DONNER_AVIS.photoAjouter}</Text>

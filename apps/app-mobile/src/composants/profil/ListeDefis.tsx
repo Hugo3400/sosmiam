@@ -43,7 +43,7 @@ export function ListeDefis() {
       pliable={resume !== null}
     >
       {mot ? (
-        <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-white p-4">
+        <View className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-4">
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
             {mot.emoji}
           </Text>

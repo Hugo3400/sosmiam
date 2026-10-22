@@ -8,18 +8,18 @@ type Props = {
 };
 
 const FONDS: Readonly<Record<StatutIdee, string>> = {
-  "en-relecture": "border border-dashed border-gris bg-white",
+  "en-relecture": "border border-dashed border-gris bg-carte",
   proposee: "bg-ligne",
   "a-l-etude": "bg-jaune-clair",
   prevue: "bg-jaune",
-  faite: "bg-encre",
+  faite: "bg-nuit",
 };
 
 const TEXTES: Readonly<Record<StatutIdee, string>> = {
   "en-relecture": "text-gris",
   proposee: "text-gris",
   "a-l-etude": "text-encre",
-  prevue: "text-encre",
+  prevue: "text-nuit",
   faite: "text-jaune",
 };
 

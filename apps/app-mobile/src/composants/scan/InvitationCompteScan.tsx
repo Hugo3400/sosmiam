@@ -6,10 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Bouton } from "~/composants/interface/Bouton";
 import { EtapesCommentCaMarche } from "~/composants/scan/EtapesCommentCaMarche";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /** L'onglet Scan pendant la visite sans compte : comment une visite compte, et l'inscription directement (comme les autres onglets d'invitation). */
 export function InvitationCompteScan() {
+  const couleurs = utiliserCouleurs();
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const router = useRouter();
 
@@ -22,7 +23,7 @@ export function InvitationCompteScan() {
           </Text>
           <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation("Ici, tes visites comptent pour de vrai : des points, des tampons et des avis vérifiés.")}</Text>
         </View>
-        <View className="items-center gap-4 rounded-carte border-2 border-encre bg-encre px-5 py-6">
+        <View className="items-center gap-4 rounded-carte border-2 border-encre bg-nuit px-5 py-6">
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-5xl">
             📷
           </Text>

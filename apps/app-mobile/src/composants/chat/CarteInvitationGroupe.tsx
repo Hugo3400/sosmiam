@@ -58,7 +58,7 @@ export function CarteInvitationGroupe({ invitation }: Props) {
           onPress={() => void repondre(true)}
           className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
         >
-          <Text className="font-texte-gras text-sm text-encre">{enCours ? "Un instant…" : "Je rejoins"}</Text>
+          <Text className="font-texte-gras text-sm text-nuit">{enCours ? "Un instant…" : "Je rejoins"}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -67,7 +67,7 @@ export function CarteInvitationGroupe({ invitation }: Props) {
           accessibilityState={{ disabled: enCours }}
           disabled={enCours}
           onPress={() => void repondre(false)}
-          className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+          className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
         >
           <Text className="font-texte-gras text-sm text-encre">Pas pour moi</Text>
         </Pressable>

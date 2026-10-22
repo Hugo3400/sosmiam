@@ -11,7 +11,7 @@ import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterSaisieDate } from "~/fonctions/dates/formater-saisie-date";
 import { lireDateIso } from "~/fonctions/dates/lire-date-iso";
 import { lireDateSaisie } from "~/fonctions/dates/lire-date-saisie";
-import couleurs from "~/theme/couleurs";
+import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
   /** Date choisie, « AAAA-MM-JJ », ou null */
@@ -42,6 +42,7 @@ function dateDeDepart(valeur: string | null): Date {
  * Sur le web (aperçu de développement seulement), un simple champ « JJ/MM/AAAA ».
  */
 export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
+  const { couleurs, schema } = utiliserTheme();
   const insets = useSafeAreaInsets();
   const [tiroirOuvert, setTiroirOuvert] = useState(false);
   const [dateEnCours, setDateEnCours] = useState(() => dateDeDepart(valeur));
@@ -126,7 +127,7 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
         accessibilityValue={{ text: texteAffiche ?? "pas encore choisie" }}
         accessibilityHint="Ouvre le choix de la date"
         onPress={ouvrir}
-        className="min-h-[52px] flex-row items-center justify-between rounded-2xl border-2 border-encre bg-white px-4 py-3 active:opacity-80"
+        className="min-h-[52px] flex-row items-center justify-between rounded-2xl border-2 border-encre bg-carte px-4 py-3 active:opacity-80"
       >
         <Text className={`font-texte text-[17px] ${texteAffiche ? "text-encre" : "text-gris"}`}>{texteAffiche ?? "Choisis ta date"}</Text>
         <Ionicons name="calendar-outline" size={22} color={couleurs.encre} accessibilityElementsHidden importantForAccessibility="no" />
@@ -141,7 +142,7 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
           animationType={mouvementReduit ? "fade" : "slide"}
           onRequestClose={() => setTiroirOuvert(false)}
         >
-          <View className="flex-1 justify-end bg-encre/40">
+          <View className="flex-1 justify-end bg-nuit/40">
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fermer sans changer la date"
@@ -165,7 +166,7 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
                 minimumDate={dateMinimum}
                 maximumDate={finDAujourdhui()}
                 textColor={couleurs.encre}
-                themeVariant="light"
+                themeVariant={schema === "sombre" ? "dark" : "light"}
                 onValueChange={(_evenement, date) => setDateEnCours(date)}
               />
               <Bouton libelle="Valider cette date" onPress={valider} />

@@ -15,9 +15,9 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
@@ -42,6 +42,7 @@ const TAILLE_MEMBRE = 36;
  * (avec confirmation). Groupe : les membres (vers leur profil) et « Quitter le groupe » (avec confirmation).
  */
 export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoirProfil, onBloque, onQuitte }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -125,7 +126,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
         </Text>
         <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(texte)}</Text>
         <Bouton libelle={action} variante="encre" onPress={faire} />
-        <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+        <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
           <Text className="font-texte-gras text-base text-encre">{refus}</Text>
         </Pressable>
       </View>
@@ -253,7 +254,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
                       <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                     </Pressable>
                   ))}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
                 </>

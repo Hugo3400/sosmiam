@@ -7,7 +7,7 @@ import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { TEXTES_ORGANISER } from "~/contenus/textes-sorties-miamis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   lieu: Lieu | null;
@@ -16,6 +16,7 @@ type Props = {
 };
 
 export function ChoixLieuSortieMiamis({ lieu, onChoisir, erreur }: Props) {
+  const couleurs = utiliserCouleurs();
   const [ouvert, setOuvert] = useState(false);
   return (
     <View className="gap-2">
@@ -26,7 +27,7 @@ export function ChoixLieuSortieMiamis({ lieu, onChoisir, erreur }: Props) {
           vibrerLegerement();
           setOuvert(true);
         }}
-        className={`flex-row items-center gap-3 rounded-2xl border-2 bg-white p-3 active:opacity-80 ${erreur ? "border-rouge-texte" : "border-encre"}`}
+        className={`flex-row items-center gap-3 rounded-2xl border-2 bg-carte p-3 active:opacity-80 ${erreur ? "border-rouge-texte" : "border-encre"}`}
       >
         <View className="h-11 w-11 items-center justify-center rounded-xl bg-jaune-clair">
           {lieu ? <Text className="text-xl">{lieu.emoji}</Text> : <Ionicons name="location-outline" size={22} color={couleurs.encre} />}

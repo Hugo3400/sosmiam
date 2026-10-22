@@ -7,7 +7,7 @@ import { TEXTES_CARTE_SERVICE, TEXTES_REGLAGES_RESERVATIONS as T } from "~/conte
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireServiceReservation } from "~/fonctions/reservations/decrire-service-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   service: ServiceReservation;
@@ -18,6 +18,7 @@ type Props = {
 };
 
 export function CarteServiceReservation({ service, services, erreur, modifiable, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const decrit = decrireServiceReservation(service, services);
   const aCorriger = erreur ? remplirModele(T.aCorriger, { erreur }) : null;
   return (
@@ -31,7 +32,7 @@ export function CarteServiceReservation({ service, services, erreur, modifiable,
         vibrerLegerement();
         onPress();
       }}
-      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 bg-white px-4 py-3 active:opacity-80 ${erreur ? "border-tomate" : "border-encre"}`}
+      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 bg-carte px-4 py-3 active:opacity-80 ${erreur ? "border-tomate" : "border-encre"}`}
     >
       <View className="h-11 w-11 items-center justify-center rounded-2xl bg-jaune-clair">
         <Text className="text-2xl">{decrit.emoji}</Text>

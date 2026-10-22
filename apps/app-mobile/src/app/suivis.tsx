@@ -1,20 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Annonce } from "~/composants/interface/Annonce";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { ListeTuSuis } from "~/composants/suivi/ListeTuSuis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /**
  * « Tu suis » (depuis l'onglet Profil) : les personnes, les lieux et les créateurs que tu suis (ListeTuSuis), puis des
  * suggestions. La liste est figée à l'ouverture : une ligne qu'on ne suit plus reste là avec « Suivre », pour se raviser.
  */
 export default function Suivis() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -25,14 +26,14 @@ export default function Suivis() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>

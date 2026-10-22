@@ -12,7 +12,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 /** Un message prêt à afficher : son auteur, son heure, et le jour à écrire au-dessus quand il change */
 export type LigneDiscussion = {
@@ -53,6 +53,7 @@ const PRES_DU_BAS = 120;
 
 /** La partie « La discussion » d'une sortie : les messages en bulles, et le champ en bas qui reste au-dessus du clavier. */
 export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer }: Props) {
+  const couleurs = utiliserCouleurs();
   const animationsReduites = useReducedMotion();
   // Tes messages refusés parce que ton compte est limité : la bulle le dit, sans « Réessaie », et peut être retirée
   const { envoisEnPause, retirerEnPause } = utiliserConversations();
@@ -139,7 +140,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                   collerEnBas.current = false;
                   onChargerPlusAnciens();
                 }}
-                className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-white px-4 active:opacity-80"
+                className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
               >
                 <Text className="font-texte-gras text-sm text-encre">{"Voir les messages d'avant"}</Text>
               </Pressable>
@@ -218,7 +219,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
             selectionColor={couleurs.encre}
             cursorColor={couleurs.encre}
             multiline
-            className={`max-h-32 min-h-11 flex-1 rounded-3xl border-2 bg-white px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
+            className={`max-h-32 min-h-11 flex-1 rounded-3xl border-2 bg-carte px-4 py-2.5 font-texte text-base text-encre ${erreur ? "border-rouge-texte" : "border-encre"}`}
           />
           <Pressable
             accessibilityRole="button"
@@ -226,7 +227,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
             onPress={envoyer}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
           >
-            <Ionicons name="arrow-up" size={22} color={couleurs.encre} />
+            <Ionicons name="arrow-up" size={22} color={couleurs.nuit} />
           </Pressable>
         </View>
         {longueur > LONGUEUR_MAX_MESSAGE - 100 ? (

@@ -1,15 +1,15 @@
 // Tailwind pour l'app (NativeWind 4, Tailwind 3) : même thème que le site.
 const couleurs = require("./src/theme/couleurs");
+const variables = Object.fromEntries(Object.keys(couleurs).map((nom) => [nom, `rgb(var(--couleur-${nom}) / <alpha-value>)`]));
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{ts,tsx}"],
   presets: [require("nativewind/preset")],
-  // Pas de mode sombre automatique pour l'instant (app.json : userInterfaceStyle « light »)
   darkMode: "class",
   theme: {
     extend: {
-      colors: couleurs,
+      colors: variables,
       borderRadius: { carte: "20px" },
       // Polices embarquées dans l'app (chargées dans src/app/_layout.tsx). En React Native, chaque graisse est une police :
       // utiliser ces classes plutôt que font-bold / font-extrabold.

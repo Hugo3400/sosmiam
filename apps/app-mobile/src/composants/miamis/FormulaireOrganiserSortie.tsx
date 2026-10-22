@@ -30,10 +30,10 @@ import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { construirePublicSortie } from "~/fonctions/miamis/construire-public-sortie";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGesteCommunaute } from "~/hooks/utiliser-geste-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfilVisibiliteMiamis } from "~/hooks/utiliser-profil-visibilite-miamis";
-import couleurs from "~/theme/couleurs";
 
 type Erreurs = Partial<Record<ChampNouvelleSortieMiamis | "envoi", string>>;
 
@@ -45,6 +45,7 @@ const demainSoir = () => {
 };
 
 export function FormulaireOrganiserSortie() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { trouverLieu } = utiliserLieux();
   const { profil } = utiliserProfilVisibiliteMiamis();

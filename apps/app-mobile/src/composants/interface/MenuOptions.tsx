@@ -10,9 +10,9 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 export type OptionMenu = {
   cle: string;
@@ -39,6 +39,7 @@ type Props = {
  */
 export function MenuOptions({ visible, titre, options, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  const couleurs = utiliserCouleurs();
   utiliserInscriptionFeuille(visible, onFermer);
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -127,7 +128,7 @@ export function MenuOptions({ visible, titre, options, onFermer }: Props) {
                     <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                   </Pressable>
                 ))}
-                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                   <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                 </Pressable>
               </>

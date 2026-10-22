@@ -22,7 +22,7 @@ const ombreTexte = { textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { wid
 export function MentionPrevention({ variante = "ligne" }: Props) {
   if (variante === "bloc") {
     return (
-      <View className="gap-2 rounded-carte border-2 border-ligne bg-white px-4 py-3">
+      <View className="gap-2 rounded-carte border-2 border-ligne bg-carte px-4 py-3">
         <Text className="font-texte-semi text-sm leading-5 text-encre">{MESSAGE_SANITAIRE_ALCOOL}</Text>
         <Text className="font-texte text-[13px] leading-[18px] text-gris">Besoin d'en parler, pour toi ou pour un proche ? {ALCOOL_INFO_SERVICE.nom} répond, anonymement et sans surcoût.</Text>
         <View className="flex-row flex-wrap gap-2">
@@ -30,7 +30,7 @@ export function MentionPrevention({ variante = "ligne" }: Props) {
             accessibilityRole="link"
             accessibilityLabel={`Appeler ${ALCOOL_INFO_SERVICE.nom}, ${ALCOOL_INFO_SERVICE.telephone}, appel anonyme et non surtaxé`}
             onPress={() => ouvrir(ALCOOL_INFO_SERVICE.lienTelephone)}
-            className="min-h-11 flex-row items-center rounded-full border-2 border-encre bg-white px-3.5 active:opacity-80"
+            className="min-h-11 flex-row items-center rounded-full border-2 border-encre bg-carte px-3.5 active:opacity-80"
           >
             <Text className="font-texte-gras text-[13px] text-encre">📞 {ALCOOL_INFO_SERVICE.telephone}</Text>
           </Pressable>
@@ -38,7 +38,7 @@ export function MentionPrevention({ variante = "ligne" }: Props) {
             accessibilityRole="link"
             accessibilityLabel={`Ouvrir le site d'${ALCOOL_INFO_SERVICE.nom}`}
             onPress={() => ouvrir(ALCOOL_INFO_SERVICE.site)}
-            className="min-h-11 flex-row items-center rounded-full border-2 border-encre bg-white px-3.5 active:opacity-80"
+            className="min-h-11 flex-row items-center rounded-full border-2 border-encre bg-carte px-3.5 active:opacity-80"
           >
             <Text className="font-texte-gras text-[13px] text-encre">alcool-info-service.fr</Text>
           </Pressable>

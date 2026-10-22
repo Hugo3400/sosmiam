@@ -151,7 +151,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
               <Text accessibilityRole="header" accessibilityLabel={`${section.titre}, ${nombre}`} className="font-titre-gras text-xl text-encre">
                 {section.emoji} {section.titre} ({nombre})
               </Text>
-              <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+              <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
                 {section.lignes.map((ligne, i) => (
                   <LigneSuivi
                     key={ligne.cle}

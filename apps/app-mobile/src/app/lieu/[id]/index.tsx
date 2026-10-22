@@ -22,13 +22,13 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserOrigineDistances } from "~/hooks/utiliser-origine-distances";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 /** Une feuille (« Envoyer à un pote », « Miam Safe ») : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
 type EtatEnvoi = "jamais" | "ouvert" | "ferme";
@@ -43,6 +43,7 @@ const DEBORD_LU_EN_PREMIER = 1;
  * Un bar ouvert par un lien en visite sans compte (âge inconnu) : un mot gentil à la place de la fiche.
  */
 export default function FicheLieu() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const focus = useIsFocused();
   const marges = useSafeAreaInsets();
@@ -137,7 +138,7 @@ export default function FicheLieu() {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={retour}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -150,7 +151,7 @@ export default function FicheLieu() {
           accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
           hitSlop={8}
           onPress={ouvrirMiamSafe}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Text className="text-lg">🚨</Text>
         </Pressable>

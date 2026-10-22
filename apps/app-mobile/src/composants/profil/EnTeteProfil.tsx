@@ -7,10 +7,10 @@ import { BoutonNotifications } from "~/composants/notifications/BoutonNotificati
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import type { Avatar } from "~/stockage/avatar-local";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   profil: Profil;
@@ -21,6 +21,7 @@ type Props = {
 const TAILLE_AVATAR = 88;
 
 export function EnTeteProfil({ profil, avatar, age }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { pret, comptePrive } = utiliserSuivisPersonnes();
   const monId = utiliserMonId();
@@ -40,7 +41,7 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
           vibrerLegerement();
           router.push("/reglages");
         }}
-        className="absolute right-0 top-0 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-70"
+        className="absolute right-0 top-0 h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-70"
       >
         <Text className="text-xl">⚙️</Text>
       </Pressable>
@@ -57,7 +58,7 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
         <ImageAvatar avatar={avatar} taille={TAILLE_AVATAR} />
         {/* Petit crayon : l'avatar se change d'un toucher */}
         <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full border-2 border-encre bg-jaune">
-          <Ionicons name="pencil" size={14} color={couleurs.encre} />
+          <Ionicons name="pencil" size={14} color={couleurs.nuit} />
         </View>
       </Pressable>
 

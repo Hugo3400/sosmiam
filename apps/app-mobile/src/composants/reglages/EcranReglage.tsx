@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   titre?: string;
@@ -24,6 +24,7 @@ type Props = {
 /** Cadre des écrans de réglages : bouton retour, grand titre, contenu qui défile et bouton principal fixé en bas. */
 export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal, auDessusDuBouton, onRetour, libelleRetour = "Retour", children }: Props) {
   const router = useRouter();
+  const couleurs = utiliserCouleurs();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
@@ -33,7 +34,7 @@ export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal
             accessibilityLabel={libelleRetour}
             hitSlop={12}
             onPress={onRetour ?? (() => router.back())}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
           >
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>

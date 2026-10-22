@@ -7,15 +7,16 @@ import { construireLienLieu } from "@sos-miam/commun/fonctions/qr/construire-lie
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserComptoir } from "~/hooks/utiliser-comptoir";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
-import couleurs from "~/theme/couleurs";
 
 /**
  * « Mon kit » : le QR de vitrine du lieu (autocollant, chevalets de table), qui ouvre sa fiche dans l'app. Il ne valide
  * jamais une visite (ça, c'est le QR du comptoir, qui change toutes les 30 s). L'affichette à imprimer est dans l'espace pro du site.
  */
 export default function EcranKitPro() {
+  const couleurs = utiliserCouleurs();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
   const { etat } = utiliserComptoir(lieuPro?.id ?? null);
@@ -29,7 +30,7 @@ export default function EcranKitPro() {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -45,15 +46,15 @@ export default function EcranKitPro() {
 
         {lien ? (
           <View accessible accessibilityLabel={`QR de vitrine de ${lieuPro?.nom ?? "ton lieu"}, il ouvre ta fiche`} className="items-center gap-3 rounded-carte border-2 border-encre bg-white p-6">
-            <QRCode value={lien} size={220} color={couleurs.encre} backgroundColor="#FFFFFF" ecl="M" />
-            <Text className="font-texte-gras text-base text-encre">{lieuPro ? `${lieuPro.emoji} ${lieuPro.nom}` : ""}</Text>
-            <Text className="font-texte text-[13px] text-gris">{lien.replace("https://", "")}</Text>
+            <QRCode value={lien} size={220} color={couleurs.nuit} backgroundColor="#FFFFFF" ecl="M" />
+            <Text className="font-texte-gras text-base text-nuit">{lieuPro ? `${lieuPro.emoji} ${lieuPro.nom}` : ""}</Text>
+            <Text className="font-texte text-[13px] text-nuit/70">{lien.replace("https://", "")}</Text>
           </View>
         ) : (
           <ActivityIndicator color={couleurs.encre} accessibilityLabel="On prépare ton QR…" />
         )}
 
-        <View className="self-stretch gap-3 rounded-carte border-2 border-ligne bg-white p-4">
+        <View className="self-stretch gap-3 rounded-carte border-2 border-ligne bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">🔒 Bon à savoir</Text>
           <Text className="font-texte text-sm leading-5 text-gris">
             {lierPonctuation("Ce QR ouvre ta fiche : il ne valide jamais une visite (ça, c'est le QR du comptoir, qui change toutes les 30 s). Un scan ne demande jamais de mot de passe.")}

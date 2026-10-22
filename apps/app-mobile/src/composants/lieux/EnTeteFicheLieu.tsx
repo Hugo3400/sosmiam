@@ -69,7 +69,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, depuis,
           <BadgeVerification verifie={verifie} />
           <BadgesMiamSafe miamSafe={miamSafe} />
           {sos ? (
-            <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-encre">
+            <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-nuit">
               🛟 SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}{sos.offre ? ` · ${sos.offre}` : ""}
             </Text>
           ) : null}

@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   titre: string;
@@ -18,6 +18,7 @@ type Props = {
 
 /** Une grande tuile d'action de l'onglet Scan : une icône, un titre, une phrase, et une ombre décalée comme les boutons. */
 export function TuileScan({ titre, texte, icone, variante, indice, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const principale = variante === "principale";
   return (
     <View className="relative">
@@ -32,7 +33,7 @@ export function TuileScan({ titre, texte, icone, variante, indice, onPress }: Pr
           onPress();
         }}
         className={`flex-row items-center gap-4 rounded-carte border-2 border-encre active:opacity-90 ${
-          principale ? "bg-encre px-5 py-6" : "bg-white px-5 py-4"
+          principale ? "bg-nuit px-5 py-6" : "bg-carte px-5 py-4"
         }`}
       >
         <View
@@ -40,7 +41,7 @@ export function TuileScan({ titre, texte, icone, variante, indice, onPress }: Pr
           importantForAccessibility="no-hide-descendants"
           className={`items-center justify-center rounded-2xl border-2 ${principale ? "h-16 w-16 border-jaune bg-jaune" : "h-12 w-12 border-encre bg-jaune-clair"}`}
         >
-          <Ionicons name={icone} size={principale ? 34 : 24} color={couleurs.encre} />
+          <Ionicons name={icone} size={principale ? 34 : 24} color={principale ? couleurs.nuit : couleurs.encre} />
         </View>
         <View className="flex-1 gap-1">
           <Text className={`font-titre-gras ${principale ? "text-[22px] leading-7 text-white" : "text-lg leading-6 text-encre"}`}>{lierPonctuation(titre)}</Text>

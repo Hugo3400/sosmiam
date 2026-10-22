@@ -1,13 +1,14 @@
 import * as SplashScreen from "expo-splash-screen";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
 import { AnnonceAppOuverture } from "~/composants/annonces-app/AnnonceAppOuverture";
 import { AnnonceCompteLimite } from "~/composants/compte/AnnonceCompteLimite";
 import { AnnonceOubliPosition } from "~/composants/explorer/AnnonceOubliPosition";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { EcranMiseAJourObligatoire } from "~/composants/mise-a-jour/EcranMiseAJourObligatoire";
 import { NouvelleVersionOuverture } from "~/composants/mise-a-jour/NouvelleVersionOuverture";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
 import { utiliserEtatVersion } from "~/hooks/utiliser-etat-version";
@@ -29,6 +30,7 @@ import { SuiviEcranOuvert } from "~/composants/navigation/SuiviEcranOuvert";
  * démo », tant que le compte mis de côté n'est pas rouvert).
  */
 export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
+  const couleurs = utiliserCouleurs();
   const { profil, invite, chargement } = utiliserProfil();
   const modes = utiliserModes();
   const etatVersion = utiliserEtatVersion();
@@ -56,10 +58,10 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
 
   return (
     <>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       {/* L'écran ouvert, pour les notifications (pas de bannière pour la discussion que tu as sous les yeux) */}
       <SuiviEcranOuvert />
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: couleurs.creme } }}>
         {/* Pour regarder : avec un compte, ou en visite sans compte (les onglets d'abord : c'est l'écran d'arrivée) */}
         <Stack.Protected guard={inscrit || invite}>
           <Stack.Screen name="(onglets)" />

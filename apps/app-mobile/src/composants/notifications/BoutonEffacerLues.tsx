@@ -32,7 +32,7 @@ export function BoutonEffacerLues({ nombre, onEffacer, onRefermee }: Props) {
             setNombreAffiche(nombre);
             setOuverte(true);
           }}
-          className="h-9 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-white px-3 active:opacity-70"
+          className="h-9 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
         >
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-sm">
             🧹

@@ -5,7 +5,7 @@ import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reg
 import type { StatutVisite, Visite } from "@sos-miam/commun/types/visite";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   visite: Visite;
@@ -25,6 +25,7 @@ const FORMAT_JOUR = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "s
 
 /** Une visite en une ligne, dans l'aperçu de l'onglet Scan : le lieu, le jour, ce qu'elle a rapporté et son état. */
 export function ApercuVisite({ visite, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const statut = STATUTS[visite.statut];
   const jour = FORMAT_JOUR.format(new Date(visite.valideLe ?? visite.creeLe));
   const gain = visite.statut === "validee" && visite.points > 0 ? `+${visite.points} points${visite.tampon ? " · 1 tampon" : ""}` : null;
@@ -39,7 +40,7 @@ export function ApercuVisite({ visite, onPress }: Props) {
         vibrerLegerement();
         onPress();
       }}
-      className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-3 active:opacity-80"
+      className="min-h-16 flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-3 active:opacity-80"
     >
       <View className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-creme">
         <Text className="text-xl">{visite.lieu.emoji}</Text>
@@ -59,7 +60,7 @@ export function ApercuVisite({ visite, onPress }: Props) {
         ) : null}
       </View>
       <View className={`rounded-full px-2.5 py-1 ${statut.fond}`}>
-        <Text className="font-texte-gras text-xs text-encre">{statut.texte}</Text>
+        <Text className={`font-texte-gras text-xs ${visite.statut === "validee" ? "text-nuit" : "text-encre"}`}>{statut.texte}</Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
     </Pressable>

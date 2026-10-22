@@ -11,7 +11,7 @@ import { TEXTES_ACCUEIL_MIAMIS } from "~/contenus/textes-miamis";
 import { filtrerSortiesMiamis, type FiltreSortiesMiamis } from "~/fonctions/miamis/filtrer-sorties-miamis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   sorties: SortieMiamisApi[] | null;
@@ -25,6 +25,7 @@ type Props = {
 };
 
 export function SectionSortiesMiamis({ sorties, chargement, envies, genreChoisi, enCours, refus, onDemander, onModifierEnvies }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const [filtre, setFiltre] = useState<FiltreSortiesMiamis>({ type: "toutes" });
   const filtrees = sorties ? filtrerSortiesMiamis(sorties, filtre, envies) : [];

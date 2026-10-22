@@ -8,7 +8,7 @@ import type { ModeValidation, Visite } from "@sos-miam/commun/types/visite";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   visite: Visite;
@@ -22,14 +22,14 @@ type Puce = { texte: string; lu: string; ton: Ton };
 
 const FONDS: Record<Ton, string> = {
   jaune: "border-encre bg-jaune",
-  encre: "border-encre bg-encre",
-  blanc: "border-encre bg-white",
+  encre: "border-encre bg-nuit",
+  blanc: "border-encre bg-carte",
   rose: "border-rouge-texte bg-rose-alerte",
   doux: "border-ligne bg-creme",
-  demo: "border-dashed border-gris/50 bg-white",
+  demo: "border-dashed border-gris/50 bg-carte",
 };
 const TEXTES: Record<Ton, string> = {
-  jaune: "text-encre",
+  jaune: "text-nuit",
   encre: "text-jaune",
   blanc: "text-encre",
   rose: "text-rouge-texte",
@@ -106,6 +106,7 @@ function listerPuces(visite: Visite): Puce[] {
  * Une demande annulée ou endormie reste en retrait. Un seul élément pour VoiceOver, qui lit tout d'une traite.
  */
 export function LigneVisite({ visite, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   // Une validation annulée ensuite par le lieu a bien été réglée : on garde « Addition réglée »
   const aEteValidee = visite.statut === "validee" || visite.statut === "retiree";
   const enRetrait = visite.statut === "annulee" || visite.statut === "expiree";
@@ -123,7 +124,7 @@ export function LigneVisite({ visite, onPress }: Props) {
   ]
     .map((morceau) => morceau.charAt(0).toLocaleUpperCase("fr-FR") + morceau.slice(1))
     .join(". ");
-  const fondRond = visite.statut === "validee" ? "bg-jaune" : visite.statut === "demandee" ? "bg-jaune-clair" : enRetrait ? "bg-creme" : "bg-white";
+  const fondRond = visite.statut === "validee" ? "bg-jaune" : visite.statut === "demandee" ? "bg-jaune-clair" : enRetrait ? "bg-creme" : "bg-carte";
 
   return (
     <Pressable
@@ -134,7 +135,7 @@ export function LigneVisite({ visite, onPress }: Props) {
         vibrerLegerement();
         onPress();
       }}
-      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 bg-white px-3 py-3 active:opacity-70 ${enRetrait ? "border-ligne" : "border-encre"}`}
+      className={`min-h-16 flex-row items-center gap-3 rounded-carte border-2 bg-carte px-3 py-3 active:opacity-70 ${enRetrait ? "border-ligne" : "border-encre"}`}
     >
       <View
         accessibilityElementsHidden

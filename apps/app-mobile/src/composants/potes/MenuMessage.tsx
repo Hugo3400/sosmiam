@@ -12,9 +12,9 @@ import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focu
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -31,6 +31,7 @@ type Vue = "options" | "signaler" | "bloquer";
 
 /** Le menu d'un message d'un pote, dans une feuille qui monte du bas : le signaler, ou bloquer son auteur (avec confirmation). */
 export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -116,7 +117,7 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
                       onBloque(prenom);
                     }}
                   />
-                  <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Non, je reviens</Text>
                   </Pressable>
                 </View>
@@ -126,7 +127,7 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
                     {`Message de ${prenom}`}
                   </Text>
                   {message ? (
-                    <View className="mb-2 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
+                    <View className="mb-2 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-2.5">
                       <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-gris">
                         {message.texte}
                       </Text>
@@ -151,7 +152,7 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
                       <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                     </Pressable>
                   ))}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
                 </>

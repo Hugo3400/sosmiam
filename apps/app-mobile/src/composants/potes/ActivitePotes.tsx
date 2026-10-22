@@ -13,10 +13,10 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   /** Lieux connus de l'app, par identifiant */
@@ -73,6 +73,7 @@ const decrire = ({ type, detail }: ActivitePote, lieu: Lieu | null): { emoji: st
  * Seulement les potes dont tu vois le profil en entier : l'activité d'un compte privé ajouté par son pseudo reste cachée.
  */
 export function ActivitePotes({ lieux, onRetire }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { activites, trouverPote, masquer, demasquer } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
@@ -129,7 +130,7 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
           </Text>
         </View>
       ) : (
-        <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+        <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
           {pages.visibles.map((ligne, i) => {
             const { activite, pote, lieu } = ligne;
             const { emoji, morceaux } = decrire(activite, lieu);
@@ -152,7 +153,7 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
                 >
                   <View>
                     <RondPote pote={pote} taille={40} />
-                    <View className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-creme">
+                    <View className="absolute -bottom-1 -right-1 h-6 w-6 items-center justify-center rounded-full border-2 border-carte bg-creme">
                       <Text allowFontScaling={false} className="text-[11px]">
                         {emoji}
                       </Text>

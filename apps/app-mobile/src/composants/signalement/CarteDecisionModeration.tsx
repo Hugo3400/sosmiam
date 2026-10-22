@@ -129,7 +129,7 @@ export function CarteDecisionModeration({ decision, onContester, maintenant }: P
     .join(" ");
 
   return (
-    <View className="gap-3 rounded-carte border-2 border-encre bg-white p-4">
+    <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View accessible accessibilityLabel={lierPonctuation(lu)} className="gap-3">
         <View className="gap-2">
           <Text className="font-texte-gras text-base text-encre">{quoi}</Text>

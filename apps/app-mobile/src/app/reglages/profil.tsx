@@ -10,11 +10,12 @@ import { etapesEnvies } from "~/contenus/inscription/envies";
 import { TEXTES_GENRE } from "~/contenus/textes-genre";
 import { TEXTES_MON_PROFIL as T } from "~/contenus/textes-parametres";
 import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import couleurs from "~/theme/couleurs";
 
 export default function MonProfil() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { profil, avatar } = utiliserProfil();
   const { connecte } = utiliserSession();

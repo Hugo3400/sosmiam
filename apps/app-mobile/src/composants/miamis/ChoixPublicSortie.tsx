@@ -9,7 +9,7 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { CHOIX_PUBLICS_SORTIE, NOMS_TRANCHES_AGE, PUBLIC_FERME, TEXTES_ORGANISER, type ChoixPublicSortie as ChoixPublic } from "~/contenus/textes-sorties-miamis";
 import { construirePublicSortie } from "~/fonctions/miamis/construire-public-sortie";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   choix: ChoixPublic;
@@ -22,6 +22,7 @@ type Props = {
 const estGenre = (choix: ChoixPublic) => choix === "femme" || choix === "homme" || choix === "autre";
 
 export function ChoixPublicSortie({ choix, tranche, profil, onChoisir, onChoisirTranche }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const explication = CHOIX_PUBLICS_SORTIE.find((c) => c.id === choix)?.explication ?? "";
   const ouvert = peutOrganiserPourPublic(construirePublicSortie(choix, tranche), profil);

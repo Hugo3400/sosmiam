@@ -11,8 +11,8 @@ import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserServices } from "~/hooks/utiliser-services";
-import couleurs from "~/theme/couleurs";
 
 const MERCI: Record<VerdictRelecture["type"], string> = {
   ok: "Merci ! Avis relu.",
@@ -24,6 +24,7 @@ const DEJA_RELU = "Trois ambassadeurs l'ont déjà relu pendant ce temps : merci
 
 /** Les avis à relire, sans leur auteur : « Ça me va », « Ça me paraît louche » (avec un motif) ou « Je passe mon tour ». */
 export default function EcranRelectures() {
+  const couleurs = utiliserCouleurs();
   const { ambassadeur } = utiliserServices();
   const [avis, setAvis] = useState<AvisARelire[] | null>(null);
   const [echec, setEchec] = useState<string | null>(null);

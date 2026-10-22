@@ -3,7 +3,7 @@ import { memo } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   emoji: string;
@@ -19,6 +19,7 @@ type Props = {
 
 /** Une ligne de « On explore où ? » : emoji, libellé (et précision), rond coché ou non. Au moins 56 points de haut. */
 export const LigneChoixZone = memo(function LigneChoixZone({ emoji, libelle, detail, choisi, position, total, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   const lu = detail ? `${libelle}, ${detail}` : libelle;
   return (
     <Pressable

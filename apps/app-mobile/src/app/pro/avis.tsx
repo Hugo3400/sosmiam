@@ -20,14 +20,15 @@ import { enchainerPhrases } from "~/fonctions/texte/enchainer-phrases";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserAvisPro } from "~/hooks/utiliser-avis-pro";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserSourcePhotoAvis } from "~/hooks/utiliser-source-photo-avis";
-import couleurs from "~/theme/couleurs";
 
 const T = TEXTES_AVIS_PRO;
 
 export default function EcranAvisPro() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { lieuPro } = utiliserModes();

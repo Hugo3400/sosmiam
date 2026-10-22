@@ -12,11 +12,11 @@ import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { EngagementsCharteMiamSafe } from "~/composants/pro/EngagementsCharteMiamSafe";
 import { EtatCharteMiamSafe } from "~/composants/pro/EtatCharteMiamSafe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
 import { oublierMiamSafeLieu } from "~/services/memoire-miam-safe-lieux";
-import couleurs from "~/theme/couleurs";
 
 type Geste = "signer" | "quitter";
 
@@ -31,6 +31,7 @@ function ecrireErreur(erreur: keyof typeof MESSAGES_SERVICE | null): string {
 }
 
 export default function EcranMiamSafePro() {
+  const couleurs = utiliserCouleurs();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
   const { miamSafe } = utiliserServices();
@@ -93,7 +94,7 @@ export default function EcranMiamSafePro() {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -113,11 +114,11 @@ export default function EcranMiamSafePro() {
         <EngagementsCharteMiamSafe />
 
         {!gerant ? (
-          <View accessible className="rounded-2xl border-2 border-dashed border-encre bg-white p-4">
+          <View accessible className="rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
             <Text className="font-texte-semi text-base leading-6 text-encre">Seul le gérant signe ou quitte la charte.</Text>
           </View>
         ) : signable ? (
-          <View className="gap-4 rounded-2xl bg-white px-4 pb-4">
+          <View className="gap-4 rounded-2xl bg-carte px-4 pb-4">
             <Interrupteur titre="J'ai lu la charte, et mon équipe s'engage à la respecter" valeur={engagement} onChanger={setEngagement} />
             <Bouton
               libelle={envoi ? "Signature…" : "Signer la charte"}

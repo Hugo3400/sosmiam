@@ -41,15 +41,15 @@ export function EnTeteMesVisites({ visites }: Props) {
     <View accessible accessibilityLabel={libelle} className="gap-3 rounded-carte border-2 border-encre bg-jaune p-4">
       <View className="flex-row">
         {chiffres.map((c, i) => (
-          <View key={c.singulier} className={`flex-1 items-center px-1 ${i > 0 ? "border-l-2 border-encre/15" : ""}`}>
-            <Text className="font-titre text-3xl text-encre">{c.valeur}</Text>
-            <Text className="font-texte-semi text-sm text-encre">{c.valeur > 1 ? c.pluriel : c.singulier}</Text>
+          <View key={c.singulier} className={`flex-1 items-center px-1 ${i > 0 ? "border-l-2 border-nuit/15" : ""}`}>
+            <Text className="font-titre text-3xl text-nuit">{c.valeur}</Text>
+            <Text className="font-texte-semi text-sm text-nuit">{c.valeur > 1 ? c.pluriel : c.singulier}</Text>
           </View>
         ))}
       </View>
       <View className="flex-row items-center gap-2 rounded-2xl bg-white/70 px-3 py-2">
         <Text className="text-base">{points > 0 ? "⭐" : "🌱"}</Text>
-        <Text className="flex-1 font-texte text-[13px] leading-[18px] text-encre">
+        <Text className="flex-1 font-texte text-[13px] leading-[18px] text-nuit">
           {points > 0 ? <Text className="font-texte-gras">+{points} points · </Text> : null}
           {lierPonctuation(petitMot)}
         </Text>

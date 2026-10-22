@@ -53,7 +53,7 @@ export function ApercuCarte({ lieu, age, carteDuLieu }: Props) {
         <Text className="font-texte text-sm text-gris">{avecSignatures ? "Ce que la maison fait de mieux" : "Un petit avant-goût"}</Text>
       </View>
 
-      <View className="rounded-carte border-2 border-encre bg-white px-5 py-1.5">
+      <View className="rounded-carte border-2 border-encre bg-carte px-5 py-1.5">
         {apercu.map((element, index) => (
           <ElementCarte key={`${index}-${element.nom}`} element={element} separe={index > 0} />
         ))}

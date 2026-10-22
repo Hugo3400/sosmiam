@@ -14,4 +14,8 @@ module.exports = {
   // Texte secondaire sur fond encre (écrans sombres et discrets de Miam Safe) et son contour
   "gris-nuit": "#BDB3A0",
   "trait-nuit": "#5A5246",
+  carte: "#FFFFFF",
+  nuit: "#1A1A1A",
+  lait: "#FFF8E7",
+  vert: "#1D5C36",
 };

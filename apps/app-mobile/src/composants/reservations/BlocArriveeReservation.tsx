@@ -8,7 +8,8 @@ import { CodeRapprochement } from "~/composants/visites/CodeRapprochement";
 import { souhaiterBonMoment } from "~/fonctions/reservations/souhaiter-bon-moment";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import type { Palette } from "~/hooks/utiliser-theme";
 
 type Props = {
   reservation: Reservation;
@@ -36,13 +37,13 @@ function dessinerSurPlace(reservation: Reservation, client: Props["client"]) {
   );
 }
 
-function dessinerAttentePresence(texte: string) {
+function dessinerAttentePresence(texte: string, couleurs: Palette) {
   return (
     <View
       accessible
       accessibilityLabel={texte}
       accessibilityLiveRegion="polite"
-      className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-white px-6 py-2"
+      className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-carte px-6 py-2"
     >
       <ActivityIndicator color={couleurs.encre} />
       <Text className="font-texte-gras text-base text-encre">{texte}</Text>
@@ -50,7 +51,7 @@ function dessinerAttentePresence(texte: string) {
   );
 }
 
-function dessinerPresencePossible(reservation: Reservation, presenceEnCours: string | null, onSignalerPresence: () => void) {
+function dessinerPresencePossible(reservation: Reservation, presenceEnCours: string | null, onSignalerPresence: () => void, couleurs: Palette) {
   const chezLieu = direChezLieu(reservation.lieu.nom);
   return (
     <View className="gap-3 rounded-2xl border-2 border-encre bg-jaune-clair p-3">
@@ -59,7 +60,7 @@ function dessinerPresencePossible(reservation: Reservation, presenceEnCours: str
       </Text>
       {reservation.code ? <CodeArriveeReservation code={reservation.code} /> : null}
       {presenceEnCours ? (
-        dessinerAttentePresence(presenceEnCours)
+        dessinerAttentePresence(presenceEnCours, couleurs)
       ) : (
         <Bouton libelle="📍 Je suis là" libelleLu={`Je suis là, ${chezLieu}`} indice={`Confirme que tu es bien ${chezLieu}, grâce à ta position`} onPress={onSignalerPresence} />
       )}
@@ -84,8 +85,9 @@ function dessinerEnAttenteDuCreneau(reservation: Reservation) {
 }
 
 export function BlocArriveeReservation({ reservation, presencePossible, presenceEnCours, client, onSignalerPresence }: Props) {
+  const couleurs = utiliserCouleurs();
   if (reservation.presenceLe) return dessinerSurPlace(reservation, client);
-  if (presencePossible) return dessinerPresencePossible(reservation, presenceEnCours, onSignalerPresence);
+  if (presencePossible) return dessinerPresencePossible(reservation, presenceEnCours, onSignalerPresence, couleurs);
   if (reservation.statut === "acceptee") return dessinerEnAttenteDuCreneau(reservation);
   return null;
 }

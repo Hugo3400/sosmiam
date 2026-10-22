@@ -20,7 +20,7 @@ type Props = {
 export function ActionPost({ icone, libelle, description, indice, actif = false, style = "normal", onPress }: Props) {
   const rond =
     style === "sos"
-      ? actif ? "bg-encre border-[3px] border-jaune" : "bg-jaune border-[3px] border-encre"
+      ? actif ? "bg-nuit border-[3px] border-jaune" : "bg-jaune border-[3px] border-nuit"
       : style === "transparent" ? "" : actif ? "bg-tomate" : "bg-white/25";
   // Sur une vidéo claire, une ombre garde l'icône lisible
   const ombreIcone = style === "transparent" ? { shadowColor: "#000", shadowOpacity: 0.5, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } } : undefined;

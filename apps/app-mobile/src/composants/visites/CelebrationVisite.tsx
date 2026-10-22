@@ -36,7 +36,7 @@ const DELAI_FOCUS_MS = 600;
 /** Petite étiquette « Démo », posée de travers sur la carte : une visite de démo reste sur ce téléphone */
 function etiquetteDemo(position: string) {
   return (
-    <View className={`${position} rotate-6 rounded-full border-2 border-encre bg-encre px-3 py-0.5`}>
+    <View className={`${position} rotate-6 rounded-full border-2 border-encre bg-nuit px-3 py-0.5`}>
       <Text className="font-texte-gras text-xs text-jaune">Démo</Text>
     </View>
   );
@@ -112,7 +112,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
           ) : null}
 
           {compteur || tampon ? (
-            <View className="w-full gap-4 rounded-carte border-2 border-encre bg-white p-5">
+            <View className="w-full gap-4 rounded-carte border-2 border-encre bg-carte p-5">
               {visite.demo ? etiquetteDemo("absolute -top-3 right-4") : null}
               {compteur ? <CompteurPoints points={visite.points} sos={visite.pendantSos} /> : null}
               {compteur && visite.pendantSos ? (
@@ -135,8 +135,8 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
             <View className="w-full flex-row items-center gap-3 rounded-carte border-2 border-encre bg-jaune p-4">
               <Text className="text-4xl">{palier.emoji}</Text>
               <View className="flex-1 gap-0.5">
-                <Text className="font-titre-gras text-xl text-encre">{lierPonctuation(`Tu passes ${palier.nom} !`)}</Text>
-                <Text className="font-texte text-sm leading-5 text-encre">Nouveau palier Ambassadeur : ta ville te dit merci.</Text>
+                <Text className="font-titre-gras text-xl text-nuit">{lierPonctuation(`Tu passes ${palier.nom} !`)}</Text>
+                <Text className="font-texte text-sm leading-5 text-nuit">Nouveau palier Ambassadeur : ta ville te dit merci.</Text>
               </View>
             </View>
           ) : null}

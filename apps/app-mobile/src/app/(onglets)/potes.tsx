@@ -17,9 +17,9 @@ import { SectionSorties } from "~/composants/potes/SectionSorties";
 import type { EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
 import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 const ONGLETS: readonly OngletPotes[] = ["sorties", "bande", "listes"];
 /** « /potes?onglet=listes » ouvre directement l'onglet demandé */
@@ -32,6 +32,7 @@ const lireEspace = (valeur: string | string[] | undefined): EspaceCommunaute | n
  * compte, on montre ce qui t'attend.
  */
 export default function Potes() {
+  const couleurs = utiliserCouleurs();
   const { profil, invite } = utiliserProfil();
   const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demandesRecues, invitationsSorties, invitationsListes } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus

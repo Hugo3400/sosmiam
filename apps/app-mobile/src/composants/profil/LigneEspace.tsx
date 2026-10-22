@@ -4,7 +4,7 @@ import { Pressable, Text, View } from "react-native";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   emoji: string;
@@ -16,6 +16,7 @@ type Props = {
 };
 
 export function LigneEspace({ emoji, titre, detail, indice, separation, onPress }: Props) {
+  const couleurs = utiliserCouleurs();
   return (
     <Pressable
       accessibilityRole="button"

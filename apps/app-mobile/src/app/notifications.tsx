@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,6 +7,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import type { Pote } from "@sos-miam/commun/types/potes";
 
 import { Annonce } from "~/composants/interface/Annonce";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions";
 import { BoutonEffacerLues } from "~/composants/notifications/BoutonEffacerLues";
 import { BoutonRetirerArrivee } from "~/composants/notifications/BoutonRetirerArrivee";
@@ -22,12 +22,12 @@ import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications, type NotificationApp, type ResultatEffacementCloche } from "~/hooks/utiliser-notifications";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import couleurs from "~/theme/couleurs";
 
 /** Une ligne de l'écran : la notification, sa phrase, la personne dans le rond, et « Retirer » (arrivée par ton lien) */
 type LigneAffichee = { date: string; notification: NotificationApp; description: NotificationDecrite; pote: Pote | null; retirable: boolean };
@@ -41,6 +41,7 @@ const DELAI_APRES_MENU = 500;
  * précédente est mis en avant ; ouvrir l'écran marque tout comme vu. Démo : rien ne part sur ton téléphone.
  */
 export default function Notifications() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { trouverPote, demandesRecues: demandesBande } = utiliserCommunaute();
@@ -140,14 +141,14 @@ export default function Notifications() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <BarreEtatTheme />
       <View className="min-h-14 flex-row items-center justify-between gap-3 px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={revenir}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -178,7 +179,7 @@ export default function Notifications() {
                 <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
                   {groupe.titre}
                 </Text>
-                <View className="overflow-hidden rounded-carte border-2 border-encre bg-white">
+                <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
                   {groupe.elements.map((ligne, i) => (
                     <LigneNotification
                       key={ligne.notification.id}

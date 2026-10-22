@@ -25,9 +25,9 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import couleurs from "~/theme/couleurs";
 
 // Le temps qu'un défilement lancé par une pastille se termine : pendant ce temps, la pastille touchée reste en avant
 const DUREE_DEFILEMENT_GUIDE = 700;
@@ -38,6 +38,7 @@ const DUREE_DEFILEMENT_GUIDE = 700;
  * (âge inconnu) : pas d'alcool, et pas de bar du tout, comme sur la fiche.
  */
 export default function CarteDuLieu() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profil } = utiliserProfil();
@@ -143,7 +144,7 @@ export default function CarteDuLieu() {
           accessibilityLabel="Retour"
           hitSlop={12}
           onPress={() => router.back()}
-          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -204,7 +205,7 @@ export default function CarteDuLieu() {
               >
                 {lierPonctuation(section.titre)}
               </Text>
-              <View className="rounded-carte border-2 border-encre bg-white px-5 py-1.5">
+              <View className="rounded-carte border-2 border-encre bg-carte px-5 py-1.5">
                 {section.elements.map((element, rang) => (
                   <ElementCarte key={`${rang}-${element.nom}`} element={element} separe={rang > 0} />
                 ))}

@@ -29,9 +29,9 @@ export function FiltresIdees({ filtre, onChoisir }: Props) {
               vibrerLegerement();
               onChoisir(f.id);
             }}
-            className={`min-h-10 justify-center rounded-full px-4 active:opacity-80 ${actif ? "bg-encre" : "border border-ligne bg-white"}`}
+            className={`min-h-10 justify-center rounded-full px-4 active:opacity-80 ${actif ? "border border-encre bg-nuit" : "border border-ligne bg-carte"}`}
           >
-            <Text className={`font-texte-semi text-[13px] ${actif ? "text-creme" : "text-encre"}`}>{f.nom}</Text>
+            <Text className={`font-texte-semi text-[13px] ${actif ? "text-lait" : "text-encre"}`}>{f.nom}</Text>
           </Pressable>
         );
       })}

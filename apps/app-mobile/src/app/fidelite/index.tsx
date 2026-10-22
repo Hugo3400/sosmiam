@@ -8,16 +8,17 @@ import { CarteFideliteListe } from "~/composants/fidelite/CarteFideliteListe";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-import couleurs from "~/theme/couleurs";
 
 /**
  * « Mes cartes de fidélité » : une carte par lieu où tu as déjà un tampon, celles dont la récompense t'attend en premier.
  * On en touche une pour l'ouvrir en grand (tampons, récompense à demander au comptoir, tes visites là-bas).
  */
 export default function EcranMesCartesFidelite() {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const fermer = utiliserFermerPile();
   const { cartes, rafraichir } = utiliserVisites();
@@ -33,7 +34,7 @@ export default function EcranMesCartesFidelite() {
           accessibilityLabel="Retour"
           hitSlop={8}
           onPress={fermer}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
@@ -53,7 +54,7 @@ export default function EcranMesCartesFidelite() {
             onReessayer={rafraichir}
           />
         ) : triees.length === 0 ? (
-          <View className="items-center gap-4 rounded-carte border-2 border-dashed border-ligne bg-white px-6 py-8">
+          <View className="items-center gap-4 rounded-carte border-2 border-dashed border-ligne bg-carte px-6 py-8">
             <Mascotte expression="clin" taille={110} />
             <Text className="text-center font-titre-gras text-xl text-encre">Pas encore de carte</Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">

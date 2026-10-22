@@ -21,7 +21,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estLigneLieuInchangee } from "~/fonctions/lieux/est-ligne-lieu-inchangee";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
@@ -46,6 +46,7 @@ const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€
 
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
 export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null, maintenant, etiquettes = AUCUNE_ETIQUETTE }: Props) {
+  const couleurs = utiliserCouleurs();
   const ouvert = estOuvertMaintenant(lieu, maintenant);
   const distance = km === null ? null : formaterDistance(km);
   const distanceLue = km === null ? null : ecrireDistanceDepuis(km, depuis);
@@ -98,7 +99,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
           {distance ? `${distance} · ` : ""}{lieu.prix} · <Text className={ouvert ? "font-texte-gras text-encre" : "font-texte-semi text-rouge-texte"}>{ouvert ? "Ouvert" : "Fermé"}</Text>
         </Text>
         {sos ? (
-          <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-xs text-encre">
+          <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-xs text-nuit">
             🛟 SOS · {sos}
           </Text>
         ) : lieu.alerte ? (
@@ -107,7 +108,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
           </Text>
         ) : null}
         {evenement ? (
-          <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-white px-2 py-0.5 font-texte-gras text-xs text-encre">
+          <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-carte px-2 py-0.5 font-texte-gras text-xs text-encre">
             {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLong(evenement.debut, maintenant).split(" ")[0]} ${ecrireHeure(evenement.debut)}`}
           </Text>
         ) : null}

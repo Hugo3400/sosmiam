@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   titre: string;
@@ -15,6 +15,7 @@ type Props = {
 };
 
 export function BarreEcranMiamis({ titre, grand = false, icone = "retour", libelleRetour, onRetour, droite }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   const revenir = () => (router.canGoBack() ? router.back() : router.replace({ pathname: "/potes", params: { espace: "miamis" } }));
 
@@ -25,7 +26,7 @@ export function BarreEcranMiamis({ titre, grand = false, icone = "retour", libel
         accessibilityLabel={libelleRetour ?? (icone === "fermer" ? "Fermer" : "Retour")}
         hitSlop={8}
         onPress={onRetour ?? revenir}
-        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+        className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
         <Ionicons name={icone === "fermer" ? "close" : "arrow-back"} size={20} color={couleurs.encre} />
       </Pressable>

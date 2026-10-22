@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BarreProgression } from "~/composants/interface/BarreProgression";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Action = { libelle: string; onPress: () => void; desactive?: boolean };
 
@@ -29,6 +29,7 @@ type Props = {
 
 /** Cadre commun des étapes d'inscription : retour et progression en haut, titre, contenu qui défile, bouton en bas (au-dessus du clavier). */
 export function EcranEtape({ titre, sousTitre, etape, retour = true, onRetour, boutonPrincipal, boutonSecondaire, children }: Props) {
+  const couleurs = utiliserCouleurs();
   const router = useRouter();
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -40,7 +41,7 @@ export function EcranEtape({ titre, sousTitre, etape, retour = true, onRetour, b
               accessibilityLabel="Retour"
               hitSlop={12}
               onPress={onRetour ?? (() => router.back())}
-              className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80"
+              className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
             >
               <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
             </Pressable>

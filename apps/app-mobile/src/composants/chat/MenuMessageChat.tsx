@@ -17,11 +17,11 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import couleurs from "~/theme/couleurs";
 
 type Props = {
   visible: boolean;
@@ -66,6 +66,7 @@ function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undef
  * « Supprimer pour tout le monde ».
  */
 export function MenuMessageChat({ visible, conversationId, message, auteur, deMoi, onFermer, onBloque }: Props) {
+  const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -199,14 +200,14 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                       onBloque(prenom);
                     }}
                   />
-                  <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Non, je reviens</Text>
                   </Pressable>
                 </View>
               ) : (
                 <>
                   {resume ? (
-                    <View accessible accessibilityLabel={resume.lu} className="mb-3 rounded-2xl border-2 border-ligne bg-white px-3.5 py-2.5">
+                    <View accessible accessibilityLabel={resume.lu} className="mb-3 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-2.5">
                       <Text numberOfLines={3} className="font-texte text-[15px] leading-[21px] text-gris">
                         {resume.vu}
                       </Text>
@@ -228,7 +229,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                               accessibilityHint={choisie ? "Retire ta réaction" : "Réagis à ce message"}
                               onPress={() => reagir(reaction, choisie)}
                               style={{ width: TAILLE_REACTION, height: TAILLE_REACTION, borderRadius: TAILLE_REACTION / 2 }}
-                              className={`items-center justify-center border-2 active:opacity-70 ${choisie ? "border-encre bg-jaune" : "border-ligne bg-white"}`}
+                              className={`items-center justify-center border-2 active:opacity-70 ${choisie ? "border-encre bg-jaune" : "border-ligne bg-carte"}`}
                             >
                               {/* Taille fixe : l'emoji reste dans son rond, même avec un grand texte dans les réglages */}
                               <Text allowFontScaling={false} style={{ fontSize: 26, lineHeight: 32 }}>
@@ -261,7 +262,7 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                       <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />
                     </Pressable>
                   ))}
-                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-white active:opacity-80">
+                  <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
                     <Text className="font-texte-gras text-base text-encre">Annuler</Text>
                   </Pressable>
                 </>

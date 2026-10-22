@@ -2,14 +2,14 @@ import { useMemo } from "react";
 import { View } from "react-native";
 import Animated, { css, useReducedMotion } from "react-native-reanimated";
 
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   /** Hauteur de la chute, en points (le haut de l'écran de célébration) */
   hauteur?: number;
 };
 
-const TEINTES = [couleurs.jaune, couleurs.tomate, couleurs.encre, couleurs["jaune-clair"], couleurs.jaune, couleurs.tomate];
+const TEINTES = ["jaune", "tomate", "encre", "jaune-clair", "jaune", "tomate"] as const;
 const NOMBRE = 28;
 
 // Pluie toujours la même d'une fois sur l'autre (pas de hasard au rendu) : position, retard, durée, dérive et rotation
@@ -39,6 +39,7 @@ const CONFETTIS = Array.from({ length: NOMBRE }, (_, i) => {
  * touche à travers.
  */
 export function ConfettisVisite({ hauteur = 420 }: Props) {
+  const couleurs = utiliserCouleurs();
   const animationsReduites = useReducedMotion();
   // Animation CSS de Reanimated 4 : chaque confetti tombe en tournant et en dérivant, puis s'efface. Les règles restent
   // les mêmes d'un rendu à l'autre, pour que la pluie ne reparte pas quand l'écran se met à jour
@@ -69,7 +70,7 @@ export function ConfettisVisite({ hauteur = 420 }: Props) {
           width: c.largeur,
           height: c.rond ? c.largeur : c.hauteur,
           borderRadius: c.rond ? c.largeur / 2 : 2,
-          backgroundColor: c.teinte,
+          backgroundColor: couleurs[c.teinte],
         };
         if (animationsReduites) {
           return (

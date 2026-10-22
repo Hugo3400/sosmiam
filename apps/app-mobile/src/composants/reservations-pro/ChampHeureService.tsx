@@ -5,7 +5,7 @@ import { TEXTES_FEUILLE_SERVICE as T } from "~/contenus/textes-reglages-reservat
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import couleurs from "~/theme/couleurs";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
   libelle: string;
@@ -17,6 +17,7 @@ type Props = {
 };
 
 export function ChampHeureService({ libelle, valeur, ouvert, aide, erreur, onBasculer }: Props) {
+  const couleurs = utiliserCouleurs();
   const message = erreur ?? aide;
   return (
     <View className="gap-1.5">
@@ -29,7 +30,7 @@ export function ChampHeureService({ libelle, valeur, ouvert, aide, erreur, onBas
           vibrerLegerement();
           onBasculer();
         }}
-        className={`min-h-14 flex-row items-center justify-between rounded-2xl border-2 bg-white px-4 py-2 active:opacity-80 ${erreur ? "border-tomate" : "border-encre"}`}
+        className={`min-h-14 flex-row items-center justify-between rounded-2xl border-2 bg-carte px-4 py-2 active:opacity-80 ${erreur ? "border-tomate" : "border-encre"}`}
       >
         <Text className="font-texte-semi text-base text-encre">{libelle}</Text>
         <View className="flex-row items-center gap-2">
