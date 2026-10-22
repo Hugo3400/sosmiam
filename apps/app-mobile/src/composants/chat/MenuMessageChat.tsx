@@ -4,6 +4,7 @@ import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressa
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { REACTIONS_PAR_CODE } from "@sos-miam/commun/regles/chat";
 import { REACTIONS_CHAT, type MessageChat, type ReactionChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -40,6 +41,7 @@ type Props = {
 type Vue = "options" | "signaler" | "bloquer";
 
 const TAILLE_REACTION = 52;
+const REACTIONS_MENU: readonly ReactionChat[] = [REACTIONS_PAR_CODE.miam, ...REACTIONS_CHAT.filter((reaction) => reaction !== REACTIONS_PAR_CODE.miam)];
 // Le temps que la feuille se referme : la confirmation n'est pas coupée par le lecteur d'écran qui revient sur la conversation
 const DELAI_ANNONCE_REACTION = 400;
 
@@ -218,14 +220,14 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                     <View className="mb-2 gap-2">
                       <Text className="font-texte-semi text-sm text-gris">Ta réaction</Text>
                       <View className="flex-row flex-wrap justify-between gap-2">
-                        {REACTIONS_CHAT.map((reaction, i) => {
+                        {REACTIONS_MENU.map((reaction, i) => {
                           const choisie = (reactions[reaction] ?? []).includes(monId);
                           return (
                             <Pressable
                               key={reaction}
                               accessibilityRole="button"
                               accessibilityState={{ selected: choisie }}
-                              accessibilityLabel={`${nommerReactionChat(reaction)}, réaction ${i + 1} sur ${REACTIONS_CHAT.length}`}
+                              accessibilityLabel={`${nommerReactionChat(reaction)}, réaction ${i + 1} sur ${REACTIONS_MENU.length}`}
                               accessibilityHint={choisie ? "Retire ta réaction" : "Réagis à ce message"}
                               onPress={() => reagir(reaction, choisie)}
                               style={{ width: TAILLE_REACTION, height: TAILLE_REACTION, borderRadius: TAILLE_REACTION / 2 }}

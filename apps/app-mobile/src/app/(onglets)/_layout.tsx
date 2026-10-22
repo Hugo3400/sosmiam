@@ -5,6 +5,8 @@ import type { ComponentProps } from "react";
 
 import { LibelleOnglet } from "~/composants/interface/LibelleOnglet";
 import { BandeauxOnglets } from "~/composants/visites/BandeauxOnglets";
+import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 
@@ -38,6 +40,9 @@ export default function MiseEnPageOnglets() {
   const stylePoint = { backgroundColor: couleurs.tomate, minWidth: 11, width: 11, height: 11, borderRadius: 5.5, paddingHorizontal: 0, top: -1, end: -1, borderWidth: 1.5, borderColor: couleurs.creme };
   const badgeScan = aEcrire.length > 0 ? aEcrire.length : enCours ? "" : undefined;
   const infoScan = aEcrire.length > 0 ? `${aEcrire.length} avis à donner` : enCours ? "une addition en attente" : null;
+  const { nonLus } = utiliserConversations();
+  const badgeCommunaute = nonLus > 0 ? (nonLus > 99 ? "99+" : nonLus) : undefined;
+  const infos: Record<string, string | null> = { scan: infoScan, potes: nonLus > 0 ? TEXTES_MESSAGES.messagesNonLus(nonLus) : null };
   return (
     <Tabs
       // Les bandeaux d'abord : VoiceOver les lit avant les onglets
@@ -61,12 +66,13 @@ export default function MiseEnPageOnglets() {
           options={{
             title: onglet.titre,
             // Sinon VoiceOver dit la position en anglais (« tab, 2 of 5 »)
-            tabBarAccessibilityLabel: `${onglet.titre}, onglet ${index + 1} sur ${onglets.length}${onglet.nom === "scan" && infoScan ? `, ${infoScan}` : ""}`,
+            tabBarAccessibilityLabel: `${onglet.titre}, onglet ${index + 1} sur ${onglets.length}${infos[onglet.nom] ? `, ${infos[onglet.nom]}` : ""}`,
             tabBarIcon: ({ color, size }) => <Ionicons name={onglet.icone} color={color} size={size} />,
             tabBarLabel: ({ color, position }) => <LibelleOnglet titre={onglet.titre} color={color} position={position} />,
             // « Pour toi » : barre transparente posée sur les vidéos, icônes blanches
             ...(onglet.nom === "index" ? ongletTransparent : {}),
             ...(onglet.nom === "scan" ? { tabBarBadge: badgeScan, tabBarBadgeStyle: badgeScan === "" ? stylePoint : styleBadge } : {}),
+            ...(onglet.nom === "potes" ? { tabBarBadge: badgeCommunaute, tabBarBadgeStyle: styleBadge } : {}),
           }}
         />
       ))}
