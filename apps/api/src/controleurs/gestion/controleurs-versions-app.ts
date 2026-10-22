@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { comparerVersionsApp } from "../../fonctions/texte/comparer-versions-app.ts";
+import { comparerVersionsApp } from "../../../../../packages/commun/src/fonctions/texte/comparer-versions-app.ts";
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 

@@ -17,11 +17,13 @@ export const TEXTES_PARAMETRES = {
   },
   vie: {
     titre: "La vie de SOS Miam",
-    resume: "Boîte à idées, On recrute et Nous écrire",
+    resume: "Boîte à idées, On recrute, Chasse aux bugs et Nous écrire",
     boiteIdees: "Boîte à idées",
     boiteIdeesDetail: "Propose, vote et commente : la Brigade lit tout et te répond",
     onRecrute: "On recrute",
     onRecruteDetail: "Envie de rejoindre la Brigade ? Bénévolat ou mission, les offres du moment",
+    chasseAuxBugs: "Chasse aux bugs",
+    chasseAuxBugsDetail: "Tu as trouvé une faille de sécurité ? Dis-le-nous, il y a un badge à la clé",
   },
   aide: {
     titre: "Aide et infos légales",

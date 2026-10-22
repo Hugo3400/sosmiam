@@ -8,7 +8,7 @@ import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Modale } from "~/composants/interface/Modale.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
-import { comparerVersionsApp } from "~/fonctions/versions/comparer-versions-app.ts";
+import { comparerVersionsApp } from "../../../../../packages/commun/src/fonctions/texte/comparer-versions-app.ts";
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";

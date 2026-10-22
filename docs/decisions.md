@@ -80,8 +80,9 @@
   - un avis en relecture **reste visible** (on ne masque jamais un avis tout seul) : l'équipe tranche dans le logiciel ;
   - raisons de relecture : rafale de notes tranchées, compte de moins de 7 jours, tirage d'1 sur 20 ;
   - un ambassadeur relit 20 avis à la fois ; un avis sort de sa liste après 3 verdicts ;
+  - **la relecture n'est pas anonyme, mais jamais entre potes (décidé par Hugo le 22 octobre 2026)** : l'avis reste public et signé pendant la relecture, l'ambassadeur peut donc savoir qui l'a écrit ; en revanche, un avis écrit par un pote de sa bande ne lui est jamais proposé (ni son propre avis, ni un avis d'un lieu auquel il est rattaché) ;
   - pas de +10 pour la photo d'un repas offert ; un avis non vérifié ne rapporte rien, demande un e-mail confirmé et compte dans la moyenne ;
-  - la photo d'un avis (envoi construit le 15 octobre 2026) : un JPEG de 6 Mo et 4 096 px au plus, toutes ses métadonnées retirées ; **une photo trop petite ne rapporte pas les +10 (décidé par Hugo le 15 octobre 2026)** : refusée sous **320 px de petit côté**.
+  - la photo d'un avis (envoi construit le 15 octobre 2026) : un JPEG de 5 Mo et 4 096 px au plus (l'app la réduit d'abord sous 1 Mo : « on accepte jusqu'à 5 Mo et on réduit à 1 Mo au plus », Hugo, 22 octobre 2026), toutes ses métadonnées retirées ; **une photo trop petite ne rapporte pas les +10 (décidé par Hugo le 15 octobre 2026)** : refusée sous **320 px de petit côté**.
 - **Réservations** :
   - un lieu réservable est publié, vérifié et a coché « réservable » ;
   - une réservation honorée donne une visite « payée » (« Venu » se touche avant l'addition) ;

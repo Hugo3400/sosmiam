@@ -25,4 +25,11 @@ const verrou = await depot.ecrire(async (t) => {
 });
 egal(verrou, { parMoi: true, seul: true, exclusif: true, cle: false }, "la ligne de l'avis en FOR NO KEY UPDATE pendant la relecture");
 
+const deuxieme = await ecrireAvis(AUTEUR);
+await insererLigne(essai.db, "membres_bandes", { compte_id: ambassadeurs[4]!, pote_id: AUTEUR });
+const idsDe = async (ambassadeur: number) => (await relecture.listerARelire(ambassadeur)).avis.map((a) => a.id);
+egal((await idsDe(ambassadeurs[4]!)).includes(deuxieme), false, "jamais l'avis d'un pote de sa bande");
+egal((await relecture.relire(ambassadeurs[4]!, deuxieme, { type: "ok" })).ok, false, "ni par son adresse directe");
+egal((await idsDe(ambassadeurs[3]!)).includes(deuxieme), true, "un ambassadeur qui n'est pas son pote le relit");
+
 await terminerEssai(import.meta.url, essai, verifications.nombre);
