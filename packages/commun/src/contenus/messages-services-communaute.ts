@@ -35,7 +35,7 @@ export const MESSAGES_SERVICES_COMMUNAUTE: Readonly<Record<ErreurServiceCommunau
   "ville-requise": {
     emoji: "🏙️",
     titre: "Dis-nous ta ville",
-    texte: "« Qui est là ? » montre les Miamis de ta ville. Ajoute-la dans Réglages, Mes infos, et c'est parti.",
+    texte: "« Qui est là ? » montre les Miamis de ta ville. Ajoute-la dans Profil › Modifier mon profil › Mes infos, et c'est parti.",
   },
   "idee-proche": {
     emoji: "👯",

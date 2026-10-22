@@ -20,6 +20,8 @@ const MERCI: Record<VerdictRelecture["type"], string> = {
   deporte: "C'est noté : un autre ambassadeur le relira.",
 };
 
+const DEJA_RELU = "Trois ambassadeurs l'ont déjà relu pendant ce temps : merci quand même !";
+
 /** Les avis à relire, sans leur auteur : « Ça me va », « Ça me paraît louche » (avec un motif) ou « Je passe mon tour ». */
 export default function EcranRelectures() {
   const { ambassadeur } = utiliserServices();
@@ -47,6 +49,10 @@ export default function EcranRelectures() {
     setEnCours(true);
     const r = await ambassadeur.donnerVerdict(avisId, verdict);
     setEnCours(false);
+    if (!r.ok && r.erreur === "introuvable") {
+      setAvis((liste) => liste?.filter((a) => a.id !== avisId) ?? null);
+      return setAnnonce({ texte: DEJA_RELU, numero: Date.now() });
+    }
     if (!r.ok) return setAnnonce({ texte: decrireEchecVisite(r.erreur, r.details).texte, numero: Date.now() });
     vibrerLegerement();
     setAvis((liste) => liste?.filter((a) => a.id !== avisId) ?? null);

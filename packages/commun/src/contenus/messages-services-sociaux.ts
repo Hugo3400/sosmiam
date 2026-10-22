@@ -10,7 +10,7 @@ export const MESSAGES_SERVICES_SOCIAUX: Readonly<Record<ErreurServiceSociale, Me
   "pseudo-requis": {
     emoji: "🏷️",
     titre: "Choisis d'abord ton pseudo",
-    texte: "C'est lui que tes potes tapent pour te trouver. Réglages, Mes infos, et c'est parti.",
+    texte: "C'est lui que tes potes tapent pour te trouver. Profil › Modifier mon profil › Mes infos, et c'est parti.",
   },
   "personne-inconnue": {
     emoji: "🕵️",
