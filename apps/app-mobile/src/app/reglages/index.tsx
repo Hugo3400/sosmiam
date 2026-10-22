@@ -140,6 +140,7 @@ export default function Parametres() {
         </SectionReglages>
 
         <SectionReglages titre={T.vie.titre} section="parametres-vie" resume={T.vie.resume}>
+          <LigneReglage emoji="🎉" titre={T.vie.nouveautes} detail={T.vie.nouveautesDetail} onPress={() => router.push("/reglages/nouveautes")} />
           <LigneReglage emoji="💡" titre={T.vie.boiteIdees} detail={T.vie.boiteIdeesDetail} onPress={() => router.push("/potes/miamis/idees")} />
           <LigneReglage emoji="🧑‍🍳" titre={T.vie.onRecrute} detail={T.vie.onRecruteDetail} role="lien" onPress={() => ouvrirLien("https://sosmiam.fr/carriere")} />
           <LigneReglage emoji="🐞" titre={T.vie.chasseAuxBugs} detail={T.vie.chasseAuxBugsDetail} role="lien" onPress={() => ouvrirLien("https://sosmiam.fr/securite")} />

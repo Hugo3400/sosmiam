@@ -30,7 +30,9 @@ export const TEXTES_PARAMETRES = {
   },
   vie: {
     titre: "La vie de SOS Miam",
-    resume: "Boîte à idées, On recrute, Chasse aux bugs et Nous écrire",
+    resume: "Nouveautés, Boîte à idées, On recrute, Chasse aux bugs et Nous écrire",
+    nouveautes: "Les nouveautés",
+    nouveautesDetail: "Ce qui change dans l'app, version après version",
     boiteIdees: "Boîte à idées",
     boiteIdeesDetail: "Propose, vote et commente : la Brigade lit tout et te répond",
     onRecrute: "On recrute",

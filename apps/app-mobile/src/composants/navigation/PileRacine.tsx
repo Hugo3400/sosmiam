@@ -8,6 +8,7 @@ import { AnnonceOubliPosition } from "~/composants/explorer/AnnonceOubliPosition
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { EcranMiseAJourObligatoire } from "~/composants/mise-a-jour/EcranMiseAJourObligatoire";
 import { NouvelleVersionOuverture } from "~/composants/mise-a-jour/NouvelleVersionOuverture";
+import { NouveautesOuverture } from "~/composants/nouveautes/NouveautesOuverture";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-signalements-en-attente";
@@ -109,6 +110,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
           <Stack.Screen name="q/[code]" />
         </Stack.Protected>
       </Stack>
+      {versionBloquee ? null : <NouveautesOuverture />}
       {versionBloquee ? null : <AnnonceAppOuverture />}
       {versionBloquee ? null : <NouvelleVersionOuverture etat={etatVersion} />}
       <AnnonceOubliPosition />
