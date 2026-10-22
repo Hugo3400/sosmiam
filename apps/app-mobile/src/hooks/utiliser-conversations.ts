@@ -1,7 +1,8 @@
 import { createContext, useContext } from "react";
 
 import type { InvitationGroupeChat, ReactionChat } from "@sos-miam/commun/types/conversations";
-import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
+import type { GifApi, TypePartage } from "@sos-miam/commun/types/messagerie";
+import type { ConversationEnrichie, PartagesChat, RequeteGif, ResultatGifs } from "~/contenus/type-discussion-chat";
 import type { ResultatTexte } from "~/hooks/utiliser-communaute";
 import type { SourceSociale } from "~/hooks/utiliser-source-sociale";
 
@@ -11,6 +12,16 @@ export type ResultatEnvoiChat = ResultatTexte | "interdit";
 export type ResultatModificationChat = ResultatEnvoiChat | "trop-tard" | "non-modifiable" | "compte-limite" | "reseau";
 
 export type ResultatEpingleChat = "ok" | "plein" | "reseau";
+
+export type ResultatSondageChat = "ok" | "lieux" | "fin" | "interdit";
+
+export type ResultatVoteChat = "ok" | "clos" | "reseau";
+
+export type ResultatGroupeChat = "ok" | "titre" | "interdit" | "compte-limite" | "reseau";
+
+export type ResultatInvitationGroupeChat = "ok" | "plein" | "interdit" | "compte-limite" | "reseau";
+
+export type ResultatPhotoGroupeChat = "ok" | "interdit" | "plein" | "reseau";
 
 export type EtatConversations = {
   /** D'où vient le chat : la démo (le téléphone), le serveur (compte connecté), ou rien (visite, attente) */
@@ -62,10 +73,18 @@ export type EtatConversations = {
   modifierMessage: (conversationId: string, messageId: string, texte: string) => Promise<ResultatModificationChat>;
   epingler: (conversationId: string, epinglee: boolean) => Promise<ResultatEpingleChat>;
   envoyerLieu: (conversationId: string, lieuId: number) => ResultatEnvoiChat;
-  /** Photo choisie ou prise (fichier temporaire du sélecteur) */
-  envoyerPhoto: (conversationId: string, uriTemporaire: string) => Promise<ResultatEnvoiChat>;
-  /** Note vocale enregistrée (fichier temporaire de l'enregistreur) et sa durée */
-  envoyerVocal: (conversationId: string, uriTemporaire: string, dureeSecondes: number) => Promise<ResultatEnvoiChat>;
+  /** Photos choisies ou prise (fichiers temporaires du sélecteur), 10 au plus, avec un petit mot sous la première ; plusieurs : un album */
+  envoyerPhotos: (conversationId: string, urisTemporaires: string[], legende?: string) => Promise<ResultatEnvoiChat>;
+  /** Note vocale enregistrée (fichier temporaire de l'enregistreur), sa durée et la forme de la voix (calculerOndeVocal) */
+  envoyerVocal: (conversationId: string, uriTemporaire: string, dureeSecondes: number, onde?: string) => Promise<ResultatEnvoiChat>;
+  envoyerGif: (conversationId: string, gif: GifApi) => ResultatEnvoiChat;
+  chercherGifs: (requete: RequeteGif, page: number) => Promise<ResultatGifs>;
+  envoyerSondage: (conversationId: string, lieux: number[], finLe: string) => ResultatSondageChat;
+  voterSondage: (conversationId: string, messageId: string, ordre: number | null) => Promise<ResultatVoteChat>;
+  renommerGroupe: (conversationId: string, titre: string, emoji: string) => Promise<ResultatGroupeChat>;
+  inviterAuGroupe: (conversationId: string, potes: string[]) => Promise<ResultatInvitationGroupeChat>;
+  changerPhotoGroupe: (conversationId: string, uriTemporaire: string | null) => Promise<ResultatPhotoGroupeChat>;
+  listerPartages: (conversationId: string, type: TypePartage, avant?: string) => Promise<PartagesChat | null>;
   basculerReaction: (conversationId: string, messageId: string, reaction: ReactionChat) => void;
   marquerLu: (conversationId: string) => void;
   /** Quitte un groupe : il disparaît de tes conversations et du téléphone, avec ses photos et notes vocales */

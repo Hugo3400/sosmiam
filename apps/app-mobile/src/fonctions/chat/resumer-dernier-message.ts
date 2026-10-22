@@ -1,3 +1,4 @@
+import { QUESTION_SONDAGE } from "@sos-miam/commun/regles/chat";
 import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
@@ -29,13 +30,18 @@ function decrireContenu(message: MessageChat, lieuNom: string | undefined, pourL
     case "lieu":
       if (pourLecteurEcran) return `lieu partagé${lieuNom ? ` : ${lieuNom}` : ""}`;
       return `📍 ${lieuNom ?? "Un lieu"}`;
+    case "gif":
+      return pourLecteurEcran ? "GIF" : "🎞️ GIF";
+    case "vote":
+      return pourLecteurEcran ? `sondage : ${message.texte ?? QUESTION_SONDAGE}` : `🗳️ ${message.texte ?? QUESTION_SONDAGE}`;
     default:
       return couper(message.texte ?? "");
   }
 }
 
 /**
- * L'aperçu du dernier message d'une conversation : « Toi : On y va ? », « Léa : 📷 Photo », « 🎙️ Note vocale · 0:12 », « 📍 Chez Nonna Lia ».
+ * L'aperçu du dernier message d'une conversation : « Toi : On y va ? », « Léa : 📷 Photo », « 🎙️ Note vocale · 0:12 », « 📍 Chez Nonna Lia »,
+ * « 🎞️ GIF », « 🗳️ On mange où ? ».
  * `auteur` : ce qu'on écrit devant (« Toi » pour tes messages, le prénom dans un groupe), ou null (message privé d'un pote).
  * `lieuNom` : le nom du lieu partagé (type « lieu »), s'il est connu.
  * `pourLecteurEcran` : version lue par VoiceOver et TalkBack, sans emoji ni « 0:12 » (« Toi : note vocale de 12 secondes »).

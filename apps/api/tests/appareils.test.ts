@@ -56,7 +56,7 @@ test("sans session : inscrit sans compte, jamais en cache", async () => {
   const r = await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", ville: "  Montpellier  " });
   assert.equal(r.statut, 200);
   assert.equal(r.cache, "private, no-store");
-  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: "Montpellier", offres: false, compteId: null, empreinteSession: null });
+  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: "Montpellier", offres: false, compteId: null, empreinteSession: null, cleApercu: null });
 });
 
 test("session valable : lié au compte ; le compte du corps est ignoré ; même jeton : mis à jour", async () => {
@@ -65,13 +65,13 @@ test("session valable : lié au compte ; le compte du corps est ignoré ; même 
   const r = await demander("PUT", { jeton: JETON_FCM, plateforme: "android", ville: "Sète", compteId: 999 }, { Authorization: `Bearer ${jeton}` });
   assert.equal(r.statut, 200);
   assert.equal(appareils.size, 1);
-  assert.deepEqual(appareils.get(JETON_FCM), { jeton: JETON_FCM, plateforme: "android", ville: "Sète", offres: false, compteId: id, empreinteSession: calculerEmpreinteJeton(jeton) });
+  assert.deepEqual(appareils.get(JETON_FCM), { jeton: JETON_FCM, plateforme: "android", ville: "Sète", offres: false, compteId: id, empreinteSession: calculerEmpreinteJeton(jeton), cleApercu: null });
 });
 
 test("lié à la session qui l'inscrit (Bearer de l'app ou X-Session-Compte), jamais au jeton en clair ; sans session : détaché", async () => {
   const { id, jeton } = await creerCompte();
   await demander("PUT", { jeton: JETON_APNS, plateforme: "ios" }, { "X-Session-Compte": jeton });
-  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: null, offres: false, compteId: id, empreinteSession: calculerEmpreinteJeton(jeton) });
+  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: null, offres: false, compteId: id, empreinteSession: calculerEmpreinteJeton(jeton), cleApercu: null });
   assert.ok(!JSON.stringify([...appareils.values()]).includes(jeton), "le jeton de session n'est jamais transmis");
   // Une autre session du même compte (un autre téléphone, ou une reconnexion) : le téléphone suit la dernière
   const autre = creerJeton();
@@ -80,7 +80,7 @@ test("lié à la session qui l'inscrit (Bearer de l'app ou X-Session-Compte), ja
   assert.equal(appareils.get(JETON_APNS)?.empreinteSession, calculerEmpreinteJeton(autre));
   // Déconnexion (l'app le réinscrit sans session) : ni compte, ni session
   await demander("PUT", { jeton: JETON_APNS, plateforme: "ios" });
-  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: null, offres: false, compteId: null, empreinteSession: null });
+  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: null, offres: false, compteId: null, empreinteSession: null, cleApercu: null });
 });
 
 test("session invalide ou expirée : inscrit sans compte ni session, sans 401", async () => {
@@ -91,13 +91,13 @@ test("session invalide ou expirée : inscrit sans compte ni session, sans 401", 
   const expiree = await creerCompte(31 * 86_400_000);
   const r2 = await demander("PUT", { jeton: JETON_FCM, plateforme: "android" }, { Authorization: `Bearer ${expiree.jeton}` });
   assert.equal(r2.statut, 200);
-  assert.deepEqual(appareils.get(JETON_FCM), { jeton: JETON_FCM, plateforme: "android", ville: null, offres: false, compteId: null, empreinteSession: null });
+  assert.deepEqual(appareils.get(JETON_FCM), { jeton: JETON_FCM, plateforme: "android", ville: null, offres: false, compteId: null, empreinteSession: null, cleApercu: null });
 });
 
 test("offres : vrai seulement quand l'app envoie true ; absent (ancienne version de l'app) : faux", async () => {
   const { id, jeton } = await creerCompte();
   await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", ville: "Lyon", offres: true }, { Authorization: `Bearer ${jeton}` });
-  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: "Lyon", offres: true, compteId: id, empreinteSession: calculerEmpreinteJeton(jeton) });
+  assert.deepEqual(appareils.get(JETON_APNS), { jeton: JETON_APNS, plateforme: "ios", ville: "Lyon", offres: true, compteId: id, empreinteSession: calculerEmpreinteJeton(jeton), cleApercu: null });
   await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", ville: "Lyon", offres: false });
   assert.equal(appareils.get(JETON_APNS)?.offres, false);
   await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", offres: true });
@@ -105,6 +105,19 @@ test("offres : vrai seulement quand l'app envoie true ; absent (ancienne version
   const r = await demander("PUT", { jeton: JETON_APNS, plateforme: "ios" });
   assert.equal(r.statut, 200);
   assert.equal(appareils.get(JETON_APNS)?.offres, false);
+});
+
+test("clé de l'aperçu : 32 octets en base64url, gardée telle quelle pour le service ; absente ou null : aucune", async () => {
+  const { jeton } = await creerCompte();
+  const cle = Buffer.alloc(32, 7);
+  await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", cleApercu: cle.toString("base64url") }, { Authorization: `Bearer ${jeton}` });
+  assert.deepEqual(appareils.get(JETON_APNS)?.cleApercu, cle);
+  await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", cleApercu: null }, { Authorization: `Bearer ${jeton}` });
+  assert.equal(appareils.get(JETON_APNS)?.cleApercu, null);
+  for (const cleApercu of ["court", "a".repeat(44), Buffer.alloc(32).toString("base64"), 32, true, ["x"], "+".repeat(43)]) {
+    const r = await demander("PUT", { jeton: JETON_APNS, plateforme: "ios", cleApercu });
+    assert.deepEqual([r.statut, r.corps.champ], [400, "cleApercu"], String(cleApercu));
+  }
 });
 
 test("champs refusés : jeton, plateforme, ville, offres", async () => {

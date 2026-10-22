@@ -18,6 +18,8 @@ export type EtatMediaChat = {
 // Un seul téléchargement à la fois par message, même si deux bulles le demandent
 const enCours = new Map<string, Promise<"pret" | "expire" | "absent">>();
 
+const lireFichierMessage = (fichier: string, source: string) => (source === "compte" || fichier.startsWith("exemple:") ? fichier : retrouverFichierChat(fichier));
+
 /**
  * La photo ou la note vocale d'un message. Démo : le fichier gardé sur le téléphone. Compte connecté : ton propre envoi en
  * cours a déjà son fichier ; sinon, le média est téléchargé une fois depuis le serveur (avec ta session, jamais dans
@@ -30,14 +32,14 @@ export function utiliserMediaChat(conversationId: string, message: MessageChat):
   const type = message.type === "vocal" ? "vocal" : "photo";
   const aTelecharger = source === "compte" && !message.fichier && !!message.media && message.media.etat === "disponible" && !message.etat;
   const [etat, setEtat] = useState<EtatMediaChat>(() => {
-    if (message.fichier) return { fichier: source === "compte" ? message.fichier : retrouverFichierChat(message.fichier), etat: "pret" };
+    if (message.fichier) return { fichier: lireFichierMessage(message.fichier, source), etat: "pret" };
     if (message.media?.etat === "expire") return { fichier: undefined, etat: "expire" };
     return { fichier: undefined, etat: aTelecharger ? "chargement" : "absent" };
   });
 
   useEffect(() => {
     if (message.fichier) {
-      setEtat({ fichier: source === "compte" ? message.fichier : retrouverFichierChat(message.fichier), etat: "pret" });
+      setEtat({ fichier: lireFichierMessage(message.fichier, source), etat: "pret" });
       return;
     }
     // Plus visible (supprimé, retiré…) ou expiré : le fichier en cache part

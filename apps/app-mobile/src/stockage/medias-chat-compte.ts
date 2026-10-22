@@ -16,6 +16,23 @@ export function lireFichierMediaChat(monId: string, messageId: string, type: "ph
   return new File(dossier, `${messageId.replace(/[^a-zA-Z0-9_-]/g, "")}.${type === "photo" ? "jpg" : "m4a"}`);
 }
 
+export function lireFichierPhotoGroupe(monId: string, conversationId: string, numero: number): File | null {
+  if (surLeWeb) return null;
+  const dossier = new Directory(Paths.cache, DOSSIER, monId || "compte", "groupes");
+  if (!dossier.exists) dossier.create({ intermediates: true, idempotent: true });
+  const nom = conversationId.replace(/[^a-zA-Z0-9_-]/g, "");
+  for (const ancien of dossier.list()) {
+    if (ancien instanceof File && ancien.name.startsWith(`${nom}-`) && ancien.name !== `${nom}-${numero}.jpg`) {
+      try {
+        ancien.delete();
+      } catch {
+        continue;
+      }
+    }
+  }
+  return new File(dossier, `${nom}-${numero}.jpg`);
+}
+
 /** Efface le fichier en cache d'un message (supprimé, retiré par la modération, média expiré) */
 export function oublierMediaChat(monId: string, messageId: string, type: "photo" | "vocal"): void {
   try {

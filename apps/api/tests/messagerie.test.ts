@@ -35,7 +35,7 @@ test("fonctions : clé d'un privé, notification sans contenu, états d'un messa
   assert.equal(calculerClePrive(9, 4), "4-9");
   assert.equal(calculerClePrive(4, 9), "4-9");
   const prive = ecrirePushMessage({ prenom: "Léa", type: "photo", conversation: { id: 3, type: "prive", titre: null } });
-  assert.deepEqual(prive, { titre: "💬 Léa", texte: "T'a envoyé une photo.", lien: "/potes/discussion/3", regroupement: "conversation:3" });
+  assert.deepEqual(prive, { titre: "💬 Léa", texte: "T'a envoyé une photo.", lien: "/potes/discussion/3", regroupement: "conversation:3", categorie: "message" });
   const groupe = ecrirePushMessage({ prenom: "Léa", type: "texte", conversation: { id: 4, type: "groupe", titre: "Les gourmands" } });
   assert.deepEqual([groupe.titre, groupe.texte], ["💬 Les gourmands", "Léa a écrit."]);
   const sortie = ecrirePushMessage({ prenom: "Léa", type: "texte", conversation: { id: 5, type: "sortie", titre: "Pizza du jeudi" }, sortieId: 8 });
@@ -66,7 +66,7 @@ test("privé : seulement entre potes ; une seule discussion par paire, dans les 
   assert.equal((await sansPseudo.demander("POST", "/app/conversations/prive", { personne: a.idPublic })).statut, 409, "pseudo-requis");
 });
 
-test("textes et lieux chiffrés en base, tels quels ; la notification ne dit jamais le texte", async () => {
+test("textes et lieux chiffrés en base, tels quels ; la notification ne dit le texte que dans l'aperçu, chiffré ensuite pour le téléphone", async () => {
   const { a, b, id } = await deuxPotes();
   banc.pushs.length = 0;
   const texte = "Rendez-vous chez Léa à 20 h, j'ai faim 🍕";
@@ -87,10 +87,17 @@ test("textes et lieux chiffrés en base, tels quels ; la notification ne dit jam
   await banc.attendreEnvois();
   const pourB = banc.pushs.filter((p) => p.compteId === b.compteId);
   assert.deepEqual(pourB.map((p) => p.message.texte), ["Nouveau message. Viens voir !", "T'a envoyé un lieu à tester."]);
-  assert.ok(!JSON.stringify(banc.pushs).includes("Rendez-vous"));
+  assert.deepEqual(pourB.map((p) => [p.message.apercu?.titre, p.message.apercu?.texte]), [[pourB[0]!.message.titre, texte], [pourB[1]!.message.titre, "📍 Le meilleur kebab"]]);
+  assert.ok(!JSON.stringify(banc.pushs.map(({ message: { apercu: _apercu, ...reste } }) => reste)).includes("Rendez-vous"), "hors de l'aperçu, jamais le texte");
+  assert.equal((await b.demander("PATCH", "/app/social/moi", { apercuMessages: false })).statut, 200);
+  banc.pushs.length = 0;
+  await ecrire(a, id, "Toujours partant ?");
+  await banc.attendreEnvois();
+  assert.deepEqual(banc.pushs.map((p) => [p.message.texte, "apercu" in p.message]), [["Nouveau message. Viens voir !", false]], "« Juste qui t'écrit » : pas d'aperçu");
+  assert.ok(!JSON.stringify(banc.pushs).includes("partant"));
   assert.ok(banc.pushs.every((p) => p.compteId !== a.compteId), "jamais à soi-même");
   const lu = await b.demander("GET", `/app/conversations/${id}`);
-  assert.deepEqual(lu.corps.fil.messages.map((m: { texte: string }) => m.texte), [texte, "Le meilleur kebab"]);
+  assert.deepEqual(lu.corps.fil.messages.map((m: { texte: string }) => m.texte), [texte, "Le meilleur kebab", "Toujours partant ?"]);
 });
 
 test("textes refusés : vide, invisible, caractère de contrôle, trop long, mot interdit (message-refuse), type inconnu, idClient mal formé ; fins de ligne \\r\\n gardées en \\n", async () => {
