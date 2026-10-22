@@ -23,7 +23,7 @@ export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
       { emoji: "↩️", titre: "Répondre, modifier, copier, le « Vu »", detail: "Glisse une bulle pour lui répondre, et l'heure dit « il y a 5 min ». Le « Vu » se règle dans Paramètres › Messages." },
       { emoji: "🎞️", titre: "Les GIF débarquent", detail: "Cherche le GIF parfait et envoie-le à ta bande." },
       { emoji: "🍝", titre: "« On mange où ? »", detail: "Un sondage de lieux dans tes groupes, le gagnant ouvre la sortie." },
-      { emoji: "🔔", titre: "Le message dans la notification", detail: "Lis-le sans ouvrir l'app, réponds-y d'un geste. Il reste chiffré jusqu'à ton téléphone." },
+      { emoji: "🔔", titre: "Le message dans la notification", detail: "Lis-le sans ouvrir l'app (ou juste qui t'écrit, au choix), réponds-y d'un geste. Il reste chiffré jusqu'à ton téléphone." },
       { emoji: "🔴", titre: "Une pastille sur l'icône", detail: "Tes messages, invitations et notifications en un coup d'œil." },
       { emoji: "📸", titre: "Plusieurs photos avec un petit mot", detail: "Jusqu'à 10 d'un coup, et en plein écran avec le zoom." },
       { emoji: "🎙️", titre: "Le micro qui bouge", detail: "Tu vois ta voix pendant la note vocale." },
