@@ -41,6 +41,7 @@ import { sectionMiamSafe, sectionPrevenirUnPote } from "~/contenus/legal/confide
 import { sectionSignalementsSociaux } from "~/contenus/legal/confidentialite-signalements-sociaux";
 import { sectionPotes } from "~/contenus/legal/confidentialite-social";
 import { sectionCandidatures } from "~/contenus/legal/confidentialite-candidatures";
+import { sectionChasseAuxBugs } from "~/contenus/legal/confidentialite-securite";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
 import { sectionConnexionAppleGoogle } from "~/contenus/legal/confidentialite-connexion-externe";
@@ -54,7 +55,7 @@ const lienPolitiqueCloudflare = "[politique de confidentialité](https://www.clo
 export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
-    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, candidatures, comptes ambassadeur et pro, app mobile, ta bande, ta messagerie, les Miamis et Miam Safe. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
+    "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, candidatures, signalements de faille, comptes ambassadeur et pro, app mobile, ta bande, ta messagerie, les Miamis et Miam Safe. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
   miseAJour: "22 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
@@ -72,6 +73,7 @@ export const documentConfidentialite: DocumentLegal = {
         "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
         "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
         "**Ta candidature** (page « On recrute ») : ton nom, ton e-mail, ton message et, si tu les donnes, un lien et ton CV en PDF. Tout est gardé **chiffré**, seul l'éditeur le lit, aucun tiers ne le reçoit, et tout est effacé **6 mois** après l'envoi.",
+        "**Ton signalement de faille** (page « Chasse aux bugs ») : ton nom ou ton pseudo, ton e-mail, ta description de la faille et, si tu les donnes, un lien et des captures. Il est gardé **chiffré**, seul l'éditeur le lit, et il est effacé **2 ans** après sa clôture. Ton nom ne s'affiche au tableau d'honneur que si tu le demandes (voir « [Ton signalement de faille](#chasse-aux-bugs) »).",
         "**Si tu nous écris** (lieu à inscrire, souci avec ton compte, question), on garde ton message le temps d'y donner suite, et **3 ans au maximum** après ton dernier contact. Une candidature envoyée par mail suit la règle des candidatures : **6 mois** après l'envoi, puis on l'efface (voir « [Ta candidature](#candidatures) »).",
         "**Ton compte ambassadeur** (dès 18 ans) : ton e-mail, ton prénom ou surnom, ta ville et ce que tu fais dans ton espace, pour faire vivre le programme. Ton mot de passe n'est jamais gardé tel quel. Ta date de naissance, donnée avec ton e-mail et un mot de passe sur le site, sert seulement à vérifier ton âge : on ne la garde pas (dans l'app, ou avec Apple ou Google, elle est gardée chiffrée). Après 1 an sans aucune connexion à ton compte (app comprise), ton rôle d'ambassadeur est retiré ; après 2 ans sans connexion, ton compte est effacé (on te prévient par mail un mois avant) ; et tu peux le supprimer toi-même à tout moment.",
         "**Ton espace pro** (dès 18 ans, pour gérer la fiche d'un lieu) : avec le même compte, ta demande pour gérer un lieu et ce qui prouve qu'il est à toi ne sont vus que par l'équipe de SOS Miam ; ce que tu changes sur la fiche est public, mais sans ton nom. Une demande refusée ou un rattachement retiré est effacé 1 an après.",
@@ -216,6 +218,7 @@ export const documentConfidentialite: DocumentLegal = {
       ],
     },
     sectionCandidatures,
+    sectionChasseAuxBugs,
     {
       id: "messages",
       titre: "Tes messages : lieu, ambassadeur, questions",
@@ -386,7 +389,7 @@ export const documentConfidentialite: DocumentLegal = {
   chapitres: [
     { id: "qui-on-est", titre: "Qui on est", sections: ["responsable"] },
     { id: "quand-tu-visites", titre: "Quand tu visites le site", sections: ["journaux", "statistiques", "cloudflare"] },
-    { id: "quand-tu-nous-ecris", titre: "Quand tu t'inscris ou nous écris", sections: ["newsletter", "formulaire", "demande-lieu", "candidatures", "messages"] },
+    { id: "quand-tu-nous-ecris", titre: "Quand tu t'inscris ou nous écris", sections: ["newsletter", "formulaire", "demande-lieu", "candidatures", "chasse-aux-bugs", "messages"] },
     {
       id: "ton-compte-et-l-app",
       titre: "Ton compte et l'app",

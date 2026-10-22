@@ -29,7 +29,7 @@ export const documentCgu: DocumentLegal = {
   titre: "Conditions d'utilisation",
   description:
     "Les règles du site et de l'app SOS Miam : gratuits, un compte dès 18 ans, ta bande et la messagerie, les Miamis et leurs sorties, ce que tu peux publier, comment on modère, et comment nous joindre.",
-  miseAJour: "21 octobre 2026",
+  miseAJour: "22 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
   ],
@@ -207,7 +207,7 @@ export const documentCgu: DocumentLegal = {
             "d'utiliser notre adresse de contact pour envoyer des messages indésirables (spam), injurieux ou illicites.",
           ],
         },
-        `Si tu découvres une faille de sécurité, merci de nous la signaler à ${lienContact} plutôt que de l'exploiter.`,
+        "Si tu découvres une faille de sécurité, merci de nous la signaler sur la page [Chasse aux bugs](/securite) plutôt que de l'exploiter.",
       ],
     },
     {

@@ -9,6 +9,7 @@ export default [
     route("inscrire-mon-lieu", "routes/public/inscrire-mon-lieu.tsx"),
     route("carriere", "routes/public/carriere.tsx"),
     route("carriere/:id", "routes/public/offre-carriere.tsx"),
+    route("securite", "routes/public/securite.tsx"),
     // Fiche publique d'un lieu publié (indexée), avec « Vérifié ✓ » ou « Lieu non vérifié »
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
     // QR de vitrine d'un lieu (sosmiam.fr/l/<code>) : redirige vers sa fiche, ou une petite page aimable (noindex)
@@ -124,6 +125,7 @@ export default [
   // Liens universels de l'app (sosmiam.fr seulement, 404 ailleurs) : iOS, et Android dès que son empreinte est réglée
   route(".well-known/apple-app-site-association", "routes/ressources/association-apple.ts"),
   route(".well-known/assetlinks.json", "routes/ressources/liens-android.ts"),
+  route(".well-known/security.txt", "routes/ressources/fichier-security-txt.ts"),
   // Toute autre adresse : « Page introuvable » (404). Sans cette route, une adresse inconnue ne passe par aucun
   // middleware de root.tsx (ni le partage des hôtes, ni les statistiques) : React Router répond 404 avant eux.
   // Elle reste la DERNIÈRE de la liste (tests/route-introuvable.test.ts).

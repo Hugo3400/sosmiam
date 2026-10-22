@@ -80,6 +80,20 @@ test("ambassadeur : jamais l'auteur, jamais le sien ni un lieu lié", async () =
   }
 });
 
+test("ambassadeur : jamais l'avis d'un pote de sa bande (la relecture n'est pas anonyme, mais jamais entre potes)", async () => {
+  const ambassadeur = await b.creerCompte({ prenom: "Hugo", ambassadeur: true });
+  const pote = await b.creerCompte({ prenom: "Léa", nom: "Martin" });
+  const deSonPote = await b.ajouterAvis({ lieuId: 1, compteId: pote.id, statut: "en-relecture", raisonRelecture: "tirage" });
+  const dUnInconnu = await b.ajouterAvis({ lieuId: 1, statut: "en-relecture", raisonRelecture: "tirage" });
+  const aRelire = async () => (await b.demander("GET", "/app/avis/a-relire", ambassadeur.jeton)).corps.avis.map((a: { id: number }) => a.id);
+  b.donnees.potes.set(ambassadeur.id, new Set([pote.id]));
+  assert.deepEqual(await aRelire(), [dUnInconnu.id]);
+  const r = await b.demander("POST", `/app/avis/${deSonPote.id}/relecture`, ambassadeur.jeton, { verdict: { type: "ok" } });
+  assert.deepEqual([r.statut, r.corps.erreur], [404, "introuvable"]);
+  b.donnees.potes.clear();
+  assert.deepEqual(await aRelire(), [deSonPote.id, dUnInconnu.id], "plus potes : il peut le relire");
+});
+
 test("verdicts : ok, louche avec motif, déporté ; un par ambassadeur ; 3 verdicts et l'avis quitte la liste", async () => {
   const ambassadeurs = await Promise.all(["Hugo", "Sam", "Nora", "Yanis"].map((prenom) => b.creerCompte({ prenom, ambassadeur: true })));
   const { avisId } = await avisVerifie({ neuf: true });

@@ -182,6 +182,7 @@ export async function creerBancAvis() {
     Object.assign(panne, { points: false, finTransaction: false });
     donnees.lieux.clear();
     donnees.pointsComptes.clear();
+    donnees.potes.clear();
     for (const lieu of LIEUX) donnees.lieux.set(lieu.id, { ...lieu });
     for (const liste of [donnees.visites, donnees.avis, donnees.relectures, donnees.pointsPhoto, points, defis, tirages, vuEnFin, gestes]) liste.length = 0;
   }
