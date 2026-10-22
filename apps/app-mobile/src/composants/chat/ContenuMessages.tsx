@@ -10,6 +10,7 @@ import { RechercheDiscussions } from "~/composants/chat/RechercheDiscussions";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { filtrerConversations } from "~/fonctions/chat/filtrer-conversations";
 import { listerNomsConversation } from "~/fonctions/chat/lister-noms-conversation";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -25,6 +26,8 @@ type Props = {
   enTete: ReactElement;
   margeBas: number;
 };
+
+type LigneListe = { cle: string; titre: string; icone: "pin" | "chatbubbles-outline" } | { cle: string; conversation: ConversationEnrichie };
 
 export function ContenuMessages({ enTete, margeBas }: Props) {
   const couleurs = utiliserCouleurs();
@@ -42,6 +45,16 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
   const affichees = filtrerConversations(conversations, recherche, (c) => listerNomsConversation(c, monId, trouverPote, idsBloques));
   const pretes = pret && communautePrete;
   const cherche = recherche.trim();
+  const epinglees = affichees.filter((c) => c.epinglee);
+  const lignes: LigneListe[] =
+    epinglees.length === 0
+      ? affichees.map((c) => ({ cle: c.id, conversation: c }))
+      : [
+          { cle: "titre-epinglees", titre: TEXTES_MESSAGES.sectionEpinglees, icone: "pin" },
+          ...epinglees.map((c) => ({ cle: c.id, conversation: c })),
+          ...(epinglees.length < affichees.length ? [{ cle: "titre-toutes", titre: TEXTES_MESSAGES.sectionToutes, icone: "chatbubbles-outline" as const }] : []),
+          ...affichees.filter((c) => !c.epinglee).map((c) => ({ cle: c.id, conversation: c })),
+        ];
 
   const actions = [
     { cle: "message", libelle: TEXTES_MESSAGES.nouveauMessage, icone: "create" as const, fond: "bg-jaune", texte: "text-nuit", teinte: couleurs.nuit, indice: TEXTES_MESSAGES.indiceNouveauMessage, faire: () => setFeuilleOuverte(true) },
@@ -53,13 +66,22 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
   return (
     <>
       <FlatList
-        data={affichees}
-        keyExtractor={(c) => c.id}
+        data={lignes}
+        keyExtractor={(l) => l.cle}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         contentContainerClassName="px-5"
         contentContainerStyle={{ paddingBottom: margeBas }}
-        renderItem={({ item }) => <LigneConversation conversation={item} maintenant={maintenant} brouillon={brouillons.get(item.id)?.texte} />}
+        renderItem={({ item }) =>
+          "conversation" in item ? (
+            <LigneConversation conversation={item.conversation} maintenant={maintenant} brouillon={brouillons.get(item.conversation.id)?.texte} />
+          ) : (
+            <View accessibilityRole="header" className="mt-3 flex-row items-center gap-1.5 pb-1">
+              <Ionicons name={item.icone} size={14} color={couleurs.gris} />
+              <Text className="font-texte-semi text-xs uppercase text-gris">{item.titre}</Text>
+            </View>
+          )
+        }
         ListHeaderComponent={
           <View className="gap-4 pb-3">
             {enTete}

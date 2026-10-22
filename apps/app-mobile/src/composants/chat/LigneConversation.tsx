@@ -1,22 +1,24 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import type { Conversation } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { resumerDernierMessage } from "~/fonctions/chat/resumer-dernier-message";
 import { formaterIlYA } from "~/fonctions/dates/formater-il-y-a";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
-  conversation: Conversation;
+  conversation: ConversationEnrichie;
   /** L'heure de l'écran (rafraîchie de temps en temps) : « à l'instant » devient « il y a 3 min » sans quitter la liste */
   maintenant: Date;
   brouillon?: string;
@@ -31,6 +33,7 @@ const TAILLE_MINI = 22;
  */
 export function LigneConversation({ conversation, maintenant, brouillon }: Props) {
   const router = useRouter();
+  const couleurs = utiliserCouleurs();
   const { trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { nonLusDe } = utiliserConversations();
@@ -48,7 +51,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
   const nom = groupe ? nommerGroupe(conversation.titre) : (pote?.prenom ?? "Compte supprimé");
 
   const dernier = conversation.messages[conversation.messages.length - 1];
-  const prefixe = !dernier ? null : dernier.auteur === monId ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;
+  const prefixe = !dernier || dernier.systeme ? null : dernier.auteur === monId ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;
   const lieuNom = dernier?.lieuId !== undefined ? trouverLieu(dernier.lieuId)?.nom : undefined;
   const vide = groupe ? (conversation.creePar === monId ? "Groupe créé : lance la discussion" : "Nouveau groupe : dis bonjour") : "Pas encore de message : dis-lui bonjour";
   const apercu = dernier ? resumerDernierMessage(dernier, prefixe, lieuNom) : `${vide} 👋`;
@@ -58,6 +61,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
   const membres = autres.length + 1;
   const lu = [
     groupe ? `${nom}, groupe de ${membres} personne${membres > 1 ? "s" : ""}` : nom,
+    conversation.epinglee ? TEXTES_MESSAGES.epingleeLu : null,
     nonLus > 0 ? `${nonLus} message${nonLus > 1 ? "s" : ""} non lu${nonLus > 1 ? "s" : ""}` : null,
     apercuBrouillon ? TEXTES_MESSAGES.brouillonLu(apercuBrouillon) : dernier ? resumerDernierMessage(dernier, prefixe, lieuNom, true) : vide,
     moment?.lu,
@@ -104,6 +108,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
           <Text numberOfLines={1} className={`flex-1 text-base text-encre ${nonLus > 0 ? "font-texte-gras" : "font-texte-semi"}`}>
             {nom}
           </Text>
+          {conversation.epinglee ? <Ionicons name="pin" size={13} color={couleurs.gris} /> : null}
           {moment ? <Text className={`text-xs ${nonLus > 0 ? "font-texte-gras text-encre" : "font-texte text-gris"}`}>{moment.court}</Text> : null}
         </View>
         <View className="flex-row items-center gap-2">

@@ -4,12 +4,13 @@ import { AccessibilityInfo, KeyboardAvoidingView, Modal, Pressable, ScrollView, 
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { Conversation } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { RondPote } from "~/composants/potes/RondPote";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -22,7 +23,7 @@ import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
   visible: boolean;
-  conversation: Conversation | null;
+  conversation: ConversationEnrichie | null;
   /** Les autres membres qu'on montre (sans toi ni les personnes bloquées) ; pour un message privé, le pote */
   membres: Pote[];
   onFermer: () => void;
@@ -31,6 +32,7 @@ type Props = {
   onBloque: (prenom: string) => void;
   /** Groupe quitté : l'écran peut revenir à la liste */
   onQuitte: (titre: string) => void;
+  onAnnoncer: (texte: string) => void;
 };
 
 type Vue = "options" | "signaler" | "bloquer" | "quitter" | "effacer";
@@ -41,14 +43,14 @@ const TAILLE_MEMBRE = 36;
  * Le menu d'une conversation, dans une feuille qui monte du bas. Message privé : voir le profil, signaler ou bloquer le pote
  * (avec confirmation). Groupe : les membres (vers leur profil) et « Quitter le groupe » (avec confirmation).
  */
-export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoirProfil, onBloque, onQuitte }: Props) {
+export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoirProfil, onBloque, onQuitte, onAnnoncer }: Props) {
   const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const { moi, potes, bloquer, estSignale } = utiliserCommunaute();
-  const { quitterGroupe, couper, effacerPourMoi } = utiliserConversations();
+  const { quitterGroupe, couper, effacerPourMoi, epingler } = utiliserConversations();
   const defilement = useRef<ScrollView>(null);
   const titreOptions = useRef<Text>(null);
   const titreConfirmation = useRef<Text>(null);
@@ -104,19 +106,33 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
             ? { cle: "couper" as const, emoji: "🔔", titre: "Remettre les notifications", detail: "Ton téléphone sonnera de nouveau pour cette discussion" }
             : { cle: "couper" as const, emoji: "🔕", titre: "Couper les notifications", detail: "Les messages arrivent, sans faire sonner ton téléphone" },
         ];
+  const epinglee = conversation?.epinglee === true;
+  const optionEpingler = conversation
+    ? [epinglee ? { cle: "epingler" as const, emoji: "📌", titre: T.desepingler, detail: T.desepinglerDetail } : { cle: "epingler" as const, emoji: "📌", titre: T.epingler, detail: T.epinglerDetail }]
+    : [];
   // Effacer pour soi seul : les autres gardent leurs messages
   const optionEffacer = conversation ? [{ cle: "effacer" as const, emoji: "🧽", titre: "Effacer la discussion pour moi", detail: "Tu ne verras plus les messages d'avant" }] : [];
   const options = groupe
-    ? [...optionCouper, ...optionEffacer, { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
+    ? [...optionEpingler, ...optionCouper, ...optionEffacer, { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
     : pote
       ? [
           { cle: "profil" as const, emoji: "👤", titre: "Voir le profil", detail: "Sa ville, ses badges, ses lieux sauvés" },
+          ...optionEpingler,
           ...optionCouper,
           ...optionEffacer,
           { cle: "signaler" as const, emoji: "🚩", titre: `Signaler ${prenom}`, detail: "Faux profil, harcèlement, message gênant…" },
           { cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Plus de messages ni de commentaires de sa part" },
         ]
       : [];
+
+  function basculerEpingle(conversationId: string) {
+    onFermer();
+    void epingler(conversationId, !epinglee).then((resultat) => {
+      if (resultat === "plein") onAnnoncer(T.epinglesPleines);
+      else if (resultat === "reseau") onAnnoncer(T.epingleRatee);
+      else onAnnoncer(epinglee ? T.desepinglee : T.epinglee);
+    });
+  }
 
   function confirmation(titre: string, texte: string, action: string, refus: string, faire: () => void) {
     return (
@@ -238,11 +254,12 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
                       onPress={() => {
                         vibrerLegerement();
                         if (o.cle === "profil" && pote) onVoirProfil(pote.id);
+                        else if (o.cle === "epingler" && conversation) basculerEpingle(conversation.id);
                         else if (o.cle === "couper" && conversation) {
                           couper(conversation.id, !coupee);
                           onFermer();
                           AccessibilityInfo.announceForAccessibility(coupee ? "Notifications remises." : "Notifications coupées pour cette discussion.");
-                        } else if (o.cle !== "profil" && o.cle !== "couper") aller(o.cle);
+                        } else if (o.cle !== "profil" && o.cle !== "couper" && o.cle !== "epingler") aller(o.cle);
                       }}
                       className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
                     >
