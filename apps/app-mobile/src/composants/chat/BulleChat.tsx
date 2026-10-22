@@ -27,6 +27,7 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { estGlissementReponseRecent } from "~/services/glissement-reponse";
 
 type Props = {
   conversationId: string;
@@ -116,6 +117,7 @@ export function BulleChat(props: Props) {
   }
 
   function appuiSurLaBulle() {
+    if (estGlissementReponseRecent()) return;
     const instant = Date.now();
     if (minuterieDetail.current) clearTimeout(minuterieDetail.current);
     minuterieDetail.current = null;

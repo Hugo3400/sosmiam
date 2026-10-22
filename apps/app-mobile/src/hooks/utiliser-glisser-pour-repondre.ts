@@ -3,6 +3,7 @@ import { PanResponder } from "react-native";
 import { cancelAnimation, Easing, Extrapolation, interpolate, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { noterGlissementReponse } from "~/services/glissement-reponse";
 
 const SEUIL_GLISSER_REPONDRE = 60;
 const DEPART = 10;
@@ -40,6 +41,7 @@ export function utiliserGlisserPourRepondre(actif: boolean, onRepondre: () => vo
       onPanResponderGrant: () => {
         franchi = false;
         cancelAnimation(decalage);
+        noterGlissementReponse();
       },
       onPanResponderMove: (_, g) => {
         const position = suivreDoigt(g.dx);
@@ -52,6 +54,7 @@ export function utiliserGlisserPourRepondre(actif: boolean, onRepondre: () => vo
         }
       },
       onPanResponderRelease: (_, g) => {
+        noterGlissementReponse();
         revenir();
         if (suivreDoigt(g.dx) >= SEUIL_GLISSER_REPONDRE) dernier.current.onRepondre();
       },
