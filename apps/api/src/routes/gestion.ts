@@ -20,6 +20,7 @@ import { creerControleursSecurite } from "../controleurs/gestion/controleurs-sec
 import { creerControleursVersionsApp } from "../controleurs/gestion/controleurs-versions-app.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursServeursDev } from "../controleurs/gestion/controleurs-serveurs-dev.ts";
+import { creerControleursMachine } from "../controleurs/gestion/controleurs-machine.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
 import type { AvisGestion } from "../services/avis-gestion.ts";
 import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
@@ -96,6 +97,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
   const safe = creerControleursMiamSafe(services);
   const serveurs = creerControleursServeursDev(services);
+  const machine = creerControleursMachine(services);
   const r = creerControleursReponsesTypes(services);
   const routes = Router();
   routes.use(autoriserOriginesGestion());
@@ -358,6 +360,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/maintenance", c.maintenance);
   routes.get("/maintenance/menage-manuel", c.menageManuel);
   routes.post("/maintenance/relancer", c.relancer);
+  routes.get("/maintenance/machines", machine.machines);
+  routes.get("/maintenance/machines/:id/courbes", machine.courbes);
+  routes.get("/maintenance/machines/:id/systeme", machine.systeme);
+  routes.get("/maintenance/journaux", machine.sourcesJournaux);
+  routes.get("/maintenance/journaux/:source", machine.journal);
   routes.get("/serveurs", serveurs.liste);
   routes.post("/serveurs/:id/action", serveurs.agir);
 

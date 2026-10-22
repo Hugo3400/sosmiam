@@ -4,6 +4,7 @@ import { statfs } from "node:fs/promises";
 import { promisify } from "node:util";
 
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { releveMachine } from "./releve-machine.ts";
 import { lireEtatSauvegardes } from "./sauvegardes.ts";
 
 const executer = promisify(execFile);
@@ -75,6 +76,7 @@ export async function lireEtatServeur() {
     disque: disque ? { total: disque.blocks * disque.bsize, libre: disque.bavail * disque.bsize } : null,
     processus,
     sauvegardes: { cleExiste: sauvegardes.cleExiste, derniere: sauvegardes.sauvegardes[0] ?? null, nombre: sauvegardes.sauvegardes.length },
+    machine: { releveLe: releveMachine.lireMaintenant()?.releveLe ?? null, problemes: releveMachine.lireProblemes() },
   };
 }
 

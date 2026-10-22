@@ -82,6 +82,7 @@ import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
 import { planifierTachesSortiesMiamis } from "./taches/sorties-miamis.ts";
 import { planifierExpirationReservations } from "./taches/expirer-reservations.ts";
+import { releveMachine } from "./services/gestion/releve-machine.ts";
 import { noterAction } from "./services/gestion/journal.ts";
 import { servicesLimitations } from "./services/limitations-comptes.ts";
 import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profil.ts";
@@ -161,6 +162,7 @@ const arreterSortiesMiamis = process.env.SCHEMA_BASE || !socialApp.communaute ? 
   appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
 });
 const arreterExpirations = process.env.SCHEMA_BASE ? () => {} : planifierExpirationReservations({ depot: creerDepotVisites(), prevenirCompte });
+const arreterReleveMachine = process.env.SCHEMA_BASE ? () => {} : releveMachine.demarrer();
 const photosProfil = creerPhotosProfil({
   stockage: creerStockagePhotosProfil(), depot: creerDepotPhotosProfil(), preuves: { chiffrement: socialApp.chiffrement, medias: socialApp.medias },
 });
@@ -296,6 +298,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     arreterVotes();
     arreterSortiesMiamis();
     arreterExpirations();
+    arreterReleveMachine();
     serveur.close(() => {
       void arreterNettoyeurJpeg();
       // Les visites en cours sont closes : leurs totaux (durée, rebond, sortie) ne sont pas perdus

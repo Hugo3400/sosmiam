@@ -30,6 +30,7 @@ export type EtatServeur = {
   statutPm2: string | null;
   depuis: string | null;
   memoire: number | null;
+  processeur: number | null;
   redemarrages: number | null;
 };
 
@@ -53,7 +54,7 @@ type ProcessusPm2 = {
   name?: unknown;
   pid?: unknown;
   pm2_env?: { status?: unknown; pm_uptime?: unknown; restart_time?: unknown };
-  monit?: { memory?: unknown };
+  monit?: { memory?: unknown; cpu?: unknown };
 };
 
 function preparerEnvironnementPm2(): NodeJS.ProcessEnv {
@@ -160,9 +161,9 @@ export function creerPiloteServeurs({
 
   async function decrire(serveur: ServeurSuivi, liste: ProcessusPm2[] | null): Promise<EtatServeur> {
     const base = { id: serveur.id, nom: serveur.nom, processus: serveur.processus, pilotable: serveur.pilotable };
-    if (!liste) return { ...base, etat: "inconnu", statutPm2: null, depuis: null, memoire: null, redemarrages: null };
+    if (!liste) return { ...base, etat: "inconnu", statutPm2: null, depuis: null, memoire: null, processeur: null, redemarrages: null };
     const trouve = liste.find((processus) => processus.name === serveur.processus);
-    if (!trouve) return { ...base, etat: "absent", statutPm2: null, depuis: null, memoire: null, redemarrages: null };
+    if (!trouve) return { ...base, etat: "absent", statutPm2: null, depuis: null, memoire: null, processeur: null, redemarrages: null };
     const statut = typeof trouve.pm2_env?.status === "string" ? trouve.pm2_env.status : null;
     const etat = traduireStatut(statut);
     const enLigne = etat === "en-ligne";
@@ -175,6 +176,7 @@ export function creerPiloteServeurs({
       statutPm2: statut,
       depuis: enLigne && lancement ? new Date(lancement).toISOString() : null,
       memoire: enLigne ? memoireArbre ?? lireNombre(trouve.monit?.memory) : null,
+      processeur: enLigne ? lireNombre(trouve.monit?.cpu) : null,
       redemarrages: lireNombre(trouve.pm2_env?.restart_time),
     };
   }

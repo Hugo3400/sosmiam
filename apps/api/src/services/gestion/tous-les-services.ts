@@ -43,6 +43,8 @@ import { noterAction, listerJournal } from "./journal.ts";
 import { creerLieu, lireLieu, listerLieux, modifierLieu, modifierLieuxEnLot, supprimerLieu, supprimerLieuxEnLot } from "./lieux.ts";
 import { lireEtatServeur, relancerProcessus } from "./maintenance.ts";
 import { creerPiloteServeurs } from "./serveurs-dev.ts";
+import { lireCourbesMachine, lireMachines, lireSystemeMachine } from "./machines-serveur.ts";
+import { journauxServeur } from "./journaux-serveur.ts";
 import { lireMenageManuel } from "./menage-manuel.ts";
 import {
   changerStatutMission, creerMission, envoyerMessage, listerMessages, listerMissions, supprimerMessage, supprimerMission,
@@ -97,6 +99,8 @@ export const servicesGestion = {
   listerMiamSafe, deciderSignalementMiamSafe, marquerAlerteMiamSafeVue, rendreCharteMiamSafe,
   lireEtatServeur, relancerProcessus, lireMenageManuel,
   lireServeursDev: piloteServeurs.lireServeurs, piloterServeurDev: piloteServeurs.piloterServeur,
+  lireMachines, lireCourbesMachine, lireSystemeMachine,
+  listerSourcesJournaux: journauxServeur.listerSources, lireJournalServeur: journauxServeur.lireJournal,
   lireEtatSauvegardes, sauvegarderBase, trouverSauvegarde,
   chercherAdresse,
   lireEtatBoite, synchroniserBoite,
