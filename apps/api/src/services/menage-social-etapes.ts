@@ -317,8 +317,8 @@ export async function effacerContenusRetires(
 }
 
 /**
- * Étape 8 : les fichiers du dossier des médias de plus de 24 h que la base ne connaît plus, ni dans un message, ni dans le
- * fichier_media d'un signalement qui le garde (ouvert, ou jugé depuis moins de 183 jours : signalementsGardantLeurFichier)
+ * Étape 8 : les fichiers du dossier des médias de plus de 24 h que la base ne connaît plus, ni dans un message, ni comme photo
+ * d'un groupe, ni dans le fichier_media d'un signalement qui le garde (ouvert, ou jugé depuis moins de 183 jours : signalementsGardantLeurFichier)
  * (coupure entre l'écriture en base et l'effacement sur le disque, signalement jugé depuis plus de 183 jours, ancien fichier
  * laissé par le rechiffrement de la nuit d'avant…). Ils sont supprimés. Les 24 h couvrent l'envoi en cours :
  * le fichier est écrit juste avant sa ligne en base. Seule une page VIDE dit la fin du dossier : lister saute un fichier
@@ -336,13 +336,14 @@ export async function effacerFichiersOrphelins(base: BaseMenage, seuils: SeuilsM
     const vieux = page.filter((f) => f.modifieLe.getTime() < seuils.orphelins.getTime()).map((f) => f.fichier);
     if (vieux.length === 0) continue;
     const supprimes = await essayer(suivi, "fichiers orphelins", async () => {
-      const [messages, signalements] = await Promise.all([
+      const [messages, photos, signalements] = await Promise.all([
         base.messageConversation.findMany({ where: { fichier: { in: vieux } }, select: { fichier: true } }),
+        base.conversation.findMany({ where: { photo: { in: vieux } }, select: { photo: true } }),
         base.signalement.findMany({
           where: { AND: [{ fichierMedia: { in: vieux } }, signalementsGardantLeurFichier(seuils.fichiersSignales)] }, select: { fichierMedia: true },
         }),
       ]);
-      const connus = new Set<string | null>([...messages.map((m) => m.fichier), ...signalements.map((s) => s.fichierMedia)]);
+      const connus = new Set<string | null>([...messages.map((m) => m.fichier), ...photos.map((c) => c.photo), ...signalements.map((s) => s.fichierMedia)]);
       return medias.supprimer(vieux.filter((f) => !connus.has(f)));
     });
     if (supprimes === null) continue;

@@ -11,8 +11,9 @@ import type { PersonneResume } from "../../../../packages/commun/src/types/socia
 import { presenterConversation } from "../fonctions/social/presenter-conversation.ts";
 import { presenterMessage, type ContenuMessage } from "../fonctions/social/presenter-message.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
+import { lireComplementsMessages } from "./messagerie-complements.ts";
 import type {
-  ContexteMessagerie, LigneConversation, LigneInvitationGroupe, LigneMembre, LigneMessage, MessageVisible, TablesMessagerie,
+  ContexteMessagerie, LigneConversation, LigneInvitationGroupe, LigneMembre, LigneMessage, LireMessageVisible, MessageVisible, TablesMessagerie,
 } from "./messagerie-regles.ts";
 import { MAX_COMPTEUR_POULS } from "./social-regles.ts";
 
@@ -25,9 +26,20 @@ export function exigerChiffrement(c: Pick<ContexteMessagerie, "chiffrement">): C
   return c.chiffrement;
 }
 
-/** Le texte d'un message (ou le mot et le lieu d'un message « lieu », chiffrés ensemble), ou « illisible » */
+/**
+ * Le texte d'un message (ou le mot et le lieu d'un message « lieu », chiffrés ensemble), ou « illisible ». Le petit mot d'une
+ * photo qui ne se relit pas est seulement absent : la photo reste
+ */
 export function lireContenu(chiffrement: ChiffrementSocial, l: LigneMessage): ContenuMessage | "illisible" {
-  if (l.type === "photo" || l.type === "vocal" || l.supprimeLe || l.retireLe || l.suspenduLe) return { texte: null, lieuId: null };
+  if (l.type === "vocal" || l.supprimeLe || l.retireLe || l.suspenduLe) return { texte: null, lieuId: null };
+  if (l.type === "photo") {
+    if (!l.texteChiffre) return { texte: null, lieuId: null };
+    try {
+      return { texte: chiffrement.dechiffrerMessage(l.texteChiffre, l.conversationId, l.idClient), lieuId: null };
+    } catch {
+      return { texte: null, lieuId: null };
+    }
+  }
   if (!l.texteChiffre) return "illisible";
   try {
     const clair = chiffrement.dechiffrerMessage(l.texteChiffre, l.conversationId, l.idClient);
@@ -93,11 +105,19 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
   }
 
   /** Des messages visibles pour moi, avec leur auteur et leurs réactions (sans les personnes avec qui il y a un blocage) */
-  async function presenterMessages(moi: number, lignes: readonly LigneMessage[], caches: ReadonlySet<number>, maintenant: Date): Promise<MessageApi[]> {
+  async function presenterMessages(moi: number, lignes: readonly LigneMessage[], caches: ReadonlySet<number>, maintenant: Date, exclus?: ReadonlySet<number>): Promise<MessageApi[]> {
     if (lignes.length === 0) return [];
     const chiffrement = exigerChiffrement(c);
-    const reactions = (await lire.lireReactions(lignes.map((l) => l.id))).filter((r) => r.compteId === moi || !caches.has(r.compteId));
-    const personnes = await c.relations.presenter([...lignes.flatMap((l) => (l.auteurId === null ? [] : [l.auteurId])), ...reactions.map((r) => r.compteId)]);
+    const lireUn = (l: LigneMessage) => lireContenu(chiffrement, l);
+    const contenus = new Map(lignes.map((l) => [l.id, lireUn(l)]));
+    const [lues, complements] = await Promise.all([
+      lire.lireReactions(lignes.map((l) => l.id)),
+      lireComplementsMessages(c, moi, lignes, contenus, { caches, exclus, lireContenu: lireUn }),
+    ]);
+    const reactions = lues.filter((r) => r.compteId === moi || !caches.has(r.compteId));
+    const personnes = await c.relations.presenter([
+      ...lignes.flatMap((l) => (l.auteurId === null ? [] : [l.auteurId])), ...reactions.map((r) => r.compteId), ...complements.comptes,
+    ]);
     return lignes.map((l) => {
       const parCode: Partial<Record<CodeReaction, string[]>> = {};
       for (const code of CODES_REACTIONS) {
@@ -105,7 +125,9 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
         if (qui.length > 0) parCode[code] = qui;
       }
       const auteur = l.auteurId === null ? null : (personnes.get(l.auteurId) ?? null);
-      return presenterMessage(l, { auteur, contenu: lireContenu(chiffrement, l), reactions: parCode, maintenant });
+      return presenterMessage(l, {
+        auteur, contenu: contenus.get(l.id)!, reactions: parCode, maintenant, reponseA: complements.citation(l, personnes), mentions: complements.mentions(l, personnes),
+      });
     });
   }
 
@@ -148,12 +170,14 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
       lire.lireDerniersMessages(visibles.map((x) => ({ id: x.id, apres: mien.get(x.id)!.visibleApres })), caches, exclus),
       lire.compterNonLus(moi, visibles.map((x) => ({ id: x.id, depuis: Math.max(mien.get(x.id)!.luJusqua, mien.get(x.id)!.visibleApres) })), caches, MAX_COMPTEUR_POULS),
     ]);
-    const messages = new Map((await presenterMessages(moi, [...derniers.values()], caches, maintenant)).map((m) => [Number(m.id), m]));
+    const messages = new Map((await presenterMessages(moi, [...derniers.values()], caches, maintenant, exclus)).map((m) => [Number(m.id), m]));
     const autres = visibles.flatMap((x) => (x.type === "prive" ? (autreDe(x.id)?.compteId ?? []) : []));
-    const [liens, personnes] = await Promise.all([
+    const [liens, personnes, accuses] = await Promise.all([
       c.relations.lireLiens(moi, autres),
       c.relations.presenter([...membres.map((m) => m.compteId), ...invitations.map((i) => i.compteId)]),
+      lire.lireAccusesLecture([...new Set(membres.map((m) => m.compteId))]),
     ]);
+    const montreLu = (m: LigneMembre) => m.compteId !== moi && m.luJusqua > 0 && accuses.has(moi) && accuses.has(m.compteId) && !caches.has(m.compteId);
     return visibles.map((x) => {
       const moiMembre = mien.get(x.id)!;
       const autre = x.type === "prive" ? autreDe(x.id) : undefined;
@@ -163,12 +187,12 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
         .sort(parArrivee)
         .flatMap((m) => {
           const personne = personnes.get(m.compteId);
-          return personne ? [{ personne, role: x.type === "groupe" ? m.role : "membre", depuis: m.arriveLe.toISOString() }] : [];
+          return personne ? [{ personne, role: x.type === "groupe" ? m.role : "membre", depuis: m.arriveLe.toISOString(), ...(montreLu(m) ? { luJusqua: String(m.luJusqua) } : {}) }] : [];
         });
       const invites = invitations.filter((i) => i.conversationId === x.id).flatMap((i) => personnes.get(i.compteId) ?? []);
       const dernier = derniers.get(x.id);
       return presenterConversation({
-        conversation: { id: x.id, type: x.type, version: x.version, dernierMessageLe: x.dernierMessageLe, sortieId: x.sortie?.id ?? null },
+        conversation: { id: x.id, type: x.type, version: x.version, dernierMessageLe: x.dernierMessageLe, sortieId: x.sortie?.id ?? null, photo: x.type === "groupe" && x.photo !== null },
         titre: lireTitre(chiffrement, x),
         emoji: x.type === "sortie" ? (x.sortie?.emoji ?? null) : x.type === "groupe" ? x.emoji : null,
         membres: membresApi,
@@ -176,7 +200,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
         autre: autre ? (personnes.get(autre.compteId) ?? null) : null,
         dernierMessage: dernier ? (messages.get(dernier.id) ?? null) : null,
         nonLus: nonLus.get(x.id) ?? 0,
-        moi: { role: moiMembre.role, luJusqua: moiMembre.luJusqua, coupee: moiMembre.coupee },
+        moi: { role: moiMembre.role, luJusqua: moiMembre.luJusqua, coupee: moiMembre.coupee, epinglee: moiMembre.epingleeLe !== null },
         ouverte: x.type !== "prive" || Boolean(lien && lien.pote && !lien.bloqueParMoi && !lien.mABloque),
       });
     });
@@ -211,17 +235,18 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
     });
   }
 
-  /** La règle d'accès de B.0 : de cette conversation, membre, après mon arrivée, auteur sans blocage avec moi */
-  async function lireMessageVisible(moi: number, conversationId: number, messageId: number): Promise<MessageVisible | null> {
-    const message = await lire.lireMessage(messageId);
+  /** La règle d'accès de B.0 : de cette conversation, membre, après mon arrivée, auteur sans blocage avec moi (lu dans `t`) */
+  async function lireVisible(moi: number, conversationId: number, messageId: number, t: TablesMessagerie = lire): Promise<MessageVisible | null> {
+    const message = await t.lireMessage(messageId);
     if (!message || message.conversationId !== conversationId) return null;
-    const acces = await lireAcces(moi, conversationId);
+    const acces = await lireAcces(moi, conversationId, t);
     if (!acces || message.id <= acces.membre.visibleApres) return null;
-    if (message.auteurId !== null && message.auteurId !== moi && (await lire.bloqueEntre(moi, message.auteurId))) return null;
+    if (message.auteurId !== null && message.auteurId !== moi && (await t.bloqueEntre(moi, message.auteurId))) return null;
     return { message, conversation: acces.conversation, membre: acces.membre };
   }
+  const lireMessageVisible: LireMessageVisible = (moi, conversationId, messageId) => lireVisible(moi, conversationId, messageId);
 
-  return { lireAcces, estOuverte, estAdmin, presenterMessages, presenterConversations, presenterUne, presenterInvitations, lireMessageVisible };
+  return { lireAcces, estOuverte, estAdmin, presenterMessages, presenterConversations, presenterUne, presenterInvitations, lireMessageVisible, lireVisible };
 }
 
 export type LectureMessagerie = ReturnType<typeof creerLectureMessagerie>;

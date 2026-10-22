@@ -63,7 +63,7 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
         ListHeaderComponent={
           <View className="gap-4 pb-3">
             {enTete}
-            <View className="flex-row gap-2.5">
+            <View className="flex-row gap-2">
               {actions.map((a) => (
                 <View key={a.cle} className="relative flex-1">
                   <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
@@ -75,10 +75,10 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
                       vibrerLegerement();
                       a.faire();
                     }}
-                    className={`min-h-12 flex-row items-center justify-center gap-1.5 rounded-full border-2 border-encre px-2 active:translate-x-0.5 active:translate-y-0.5 ${a.fond}`}
+                    className={`min-h-12 flex-row items-center justify-center gap-1.5 rounded-full border-2 border-encre px-0.5 active:translate-x-0.5 active:translate-y-0.5 ${a.fond}`}
                   >
                     <Ionicons name={a.icone} size={16} color={a.teinte} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`shrink font-texte-gras text-[15px] ${a.texte}`}>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className={`shrink font-texte-gras text-sm ${a.texte}`}>
                       {a.libelle}
                     </Text>
                   </Pressable>

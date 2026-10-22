@@ -224,7 +224,7 @@ test("effacerConversations : verrou trié, fichiers lus avant l'effacement, ceux
   const r = await effacerConversations(tx as never, [9, 3, 9, -1, 0], medias);
   assert.equal(r.conversations, 2);
   assert.deepEqual(r.fichiers, [f1, f2, f3]);
-  assert.match(journal[0]!, /^verrou:SELECT id FROM conversations WHERE id IN \(\?\) ORDER BY id FOR UPDATE:\[\[3,9\]\]$/);
+  assert.match(journal[0]!, /^verrou:SELECT id, photo FROM conversations WHERE id IN \(\?\) ORDER BY id FOR UPDATE:\[\[3,9\]\]$/);
   assert.match(journal[1]!, /"conversationId":\{"in":\[3,9\]\}/);
   assert.match(journal[2]!, /"id":\{"in":\[3,9\]\}/);
   assert.equal(medias.fichiers.size, 3, "rien sur le disque avant la fin de la transaction");

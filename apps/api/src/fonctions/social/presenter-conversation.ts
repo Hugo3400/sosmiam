@@ -6,7 +6,7 @@ import type { PersonneResume } from "../../../../../packages/commun/src/types/so
 
 /** Ce qu'il faut pour présenter une conversation à un de ses membres (déjà lu, déchiffré et filtré par le service) */
 export type DonneesConversation = {
-  conversation: { id: number; type: TypeConversation; version: number; dernierMessageLe: Date; sortieId: number | null };
+  conversation: { id: number; type: TypeConversation; version: number; dernierMessageLe: Date; sortieId: number | null; photo: boolean };
   /** Groupe : titre déchiffré (null s'il est illisible) ; sortie : titre de la sortie ; privé : null */
   titre: string | null;
   emoji: string | null;
@@ -18,7 +18,7 @@ export type DonneesConversation = {
   autre: PersonneResume | null;
   dernierMessage: MessageApi | null;
   nonLus: number;
-  moi: { role: RoleConversation; luJusqua: number; coupee: boolean };
+  moi: { role: RoleConversation; luJusqua: number; coupee: boolean; epinglee: boolean };
   ouverte: boolean;
 };
 
@@ -41,5 +41,7 @@ export function presenterConversation(d: DonneesConversation): ConversationApi {
     moi: { role: d.conversation.type === "groupe" ? d.moi.role : "membre" },
     sortieId: d.conversation.sortieId === null ? null : String(d.conversation.sortieId),
     version: d.conversation.version,
+    epinglee: d.moi.epinglee,
+    photo: d.conversation.type === "groupe" && d.conversation.photo,
   };
 }

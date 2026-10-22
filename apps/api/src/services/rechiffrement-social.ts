@@ -136,8 +136,8 @@ async function listerParAge(medias: StockageMediasChat): Promise<FichierMediaCha
  * + MARGE_PART_LIBRE_RECHIFFREMENT (relu avant chaque écriture), ce qui reste d'anciens se compte par dichotomie (disque
  * presque plein : aussi dans `enAttenteDePlace`, pour que le journal du logiciel dise la pause).
  * Un fichier n'est jamais écrasé : le rechiffré prend un nouveau nom (le contexte authentifié en dépend), il est forcé sur
- * le disque (fsync, StockageMediasChat.ecrire), puis la base passe au nouveau nom : le message, et TOUS les signalements qui
- * citent l'ancien, ouverts ou jugés (un signalement jugé depuis moins de 183 jours garde son fichier, décision de Hugo du
+ * le disque (fsync, StockageMediasChat.ecrire), puis la base passe au nouveau nom : le message (ou la photo du groupe), et
+ * TOUS les signalements qui citent l'ancien, ouverts ou jugés (un signalement jugé depuis moins de 183 jours garde son fichier, décision de Hugo du
  * 15/10/2026 : sans suivre le nouveau nom, il perdrait la preuve). L'ancien fichier n'est PAS supprimé ici : un signalement
  * en cours a pu le lire avant la transaction et l'écrire après (il le garde alors, étape 8), et un « Message supprimé » peut
  * le viser au même moment. Plus cité par aucun message ni signalement qui le garde, il part avec les orphelins de plus de
@@ -182,11 +182,12 @@ async function rechiffrerFichiers(
       break;
     }
     await medias.ecrire(nouveau, chiffre);
-    const [messages, signalements] = await base.$transaction([
+    const [messages, photos, signalements] = await base.$transaction([
       base.messageConversation.updateMany({ where: { fichier: ancien }, data: { fichier: nouveau } }),
+      base.conversation.updateMany({ where: { photo: ancien }, data: { photo: nouveau } }),
       base.signalement.updateMany({ where: { fichierMedia: ancien }, data: { fichierMedia: nouveau } }),
     ]);
-    if (messages.count + signalements.count === 0) {
+    if (messages.count + photos.count + signalements.count === 0) {
       // Plus connu de la base (média expiré, conversation effacée entre-temps) : le nouveau, que personne ne cite, part ;
       // l'ancien reste compté jusqu'à ce que l'étape 8 le retire (la nuit suivante)
       await medias.supprimer([nouveau]);
