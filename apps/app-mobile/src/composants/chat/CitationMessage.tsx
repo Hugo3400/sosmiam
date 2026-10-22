@@ -30,11 +30,11 @@ export function CitationMessage({ citation, auteur, deMoi, onPress }: Props) {
       className={`mb-1.5 rounded-xl border-l-4 px-2.5 py-1.5 active:opacity-70 ${deMoi ? "border-nuit bg-lait/60" : "border-jaune bg-creme"}`}
     >
       {auteur && !indisponible ? (
-        <Text numberOfLines={1} className={`font-texte-gras text-[13px] ${deMoi ? "text-nuit" : "text-encre"}`}>
+        <Text selectable={false} numberOfLines={1} className={`font-texte-gras text-[13px] ${deMoi ? "text-nuit" : "text-encre"}`}>
           {auteur}
         </Text>
       ) : null}
-      <Text numberOfLines={2} className={`font-texte text-[13px] leading-[18px] ${deMoi ? "text-nuit/80" : "text-gris"} ${indisponible ? "italic" : ""}`}>
+      <Text selectable={false} numberOfLines={2} className={`font-texte text-[13px] leading-[18px] ${deMoi ? "text-nuit/80" : "text-gris"} ${indisponible ? "italic" : ""}`}>
         {lierPonctuation(vu)}
       </Text>
     </Pressable>

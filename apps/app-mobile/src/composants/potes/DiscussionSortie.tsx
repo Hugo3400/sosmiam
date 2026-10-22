@@ -138,7 +138,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
         data={lignes}
         keyExtractor={(l) => l.message.id}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+        keyboardDismissMode={Platform.OS === "ios" ? "interactive" : Platform.OS === "web" ? "none" : "on-drag"}
         contentContainerClassName="px-4 pb-3 pt-2"
         onScroll={suivreDefilement}
         scrollEventThrottle={100}

@@ -4,6 +4,7 @@ import {
   AccessibilityInfo,
   FlatList,
   Keyboard,
+  Platform,
   Pressable,
   Text,
   View,
@@ -320,7 +321,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
         maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
         keyboardShouldPersistTaps="handled"
         // « interactive » laisserait le champ en l'air pendant le geste (l'écran ne suit le clavier qu'au lâcher)
-        keyboardDismissMode="on-drag"
+        keyboardDismissMode={Platform.OS === "web" ? "none" : "on-drag"}
         contentContainerClassName="px-4 pb-3 pt-2"
         onScroll={suivreDefilement}
         onScrollToIndexFailed={({ index, averageItemLength }) => {

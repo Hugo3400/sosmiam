@@ -12,6 +12,11 @@ type Selection = { start: number; end: number };
 
 export function utiliserMentionsChamp(texte: string, membres: readonly Pote[], onChanger: (texte: string) => void) {
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [texteVu, setTexteVu] = useState(texte);
+  if (texte !== texteVu) {
+    setTexteVu(texte);
+    if (selection && selection.end >= texteVu.length) setSelection(null);
+  }
   const curseur = Math.min(selection?.end ?? texte.length, texte.length);
   const enCours = membres.length > 0 ? trouverMentionEnCours(texte, curseur) : null;
   const recherche = enCours ? normaliserRecherche(enCours.recherche) : null;
