@@ -257,7 +257,7 @@ test("rechiffrement : un illisible va au journal par sa table et son id (ou son 
     $queryRaw: async (morceaux: TemplateStringsArray, ...valeurs: unknown[]) => {
       const { text } = rendre(morceaux, valeurs);
       if (text.includes("count(*)")) return [{ restants: text.includes("messages_conversations") ? 1 : 0 }];
-      return text.includes("FROM messages_conversations") && valeurs.includes(0)
+      return text.includes("FROM messages_conversations WHERE") && valeurs.includes(0)
         ? [{ id: 2003, chiffre: "v1:Q291Y291:bGE:QnJpZ2FkZQ", conversationId: 20, idClient: randomUUID() }] : [];
     },
   } as unknown as BaseMenage;

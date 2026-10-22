@@ -34,7 +34,8 @@ const ECRITURES_REFUSEES = [
   "POST /app/bande/rejoindre",
   "POST /app/bande/demandes",
   "PUT /app/suivis-personnes/abonnements/:personne",
-  // Messagerie : créer, renommer, inviter, écrire, modifier son message, envoyer une photo ou une note vocale, la photo du groupe, réagir
+  // Messagerie : créer, renommer, inviter, écrire, modifier son message, envoyer une photo ou une note vocale, la photo du groupe, réagir,
+  // voter à un sondage ou retirer son vote
   "POST /app/conversations/groupes",
   "PATCH /app/conversations/:id",
   "POST /app/conversations/:id/invites",
@@ -45,6 +46,8 @@ const ECRITURES_REFUSEES = [
   "POST /app/conversations/:id/medias",
   "PUT /app/conversations/:id/photo",
   "PUT /app/conversations/:id/messages/:messageId/reactions/:reaction",
+  "PUT /app/conversations/:id/sondages/:messageId/vote",
+  "DELETE /app/conversations/:id/sondages/:messageId/vote",
   "POST /app/lieux-envoyes",
   // Sorties : créer, inviter, proposer un lieu
   "POST /app/sorties",
