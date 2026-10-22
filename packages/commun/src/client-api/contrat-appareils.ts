@@ -4,7 +4,15 @@
 
 import type { ReponseApi } from "./reponse-api.ts";
 
-export type InscriptionTelephone = { jeton: string; plateforme: "ios" | "android"; /** La ville choisie dans l'app, jamais une position */ ville: string | null; offres: boolean };
+export type InscriptionTelephone = {
+  jeton: string;
+  plateforme: "ios" | "android";
+  /** La ville choisie dans l'app, jamais une position */
+  ville: string | null;
+  offres: boolean;
+  /** Avec un compte connecté : la clé de l'aperçu chiffré des messages (32 octets en base64url), tirée par le téléphone */
+  cleApercu?: string;
+};
 
 export interface ServiceAppareils {
   /** Erreurs : « champ-invalide » */

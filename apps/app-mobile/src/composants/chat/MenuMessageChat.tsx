@@ -33,6 +33,7 @@ type Props = {
   conversationId: string;
   /** Le message visé (à garder tant que la feuille est ouverte : il disparaît de la conversation dès qu'il est signalé) */
   message: MessageChatEnrichi | null;
+  album?: MessageChatEnrichi[] | null;
   /** Son auteur (null si on ne le connaît plus : on peut alors seulement réagir et signaler) */
   auteur: Pote | null;
   /** Ton message : seulement les réactions */
@@ -56,12 +57,17 @@ const DELAI_ANNONCE_REACTION = 400;
 const SUJETS: Record<MessageChat["type"], string> = { texte: "ce message", lieu: "ce lieu partagé", photo: "cette photo", vocal: "cette note vocale", vote: "ce sondage", gif: "ce GIF" };
 
 /** Le message en petit, en haut de la feuille, pour savoir de quoi on parle : ce qu'on voit, et ce que lit le lecteur d'écran (sans emoji) */
-function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undefined): { vu: string; lu: string } {
+function resumer(message: MessageChatEnrichi, nomDuLieu: (id: number) => string | undefined, photos: number): { vu: string; lu: string } {
   if (message.type === "lieu") {
     const nom = (message.lieuId === undefined ? undefined : nomDuLieu(message.lieuId)) ?? "un lieu";
     return { vu: `📍 ${nom}`, lu: `Un lieu partagé : ${nom}` };
   }
-  if (message.type === "photo") return { vu: "📷 Une photo", lu: "Une photo" };
+  if (message.type === "photo") {
+    const nombre = photos > 1 ? `${photos} photos` : "Une photo";
+    return { vu: `📷 ${nombre}${message.legende ? ` · ${message.legende}` : ""}`, lu: `${nombre}${message.legende ? ` : ${message.legende}` : ""}` };
+  }
+  if (message.type === "gif") return { vu: "🎞️ Un GIF", lu: "Un GIF" };
+  if (message.type === "vote") return { vu: `🗳️ ${message.texte ?? "Un sondage"}`, lu: `Un sondage : ${message.texte ?? ""}` };
   if (message.type === "vocal") {
     const duree = message.dureeSecondes ? formaterDureeVocalLue(message.dureeSecondes) : null;
     return { vu: `🎙️ Une note vocale${message.dureeSecondes ? ` · ${formaterDureeVocal(message.dureeSecondes)}` : ""}`, lu: `Une note vocale${duree ? ` de ${duree}` : ""}` };
@@ -74,7 +80,7 @@ function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undef
  * texte », puis, pour le message d'un pote, le signaler ou bloquer son auteur (avec confirmation). Pour tes messages :
  * « Modifier » pendant 15 minutes, et avec un compte, « Supprimer pour tout le monde ».
  */
-export function MenuMessageChat({ visible, conversationId, message, auteur, deMoi, onFermer, onBloque, onAnnoncer, onRepondre, onModifier }: Props) {
+export function MenuMessageChat({ visible, conversationId, message, album, auteur, deMoi, onFermer, onBloque, onAnnoncer, onRepondre, onModifier }: Props) {
   const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
@@ -120,16 +126,21 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   // Fin du signalement : « Fermer » après le merci ferme le menu ; « Retour » sans rien envoyer ramène aux options
   const terminerSignalement = () => (message && !dejaSignale && estSignale(message.id) ? onFermer() : aller("options"));
 
+  const plusieurs = (album?.length ?? 1) > 1;
+
   /** « Supprimer pour tout le monde », après confirmation (sur le web, Alert n'existe pas : on supprime directement) */
   function demanderSuppression() {
     if (!message) return;
     const supprimer = () => {
-      supprimerMessage(conversationId, message.id);
+      (album ?? [message]).filter((m) => !m.etat).forEach((m) => supprimerMessage(conversationId, m.id));
       onFermer();
-      AccessibilityInfo.announceForAccessibility("Message supprimé pour tout le monde.");
+      AccessibilityInfo.announceForAccessibility(plusieurs ? "Photos supprimées pour tout le monde." : "Message supprimé pour tout le monde.");
     };
     if (Platform.OS === "web") return supprimer();
-    Alert.alert("Supprimer ce message ?", "Il disparaît pour tout le monde. Il restera juste « Message supprimé » à sa place.", [
+    const [titre, detail] = plusieurs
+      ? ["Supprimer ces photos ?", "Elles disparaissent toutes pour tout le monde, petit mot compris."]
+      : ["Supprimer ce message ?", "Il disparaît pour tout le monde. Il restera juste « Message supprimé » à sa place."];
+    Alert.alert(titre, detail, [
       { text: "Annuler", style: "cancel" },
       { text: "Supprimer", style: "destructive", onPress: supprimer },
     ]);
@@ -159,14 +170,15 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const enOptions = deMoi || !((vue === "signaler" && message) || (vue === "bloquer" && auteur));
   // Quelqu'un d'un groupe n'est pas forcément dans ta bande : on ne lui annonce pas qu'il en sort
   const dansBande = !!auteur && potes.some((p) => p.id === auteur.id);
-  const sujet = message ? SUJETS[message.type] : "ce message";
+  const sujet = message ? (plusieurs ? "ces photos" : SUJETS[message.type]) : "ce message";
   // Les réactions bougent pendant que la feuille est ouverte (un pote réagit) : on lit la version à jour quand elle existe encore
   const reactions = (message && trouverConversation(conversationId)?.messages.find((m) => m.id === message.id)?.reactions) ?? message?.reactions ?? {};
-  const resume = message ? resumer(message, (id) => trouverLieu(id)?.nom) : null;
+  const avecLegende = album?.find((m) => m.legende) ?? message;
+  const resume = message ? resumer(avecLegende ?? message, (id) => trouverLieu(id)?.nom, album?.length ?? 1) : null;
   // Compte connecté : ton message déjà parti se supprime pour tout le monde (il reste « Message supprimé »)
   const supprimable = deMoi && source === "compte" && !!message && !message.etat;
   const visibleSurMessage = !!message && !message.etat;
-  const texteACopier = visibleSurMessage ? (message.type === "texte" ? message.texte : message.type === "photo" ? message.legende : undefined)?.trim() : undefined;
+  const texteACopier = visibleSurMessage ? (message.type === "texte" ? message.texte : message.type === "photo" ? avecLegende?.legende : undefined)?.trim() : undefined;
   const minutesPourModifier = message && deMoi && message.type === "texte" && !message.etat ? calculerMinutesPourModifier(message.date, new Date()) : 0;
   const communes = [
     ...(onRepondre && visibleSurMessage ? [{ cle: "repondre" as const, emoji: "↩️", titre: T.repondre, detail: T.repondreDetail }] : []),

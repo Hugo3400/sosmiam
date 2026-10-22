@@ -12,6 +12,7 @@ import { observerCompteLimite } from "~/fonctions/compte/observer-compte-limite"
 import { ContexteSession, type ValeurSession } from "~/hooks/utiliser-session";
 import { ADRESSE_API } from "~/services/adresse-api";
 import { signalerCompteLimite } from "~/services/refus-compte-limite";
+import { oublierCleApercu } from "~/stockage/cle-apercu";
 import { effacerJetonSession, enregistrerJetonSession, lireJetonSession } from "~/stockage/session-compte";
 
 /**
@@ -33,6 +34,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
     setJeton(null);
     setCompte(null);
     await effacerJetonSession();
+    await oublierCleApercu();
   }, []);
 
   // Un seul client pour toute l'app : il relit le jeton à chaque demande. Une écriture refusée « compte-limite » est signalée

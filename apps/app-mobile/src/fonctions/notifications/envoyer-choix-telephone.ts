@@ -19,6 +19,7 @@ type OutilsEnvoiTelephone = {
   desinscrire: (jeton: string) => Promise<ReponseApi>;
   enregistrerJeton: (jeton: string) => Promise<void>;
   effacerJeton: () => Promise<void>;
+  lireCleApercu?: () => Promise<string | null>;
 };
 
 function lireJetonSansBloquer(lire: () => Promise<LectureJetonTelephone>): Promise<LectureJetonTelephone | null> {
@@ -55,5 +56,6 @@ export async function envoyerChoixTelephone(choix: ChoixTelephone, o: OutilsEnvo
     await o.enregistrerJeton(telephone.jeton);
   }
   if (!valable()) return "sans-suite";
-  return classerEnvoiOffres(await o.inscrire({ ...telephone, ville: o.ville || null, offres }));
+  const cleApercu = o.lireCleApercu ? await o.lireCleApercu().catch(() => null) : null;
+  return classerEnvoiOffres(await o.inscrire({ ...telephone, ville: o.ville || null, offres, ...(cleApercu ? { cleApercu } : {}) }));
 }

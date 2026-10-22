@@ -239,6 +239,22 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
   }, [phase, animationsReduites, opacite]);
   const stylePoint = useAnimatedStyle(() => ({ opacity: opacite.value }));
 
+  const niveau = mesures.barres[mesures.barres.length - 1] ?? 0;
+  const silence = phase === "enregistrement" && mesures.mesure && mesures.silencieux;
+  const halo = useSharedValue(0.85);
+  useEffect(() => {
+    const cible = phase === "enregistrement" && !silence ? 0.85 + niveau * 0.5 : 0.85;
+    if (animationsReduites) halo.value = 0.85;
+    else halo.value = withTiming(cible, { duration: 140, easing: Easing.out(Easing.quad) });
+  }, [niveau, silence, phase, animationsReduites, halo]);
+  const styleHalo = useAnimatedStyle(() => ({ transform: [{ scale: halo.value }] }));
+
+  const silenceAnnonce = useRef(false);
+  useEffect(() => {
+    if (silence && !silenceAnnonce.current) AccessibilityInfo.announceForAccessibility(T.onEcoute);
+    silenceAnnonce.current = silence;
+  }, [silence]);
+
   const etatTexte = phase === "preparation" ? "Le micro s'échauffe…" : phase === "envoi" ? "Ça part…" : restantes <= ALERTE_SECONDES ? "On conclut !" : "Je t'écoute…";
   const libelleChrono =
     phase === "preparation"
@@ -246,40 +262,62 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
       : `Enregistrement en cours : ${secondes} seconde${secondes > 1 ? "s" : ""} sur ${formaterDureeVocalLue(DUREE_MAX_VOCAL_SECONDES)}`;
 
   return (
-    <View className="flex-row items-center gap-2">
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Annuler la note vocale"
-        accessibilityState={{ disabled: phase === "envoi" }}
-        disabled={phase === "envoi"}
-        onPress={() => void annuler()}
-        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80 ${phase === "envoi" ? "opacity-40" : ""}`}
-      >
-        <Ionicons name="trash-outline" size={20} color={couleurs["rouge-texte"]} />
-      </Pressable>
-
-      <View ref={chrono} accessible accessibilityLabel={libelleChrono} className="min-h-11 flex-1 flex-row items-center gap-2.5 rounded-3xl border-2 border-encre bg-carte px-4 py-2">
-        <View className="h-3 w-3">
-          <Animated.View style={[{ flex: 1, borderRadius: 6, backgroundColor: phase === "preparation" ? couleurs.gris : couleurs["rouge-texte"] }, stylePoint]} />
+    <View className="gap-3">
+      <View className="gap-2.5 rounded-[22px] border-2 border-encre bg-carte px-3.5 py-3">
+        <View ref={chrono} accessible accessibilityLabel={libelleChrono} className="flex-row items-center gap-2">
+          <View className="h-2.5 w-2.5">
+            <Animated.View style={[{ flex: 1, borderRadius: 5, backgroundColor: phase === "preparation" ? couleurs.gris : couleurs.tomate }, stylePoint]} />
+          </View>
+          <Text style={{ fontVariant: ["tabular-nums"] }} className="font-texte-gras text-base text-encre">
+            {formaterChronoEnregistrement(secondes)}
+          </Text>
+          <Text style={{ fontVariant: ["tabular-nums"] }} className="font-texte text-sm text-gris">
+            / {MAX}
+          </Text>
+          <Text numberOfLines={1} className={`flex-1 text-right font-texte text-[13px] ${restantes <= ALERTE_SECONDES && phase === "enregistrement" ? "text-rouge-texte" : "text-gris"}`}>
+            {etatTexte}
+          </Text>
         </View>
-        <Text style={{ fontVariant: ["tabular-nums"] }} className="font-texte-semi text-base text-encre">
-          {formaterChronoEnregistrement(secondes)} / {MAX}
-        </Text>
-        <Text numberOfLines={1} className={`flex-1 font-texte text-sm ${restantes <= ALERTE_SECONDES && phase === "enregistrement" ? "text-rouge-texte" : "text-gris"}`}>
-          {etatTexte}
-        </Text>
+        {mesures.mesure || phase !== "enregistrement" ? <OndeEnDirect barres={mesures.barres} silence={silence} libelle={silence ? T.micSilence : T.micBouge} /> : null}
+        {silence ? (
+          <Text accessibilityLiveRegion="polite" className="font-texte-semi text-sm leading-5 text-rouge-texte">
+            {lierPonctuation(T.onEcoute)}
+          </Text>
+        ) : null}
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={phase === "envoi" ? "Envoi de la note vocale" : "Envoyer la note vocale"}
-        accessibilityState={{ disabled: phase !== "enregistrement" }}
-        disabled={phase !== "enregistrement"}
-        onPress={() => void envoyer()}
-        className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${phase === "preparation" ? "opacity-40" : ""}`}
-      >
-        {phase === "envoi" ? <ActivityIndicator color={couleurs.nuit} /> : <Ionicons name="arrow-up" size={22} color={couleurs.nuit} />}
-      </Pressable>
+      <View className="flex-row items-center justify-between px-1">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Annuler la note vocale"
+          accessibilityState={{ disabled: phase === "envoi" }}
+          disabled={phase === "envoi"}
+          onPress={() => void annuler()}
+          className={`h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80 ${phase === "envoi" ? "opacity-40" : ""}`}
+        >
+          <Ionicons name="trash-outline" size={22} color={couleurs["rouge-texte"]} />
+        </Pressable>
+
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="h-[76px] w-[76px] items-center justify-center">
+          {phase === "enregistrement" && !silence ? (
+            <Animated.View style={[{ position: "absolute", width: 76, height: 76, borderRadius: 38, backgroundColor: couleurs.tomate, opacity: 0.3 }, styleHalo]} />
+          ) : null}
+          <View className={`h-16 w-16 items-center justify-center rounded-full border-2 border-encre ${phase === "preparation" ? "bg-gris" : "bg-tomate"}`}>
+            <Ionicons name="mic" size={28} color={couleurs.lait} />
+          </View>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={phase === "envoi" ? "Envoi de la note vocale" : "Envoyer la note vocale"}
+          accessibilityState={{ disabled: phase !== "enregistrement" }}
+          disabled={phase !== "enregistrement"}
+          onPress={() => void envoyer()}
+          className={`h-[52px] w-[52px] items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${phase === "preparation" ? "opacity-40" : ""}`}
+        >
+          {phase === "envoi" ? <ActivityIndicator color={couleurs.nuit} /> : <Ionicons name="arrow-up" size={24} color={couleurs.nuit} />}
+        </Pressable>
+      </View>
     </View>
   );
 }

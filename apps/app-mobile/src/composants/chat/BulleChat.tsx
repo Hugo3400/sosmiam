@@ -4,9 +4,12 @@ import { AccessibilityInfo, Pressable, Text, View, type PressableProps } from "r
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { AlbumChat } from "~/composants/chat/AlbumChat";
 import { CarteLieuChat } from "~/composants/chat/CarteLieuChat";
 import { CarteMessageSysteme } from "~/composants/chat/CarteMessageSysteme";
+import { CarteSondageChat } from "~/composants/chat/CarteSondageChat";
 import { CitationMessage } from "~/composants/chat/CitationMessage";
+import { GifChat } from "~/composants/chat/GifChat";
 import { GlisserPourRepondre } from "~/composants/chat/GlisserPourRepondre";
 import { NoteVocale } from "~/composants/chat/NoteVocale";
 import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
@@ -14,6 +17,7 @@ import { PhotoChat } from "~/composants/chat/PhotoChat";
 import { ReactionsMessage } from "~/composants/chat/ReactionsMessage";
 import { TexteMessageChat } from "~/composants/chat/TexteMessageChat";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_MEDIAS_CHAT as T_MEDIAS } from "~/contenus/textes-medias-chat";
 import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { decrireEnvoiMessage } from "~/fonctions/chat/decrire-envoi-message";
@@ -32,6 +36,7 @@ import { estGlissementReponseRecent } from "~/services/glissement-reponse";
 type Props = {
   conversationId: string;
   message: MessageChatEnrichi;
+  album: MessageChatEnrichi[] | null;
   /** Qui l'a écrit (null si on ne le connaît plus) */
   auteur: Pote | null;
   deMoi: boolean;
@@ -70,13 +75,16 @@ const DELAI_APPUI_LONG = 350;
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un 😋 ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat(props: Props) {
-  const { conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher } = props;
+  const { conversationId, message, album, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher } = props;
   const { onRepondre, onVoirCitation, pseudos, vu } = props;
   const couleurs = utiliserCouleurs();
-  const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
+  const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause, trouverConversation } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
+  const serie = album ?? [message];
+  const echecs = serie.filter((m) => m.etat === "echec");
   // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, mais « Retirer »
-  const enPause = message.etat === "echec" && envoisEnPause.has(message.id);
+  const enPause = echecs.some((m) => envoisEnPause.has(m.id));
+  const etatEnvoi = echecs.length > 0 ? "echec" : serie.some((m) => m.etat === "envoi") ? "envoi" : null;
   const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
   const dernierAppui = useRef(0);
@@ -209,9 +217,30 @@ export function BulleChat(props: Props) {
     );
   } else if (message.type === "lieu") {
     contenu = <CarteLieuChat conversationId={conversationId} lieuId={message.lieuId} contexte={`${prenom}, ${heure}`} onAppuiLong={onOptions} actionsLecteur={actionsLecteur} />;
+  } else if (message.type === "photo" && ((album && album.length > 1) || serie.some((m) => m.legende))) {
+    contenu = (
+      <AlbumChat
+        conversationId={conversationId}
+        photos={serie}
+        legende={serie.find((m) => m.legende)?.legende}
+        deMoi={deMoi}
+        prenom={prenom}
+        libelle={deMoi ? `Tes photos, ${heure}` : `Photos de ${prenom}, ${heure}`}
+        onAppuiLong={onOptions}
+        onAppuiTexte={appuiSurLaBulle}
+        onDoubleAppui={() => {
+          onDoubleToucher();
+          return basculerCoeur();
+        }}
+        actionsLecteur={actionsLecteur}
+      />
+    );
   } else if (message.type === "photo") {
     contenu = (
       <PhotoChat
+        conversationId={conversationId}
+        message={message}
+        prenom={prenom}
         fichier={fichier}
         libelle={deMoi ? `Ta photo, ${heure}` : `Photo de ${prenom}, ${heure}`}
         deMoi={deMoi}
@@ -230,12 +259,37 @@ export function BulleChat(props: Props) {
         <NoteVocale
           fichier={fichier}
           dureeSecondes={message.dureeSecondes}
+          onde={message.onde}
           libelle={deMoi ? `Ta note vocale, ${heure}` : `Note vocale de ${prenom}, ${heure}`}
           deMoi={deMoi}
           onAppuiLong={onOptions}
           actionsLecteur={actionsLecteur}
         />
       </Pressable>
+    );
+  } else if (message.type === "gif" && message.gif) {
+    contenu = (
+      <GifChat
+        gif={message.gif}
+        deMoi={deMoi}
+        libelle={deMoi ? T_MEDIAS.tonGifLu(heure) : T_MEDIAS.gifLu(prenom, heure)}
+        onPress={appuiSurLaBulle}
+        onAppuiLong={ouvrirOptions}
+        actionsLecteur={actionsLecteur}
+      />
+    );
+  } else if (message.type === "vote" && message.vote) {
+    contenu = (
+      <CarteSondageChat
+        conversationId={conversationId}
+        messageId={message.id}
+        vote={message.vote}
+        deMoi={deMoi}
+        participants={trouverConversation(conversationId)?.participants ?? []}
+        maintenant={maintenant}
+        onAppuiLong={ouvrirOptions}
+        actionsLecteur={actionsLecteur}
+      />
     );
   } else {
     const texte = message.texte ?? "";
@@ -315,20 +369,20 @@ export function BulleChat(props: Props) {
             {bulle}
             <ReactionsMessage conversationId={conversationId} message={message} deMoi />
             {enPause ? (
-              <PauseMessageLimite onRetirer={() => retirerEnPause(message.id)} />
-            ) : message.etat === "echec" ? (
+              <PauseMessageLimite onRetirer={() => echecs.forEach((m) => retirerEnPause(m.id))} />
+            ) : etatEnvoi === "echec" ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Pas parti. Touche pour réessayer."
                 onPress={() => {
                   vibrerLegerement();
-                  renvoyer(conversationId, message.id);
+                  echecs.forEach((m) => renvoyer(conversationId, m.id));
                 }}
                 className="mt-0.5 min-h-8 justify-center active:opacity-70"
               >
                 <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
               </Pressable>
-            ) : message.etat === "envoi" ? (
+            ) : etatEnvoi === "envoi" ? (
               <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
                 Envoi…
               </Text>

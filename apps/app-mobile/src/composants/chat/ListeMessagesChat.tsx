@@ -89,7 +89,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
   // Messages des potes arrivés pendant que tu relisais plus haut
   const [nouveaux, setNouveaux] = useState(0);
   // Le message du menu reste gardé pendant que la feuille se referme (il disparaît de la liste dès qu'il est signalé)
-  const [menu, setMenu] = useState<{ message: MessageChatEnrichi; auteur: Pote | null; deMoi: boolean } | null>(null);
+  const [menu, setMenu] = useState<{ message: MessageChatEnrichi; album: MessageChatEnrichi[] | null; auteur: Pote | null; deMoi: boolean } | null>(null);
   const [surligne, setSurligne] = useState<string | null>(null);
   const minuterieSurlignage = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [menuOuvert, setMenuOuvert] = useState(false);
@@ -220,7 +220,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
   const ouvrirMenu = useCallback((ligne: LigneDiscussion) => {
     // Le clavier cacherait le bas de la feuille
     Keyboard.dismiss();
-    setMenu({ message: ligne.message, auteur: ligne.auteur, deMoi: ligne.deMoi });
+    setMenu({ message: ligne.message, album: ligne.album, auteur: ligne.auteur, deMoi: ligne.deMoi });
     setMenuOuvert(true);
   }, []);
 
@@ -235,6 +235,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
         <BulleChat
           conversationId={conversationId}
           message={item.message}
+          album={item.album}
           auteur={item.auteur}
           deMoi={item.deMoi}
           heure={item.heure}
@@ -363,6 +364,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
         visible={menuOuvert}
         conversationId={conversationId}
         message={menu?.message ?? null}
+        album={menu?.album ?? null}
         auteur={menu?.auteur ?? null}
         deMoi={menu?.deMoi ?? false}
         onFermer={() => setMenuOuvert(false)}

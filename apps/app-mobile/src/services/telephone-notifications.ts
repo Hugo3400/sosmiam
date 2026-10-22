@@ -14,6 +14,7 @@ type OutilsTelephone = {
   plateforme: string;
   lireJeton: () => Promise<LectureJetonTelephone>;
   demanderAutorisation: () => Promise<void>;
+  lireCleApercu?: () => Promise<string | null>;
   renvoi?: typeof renvoiChoixOffres;
 };
 
@@ -33,6 +34,7 @@ export function creerTelephoneNotifications(o: OutilsTelephone) {
         desinscrire: (jeton) => o.appareils.desinscrire(jeton),
         enregistrerJeton: enregistrerJetonPush,
         effacerJeton: effacerJetonPush,
+        lireCleApercu: o.lireCleApercu,
       },
       valable,
     );

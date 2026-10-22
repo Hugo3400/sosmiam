@@ -35,6 +35,11 @@ export async function obtenirCleApercu(): Promise<string | null> {
   }
 }
 
+export async function lireCleApercuPourServeur(): Promise<string | null> {
+  const cle = await obtenirCleApercu();
+  return cle ? cle.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") : null;
+}
+
 export async function oublierCleApercu(): Promise<void> {
   if (Platform.OS === "web") return;
   try {
