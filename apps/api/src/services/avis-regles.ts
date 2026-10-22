@@ -146,7 +146,8 @@ export interface TablesAvis {
    * jamais chez un lieu non publié ou de `lieuxExclus`, jamais un avis qu'il a déjà relu ni un avis qui a déjà `verdictsMax`
    * verdicts « ok » ou « louche »
    */
-  listerARelire(ambassadeurId: number, lieuxExclus: number[], verdictsMax: number, limite: number): Promise<LigneAvis[]>;
+  listerARelire(ambassadeurId: number, lieuxExclus: number[], auteursExclus: number[], verdictsMax: number, limite: number): Promise<LigneAvis[]>;
+  listerPotes(compteId: number): Promise<number[]>;
   /** « deja » : cet ambassadeur a déjà rendu son verdict sur cet avis */
   ajouterRelecture(avisId: number, ambassadeurId: number, verdict: VerdictRelecture, le: Date): Promise<"ok" | "deja">;
   compterVerdicts(avisId: number): Promise<number>;

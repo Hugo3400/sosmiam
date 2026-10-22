@@ -138,10 +138,10 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
       return avis?.creeLe ?? null;
     },
 
-    async listerARelire(ambassadeurId, lieuxExclus, verdictsMax, limite) {
+    async listerARelire(ambassadeurId, lieuxExclus, auteursExclus, verdictsMax, limite) {
       const avis = await b.avis.findMany({
         where: {
-          statut: "en-relecture", compteId: { not: ambassadeurId }, lieuId: { notIn: lieuxExclus },
+          statut: "en-relecture", compteId: { notIn: [ambassadeurId, ...auteursExclus] }, lieuId: { notIn: lieuxExclus },
           lieu: { statut: "publie" }, relectures: { none: { ambassadeurId } },
         },
         orderBy: { id: "asc" },
@@ -150,6 +150,9 @@ function creerTables(b: Client, enTransaction: boolean): TablesAvis {
         include: { ...INCLURE, _count: { select: { relectures: { where: { verdict: { in: ["ok", "louche"] } } } } } },
       });
       return avis.filter((a) => a._count.relectures < verdictsMax).slice(0, limite).map(({ _count, ...a }) => versAvis(a));
+    },
+    async listerPotes(compteId) {
+      return (await b.membreBande.findMany({ where: { compteId }, select: { poteId: true } })).map((l) => l.poteId);
     },
     async ajouterRelecture(avisId, ambassadeurId, verdict, le) {
       // Un verdict par ambassadeur et par avis (contrainte unique) : un doublon est ignoré, sans erreur

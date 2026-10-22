@@ -14,6 +14,7 @@ import { EcranPopUps } from "~/ecrans/pop-ups/EcranPopUps.tsx";
 import { EcranCommunaute } from "~/ecrans/communaute/EcranCommunaute.tsx";
 import { EcranCarriere } from "~/ecrans/carriere/EcranCarriere.tsx";
 import { EcranChasseAuxBugs } from "~/ecrans/securite/EcranChasseAuxBugs.tsx";
+import { EcranVersionsApp } from "~/ecrans/versions-app/EcranVersionsApp.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
@@ -189,6 +190,7 @@ export function Application() {
           {ecran === "communaute" && <EcranCommunaute />}
           {ecran === "carriere" && <EcranCarriere onDecision={actualiserAlertes} />}
           {ecran === "chasse-aux-bugs" && <EcranChasseAuxBugs onDecision={actualiserAlertes} />}
+          {ecran === "versions-app" && <EcranVersionsApp />}
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
           {ecran === "serveurs" && <EcranServeurs />}
           {ecran === "reglages" && (

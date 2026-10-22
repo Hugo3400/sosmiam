@@ -29,6 +29,7 @@ export function creerAvisEnMemoire() {
   const visites: LigneVisite[] = [];
   const avis: AvisEnMemoire[] = [];
   const relectures: RelectureEnMemoire[] = [];
+  const potes = new Map<number, Set<number>>();
   const pointsPhoto: MouvementPointsEnMemoire[] = [];
   /** Le total des points de chaque compte (absent : 0), posé par les tests */
   const pointsComptes = new Map<number, number>();
@@ -127,14 +128,17 @@ export function creerAvisEnMemoire() {
       return dates.length > 0 ? new Date(Math.max(...dates)) : null;
     },
 
-    async listerARelire(ambassadeurId, lieuxExclus, verdictsMax, limite) {
+    async listerARelire(ambassadeurId, lieuxExclus, auteursExclus, verdictsMax, limite) {
       return avis
-        .filter((a) => a.statut === "en-relecture" && a.compteId !== ambassadeurId && !lieuxExclus.includes(a.lieuId) && lieux.get(a.lieuId)?.publie
+        .filter((a) => a.statut === "en-relecture" && a.compteId !== ambassadeurId && !auteursExclus.includes(a.compteId) && !lieuxExclus.includes(a.lieuId) && lieux.get(a.lieuId)?.publie
           && !relectures.some((r) => r.avisId === a.id && r.ambassadeurId === ambassadeurId)
           && relectures.filter((r) => r.avisId === a.id && r.verdict !== "deporte").length < verdictsMax)
         .sort((a, b) => a.id - b.id)
         .slice(0, limite)
         .map(versLigne);
+    },
+    async listerPotes(compteId) {
+      return [...(potes.get(compteId) ?? [])];
     },
     async ajouterRelecture(avisId, ambassadeurId, verdict, le) {
       if (relectures.some((r) => r.avisId === avisId && r.ambassadeurId === ambassadeurId)) return "deja";
@@ -226,5 +230,5 @@ export function creerAvisEnMemoire() {
       ouvertes.delete(jeton);
     }
   }
-  return { depot, transaction, lieux, comptes, visites, avis, relectures, pointsPhoto, pointsComptes };
+  return { depot, transaction, lieux, comptes, visites, avis, relectures, potes, pointsPhoto, pointsComptes };
 }

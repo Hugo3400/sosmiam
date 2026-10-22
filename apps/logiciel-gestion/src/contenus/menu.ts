@@ -1,13 +1,13 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  AppWindow, Bell, Briefcase, Bug, Lightbulb, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Power, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
+  AppWindow, Bell, Briefcase, Bug, Smartphone, Lightbulb, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Power, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis" | "pop-ups" | "communaute" | "carriere" | "chasse-aux-bugs" | "serveurs";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis" | "pop-ups" | "communaute" | "carriere" | "chasse-aux-bugs" | "versions-app" | "serveurs";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -39,6 +39,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
       { ecran: "defis", libelle: "Défis", icone: Target },
       { ecran: "notifications", libelle: "Notifications", icone: Bell },
       { ecran: "pop-ups", libelle: "Pop-ups de l'app", icone: AppWindow },
+      { ecran: "versions-app", libelle: "Versions de l'app", icone: Smartphone },
     ],
   },
   {
