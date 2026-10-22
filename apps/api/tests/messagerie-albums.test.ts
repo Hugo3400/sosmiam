@@ -67,6 +67,9 @@ test("plusieurs photos d'un coup : un album (10 au plus), un petit mot chiffré,
   assert.equal(fil.messages.find((m: { id: string }) => m.id === message.id).legende, legende);
   const intrus = await envoyer(b, id, PHOTO, "image/jpeg", { "X-Album": album });
   assert.deepEqual([intrus.statut, corps(intrus).champ], [400, "album"], "l'album d'un autre");
+  const exporte = (await a.demander("GET", "/app/social/export")).corps.export;
+  const mesPhotos = exporte.conversations.find((c: { id: string }) => c.id === id).messages.filter((m: { type: string }) => m.type === "photo");
+  assert.deepEqual(mesPhotos.map((m: { texte: string | null }) => m.texte), [legende, ...Array(MAX_PHOTOS_ALBUM - 1).fill(null)], "le petit mot dans « Télécharger mes données »");
 });
 
 test("petit mot et album : formes refusées ; mot interdit ; l'onde d'une note vocale (16 à 48 chiffres)", async () => {

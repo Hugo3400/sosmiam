@@ -1,7 +1,7 @@
 // Messagerie entre potes (spécification sociale B.4, B.8, D.2) : privé, groupes, discussions des sorties, messages, médias et
-// lieux envoyés. Les règles sont écrites UNE fois (messagerie.ts, messagerie-messages.ts, messagerie-medias.ts,
-// lieux-envoyes.ts), au-dessus des gestes élémentaires de TablesMessagerie : la base les fait dans messagerie-tables*.ts, le
-// double des tests dans messagerie-en-memoire.ts. Ce fichier donne le contrat du service, les lignes lues et les gestes.
+// lieux envoyés. Les règles sont écrites UNE fois (messagerie.ts et ses fichiers messagerie-*.ts, lieux-envoyes.ts),
+// au-dessus des gestes élémentaires de TablesMessagerie : la base les fait dans messagerie-tables*.ts, le double des tests
+// dans messagerie-en-memoire.ts. Ce fichier donne le contrat du service, les lignes lues et les gestes.
 // Entrer dans un groupe demande d'accepter une invitation (réponse de Hugo du 14/10/2026, comme une sortie) : un invité
 // n'est pas membre, il ne voit ni les messages ni les membres. Aucune règle d'âge : l'app est réservée aux majeurs.
 import type {

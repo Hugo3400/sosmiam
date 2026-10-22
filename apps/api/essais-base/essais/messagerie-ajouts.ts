@@ -44,29 +44,29 @@ const inserer = async (m: Partial<LigneMessage> & Pick<LigneMessage, "conversati
   return ligne;
 };
 
-const cite = await inserer({ conversationId: 1, type: "texte", texteChiffre: "v1:x" });
+const cite = await inserer({ conversationId: 1, type: "texte", texteChiffre: "v2:x" });
 const album = randomUUID();
 const photo = (o: Partial<LigneMessage> = {}) => inserer({
   conversationId: 1, type: "photo", fichier: medias.tirerNom(), typeMime: "image/jpeg", taille: 10, largeur: 1, hauteur: 1,
   mediaExpireLe: new Date(T.getTime() + 90 * JOUR), album, ...o,
 });
-const reponse = await inserer({ conversationId: 1, auteurId: 11, type: "texte", texteChiffre: "v1:y", reponseAId: cite.id });
+const reponse = await inserer({ conversationId: 1, auteurId: 11, type: "texte", texteChiffre: "v2:y", reponseAId: cite.id });
 const vocal = await inserer({ conversationId: 1, type: "vocal", onde: "0123456789012345", fichier: medias.tirerNom(), typeMime: "audio/mp4", mediaExpireLe: new Date(T.getTime() + 90 * JOUR) });
 const p1 = await photo();
 const p2 = await photo({ auteurId: 11 });
 const p3 = await photo({ supprimeLe: T, fichier: null });
 const p4 = await photo({ mediaExpireLe: new Date(T.getTime() - JOUR) });
-const lieu = await inserer({ conversationId: 1, type: "lieu", texteChiffre: "v1:z" });
-await inserer({ conversationId: 1, type: "lieu", texteChiffre: "v1:z", retireLe: T });
+const lieu = await inserer({ conversationId: 1, type: "lieu", texteChiffre: "v2:z" });
+const retire = await inserer({ conversationId: 1, type: "lieu", texteChiffre: "v2:z", retireLe: T });
 egal([reponse.reponseAId, vocal.onde, p1.album, reponse.modifieLe, reponse.systeme], [cite.id, "0123456789012345", album, null, null], "les nouvelles colonnes, rendues par l'INSERT");
 
-await t.modifierMessage(cite.id, { texteChiffre: "v1:w", modifieLe: T });
+await t.modifierMessage(cite.id, { texteChiffre: "v2:w", modifieLe: T });
 const relu = (await t.lireMessage(cite.id))!;
 vrai(relu.modifieLe instanceof Date && relu.modifieLe.getTime() === T.getTime(), "modifie_le relu en Date");
-const derniers = await t.lireDerniersMessages([{ id: 1, apres: 0 }], new Set(), new Set([p4.id + 2]));
+const derniers = await t.lireDerniersMessages([{ id: 1, apres: 0 }], new Set(), new Set([retire.id]));
 const dernier = derniers.get(1)!;
 egal([dernier.id, dernier.type, dernier.reponseAId, dernier.album, dernier.onde, dernier.systeme], [lieu.id, "lieu", null, null, null, null], "COLONNES de la requête brute");
-const avecReponse = await t.lireDerniersMessages([{ id: 1, apres: 0 }], new Set([10]), new Set([p4.id + 2, lieu.id]));
+const avecReponse = await t.lireDerniersMessages([{ id: 1, apres: 0 }], new Set([10]), new Set([p2.id]));
 egal([avecReponse.get(1)!.id, avecReponse.get(1)!.reponseAId, avecReponse.get(1)!.modifieLe], [reponse.id, cite.id, null], "reponse_a_id lu par la requête brute");
 const envoyes = await t.listerLieuxEnvoyes(11, "recus", { caches: new Set(), exclus: new Set() }, null, 10);
 egal(envoyes.map((l) => [l.message.id, l.message.modifieLe, l.message.systeme]), [[lieu.id, null, null]]);
@@ -105,10 +105,8 @@ egal([medias.fichiers.has(photoGroupe), medias.fichiers.has(orphelin)], [true, f
 const ancienne = randomBytes(32);
 const v1 = creerChiffrementSocial(creerChiffrementDonnees(ancienne))!;
 const v2 = creerChiffrementDonnees(randomBytes(32), { version: 2, anciennes: [{ version: 1, cle: ancienne }] });
-await medias.ecrire(photoGroupe, v1.chiffrerOctets(Buffer.from("photo"), photoGroupe)).catch(async () => {
-  await medias.supprimer([photoGroupe]);
-  await medias.ecrire(photoGroupe, v1.chiffrerOctets(Buffer.from("photo"), photoGroupe));
-});
+await medias.supprimer([photoGroupe]);
+await medias.ecrire(photoGroupe, v1.chiffrerOctets(Buffer.from("photo"), photoGroupe));
 await rechiffrerSocial(v2, medias, base, { fichiersParNuit: 10 });
 const rechiffree = (await t.lireConversations([4])).get(4)!.photo!;
 vrai(rechiffree !== photoGroupe && medias.fichiers.has(rechiffree), "le rechiffrement suit la photo du groupe");
