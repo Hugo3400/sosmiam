@@ -37,7 +37,7 @@ export type MessageApi = {
   /** null : compte supprimé (« Compte supprimé »), ou message de SOS Miam (systeme présent) */
   auteur: PersonneResume | null;
   date: string;
-  type: "texte" | "lieu" | "photo" | "vocal";
+  type: "texte" | "lieu" | "photo" | "vocal" | "vote" | "gif";
   /** Texte, ou mot d'un lieu envoyé ; null si l'état n'est pas « visible » */
   texte: string | null;
   /** Lieu d'un message « lieu » (déchiffré avec le mot) ; l'app dit « Ce lieu n'est plus là » s'il n'est plus publié */

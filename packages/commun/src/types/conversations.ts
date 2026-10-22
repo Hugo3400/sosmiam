@@ -11,7 +11,7 @@ export type MessageChat = {
   auteur: string;
   /** Date d'envoi (ISO) */
   date: string;
-  type: "texte" | "lieu" | "photo" | "vocal";
+  type: "texte" | "lieu" | "photo" | "vocal" | "vote" | "gif";
   texte?: string;
   /** Lieu partagé (type « lieu ») */
   lieuId?: number;

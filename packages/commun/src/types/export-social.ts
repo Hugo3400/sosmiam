@@ -42,7 +42,7 @@ export type ExportSocialApi = {
    * tes messages restent. messages : les tiens seulement ; pour une photo ou un vocal, la taille (le fichier n'est pas joint)
    */
   conversations: { id: string; type: TypeConversation; titre: string | null; membres: string[];
-    messages: { date: string; type: "texte" | "lieu" | "photo" | "vocal"; texte: string | null; lieuId: number | null; taille: number | null }[] }[];
+    messages: { date: string; type: "texte" | "lieu" | "photo" | "vocal" | "vote" | "gif"; texte: string | null; lieuId: number | null; taille: number | null }[] }[];
   /**
    * Les invitations à des groupes que tu n'as pas acceptées : en attente (« invite ») ou refusées (« refuse »). titre : celui
    * d'une invitation en attente seulement (null pour un refus, ou si celui qui t'invite a un blocage avec toi)
