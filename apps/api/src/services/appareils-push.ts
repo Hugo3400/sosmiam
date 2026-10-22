@@ -2,11 +2,14 @@
 // plateforme, la ville choisie dans l'app et, si la personne est connectée, son compte et la session qui l'a inscrit. Quand cette
 // session se ferme, la base remet sessionId à null : le téléphone ne reçoit plus rien du compte (prevenirCompte).
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
+import { lireApercusBranches, type ApercusPush } from "./notifications/apercus-push.ts";
 
 export type InscriptionAppareil = {
   jeton: string; plateforme: "ios" | "android"; ville: string | null; offres: boolean; compteId: number | null;
   /** Empreinte SHA-256 du jeton de la session valable qui inscrit le téléphone (jamais le jeton), ou null sans session */
   empreinteSession: string | null;
+  /** La clé de l'aperçu chiffré des messages, tirée par le téléphone (32 octets) ; absente : texte neutre seulement */
+  cleApercu: Uint8Array | null;
 };
 
 /** Clé étrangère qui ne mène plus à rien (Prisma P2003) : ici, la session fermée entre la lecture et l'écriture */
@@ -16,15 +19,20 @@ const estCleEtrangereManquante = (erreur: unknown) => typeof erreur === "object"
  * Inscrit (ou rafraîchit) un téléphone : un même jeton n'existe qu'une fois, et redevient actif s'il revient. Avec une session,
  * il y est lié (sessionId) ; sans session, il est détaché (compteId et sessionId à null).
  */
-export async function inscrireAppareil({ jeton, plateforme, ville, offres, compteId, empreinteSession }: InscriptionAppareil, maintenant = new Date()) {
+export async function inscrireAppareil(
+  { jeton, plateforme, ville, offres, compteId, empreinteSession, cleApercu }: InscriptionAppareil,
+  maintenant = new Date(),
+  apercus: ApercusPush | null = lireApercusBranches(),
+) {
   const session = compteId !== null && empreinteSession
     ? await baseDeDonnees.sessionCompte.findFirst({ where: { empreinte: empreinteSession, compteId }, select: { id: true } })
     : null;
   const accord = offres ? { offresAcceptees: true } : { offresAcceptees: false, offresAccepteesLe: null };
+  const cleApercuChiffree = cleApercu && compteId !== null && apercus ? apercus.garderCle(cleApercu, jeton) : null;
   const ecrire = (sessionId: number | null) => baseDeDonnees.appareilPush.upsert({
     where: { jeton },
-    create: { jeton, plateforme, ville, compteId, sessionId, offresAcceptees: offres, offresAccepteesLe: offres ? maintenant : null },
-    update: { plateforme, ville, compteId, sessionId, actif: true, vuLe: maintenant, ...accord },
+    create: { jeton, plateforme, ville, compteId, sessionId, offresAcceptees: offres, offresAccepteesLe: offres ? maintenant : null, cleApercuChiffree },
+    update: { plateforme, ville, compteId, sessionId, actif: true, vuLe: maintenant, cleApercuChiffree, ...accord },
   });
   try {
     await ecrire(session?.id ?? null);

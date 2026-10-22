@@ -32,8 +32,10 @@ function sessionFacultative(protection: ProtectionComptes): RequestHandler {
  *
  * PUT    /app/appareils { jeton (20 à 400 caractères [A-Za-z0-9:_-]), plateforme: "ios" | "android", ville?: string | null
  *          (80 caractères ; la ville choisie dans l'app, jamais une position), offres?: boolean (accord pour les offres des
- *          lieux ; absent : non) } → 200 { ok } : inscrit ou met à jour (un même jeton n'existe qu'une fois et redevient
- *          actif) · 400 champ-invalide { champ: jeton | plateforme | ville | offres }.
+ *          lieux ; absent : non), cleApercu?: string | null (32 octets en base64url, tirés par le téléphone : la clé de
+ *          l'aperçu chiffré des messages, gardée chiffrée ; absente : le téléphone n'en a plus, texte neutre seulement) }
+ *          → 200 { ok } : inscrit ou met à jour (un même jeton n'existe qu'une fois et redevient actif)
+ *          · 400 champ-invalide { champ: jeton | plateforme | ville | offres | cleApercu }.
  *          Session facultative (Authorization: Bearer ou X-Session-Compte) : valable, le téléphone est lié à ce compte ;
  *          absente, invalide ou expirée, il est inscrit sans compte (jamais de 401). Le compte ne vient jamais du corps.
  * DELETE /app/appareils { jeton } → 200 { ok } : le téléphone est oublié tout de suite (déjà oublié : rien ne change)

@@ -13,6 +13,7 @@ export type DependancesAppareils = {
 /** Jeton APNs (64 caractères hexadécimaux) ou FCM (plus long, avec « : », « _ », « - ») */
 const FORME_JETON_APPAREIL = /^[A-Za-z0-9:_-]{20,400}$/;
 const VILLE_MAX = 80;
+const FORME_CLE_APERCU = /^[A-Za-z0-9_-]{43}$/;
 
 const refuser = (reponse: Response, champ: string) => reponse.status(400).json({ ok: false, erreur: "champ-invalide", champ });
 
@@ -32,12 +33,17 @@ export function creerControleursAppareils(d: DependancesAppareils) {
       const ville = typeof corps.ville === "string" ? corps.ville.replace(/\s+/g, " ").trim() : "";
       if (ville.length > VILLE_MAX) return refuser(reponse, "ville");
       if (corps.offres !== undefined && typeof corps.offres !== "boolean") return refuser(reponse, "offres");
+      if (corps.cleApercu !== undefined && corps.cleApercu !== null && (typeof corps.cleApercu !== "string" || !FORME_CLE_APERCU.test(corps.cleApercu))) {
+        return refuser(reponse, "cleApercu");
+      }
+      const cleApercu = typeof corps.cleApercu === "string" ? Buffer.from(corps.cleApercu, "base64url") : null;
+      if (cleApercu && cleApercu.length !== 32) return refuser(reponse, "cleApercu");
       const compte = reponse.locals.compte as CompteSession | undefined;
       // Session valable seulement (la protection l'a vérifiée) ; absente, invalide ou expirée : ni compte, ni session
       const jetonSession = compte ? lireJetonSession(requete) : null;
       await d.inscrire({
         jeton, plateforme: corps.plateforme, ville: ville || null, offres: corps.offres === true, compteId: compte?.id ?? null,
-        empreinteSession: jetonSession ? calculerEmpreinteJeton(jetonSession) : null,
+        empreinteSession: jetonSession ? calculerEmpreinteJeton(jetonSession) : null, cleApercu,
       });
       reponse.json({ ok: true });
     },

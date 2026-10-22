@@ -4,11 +4,13 @@
 // (rejoué : rien de nouveau, aucune notification), lieu publié, droit d'écrire, version + 1, puis l'INSERT. Chaque autre
 // membre est prévenu sur son téléphone (hors anti-spam, décision 4), sauf s'il a coupé la conversation, coupé les
 // notifications sociales, ou s'il y a un blocage entre vous ; dans un groupe ou une sortie, une personne mentionnée
-// (« @pseudo ») l'est même si elle a coupé la conversation. Jamais le texte d'un message dans une notification ni au journal.
+// (« @pseudo ») l'est même si elle a coupé la conversation. Le texte d'un message ne part dans une notification que chiffré
+// pour le téléphone (réglage « Le message en entier », prevenirCompte), et jamais au journal.
 import { DELAI_MODIFICATION_MESSAGE_MINUTES, MAX_CONVERSATIONS_EPINGLEES, QUESTION_SONDAGE } from "../../../../packages/commun/src/regles/chat.ts";
 import type { CodeReaction, MessageApi } from "../../../../packages/commun/src/types/messagerie.ts";
 import { chiffrerLieuSondage } from "../fonctions/social/chiffrer-lieu-sondage.ts";
 import { ecrireGifMessage } from "../fonctions/social/ecrire-gif-message.ts";
+import { ecrireApercuMessage } from "../fonctions/social/ecrire-apercu-message.ts";
 import { ecrirePushMention } from "../fonctions/social/ecrire-push-mention.ts";
 import { ecrirePushMessage } from "../fonctions/social/ecrire-push-message.ts";
 import { trouverMentionnes } from "../fonctions/social/trouver-mentionnes.ts";
@@ -30,7 +32,7 @@ export const SANS_AJOUTS = { reponseAId: null, modifieLe: null, album: null, ond
 
 export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureMessagerie) {
   /** Les notifications d'un nouveau message : les autres membres, sans ceux qui ont coupé, ni blocage, ni pushSocial faux */
-  async function prevenir(moi: number, acces: AccesConversation, message: LigneMessage, membres: readonly LigneMembre[], o: { texte: string | null; discret: boolean }): Promise<EffetSocial[]> {
+  async function prevenir(moi: number, acces: AccesConversation, message: LigneMessage, membres: readonly LigneMembre[], o: { texte: string | null; apercu: string | null; discret: boolean }): Promise<EffetSocial[]> {
     const { caches } = await c.relations.listerBlocages(moi);
     const autres = membres.filter((m) => m.compteId !== moi && !caches.has(m.compteId));
     const chercher = acces.conversation.type !== "prive" && o.texte !== null && o.texte.includes("@");
@@ -42,22 +44,27 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
     })) : []);
     const candidats = autres.filter((m) => mentionnes.has(m.compteId) || (!o.discret && !m.coupee)).map((m) => m.compteId);
     const veulent = candidats.length > 0 ? await c.relations.lirePushSocial(candidats) : new Set<number>();
+    const avecApercu = candidats.length > 0 && o.apercu ? await c.relations.lireApercuMessages(candidats) : new Set<number>();
     const prenom = personnes.get(moi)?.prenom ?? "Un pote";
     const conversation = { id: acces.conversation.id, type: acces.conversation.type, titre: lireTitre(exigerChiffrement(c), acces.conversation) };
     const sortieId = acces.conversation.sortie?.id ?? null;
     const push = ecrirePushMessage({ prenom, type: message.type, conversation, sortieId });
     const pushMention = ecrirePushMention({ prenom, conversation, sortieId });
+    const apercu = (titre: string) => ecrireApercuMessage({ prenom, type: message.type, texte: o.apercu, titre, conversation });
+    const apercus = { message: apercu(push.titre), mention: apercu(pushMention.titre) };
     const cible = { type: "conversation" as const, id: String(acces.conversation.id) };
     return [
       ...[...mentionnes].map((compteId): EffetSocial => ({ quoi: "cloche", notification: { compteId, type: "mention", acteurId: moi, cible } })),
-      ...candidats.filter((id) => veulent.has(id)).map((compteId): EffetSocial => ({
-        quoi: "push", compteId, message: mentionnes.has(compteId) ? pushMention : push, sorte: "message",
-      })),
+      ...candidats.filter((id) => veulent.has(id)).map((compteId): EffetSocial => {
+        const base = mentionnes.has(compteId) ? pushMention : push;
+        const texte = mentionnes.has(compteId) ? apercus.mention : apercus.message;
+        return { quoi: "push", compteId, message: texte && avecApercu.has(compteId) ? { ...base, apercu: texte } : base, sorte: "message" };
+      }),
     ];
   }
 
   /** La suite commune d'un envoi (texte, lieu, photo, note vocale) : le message présenté, ses effets s'il est nouveau */
-  async function terminerEnvoi(moi: number, acces: AccesConversation, issue: IssueEnvoi, maintenant: Date, texte: string | null = null): Promise<ResultatEnvoi> {
+  async function terminerEnvoi(moi: number, acces: AccesConversation, issue: IssueEnvoi, maintenant: Date, texte: string | null = null, apercu: string | null = texte): Promise<ResultatEnvoi> {
     if ("refus" in issue) return refus(issue.refus);
     const { caches } = await c.relations.listerBlocages(moi);
     const ligne = "deja" in issue ? issue.deja : issue.message;
@@ -66,7 +73,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
       const version = (await c.depot.lire.lireConversations([acces.conversation.id])).get(acces.conversation.id)?.version ?? acces.conversation.version;
       return { ok: true, message, version, rejoue: true, effets: [] };
     }
-    const effets = await prevenir(moi, acces, issue.message, issue.membres, { texte, discret: issue.discret === true });
+    const effets = await prevenir(moi, acces, issue.message, issue.membres, { texte, apercu, discret: issue.discret === true });
     return { ok: true, message, version: issue.version, rejoue: false, effets };
   }
 
@@ -126,7 +133,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
         }
         return { message, version, membres: await t.lireMembres([conversationId]) };
       });
-      return terminerEnvoi(moi, acces, issue, maintenant, m.type === "texte" ? m.texte : null);
+      return terminerEnvoi(moi, acces, issue, maintenant, m.type === "texte" ? m.texte : null, m.type === "texte" || m.type === "lieu" ? m.texte : null);
     },
 
     async modifierMessage(moi: number, conversationId: number, messageId: number, texte: string, maintenant: Date): Promise<

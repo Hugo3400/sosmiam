@@ -114,6 +114,13 @@ export function creerRelationsSociales(base = baseDeDonnees): RelationsSociales 
       return new Set(lignes.map((l) => l.compteId));
     },
 
+    async lireApercuMessages(compteIds) {
+      const ids = uniques(compteIds);
+      if (ids.length === 0) return new Set();
+      const lignes = await base.profilSocial.findMany({ where: { compteId: { in: ids }, apercuMessages: true }, select: { compteId: true } });
+      return new Set(lignes.map((l) => l.compteId));
+    },
+
     async verrouillerComptes(tx, compteIds) {
       const ids = uniques(compteIds).sort((a, b) => a - b);
       if (ids.length === 0) return;

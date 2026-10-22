@@ -33,5 +33,9 @@ export function convertirMessageApi(m: MessageApi): MessageChatEnrichi {
     ...(m.legende ? { legende: m.legende } : {}),
     ...(m.systeme ? { systeme: m.systeme } : {}),
     ...(m.mentions && m.mentions.length > 0 ? { mentions: [...m.mentions] } : {}),
+    ...(m.album ? { album: m.album } : {}),
+    ...(m.media?.onde ? { onde: m.media.onde } : {}),
+    ...(m.vote ? { vote: { ...m.vote, options: m.vote.options.map((o) => ({ ...o })) } } : {}),
+    ...(m.gif ? { gif: { ...m.gif } } : {}),
   };
 }

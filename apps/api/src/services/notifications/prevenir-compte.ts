@@ -5,6 +5,7 @@
 // rien du compte. Les téléphones dont le jeton ne marche plus sont désactivés.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { resumerErreur } from "../../fonctions/comptes/resumer-erreur.ts";
+import { lireApercusBranches, type ApercusPush } from "./apercus-push.ts";
 import { expedierPush, type ExpedierPush, type MessagePush } from "./expedier-push.ts";
 import type { LirePastille } from "./lire-pastille-compte.ts";
 
@@ -15,6 +16,17 @@ let pastilleBranchee: LirePastille | null = null;
 
 export function brancherPastillePush(lire: LirePastille | null): void {
   pastilleBranchee = lire;
+}
+
+function chiffrerApercu(apercus: ApercusPush | null, message: MessagePush, appareil: { jeton: string; cleApercuChiffree?: string | null }): MessagePush {
+  const { apercu, apercuChiffre: _ignore, ...reste } = message;
+  if (!apercu || !apercus || !appareil.cleApercuChiffree) return reste;
+  try {
+    return { ...reste, apercuChiffre: apercus.chiffrerPour(apercu, { jeton: appareil.jeton, cleApercuChiffree: appareil.cleApercuChiffree }) };
+  } catch {
+    console.error("Aperçu de notification : clé du téléphone illisible, texte neutre envoyé");
+    return reste;
+  }
 }
 
 async function lirePastille(lire: LirePastille | null, compteId: number): Promise<number | undefined> {
@@ -33,8 +45,9 @@ export async function prevenirCompte(
   envoyer: ExpedierPush = expedierPush,
   appareilsPush: TableAppareilsPush = baseDeDonnees.appareilPush,
   pastille: LirePastille | null = pastilleBranchee,
+  apercus: ApercusPush | null = lireApercusBranches(),
 ): Promise<void> {
-  await prevenirCompteEtCompter(compteId, message, envoyer, appareilsPush, pastille);
+  await prevenirCompteEtCompter(compteId, message, envoyer, appareilsPush, pastille, apercus);
 }
 
 /** Pareil, et rend sur combien de téléphones la notification est partie (Miam Safe : 0, la personne n'est pas prévenue) */
@@ -44,17 +57,18 @@ export async function prevenirCompteEtCompter(
   envoyer: ExpedierPush = expedierPush,
   appareilsPush: TableAppareilsPush = baseDeDonnees.appareilPush,
   pastille: LirePastille | null = pastilleBranchee,
+  apercus: ApercusPush | null = lireApercusBranches(),
 ): Promise<number> {
   const appareils = await appareilsPush.findMany({
     where: { actif: true, compteId, sessionId: { not: null } },
-    select: { id: true, jeton: true, plateforme: true },
+    select: { id: true, jeton: true, plateforme: true, cleApercuChiffree: true },
   });
   if (appareils.length === 0) return 0;
   const badge = message.badge ?? (await lirePastille(pastille, compteId));
   const avecBadge = badge === undefined ? message : { ...message, badge };
   const envoyees = await Promise.all(
     appareils.map(async (appareil) => {
-      const resultat = await envoyer(appareil, avecBadge);
+      const resultat = await envoyer({ jeton: appareil.jeton, plateforme: appareil.plateforme }, chiffrerApercu(apercus, avecBadge, appareil));
       if (resultat === "jeton-invalide") await appareilsPush.update({ where: { id: appareil.id }, data: { actif: false } });
       // L'erreur vient d'Apple ou de Google (statut et raison), sans donnée personnelle
       else if (resultat !== "envoyee") console.error("Notification d'un compte :", resultat.erreur);

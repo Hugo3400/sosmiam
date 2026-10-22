@@ -9,5 +9,6 @@ export function ecrirePushMention(m: { prenom: string; conversation: { id: numbe
     texte: `${m.prenom} t'a mentionné.`,
     lien: sortie && m.sortieId ? `/potes/sortie/${m.sortieId}` : discussion,
     regroupement: `conversation:${m.conversation.id}`,
+    categorie: "message",
   };
 }

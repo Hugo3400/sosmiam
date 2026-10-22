@@ -26,6 +26,7 @@ export function convertirConversationApi(c: ConversationApi, fil?: { messages: M
     invites: c.invites.map((p) => p.id),
     plusAnciens: fil?.plusAnciens ?? false,
     epinglee: c.epinglee === true,
+    ...(c.photo ? { photo: true } : {}),
     ...(lectures.length > 0 ? { lectures } : {}),
   };
 }

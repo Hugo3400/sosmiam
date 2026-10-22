@@ -41,6 +41,7 @@ import { listerZones, lireZone, trouverZoneDeCommune } from "./services/zones-fo
 import { planifierTachesDeNuit } from "./taches/taches-de-nuit.ts";
 import { resumerErreur } from "./fonctions/comptes/resumer-erreur.ts";
 import { chargerChiffrementDonnees } from "./services/chiffrement-donnees.ts";
+import { creerChiffrementSocial } from "./services/chiffrement-social.ts";
 import { lireProfil, modifierProfil, pseudoEstPris } from "./services/comptes-profil.ts";
 import { lireVersionApp } from "./fonctions/texte/lire-version-app.ts";
 import { DOSSIER_MEDIAS } from "./services/gestion/medias.ts";
@@ -58,6 +59,7 @@ import { citationsPhotosAvis } from "./services/citations-photos-avis.ts";
 import { creerPhotosAvis } from "./services/photos-avis.ts";
 import { creerStockagePhotosAvis } from "./services/stockage-photos-avis.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
+import { brancherApercusPush, creerApercusPush } from "./services/notifications/apercus-push.ts";
 import { prevenirCompte, prevenirCompteEtCompter } from "./services/notifications/prevenir-compte.ts";
 import { creerSignatureQr } from "./fonctions/securite/creer-signature-qr.ts";
 import { lireListeVirgules } from "./fonctions/texte/lire-liste-virgules.ts";
@@ -157,6 +159,7 @@ const socialApp = creerDependancesSociales({
   gif: chargerClientGiphy(),
 });
 brancherPastillePush(creerLecteurPastille(socialApp.social.lirePouls));
+brancherApercusPush(creerApercusPush(creerChiffrementSocial(chiffrement)));
 // Sorties : chaque minute, les votes échus reçoivent leur lieu retenu, et les participants sont prévenus (cloche et
 // téléphone, hors anti-spam) ; pas pendant un essai sur un autre schéma
 const arreterVotes = process.env.SCHEMA_BASE ? () => {} : planifierFinDesVotes({

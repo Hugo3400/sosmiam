@@ -85,6 +85,10 @@ export function creerRelationsSocialesEnMemoire(tables: TablesSociales): Relatio
       return new Set(compteIds.filter((id) => tables.profils.get(id)?.pushSocial === true));
     },
 
+    async lireApercuMessages(compteIds) {
+      return new Set(compteIds.filter((id) => tables.profils.get(id)?.apercuMessages === true));
+    },
+
     // Rien à verrouiller : une seule demande avance à la fois entre deux await
     async verrouillerComptes() {},
 

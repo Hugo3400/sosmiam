@@ -30,7 +30,8 @@ export type SortePush = "bande-ajout" | "bande-acceptee" | "invitation-sortie" |
  * précédente ; `sonore` (vrai par défaut) et `social` (canal « messages » sur Android) sont posés par l'applicateur. Tous
  * sont des champs de MessagePush, lus par expedierPush (apns-collapse-id et thread-id chez Apple, tag chez Google ; sur
  * Android 8 et plus, le son dépend du canal).
- * Jamais le texte d'un message : seulement le prénom et la sorte de message (il passerait en clair par Apple et Google).
+ * Jamais le texte d'un message en clair : seulement le prénom et la sorte de message (il passerait par Apple et Google) ; le
+ * vrai texte (`apercu`) n'en sort que chiffré pour chaque téléphone (prevenirCompte).
  */
 export type MessagePushSocial = MessagePush;
 

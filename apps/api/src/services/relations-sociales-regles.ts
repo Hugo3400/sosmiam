@@ -49,6 +49,8 @@ export interface RelationsSociales {
   bloqueEntre(a: number, b: number, tx?: TransactionSociale): Promise<boolean>;
   /** Ceux de ces comptes qui veulent les notifications sociales sur leur téléphone (profil social, pushSocial vrai) */
   lirePushSocial(compteIds: readonly number[]): Promise<Set<number>>;
+  /** Parmi ces comptes, ceux qui veulent le message en entier dans la notification (profils_sociaux.apercu_messages) */
+  lireApercuMessages(compteIds: readonly number[]): Promise<Set<number>>;
   /**
    * Verrou des lignes de ces comptes (SELECT … FROM comptes … ORDER BY id FOR UPDATE), dans la transaction : quotas
    * durables (taille d'une bande, médias) et liens entre deux comptes comptés sans course (B.12). Rien en mémoire.
