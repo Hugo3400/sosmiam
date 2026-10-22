@@ -243,4 +243,69 @@ export const MESSAGES_SERVICES_SOCIAUX: Readonly<Record<ErreurServiceSociale, Me
     titre: "Déjà envolée",
     texte: "Cette notification a déjà quitté ta cloche, peut-être depuis ton autre téléphone.",
   },
+  "trop-tard": {
+    emoji: "⏱️",
+    titre: "Trop tard pour corriger",
+    texte: "Un message se corrige dans les 15 minutes qui suivent l'envoi. Rien ne t'empêche d'en écrire un nouveau !",
+  },
+  "non-modifiable": {
+    emoji: "✋",
+    titre: "Pas modifiable",
+    texte: "Seuls tes messages texte se corrigent : une photo, un lieu ou un sondage restent tels quels.",
+  },
+  "pas-l-auteur": {
+    emoji: "🙅",
+    titre: "Ce n'est pas ton message",
+    texte: "Seule la personne qui l'a écrit peut le corriger.",
+  },
+  "reponse-introuvable": {
+    emoji: "💨",
+    titre: "Message introuvable",
+    texte: "Le message que tu cites a disparu entre-temps.",
+  },
+  "trop-d-epinglees": {
+    emoji: "📌",
+    titre: "Déjà 3 épinglées",
+    texte: "Retire une discussion des épinglées pour en mettre une nouvelle en haut.",
+  },
+  "album-plein": {
+    emoji: "🖼️",
+    titre: "Album complet",
+    texte: "10 photos d'un coup au plus : envoie la suite dans un autre message !",
+  },
+  "onde-invalide": {
+    emoji: "🎙️",
+    titre: "Note vocale abîmée",
+    texte: "Elle n'a pas pu partir. Réenregistre-la, ça ne prend qu'une minute.",
+  },
+  "photo-inconnue": {
+    emoji: "🖼️",
+    titre: "Pas encore de photo",
+    texte: "Ce groupe n'a pas encore sa photo.",
+  },
+  "reserve-aux-groupes": {
+    emoji: "👥",
+    titre: "Seulement dans un groupe",
+    texte: "Les sondages « On mange où ? » se lancent dans un groupe de potes.",
+  },
+  "sondage-clos": {
+    emoji: "🗳️",
+    titre: "Le vote est fini",
+    texte: "Ce sondage est terminé : va voir qui a gagné !",
+  },
+  "gif-indisponible": {
+    emoji: "🎞️",
+    titre: "Les GIF font la sieste",
+    texte: "Impossible de les joindre pour l'instant. Réessaie dans un moment.",
+  },
+  "gif-inconnu": {
+    emoji: "🎞️",
+    titre: "GIF introuvable",
+    texte: "Ce GIF n'existe plus. Choisis-en un autre !",
+  },
+  "gif-refuse": {
+    emoji: "🙈",
+    titre: "GIF refusé",
+    texte: "Celui-là ne passe pas nos filtres. Choisis-en un autre !",
+  },
 };

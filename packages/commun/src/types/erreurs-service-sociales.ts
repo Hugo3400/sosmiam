@@ -55,4 +55,17 @@ export type ErreurServiceSociale =
   | "decision-inconnue"
   | "deja-contestee"
   | "contestation-hors-delai"
-  | "notification-inconnue";
+  | "notification-inconnue"
+  | "trop-tard"
+  | "non-modifiable"
+  | "pas-l-auteur"
+  | "reponse-introuvable"
+  | "trop-d-epinglees"
+  | "album-plein"
+  | "onde-invalide"
+  | "photo-inconnue"
+  | "reserve-aux-groupes"
+  | "sondage-clos"
+  | "gif-indisponible"
+  | "gif-inconnu"
+  | "gif-refuse";
