@@ -51,9 +51,9 @@ export function PastillesSectionsCarte({ titres, active, onChoisir }: Props) {
               vibrerLegerement();
               onChoisir(index);
             }}
-            className={`min-h-11 flex-row items-center rounded-full border-2 border-encre px-4 active:opacity-80 ${choisie ? "bg-nuit" : "bg-carte"}`}
+            className={`min-h-11 flex-row items-center rounded-full border-2 border-encre px-4 active:opacity-80 ${choisie ? "bg-choix" : "bg-carte"}`}
           >
-            <Text className={`font-texte-semi text-[15px] ${choisie ? "text-jaune" : "text-encre"}`}>{titre}</Text>
+            <Text className={`font-texte-semi text-[15px] ${choisie ? "text-sur-choix" : "text-encre"}`}>{titre}</Text>
           </Pressable>
         );
       })}

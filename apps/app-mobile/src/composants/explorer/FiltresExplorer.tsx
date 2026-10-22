@@ -50,8 +50,8 @@ const PERIODES: { cle: PeriodeEvenements; libelle: string; lu: string }[] = [
 ];
 
 const classePastille = (choisi: boolean) =>
-  `min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-3.5 active:opacity-80 ${choisi ? "bg-nuit" : "bg-carte"}`;
-const classeTexte = (choisi: boolean) => `font-texte-semi text-[14px] ${choisi ? "text-jaune" : "text-encre"}`;
+  `min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-3.5 active:opacity-80 ${choisi ? "bg-choix" : "bg-carte"}`;
+const classeTexte = (choisi: boolean) => `font-texte-semi text-[14px] ${choisi ? "text-sur-choix" : "text-encre"}`;
 
 /** Ce que montre la pastille de zone, et ce qu'elle dit au lecteur d'écran */
 function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): { texte: string; lu: string; icone: keyof typeof Ionicons.glyphMap } {
@@ -193,7 +193,7 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           onPress={() => changer({ ouvertMaintenant: !filtres.ouvertMaintenant })}
           className={classePastille(filtres.ouvertMaintenant)}
         >
-          <Ionicons name={filtres.ouvertMaintenant ? "time" : "time-outline"} size={16} color={filtres.ouvertMaintenant ? couleurs.jaune : couleurs.encre} />
+          <Ionicons name={filtres.ouvertMaintenant ? "time" : "time-outline"} size={16} color={filtres.ouvertMaintenant ? couleurs["sur-choix"] : couleurs.encre} />
           <Text className={classeTexte(filtres.ouvertMaintenant)}>Ouvert maintenant</Text>
         </Pressable>
 
@@ -211,7 +211,7 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           >
             <Text className="text-[14px]">🏷️</Text>
             <Text className={classeTexte(filtres.etiquette !== null)}>{filtres.etiquette ?? TEXTES_ETIQUETTES.filtre}</Text>
-            <Ionicons name="chevron-down" size={14} color={filtres.etiquette ? couleurs.jaune : couleurs.encre} />
+            <Ionicons name="chevron-down" size={14} color={filtres.etiquette ? couleurs["sur-choix"] : couleurs.encre} />
           </Pressable>
         ) : null}
 

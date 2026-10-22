@@ -72,8 +72,8 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
                 {ville ? ` · ${ville}` : null}
               </Text>
             </View>
-            <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-nuit" : "bg-carte"}`}>
-              {choisi ? <Ionicons name="checkmark" size={16} color={couleurs.jaune} /> : null}
+            <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-choix" : "bg-carte"}`}>
+              {choisi ? <Ionicons name="checkmark" size={16} color={couleurs["sur-choix"]} /> : null}
             </View>
           </Pressable>
         );

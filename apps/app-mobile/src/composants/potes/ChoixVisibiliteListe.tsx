@@ -47,8 +47,8 @@ export function ChoixVisibiliteListe({ choisie, onChoisir }: Props) {
               <Text className="font-texte-gras text-base text-encre">{c.nom}</Text>
               <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(c.detail)}</Text>
             </View>
-            <View className={`h-6 w-6 items-center justify-center rounded-full border-2 border-encre ${actif ? "bg-nuit" : "bg-carte"}`}>
-              {actif ? <Ionicons name="checkmark" size={14} color={couleurs.jaune} /> : null}
+            <View className={`h-6 w-6 items-center justify-center rounded-full border-2 border-encre ${actif ? "bg-choix" : "bg-carte"}`}>
+              {actif ? <Ionicons name="checkmark" size={14} color={couleurs["sur-choix"]} /> : null}
             </View>
           </Pressable>
         );

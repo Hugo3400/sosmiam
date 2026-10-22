@@ -29,7 +29,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
 
   const libelle = recherche ? "On te cherche…" : "Autour de moi";
   const libelleLu = recherche ? libelle : actif ? "Autour de moi, actualiser ta position" : libelle;
-  const couleurIcone = actif ? couleurs.jaune : couleurs.encre;
+  const couleurIcone = actif ? couleurs["sur-choix"] : couleurs.encre;
 
   function arreter() {
     vibrerLegerement();
@@ -40,7 +40,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
   return (
     <View className={`relative self-start ${recherche ? "opacity-80" : ""}`}>
       <View className="absolute inset-0 translate-x-1 translate-y-1 rounded-full bg-encre" />
-      <View className={`min-h-11 flex-row items-center rounded-full border-2 border-encre ${actif ? "bg-nuit" : "bg-carte"}`}>
+      <View className={`min-h-11 flex-row items-center rounded-full border-2 border-encre ${actif ? "bg-choix" : "bg-carte"}`}>
         <Pressable
           ref={refBouton}
           accessibilityRole="button"
@@ -59,7 +59,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
           ) : (
             <Ionicons name={actif ? "navigate" : "navigate-outline"} size={18} color={couleurIcone} />
           )}
-          <Text className={`font-texte-gras text-[15px] ${actif ? "text-jaune" : "text-encre"}`}>{libelle}</Text>
+          <Text className={`font-texte-gras text-[15px] ${actif ? "text-sur-choix" : "text-encre"}`}>{libelle}</Text>
         </Pressable>
         {actif ? (
           <Pressable

@@ -259,7 +259,7 @@ export default function ReglagesAvatar() {
                 choisirEmoji(emoji);
               }}
               style={{ width: tailleRond, height: tailleRond, borderRadius: tailleRond / 2 }}
-              className={`items-center justify-center border-2 active:opacity-80 ${choisi ? "border-encre bg-nuit" : "border-ligne bg-carte"}`}
+              className={`items-center justify-center border-2 active:opacity-80 ${choisi ? "border-encre bg-choix" : "border-ligne bg-carte"}`}
             >
               <Text allowFontScaling={false} style={{ fontSize: tailleRond * 0.5, lineHeight: tailleRond * 0.64 }}>
                 {emoji}

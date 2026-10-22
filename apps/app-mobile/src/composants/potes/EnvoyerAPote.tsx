@@ -192,8 +192,8 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
                     @{pote.pseudo}
                   </Text>
                 </View>
-                <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-nuit" : "bg-carte"}`}>
-                  {choisi ? <Text className="font-texte-gras text-sm text-jaune">✓</Text> : null}
+                <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-choix" : "bg-carte"}`}>
+                  {choisi ? <Text className="font-texte-gras text-sm text-sur-choix">✓</Text> : null}
                 </View>
               </Pressable>
             );

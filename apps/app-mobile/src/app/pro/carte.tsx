@@ -229,9 +229,9 @@ export default function EcranCartePro() {
               vibrerLegerement();
               setRangement((r) => !r);
             }}
-            className={`min-h-11 items-center justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${rangement ? "bg-nuit" : "bg-carte"}`}
+            className={`min-h-11 items-center justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${rangement ? "bg-choix" : "bg-carte"}`}
           >
-            <Text className={`font-texte-gras text-[15px] ${rangement ? "text-jaune" : "text-encre"}`}>{rangement ? "Terminé" : "Ranger"}</Text>
+            <Text className={`font-texte-gras text-[15px] ${rangement ? "text-sur-choix" : "text-encre"}`}>{rangement ? "Terminé" : "Ranger"}</Text>
           </Pressable>
         ) : null}
       </View>

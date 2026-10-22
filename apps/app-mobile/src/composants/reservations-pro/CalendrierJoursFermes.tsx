@@ -52,10 +52,10 @@ export function CalendrierJoursFermes({ aujourdhui, joursFermes, enCours, onBasc
                       vibrerLegerement();
                       onBasculer(jour, !ferme);
                     }}
-                    className={`min-h-11 flex-1 items-center justify-center rounded-xl border-2 active:opacity-80 ${ferme ? "border-encre bg-nuit" : "border-ligne bg-carte"} ${occupe ? "opacity-40" : ""}`}
+                    className={`min-h-11 flex-1 items-center justify-center rounded-xl border-2 active:opacity-80 ${ferme ? "border-encre bg-choix" : "border-ligne bg-carte"} ${occupe ? "opacity-40" : ""}`}
                   >
-                    <Text className={`font-texte-semi text-[15px] ${ferme ? "text-jaune" : "text-encre"}`}>{decrit.numero}</Text>
-                    {ferme ? <Text className="font-texte-gras text-[10px] leading-3 text-jaune">✕</Text> : null}
+                    <Text className={`font-texte-semi text-[15px] ${ferme ? "text-sur-choix" : "text-encre"}`}>{decrit.numero}</Text>
+                    {ferme ? <Text className="font-texte-gras text-[10px] leading-3 text-sur-choix">✕</Text> : null}
                   </Pressable>
                 );
               })}
