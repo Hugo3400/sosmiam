@@ -1,5 +1,4 @@
 import * as Crypto from "expo-crypto";
-import { File } from "expo-file-system";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ReponseMessage } from "@sos-miam/commun/client-api/contrat-messagerie";
@@ -12,15 +11,17 @@ import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { citerMessage } from "~/fonctions/chat/citer-message";
 import { convertirConversationApi } from "~/fonctions/chat/convertir-conversation-api";
 import { convertirMessageApi } from "~/fonctions/chat/convertir-message-api";
+import { filtrerMessagesSignales } from "~/fonctions/chat/filtrer-messages-signales";
 import { fusionnerFil } from "~/fonctions/chat/fusionner-fil";
-import { preparerPhotoChat } from "~/fonctions/chat/preparer-photo-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import type { EtatConversations, ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserEnvoisConversationsCompte, type LancerEnvoiChat } from "~/hooks/utiliser-envois-conversations-compte";
+import { utiliserGroupesConversationsCompte } from "~/hooks/utiliser-groupes-conversations-compte";
 import { utiliserModificationsConversationsCompte } from "~/hooks/utiliser-modifications-conversations-compte";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { effacerMediasChatCompte, garderEnvoiChat, oublierEnvoiChat, oublierMediaChat } from "~/stockage/medias-chat-compte";
+import { effacerMediasChatCompte, oublierEnvoiChat, oublierMediaChat } from "~/stockage/medias-chat-compte";
 
 type Fil = { messages: MessageChatEnrichi[]; suite: string | null; version: number };
 /** Un envoi en cours ou raté : son message à l'écran, et de quoi le renvoyer tel quel (même idClient : jamais deux fois) */
@@ -226,9 +227,8 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     [tant, chargerListe],
   );
 
-  const lancer = useCallback(
-    (conversationId: string, contenu: Omit<MessageChatEnrichi, "id" | "auteur" | "date" | "reactions">, partir: (idClient: string) => Promise<ReponseMessage>) => {
-      const idClient = Crypto.randomUUID();
+  const lancer = useCallback<LancerEnvoiChat>(
+    (conversationId, contenu, partir, idClient = Crypto.randomUUID()) => {
       const message: MessageChatEnrichi = { id: `envoi:${idClient}`, idClient, auteur: monId, date: new Date().toISOString(), reactions: {}, etat: "envoi", ...contenu };
       departs.current.set(idClient, () => partir(idClient));
       setEnvois((avant) => ({ ...avant, [idClient]: { conversationId, message } }));
@@ -238,6 +238,8 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
   );
 
   const modifications = utiliserModificationsConversationsCompte({ sociaux, monId, generation, fils, setFils, liste, setListe, chargerListe });
+  const envoisRiches = utiliserEnvoisConversationsCompte({ sociaux, generation, fils, setFils, liste, sorties, lancer, lireFil });
+  const groupes = utiliserGroupesConversationsCompte({ sociaux, generation, noterPersonne, noterPersonnes, garderConversation });
 
   return useMemo((): EtatConversations => {
     const bloques = new Set(communaute.bloques.map((p) => p.id));
@@ -249,7 +251,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         const fil = fils[c.id];
         const enAttente = enCours.filter((e) => e.conversationId === c.id).map((e) => e.message);
         const base = convertirConversationApi(c, fil ? { messages: fil.messages, plusAnciens: fil.suite !== null } : undefined);
-        const messages = [...base.messages, ...enAttente].filter((m) => !communaute.estSignale(m.id));
+        const messages = filtrerMessagesSignales([...base.messages, ...enAttente], communaute.estSignale);
         return { ...base, messages };
       })
       .sort((a, b) => (b.messages[b.messages.length - 1]?.date ?? "").localeCompare(a.messages[a.messages.length - 1]?.date ?? ""));
@@ -259,7 +261,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       const fil = fils[id];
       const base = convertirConversationApi(c, fil ? { messages: fil.messages, plusAnciens: fil.suite !== null } : undefined);
       const enAttente = enCours.filter((e) => e.conversationId === id).map((e) => e.message);
-      return { ...base, messages: [...base.messages, ...enAttente].filter((m) => !communaute.estSignale(m.id)) };
+      return { ...base, messages: filtrerMessagesSignales([...base.messages, ...enAttente], communaute.estSignale) };
     };
     const trouver = (id: string) => conversations.find((c) => c.id === id) ?? discussionDeSortie(id);
     const ouverte = (id: string) => (liste.find((c) => c.id === id) ?? sorties[id])?.ouverte === true;
@@ -341,33 +343,6 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         lancer(id, { type: "lieu", lieuId }, (idClient) => sociaux.messagerie.envoyerLieu(id, idClient, lieuId));
         return "ok";
       },
-      envoyerPhoto: async (id, uri) => {
-        if (!ouverte(id)) return "interdit";
-        try {
-          const photo = await preparerPhotoChat(uri);
-          lancer(id, { type: "photo", fichier: photo.uri, media: { etat: "disponible", largeur: photo.largeur, hauteur: photo.hauteur, dureeSecondes: null } }, (idClient) =>
-            sociaux.messagerie.envoyerMedia(id, idClient, new File(photo.uri), "image/jpeg"),
-          );
-          return "ok";
-        } catch {
-          return "interdit";
-        }
-      },
-      envoyerVocal: async (id, uri, duree) => {
-        if (!ouverte(id)) return "interdit";
-        const dureeSecondes = Math.round(duree);
-        // L'enregistreur jette son fichier dès le retour : l'envoi (et ses nouveaux essais) garde sa propre copie
-        let fichier: string;
-        try {
-          fichier = await garderEnvoiChat(uri, "m4a");
-        } catch {
-          return "interdit";
-        }
-        lancer(id, { type: "vocal", fichier, dureeSecondes, media: { etat: "disponible", largeur: null, hauteur: null, dureeSecondes } }, (idClient) =>
-          sociaux.messagerie.envoyerMedia(id, idClient, new File(fichier), "audio/mp4"),
-        );
-        return "ok";
-      },
       envoisEnPause: enPause,
       retirerEnPause: (messageId) => {
         const envoi = enCours.find((e) => e.message.id === messageId);
@@ -438,6 +413,8 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         void sociaux.messagerie.retirerMembre(id, "moi").then(() => relirePouls());
       },
       ...modifications,
+      ...envoisRiches,
+      ...groupes,
       effacer: async () => {
         departs.current.clear();
         setFils({});
@@ -447,6 +424,6 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       },
     };
   }, [
-    pret, liste, sorties, invitationsApi, fils, envois, enPause, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe, modifications,
+    pret, liste, sorties, invitationsApi, fils, envois, enPause, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe, modifications, envoisRiches, groupes,
   ]);
 }

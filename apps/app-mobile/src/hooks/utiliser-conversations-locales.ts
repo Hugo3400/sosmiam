@@ -9,11 +9,13 @@ import { potesExemples, reponsesExemples } from "~/contenus/potes-exemples";
 import type { ConversationEnrichie, LectureChat, MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
 import { citerMessage } from "~/fonctions/chat/citer-message";
+import { filtrerMessagesSignales } from "~/fonctions/chat/filtrer-messages-signales";
 import { listerMentionsMessage } from "~/fonctions/chat/lister-mentions-message";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import type { EtatConversations, ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { creerComplementsConversationsDemo } from "~/services/demo/complements-conversations-demo";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { ecouterReglagesMessagerieDemo, lireReglagesMessagerieDemo } from "~/services/demo/reglages-messagerie-demo";
 import {
@@ -112,14 +114,14 @@ export function utiliserConversationsLocales(): EtatConversations {
   );
 
   const valeur = useMemo((): EtatConversations => {
-    
     const visibles = conversations
       .filter((c) => c.participants.includes(monId))
       .filter((c) => c.type === "groupe" || !c.participants.some((id) => bloques.has(id)))
       .map(({ lectures, ...c }) => ({
         ...c,
         ...(accusesLecture && lectures ? { lectures: lectures.filter((l) => !bloques.has(l.membre)) } : {}),
-        messages: c.messages.filter((m) => !bloques.has(m.auteur) && !estSignale(m.id)),
+        coupee: c.coupee ?? false,
+        messages: filtrerMessagesSignales(c.messages.filter((m) => !bloques.has(m.auteur)), estSignale),
       }))
       .sort((a, b) => dernierMessage(b).localeCompare(dernierMessage(a)));
     const nonLusDe = (id: string) => {
@@ -141,6 +143,24 @@ export function utiliserConversationsLocales(): EtatConversations {
       c?.type === "groupe"
         ? listerMentionsMessage(texte, c.participants.flatMap((p) => (p === monId ? [] : [{ id: p, pseudo: trouverPote(p)?.pseudo ?? "" }])))
         : [];
+    const publier = (id: string, messages: MessageChatEnrichi[]): ResultatEnvoiChat => {
+      const c = visibles.find((x) => x.id === id);
+      if (!ouverte(c) || messages.length === 0) return "interdit";
+      setConversations((cs) => cs.map((x) => (x.id === id ? { ...x, messages: [...x.messages, ...messages] } : x)));
+      faireReagir(c, messages[0]);
+      return "ok";
+    };
+    const complements = creerComplementsConversationsDemo({
+      conversations: visibles,
+      monId,
+      ouverte: (id) => ouverte(visibles.find((x) => x.id === id)),
+      peutDiscuterAvec,
+      changer: (id, changer) => setConversations((cs) => cs.map((c) => (c.id === id ? changer(c) : c))),
+      publier,
+      planifier: (faire, delaiMs) => {
+        minuteries.current.push(setTimeout(faire, delaiMs));
+      },
+    });
     const envoyerFichier = async (id: string, uri: string, extension: string, autre: Partial<MessageChatEnrichi> & { type: "photo" | "vocal" }) => {
       if (!ouverte(visibles.find((x) => x.id === id))) return "interdit" as const;
       try {
@@ -172,7 +192,7 @@ export function utiliserConversationsLocales(): EtatConversations {
         const membres = [...new Set(potes)].filter(peutDiscuterAvec);
         if (membres.length < 1 || membres.length + 1 > MAX_PARTICIPANTS_GROUPE) return { erreur: "participants" };
         const id = creerIdentifiant("groupe");
-        setConversations((cs) => [...cs, { id, type: "groupe", titre: propre, emoji, participants: [monId, ...membres], creePar: monId, messages: [] }]);
+        setConversations((cs) => [...cs, { id, type: "groupe", titre: propre, emoji, participants: [monId, ...membres], creePar: monId, admins: [monId], messages: [] }]);
         return { id };
       },
       envoyerTexte: (id, texte, o) => {
@@ -221,8 +241,7 @@ export function utiliserConversationsLocales(): EtatConversations {
         return "ok";
       },
       envoyerLieu: (id, lieuId) => envoyer(id, { type: "lieu", lieuId }),
-      envoyerPhoto: (id, uri) => envoyerFichier(id, uri, "jpg", { type: "photo" }),
-      envoyerVocal: (id, uri, duree) => envoyerFichier(id, uri, "m4a", { type: "vocal", dureeSecondes: Math.round(duree) }),
+      envoyerVocal: (id, uri, duree, onde) => envoyerFichier(id, uri, "m4a", { type: "vocal", dureeSecondes: Math.round(duree), ...(onde ? { onde } : {}) }),
       basculerReaction: (id, messageId, reaction) =>
         setConversations((cs) =>
           cs.map((c) =>
@@ -247,7 +266,6 @@ export function utiliserConversationsLocales(): EtatConversations {
       renvoyer: () => {},
       envoisEnPause: AUCUN_EN_PAUSE,
       retirerEnPause: () => {},
-      couper: () => {},
       supprimerMessage: () => {},
       effacerPourMoi: (id) => {
         const conversation = conversations.find((c) => c.id === id);
@@ -261,8 +279,9 @@ export function utiliserConversationsLocales(): EtatConversations {
         if (!groupe) return;
         // Le groupe disparaît du téléphone avec ses photos et notes vocales (une réponse déjà en route ne le retrouvera plus)
         setConversations((cs) => cs.filter((c) => c.id !== id));
-        supprimerFichiersChat(groupe.messages.flatMap((m) => (m.fichier ? [m.fichier] : [])));
+        supprimerFichiersChat([...groupe.messages.flatMap((m) => (m.fichier ? [m.fichier] : [])), ...(groupe.fichierPhoto ? [groupe.fichierPhoto] : [])]);
       },
+      ...complements,
       effacer: async () => {
         minuteries.current.forEach(clearTimeout);
         minuteries.current = [];
