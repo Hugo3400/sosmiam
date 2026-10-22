@@ -70,9 +70,9 @@ function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undef
 }
 
 /**
- * Le menu d'un message du chat, dans une feuille qui monte du bas : une rangée de réactions, puis, pour le message
- * d'un pote, le signaler ou bloquer son auteur (avec confirmation). Pour tes messages : les réactions, et avec un compte,
- * « Supprimer pour tout le monde ».
+ * Le menu d'un message du chat, dans une feuille qui monte du bas : une rangée de réactions, « Répondre » et « Copier le
+ * texte », puis, pour le message d'un pote, le signaler ou bloquer son auteur (avec confirmation). Pour tes messages :
+ * « Modifier » pendant 15 minutes, et avec un compte, « Supprimer pour tout le monde ».
  */
 export function MenuMessageChat({ visible, conversationId, message, auteur, deMoi, onFermer, onBloque, onAnnoncer, onRepondre, onModifier }: Props) {
   const couleurs = utiliserCouleurs();
