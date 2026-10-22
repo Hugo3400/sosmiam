@@ -32,6 +32,9 @@ export function calculerPastilles(alertes: Alertes | null, problemesServeur: num
       urgent: enRetard > 0 || sansReponse > 0,
     };
   }
+  if (alertes.securite?.nouveaux) {
+    pastilles["chasse-aux-bugs"] = { nombre: alertes.securite.nouveaux, libelle: `${alertes.securite.nouveaux} faille(s) signalée(s) à lire`, urgent: true };
+  }
   if (alertes.carriere?.nouvelles) {
     pastilles.carriere = { nombre: alertes.carriere.nouvelles, libelle: `${alertes.carriere.nouvelles} candidature(s) à lire` };
   }

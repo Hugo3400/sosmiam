@@ -1,13 +1,13 @@
 // Les écrans du logiciel, dans l'ordre du menu.
 import {
-  AppWindow, Bell, Briefcase, Lightbulb, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Power, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
+  AppWindow, Bell, Briefcase, Bug, Lightbulb, CalendarCheck, CalendarDays, Newspaper, PartyPopper, Target, ChartColumn, Clapperboard, HeartHandshake, Inbox, LayoutDashboard, LifeBuoy, Mail, MailOpen, MapPinned, Megaphone, Power, Server, Settings, ShieldAlert, ShieldCheck, Star, Store,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
 export type Ecran =
   | "tableau-de-bord" | "statistiques" | "newsletter" | "lieux" | "demandes" | "publications" | "moderation" | "annonces"
-  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis" | "pop-ups" | "communaute" | "carriere" | "serveurs";
+  | "notifications" | "big-sos" | "utilisateurs" | "maintenance" | "reglages" | "ambassadeurs" | "calendrier" | "villes" | "boite" | "miam-safe" | "defis" | "presse" | "evenements" | "reservations" | "avis" | "pop-ups" | "communaute" | "carriere" | "chasse-aux-bugs" | "serveurs";
 
 export type EntreeMenu = { ecran: Ecran; libelle: string; icone: LucideIcon; bientot?: boolean };
 
@@ -47,6 +47,7 @@ export const MENU: { groupe: string; entrees: EntreeMenu[] }[] = [
       { ecran: "moderation", libelle: "Modération", icone: ShieldAlert },
       { ecran: "avis", libelle: "Avis à relire", icone: Star },
       { ecran: "miam-safe", libelle: "Miam Safe", icone: ShieldCheck },
+      { ecran: "chasse-aux-bugs", libelle: "Chasse aux bugs", icone: Bug },
     ],
   },
   {

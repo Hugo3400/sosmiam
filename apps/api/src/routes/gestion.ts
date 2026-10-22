@@ -16,6 +16,7 @@ import { creerControleursLimitations } from "../controleurs/gestion/controleurs-
 import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-annonces-app.ts";
 import { creerControleursCommunaute } from "../controleurs/gestion/controleurs-communaute.ts";
 import { creerControleursCarriere } from "../controleurs/gestion/controleurs-carriere.ts";
+import { creerControleursSecurite } from "../controleurs/gestion/controleurs-securite.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursServeursDev } from "../controleurs/gestion/controleurs-serveurs-dev.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
@@ -87,6 +88,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const popups = creerControleursAnnoncesApp(services);
   const communaute = creerControleursCommunaute(services, moderationSociale);
   const carriere = creerControleursCarriere(services);
+  const securite = creerControleursSecurite(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
@@ -228,6 +230,13 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/carriere/candidatures/:id/cv", carriere.cv);
   routes.post("/carriere/candidatures/:id/statut", carriere.statutCandidature);
   routes.delete("/carriere/candidatures/:id", carriere.supprimerCandidature);
+  routes.get("/securite/signalements", securite.liste);
+  routes.put("/securite/signalements/:id", securite.changer);
+  routes.get("/securite/signalements/:id/images/:numero", securite.image);
+  routes.post("/securite/signalements/:id/badge", securite.badge);
+  routes.delete("/securite/signalements/:id", securite.supprimer);
+  routes.get("/securite/tableau-honneur", securite.tableau);
+  routes.delete("/securite/tableau-honneur/:id", securite.retirerDuTableau);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);

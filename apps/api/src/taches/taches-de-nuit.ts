@@ -35,6 +35,8 @@ import { faireLeMenageCommunaute } from "../services/menage-communaute.ts";
 import { decrireBilanMenageCommunaute } from "../fonctions/communaute/decrire-bilan-menage-communaute.ts";
 import { faireLeMenageCarriere } from "../services/carriere.ts";
 import { decrireBilanMenageCarriere } from "../fonctions/carriere/decrire-bilan-menage-carriere.ts";
+import { faireLeMenageSecurite } from "../services/securite.ts";
+import { decrireBilanMenageSecurite } from "../fonctions/chasse-aux-bugs/decrire-bilan-menage-securite.ts";
 
 const UNE_HEURE = 3600_000;
 const heureParis = new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", minute: "numeric", hourCycle: "h23" });
@@ -184,6 +186,15 @@ async function nettoyerCarriere() {
   }
 }
 
+async function nettoyerSecurite() {
+  try {
+    const bilan = await faireLeMenageSecurite();
+    for (const [nombre, quoi] of decrireBilanMenageSecurite(bilan)) await noterAction("serveur", quoi, `${nombre}`);
+  } catch (erreur) {
+    console.error("Ménage des signalements de sécurité impossible :", resumerErreur(erreur));
+  }
+}
+
 async function nettoyerPhotosAvis() {
   try {
     const effacees = await faireLeMenagePhotosAvis();
@@ -211,6 +222,7 @@ async function nettoyerPuisSauvegarder() {
   await nettoyerPhotosProfil();
   await nettoyerPhotosAvis();
   await nettoyerCarriere();
+  await nettoyerSecurite();
   await prevenirLesComptesInactifs();
   await rechiffrerLesComptes();
   await sauvegarder();

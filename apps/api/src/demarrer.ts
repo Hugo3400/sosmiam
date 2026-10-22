@@ -88,6 +88,7 @@ import { brancherPhotosProfil, creerPhotosProfil } from "./services/photos-profi
 import { creerDepotPhotosProfil } from "./services/photos-profil-base.ts";
 import { creerStockagePhotosProfil } from "./services/stockage-photos-profil.ts";
 import { brancherCarriere } from "./services/carriere.ts";
+import { brancherSecurite } from "./services/securite.ts";
 import { arreterNettoyeurJpeg } from "./services/nettoyeur-jpeg.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
@@ -165,6 +166,7 @@ const photosProfil = creerPhotosProfil({
 });
 brancherPhotosProfil(photosProfil);
 const carriere = brancherCarriere(chiffrement);
+const securite = brancherSecurite(chiffrement);
 const confirmationsNewsletter = creerDepotConfirmationsNewsletter();
 const demandesNewsletter = creerDemandesNewsletter({
   depot: confirmationsNewsletter, envoyerLien: envoyerLienConfirmationNewsletter, estDesinscrit: estDesinscritNewsletter,
@@ -279,6 +281,7 @@ const serveur = creerApplication({
   // Potes, profils, masques, pouls et cloche de l'app (routes /app/social, /app/personnes, /app/masques, /app/cloche…)
   socialApp,
   carriere,
+  securite,
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

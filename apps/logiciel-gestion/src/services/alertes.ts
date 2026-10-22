@@ -20,6 +20,7 @@ export type Alertes = {
   limitations?: { contestees: number };
   communaute?: { ideesARelire: number };
   carriere?: { nouvelles: number };
+  securite?: { nouveaux: number };
   /** Total des missions faites : quand il monte, un compte rendu vient d'arriver */
   missionsFaites: number;
   bigSos: { aTraiter: number; aCloturer: number; demarrentBientot: { id: number; lieu: string; debutLe: string }[] };

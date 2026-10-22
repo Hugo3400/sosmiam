@@ -59,6 +59,8 @@ import { creerRoutesSocialesApp, type DependancesSocialApp } from "./routes/soci
 import { creerRoutesPhotosProfil } from "./routes/photos-profil.ts";
 import { creerRoutesCarriere } from "./routes/carriere.ts";
 import type { ServicesCarrierePublics } from "./services/carriere-regles.ts";
+import { creerRoutesSecurite } from "./routes/securite.ts";
+import type { ServicesSecuritePublics } from "./services/securite-regles.ts";
 
 type Dependances = {
   enregistrerInscription: (inscription: NouvelleInscription) => Promise<void>;
@@ -124,6 +126,7 @@ type Dependances = {
    * /app/cloche… ; seulement avec `comptes`). Les commentaires se liront sans session */
   socialApp?: DependancesSocialApp;
   carriere?: ServicesCarrierePublics;
+  securite?: ServicesSecuritePublics;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -144,6 +147,7 @@ export function creerApplication({
   connexionQr,
   socialApp,
   carriere,
+  securite,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -157,6 +161,7 @@ export function creerApplication({
   // Un avis peut faire 1 000 caractères pleins d'accents ou d'emojis : un peu plus de marge
   if (comptes && avisApp) application.use("/app/avis", express.json({ limit: "8kb" }));
   if (carriere) application.use("/carriere", creerRoutesCarriere(carriere));
+  if (securite) application.use("/securite", creerRoutesSecurite(securite));
   application.use(express.json({ limit: "4kb" }));
 
   application.get("/sante", (_requete, reponse) => {
