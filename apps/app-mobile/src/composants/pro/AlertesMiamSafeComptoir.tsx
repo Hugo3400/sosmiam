@@ -50,7 +50,7 @@ export function AlertesMiamSafeComptoir({ lieuId, onRepondre }: Props) {
             className={`gap-3 rounded-carte border-2 p-4 ${prise ? "border-ligne bg-carte" : "border-jaune bg-nuit"}`}
           >
             <Text className={`font-texte-gras text-xs ${prise ? "text-gris" : "text-jaune"}`}>
-              🛡 MIAM SAFE · {new Date(a.creeLe).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+              🛡️ MIAM SAFE · {new Date(a.creeLe).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
               {prise ? " · quelqu'un y va" : a.statut === "sans-reponse" ? " · sans réponse depuis 2 min" : ""}
             </Text>
             <Text className={`font-titre-gras text-2xl ${prise ? "text-encre" : "text-lait"}`}>{a.prenom} a besoin d'aide</Text>
@@ -64,7 +64,7 @@ export function AlertesMiamSafeComptoir({ lieuId, onRepondre }: Props) {
                   indice={`${a.prenom} voit tout de suite que quelqu'un arrive`}
                   onPress={async () => {
                     const r = await miamSafe.direOnArrive(lieuId, a.id);
-                    onRepondre(r.ok ? `🛡 ${a.prenom} sait que tu arrives` : MESSAGES_SERVICE[r.erreur].titre);
+                    onRepondre(r.ok ? `🛡️ ${a.prenom} sait que tu arrives` : MESSAGES_SERVICE[r.erreur].titre);
                     void relire();
                   }}
                 />

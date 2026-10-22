@@ -18,4 +18,6 @@ module.exports = {
   nuit: "#1A1A1A",
   lait: "#FFF8E7",
   vert: "#1D5C36",
+  choix: "#1A1A1A",
+  "sur-choix": "#FFD60A",
 };

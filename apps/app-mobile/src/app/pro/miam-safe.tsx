@@ -146,7 +146,7 @@ export default function EcranMiamSafePro() {
 
       <FeuilleConfirmation
         visible={confirmation}
-        emoji="🛡"
+        emoji="🛡️"
         titre="Quitter la charte Miam Safe ?"
         detail="Le badge disparaîtra de ta fiche, et les alertes silencieuses ne pourront plus t'être envoyées."
         libelleConfirmer="Quitter la charte"

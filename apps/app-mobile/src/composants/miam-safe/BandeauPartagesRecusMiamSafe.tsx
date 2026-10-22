@@ -24,7 +24,7 @@ export function BandeauPartagesRecusMiamSafe({ className = "" }: Props) {
       onPress={() => router.push(`/miam-safe/partage/${premier.id}` as Href)}
       className={`min-h-12 flex-row items-center gap-2 rounded-2xl border-2 border-jaune bg-nuit px-4 py-2 active:opacity-80 ${className}`}
     >
-      <Text className="text-lg">🛡</Text>
+      <Text className="text-lg">🛡️</Text>
       <Text className="shrink grow font-texte-gras text-sm leading-5 text-lait" numberOfLines={2}>
         {texte}
         {autres > 0 ? ` (+${autres})` : ""}

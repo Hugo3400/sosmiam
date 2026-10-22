@@ -34,7 +34,7 @@ export function EtatCharteMiamSafe({ charte, erreur, onReessayer }: Props) {
     const jour = charte.signeeLe ? ` le ${formaterDateLongue(formaterDateIso(new Date(charte.signeeLe)))}` : "";
     return (
       <View accessible className="rounded-2xl border-2 border-encre bg-jaune p-4">
-        <Text className="font-texte-gras text-base leading-6 text-nuit">🛡 {lierPonctuation(`Ton lieu a signé la charte Miam Safe${jour}.`)}</Text>
+        <Text className="font-texte-gras text-base leading-6 text-nuit">🛡️ {lierPonctuation(`Ton lieu a signé la charte Miam Safe${jour}.`)}</Text>
       </View>
     );
   }

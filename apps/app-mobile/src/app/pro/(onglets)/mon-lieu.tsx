@@ -87,7 +87,7 @@ export default function EcranMonLieu() {
           <LigneMonLieu emoji="🍽️" titre="La carte" detail={carte === undefined ? "…" : decrireCarte(carte)} onPress={() => router.push("/pro/carte")} />
           <LigneMonLieu emoji="🎟️" titre="Carte de fidélité" detail={programme === undefined ? "…" : decrireProgramme(programme)} onPress={() => router.push("/pro/fidelite")} />
           <LigneMonLieu emoji="📋" titre="Infos pratiques" detail="Téléphone, animaux, accès, terrasse, paiements… ce qu'on voit sur ta fiche" onPress={() => router.push("/pro/infos")} />
-          <LigneMonLieu emoji="🛡" titre="Miam Safe" detail={charte === undefined ? "…" : decrireCharte(charte)} onPress={() => router.push("/pro/miam-safe")} />
+          <LigneMonLieu emoji="🛡️" titre="Miam Safe" detail={charte === undefined ? "…" : decrireCharte(charte)} onPress={() => router.push("/pro/miam-safe")} />
           <LigneMonLieu emoji="🪧" titre="Mon kit" detail="Le QR de ta vitrine, qui ouvre ta fiche" onPress={() => router.push("/pro/kit")} />
           <LigneMonLieu emoji="👥" titre="Équipe et appareils" detail="Invite tes serveurs : chacun son compte, on sait qui a validé quoi" />
           <LigneMonLieu emoji="🛟" titre="Ce soir" detail="SOS du soir et message du moment : préviens les gourmands du coin" onPress={() => router.push("/pro/ce-soir")} />

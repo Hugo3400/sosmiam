@@ -12,7 +12,7 @@ export function PhraseComptoirMiamSafe() {
     <View className="flex-1 items-center justify-center gap-5 px-8">
       <Mascotte expression="clin" taille={150} />
       <View className="rounded-full border-2 border-jaune px-3 py-1">
-        <Text className="font-texte-gras text-sm text-jaune">🛡 Miam Safe</Text>
+        <Text className="font-texte-gras text-sm text-jaune">🛡️ Miam Safe</Text>
       </View>
       <Text accessibilityRole="header" className="text-center font-titre-gras text-4xl text-lait">
         {PHRASE}

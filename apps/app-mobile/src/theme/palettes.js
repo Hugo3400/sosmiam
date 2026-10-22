@@ -11,6 +11,8 @@ const sombre = {
   "rose-alerte": "#3D1A17",
   carte: "#1F1E1C",
   vert: "#6FD3A0",
+  choix: "#FFD60A",
+  "sur-choix": "#1A1A1A",
 };
 
 module.exports = { clair, sombre };

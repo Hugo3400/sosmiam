@@ -14,7 +14,7 @@ export function BadgesMiamSafe({ miamSafe }: Props) {
           accessibilityLabel="Lieu Miam Safe : son équipe sait quoi faire si tu ne te sens pas en sécurité"
           className="flex-row items-center self-start rounded-full border-2 border-encre bg-jaune px-3 py-1"
         >
-          <Text className="font-texte-gras text-[13px] text-nuit">🛡 Miam Safe</Text>
+          <Text className="font-texte-gras text-[13px] text-nuit">🛡️ Miam Safe</Text>
         </View>
       ) : null}
       {miamSafe.repere ? (

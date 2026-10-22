@@ -54,7 +54,7 @@ export default function EcranPartageMiamSafe() {
           <Ionicons name="close" size={20} color={couleurs.encre} />
         </Pressable>
         <View className="rounded-full border-2 border-encre bg-nuit px-3 py-1">
-          <Text className="font-texte-gras text-sm text-jaune">🛡 Miam Safe</Text>
+          <Text className="font-texte-gras text-sm text-jaune">🛡️ Miam Safe</Text>
         </View>
       </View>
       <ScrollView className="flex-1" contentContainerClassName="gap-4 px-5 pb-8">
