@@ -14,14 +14,16 @@ import {
 } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 
-import type { Conversation, MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { AstuceDoubleToucher } from "~/composants/chat/AstuceDoubleToucher";
 import { BulleChat } from "~/composants/chat/BulleChat";
 import { MenuMessageChat } from "~/composants/chat/MenuMessageChat";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
+import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import type { ConversationEnrichie, MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { construireLignesDiscussion, type LigneDiscussion } from "~/fonctions/chat/construire-lignes-discussion";
 import { decrireMessageRecu } from "~/fonctions/chat/decrire-message-recu";
+import { decrireVuMessage } from "~/fonctions/chat/decrire-vu-message";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserAstuceDoubleToucher } from "~/hooks/utiliser-astuce-double-toucher";
@@ -39,13 +41,16 @@ export type PoigneeListeMessages = {
 };
 
 type Props = {
-  conversation: Conversation;
+  conversation: ConversationEnrichie;
   /** Les autres membres qu'on montre (sans toi ni les personnes bloquées) ; pour un message privé, le pote */
   membres: Pote[];
   /** L'écran est visible (ni quitté, ni recouvert par un profil ou une autre discussion) : seulement alors, les messages reçus sont lus */
   aLEcran: boolean;
   /** Quelqu'un bloqué depuis le menu d'un message (la feuille est déjà fermée) */
   onBloque: (prenom: string) => void;
+  onAnnoncer: (texte: string) => void;
+  onRepondre?: (message: MessageChatEnrichi) => void;
+  onModifier?: (message: MessageChatEnrichi) => void;
   ref?: Ref<PoigneeListeMessages>;
 };
 
@@ -56,6 +61,7 @@ const DUREE_SUIVI_AUTO = 800;
 // À l'ouverture, toute la conversation est dessinée d'un coup (jusqu'à cette limite) : la liste arrive en bas sans sauts
 const LIGNES_AU_DEPART_MIN = 20;
 const LIGNES_AU_DEPART_MAX = 150;
+const DUREE_SURLIGNAGE = 1600;
 
 const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
 
@@ -63,9 +69,9 @@ const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
  * Les messages d'une conversation : jour au-dessus de chaque nouvelle journée, séries par auteur, bulles BulleChat.
  * Reste collée en bas tant qu'on y est ; les messages des potes sont lus par le lecteur d'écran dès qu'ils arrivent.
  */
-export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, ref }: Props) {
+export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, onAnnoncer, onRepondre, onModifier, ref }: Props) {
   const couleurs = utiliserCouleurs();
-  const { trouverPote } = utiliserCommunaute();
+  const { trouverPote, moi } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { trouverLieu } = utiliserLieux();
   const animationsReduites = useReducedMotion();
@@ -82,7 +88,9 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
   // Messages des potes arrivés pendant que tu relisais plus haut
   const [nouveaux, setNouveaux] = useState(0);
   // Le message du menu reste gardé pendant que la feuille se referme (il disparaît de la liste dès qu'il est signalé)
-  const [menu, setMenu] = useState<{ message: MessageChat; auteur: Pote | null; deMoi: boolean } | null>(null);
+  const [menu, setMenu] = useState<{ message: MessageChatEnrichi; auteur: Pote | null; deMoi: boolean } | null>(null);
+  const [surligne, setSurligne] = useState<string | null>(null);
+  const minuterieSurlignage = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [deplie, setDeplie] = useState<string | null>(null);
   const { maintenantMs } = utiliserHorlogeMinute();
@@ -102,6 +110,22 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
   }, [lignes]);
   const ecranVisible = useRef(aLEcran);
   ecranVisible.current = aLEcran;
+  const pseudos = useMemo(
+    () => (groupe ? new Set([...membres.map((p) => p.pseudo), moi.pseudo].filter((p) => !!p).map((p) => p.toLowerCase())) : undefined),
+    [groupe, membres, moi.pseudo],
+  );
+  const vu = useMemo(() => {
+    const dernier = lignes.find((l) => l.message.id === dernierDeMoi)?.message;
+    if (!dernier || dernier.etat || dernier.systeme) return null;
+    return decrireVuMessage({
+      messageId: dernier.id,
+      ordre: lignes.map((l) => l.message.id),
+      lectures: conversation.lectures,
+      prive: !groupe,
+      prenomDe: (id) => trouverPote(id)?.prenom ?? null,
+      maintenant,
+    });
+  }, [lignes, dernierDeMoi, conversation.lectures, groupe, trouverPote, maintenant]);
 
   /**
    * Défile jusqu'au dernier message. Avec les vraies hauteurs quand on les a : scrollToEnd se fie aux mesures des bulles,
@@ -128,6 +152,27 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
     return () => clearInterval(minuterie);
   }, []);
 
+  useEffect(
+    () => () => {
+      if (minuterieSurlignage.current) clearTimeout(minuterieSurlignage.current);
+    },
+    [],
+  );
+
+  const allerAuMessage = useCallback(
+    (id: string) => {
+      const index = lignes.findIndex((l) => l.message.id === id);
+      if (index < 0) return onAnnoncer(T.citationPlusHaut);
+      ouverture.current = false;
+      collerEnBas.current = false;
+      liste.current?.scrollToIndex({ index, viewPosition: 0.35, animated: !animationsReduites });
+      setSurligne(id);
+      if (minuterieSurlignage.current) clearTimeout(minuterieSurlignage.current);
+      minuterieSurlignage.current = setTimeout(() => setSurligne(null), DUREE_SURLIGNAGE);
+    },
+    [lignes, onAnnoncer, animationsReduites],
+  );
+
   // Un nouveau message : le tien te ramène en bas ; celui d'un pote est lu par le lecteur d'écran, sans qu'il faille aller le chercher
   // (seulement si la discussion est à l'écran : pas pendant que tu écris à quelqu'un d'autre).
   // Avant l'affichage, pour que le défilement qui suit la nouvelle bulle sache déjà s'il doit coller en bas.
@@ -142,7 +187,8 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
       return;
     }
     if (!collerEnBas.current) setNouveaux((n) => n + 1);
-    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, derniere.auteur?.prenom ?? "Quelqu'un", derniere.message.lieuId === undefined ? undefined : trouverLieu(derniere.message.lieuId)?.nom));
+    const prenom = derniere.message.systeme ? T.sosMiam : (derniere.auteur?.prenom ?? "Quelqu'un");
+    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, prenom, derniere.message.lieuId === undefined ? undefined : trouverLieu(derniere.message.lieuId)?.nom));
     // Une seule annonce par nouveau message : relire les lieux ne la refait pas
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derniere]);
@@ -179,7 +225,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
 
   const afficherLigne = useCallback(
     ({ item }: ListRenderItemInfo<LigneDiscussion>) => (
-      <View>
+      <View className={surligne === item.message.id ? "-mx-2 rounded-2xl bg-jaune-clair px-2 pb-1" : ""}>
         {item.jour ? (
           <Text accessibilityRole="header" className="mb-1 mt-4 text-center font-texte-semi text-xs uppercase text-gris">
             {item.jour}
@@ -199,10 +245,14 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
           dernierDeMoi={dernierDeMoi === item.message.id}
           onBasculerDetail={() => basculerDetail(item.message.id)}
           onDoubleToucher={masquerAstuce}
+          onRepondre={onRepondre && !item.message.systeme ? () => onRepondre(item.message) : undefined}
+          onVoirCitation={allerAuMessage}
+          pseudos={pseudos}
+          vu={dernierDeMoi === item.message.id ? vu : null}
         />
       </View>
     ),
-    [conversationId, groupe, ouvrirMenu, maintenant, deplie, dernierDeMoi, basculerDetail, masquerAstuce],
+    [conversationId, groupe, ouvrirMenu, maintenant, deplie, dernierDeMoi, basculerDetail, masquerAstuce, onRepondre, allerAuMessage, pseudos, vu, surligne],
   );
 
   const prive = groupe ? null : (membres[0]?.prenom ?? null);
@@ -273,6 +323,10 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
         keyboardDismissMode="on-drag"
         contentContainerClassName="px-4 pb-3 pt-2"
         onScroll={suivreDefilement}
+        onScrollToIndexFailed={({ index, averageItemLength }) => {
+          liste.current?.scrollToOffset({ offset: Math.max(0, averageItemLength * index), animated: false });
+          setTimeout(() => liste.current?.scrollToIndex({ index, viewPosition: 0.35, animated: !animationsReduites }), 120);
+        }}
         onScrollBeginDrag={() => {
           ouverture.current = false;
         }}
@@ -311,6 +365,23 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
         auteur={menu?.auteur ?? null}
         deMoi={menu?.deMoi ?? false}
         onFermer={() => setMenuOuvert(false)}
+        onAnnoncer={onAnnoncer}
+        onRepondre={
+          onRepondre && menu
+            ? () => {
+                setMenuOuvert(false);
+                onRepondre(menu.message);
+              }
+            : undefined
+        }
+        onModifier={
+          onModifier && menu
+            ? () => {
+                setMenuOuvert(false);
+                onModifier(menu.message);
+              }
+            : undefined
+        }
         onBloque={(prenom) => {
           setMenuOuvert(false);
           onBloque(prenom);

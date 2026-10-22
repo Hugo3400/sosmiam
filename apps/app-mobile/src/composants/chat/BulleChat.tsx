@@ -149,7 +149,9 @@ export function BulleChat(props: Props) {
   const reponseA = message.reponseA;
   const auteurCite = !reponseA ? null : reponseA.auteur === monId ? "Toi" : reponseA.auteur ? (trouverPote(reponseA.auteur)?.prenom ?? "Quelqu'un") : "Compte supprimé";
   const mentionne = !deMoi && (message.mentions ?? []).includes(monId);
-  const complements = [message.modifieLe ? T_MESSAGES.modifie : null, mentionne ? T_MESSAGES.mentionne : null].filter((c): c is string => c !== null);
+  const complements: string[] = [];
+  if (message.modifieLe) complements.push(T_MESSAGES.modifie);
+  if (mentionne) complements.push(T_MESSAGES.mentionne);
   const suite = complements.map((c) => ` · ${c}`).join("");
   const suiteLue = complements.map((c) => `, ${c}`).join("");
 

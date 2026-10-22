@@ -10,6 +10,7 @@ import { calculerNiveauProfil } from "../../../../packages/commun/src/regles/cal
 import type { CibleSignalementSocial, SignalementSocialValide } from "../../../../packages/commun/src/types/signalement.ts";
 import type { VisibiliteListe } from "../../../../packages/commun/src/types/listes.ts";
 import { construireInstantane, type AuteurInstantane, type ContenuSignale } from "../fonctions/social/construire-instantane.ts";
+import { lireGifMessage } from "../fonctions/social/lire-gif-message.ts";
 import { lireMentionsCommentaire } from "../fonctions/social/lire-mentions-commentaire.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
 import { filtrePublicationVisible } from "./publications-app.ts";
@@ -99,6 +100,7 @@ async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, co
   let texte: string | null = null;
   let lieuId: number | null = null;
   let illisible = false;
+  let gif: { id: string; url: string } | null = null;
   if (m.texteChiffre) {
     const clair = relire(() => d.chiffrement.dechiffrerMessage(m.texteChiffre!, m.conversationId, m.idClient));
     if (clair === null) illisible = true;
@@ -106,6 +108,10 @@ async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, co
       const lu = lireLieuEnvoye(clair);
       lieuId = typeof lu?.l === "number" ? lu.l : null;
       texte = typeof lu?.m === "string" ? lu.m : null;
+      illisible = lu === null;
+    } else if (m.type === "gif") {
+      const lu = lireGifMessage(clair);
+      gif = lu ? { id: lu.id, url: lu.url } : null;
       illisible = lu === null;
     } else texte = clair;
   }
@@ -115,7 +121,7 @@ async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, co
     contenu: {
       cible: "message", type: m.type, texte, lieuId, illisible,
       media: avecMedia ? { typeMime: m.typeMime, taille: m.taille, dureeSecondes: m.dureeSecondes } : null,
-      conversation: { type: m.conversation.type, titre, emoji: m.conversation.emoji }, auteur: await lireAuteur(tx, m.auteurId), date: m.creeLe,
+      conversation: { type: m.conversation.type, titre, emoji: m.conversation.emoji }, auteur: await lireAuteur(tx, m.auteurId), date: m.creeLe, gif,
     },
     auteurContenuId: m.auteurId,
     lieuId: null,

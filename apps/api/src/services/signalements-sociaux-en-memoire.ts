@@ -12,6 +12,7 @@ import type { VisibiliteListe } from "../../../../packages/commun/src/types/list
 import type { CibleDecisionModeration, CibleSignalementSocial } from "../../../../packages/commun/src/types/signalement.ts";
 import type { Signalement } from "../base-de-donnees/client-genere/client.ts";
 import { construireInstantane, type AuteurInstantane, type ContenuSignale } from "../fonctions/social/construire-instantane.ts";
+import { lireGifMessage } from "../fonctions/social/lire-gif-message.ts";
 import { lireMentionsCommentaire } from "../fonctions/social/lire-mentions-commentaire.ts";
 import { peutMasquerToutDeSuite } from "../fonctions/social/peut-masquer-tout-de-suite.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
@@ -93,6 +94,7 @@ export async function lireContenuSignaleEnMemoire(
     let texte: string | null = null;
     let lieuId: number | null = null;
     let illisible = false;
+    let gif: { id: string; url: string } | null = null;
     if (m.texteChiffre) {
       const clair = relire(() => d.chiffrement.dechiffrerMessage(m.texteChiffre!, m.conversationId, m.idClient));
       if (clair === null) illisible = true;
@@ -101,6 +103,10 @@ export async function lireContenuSignaleEnMemoire(
         lieuId = typeof lu?.l === "number" ? lu.l : null;
         texte = typeof lu?.m === "string" ? lu.m : null;
         illisible = lu === null;
+      } else if (m.type === "gif") {
+        const lu = lireGifMessage(clair);
+        gif = lu ? { id: lu.id, url: lu.url } : null;
+        illisible = lu === null;
       } else texte = clair;
     }
     const titre = conversation.type === "groupe" && conversation.titreChiffre ? relire(() => d.chiffrement.dechiffrerTitre(conversation.titreChiffre!, conversation.id)) : null;
@@ -108,7 +114,7 @@ export async function lireContenuSignaleEnMemoire(
     return {
       contenu: {
         cible, type: m.type, texte, lieuId, illisible, media: avecMedia ? { typeMime: m.typeMime, taille: m.taille, dureeSecondes: m.dureeSecondes } : null,
-        conversation: { type: conversation.type, titre, emoji: conversation.emoji }, auteur: lireAuteur(tables, m.auteurId), date: m.creeLe,
+        conversation: { type: conversation.type, titre, emoji: conversation.emoji }, auteur: lireAuteur(tables, m.auteurId), date: m.creeLe, gif,
       },
       auteurContenuId: m.auteurId, lieuId: null,
       fichierMedia: avecMedia && m.mediaExpireLe && m.mediaExpireLe > maintenant ? m.fichier : null,

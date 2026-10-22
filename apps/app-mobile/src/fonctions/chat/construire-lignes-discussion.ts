@@ -1,11 +1,11 @@
-import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { decrireJourDiscussion } from "~/fonctions/chat/decrire-jour-discussion";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
 
 /** Un message du chat prêt à afficher : son auteur, son heure, le jour à écrire au-dessus, et s'il ouvre une série */
 export type LigneDiscussion = {
-  message: MessageChat;
+  message: MessageChatEnrichi;
   auteur: Pote | null;
   deMoi: boolean;
   /** « 14h32 » */
@@ -22,7 +22,7 @@ const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth()
  * Range les messages d'une conversation pour la liste : jour au-dessus du premier message de chaque jour, séries par auteur.
  * monId : ton identifiant (utiliserMonId), pour reconnaître tes messages.
  */
-export function construireLignesDiscussion(messages: MessageChat[], trouverPote: (id: string) => Pote | null, maintenant: Date, monId: string): LigneDiscussion[] {
+export function construireLignesDiscussion(messages: MessageChatEnrichi[], trouverPote: (id: string) => Pote | null, maintenant: Date, monId: string): LigneDiscussion[] {
   return messages.map((message, i) => {
     const date = new Date(message.date);
     const precedent = messages[i - 1];
@@ -33,7 +33,7 @@ export function construireLignesDiscussion(messages: MessageChat[], trouverPote:
       deMoi: message.auteur === monId,
       heure: formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`),
       jour: nouveauJour ? decrireJourDiscussion(date, maintenant) : null,
-      debutSerie: nouveauJour || precedent.auteur !== message.auteur,
+      debutSerie: nouveauJour || precedent.auteur !== message.auteur || !!precedent.systeme || !!message.systeme,
     };
   });
 }

@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import * as Clipboard from "expo-clipboard";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
@@ -10,6 +11,9 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
+import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { nommerReactionChat } from "~/fonctions/chat/nommer-reaction-chat";
@@ -28,7 +32,7 @@ type Props = {
   visible: boolean;
   conversationId: string;
   /** Le message visé (à garder tant que la feuille est ouverte : il disparaît de la conversation dès qu'il est signalé) */
-  message: MessageChat | null;
+  message: MessageChatEnrichi | null;
   /** Son auteur (null si on ne le connaît plus : on peut alors seulement réagir et signaler) */
   auteur: Pote | null;
   /** Ton message : seulement les réactions */
@@ -36,6 +40,9 @@ type Props = {
   onFermer: () => void;
   /** Personne bloquée : la feuille se ferme, l'écran peut le dire */
   onBloque: (prenom: string) => void;
+  onAnnoncer: (texte: string) => void;
+  onRepondre?: () => void;
+  onModifier?: () => void;
 };
 
 type Vue = "options" | "signaler" | "bloquer";
@@ -67,7 +74,7 @@ function resumer(message: MessageChat, nomDuLieu: (id: number) => string | undef
  * d'un pote, le signaler ou bloquer son auteur (avec confirmation). Pour tes messages : les réactions, et avec un compte,
  * « Supprimer pour tout le monde ».
  */
-export function MenuMessageChat({ visible, conversationId, message, auteur, deMoi, onFermer, onBloque }: Props) {
+export function MenuMessageChat({ visible, conversationId, message, auteur, deMoi, onFermer, onBloque, onAnnoncer, onRepondre, onModifier }: Props) {
   const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
@@ -128,6 +135,13 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
     ]);
   }
 
+  function copier(texte: string) {
+    onFermer();
+    Clipboard.setStringAsync(texte)
+      .then((fait) => onAnnoncer(fait === false ? T.copieRatee : T.copie))
+      .catch(() => onAnnoncer(T.copieRatee));
+  }
+
   /** Met ou retire ta réaction, referme la feuille, et le lecteur d'écran confirme (comme le cœur de la bulle) */
   function reagir(reaction: ReactionChat, dejaChoisie: boolean) {
     if (!message) return;
@@ -151,11 +165,21 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
   const resume = message ? resumer(message, (id) => trouverLieu(id)?.nom) : null;
   // Compte connecté : ton message déjà parti se supprime pour tout le monde (il reste « Message supprimé »)
   const supprimable = deMoi && source === "compte" && !!message && !message.etat;
+  const visibleSurMessage = !!message && !message.etat;
+  const texteACopier = visibleSurMessage ? (message.type === "texte" ? message.texte : message.type === "photo" ? message.legende : undefined)?.trim() : undefined;
+  const minutesPourModifier = message && deMoi && message.type === "texte" && !message.etat ? calculerMinutesPourModifier(message.date, new Date()) : 0;
+  const communes = [
+    ...(onRepondre && visibleSurMessage ? [{ cle: "repondre" as const, emoji: "↩️", titre: T.repondre, detail: T.repondreDetail }] : []),
+    ...(texteACopier ? [{ cle: "copier" as const, emoji: "📋", titre: T.copier, detail: T.copierDetail }] : []),
+    ...(onModifier && minutesPourModifier > 0 ? [{ cle: "modifier" as const, emoji: "✏️", titre: T.modifier, detail: T.modifierDetail(minutesPourModifier) }] : []),
+  ];
   const options = deMoi
-    ? supprimable
-      ? [{ cle: "supprimer" as const, emoji: "🗑️", titre: "Supprimer pour tout le monde", detail: "Il restera « Message supprimé » dans la discussion" }]
-      : []
+    ? [
+        ...communes,
+        ...(supprimable ? [{ cle: "supprimer" as const, emoji: "🗑️", titre: "Supprimer pour tout le monde", detail: "Il restera « Message supprimé » dans la discussion" }] : []),
+      ]
     : [
+        ...communes,
         { cle: "signaler" as const, emoji: "🚩", titre: "Signaler ce message", detail: "Insulte, harcèlement, arnaque… dis-nous ce qui cloche" },
         ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Tu ne verras plus ses messages ni ses commentaires" }] : []),
       ];
@@ -252,6 +276,9 @@ export function MenuMessageChat({ visible, conversationId, message, auteur, deMo
                       onPress={() => {
                         vibrerLegerement();
                         if (o.cle === "supprimer") return demanderSuppression();
+                        if (o.cle === "repondre") return onRepondre?.();
+                        if (o.cle === "modifier") return onModifier?.();
+                        if (o.cle === "copier") return texteACopier ? copier(texteACopier) : undefined;
                         aller(o.cle);
                       }}
                       className="min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70"
