@@ -101,7 +101,7 @@ export interface TablesMessagerie {
   ajouterMembre(m: Omit<LigneMembre, "epingleeLe" | "luLe">): Promise<void>;
   modifierMembre(conversationId: number, compteId: number, m: Partial<Pick<LigneMembre, "role" | "coupee" | "epingleeLe">>): Promise<boolean>;
   /** luJusqua et visibleApres ne reculent jamais (deux téléphones du même compte en même temps) */
-  avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number; luLe?: Date }): Promise<void>;
+  avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number; luLe?: Date | null }): Promise<void>;
   retirerMembre(conversationId: number, compteId: number): Promise<void>;
   listerMesEpinglees(compteId: number): Promise<LigneConversation[]>;
   compterEpinglees(compteId: number): Promise<number>;

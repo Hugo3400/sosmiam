@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { RondGroupe } from "~/composants/chat/RondGroupe";
 import { RondPote } from "~/composants/potes/RondPote";
 import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
@@ -28,7 +29,7 @@ const TAILLE_AVATAR = 52;
 const TAILLE_MINI = 22;
 
 /**
- * Une conversation dans la liste des messages : l'avatar (le pote, ou l'emoji du groupe avec deux de ses membres),
+ * Une conversation dans la liste des messages : l'avatar (le pote, ou la photo ou l'emoji du groupe avec deux de ses membres),
  * le nom, l'aperçu du dernier message, son moment (« il y a 3 min », « hier », « lun. ») et les non-lus. Lue d'un seul bloc.
  */
 export function LigneConversation({ conversation, maintenant, brouillon }: Props) {
@@ -69,7 +70,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
     .filter(Boolean)
     .join(". ");
 
-  // Un rond avec un emoji : celui du groupe, ou un visage si on ne connaît plus la personne
+  // Un rond avec un visage, si on ne connaît plus la personne
   const rondEmoji = (emoji: string) => (
     <View style={{ width: TAILLE_AVATAR, height: TAILLE_AVATAR, borderRadius: TAILLE_AVATAR / 2 }} className="items-center justify-center border-2 border-encre bg-jaune-clair">
       {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système */}
@@ -91,7 +92,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
       className="min-h-[76px] flex-row items-center gap-3 border-b border-ligne py-3 active:opacity-70"
     >
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: TAILLE_AVATAR + 4, height: TAILLE_AVATAR }}>
-        {groupe ? rondEmoji(conversation.emoji || "💬") : pote ? <RondPote pote={pote} taille={TAILLE_AVATAR} /> : rondEmoji("🙂")}
+        {groupe ? <RondGroupe conversation={conversation} taille={TAILLE_AVATAR} /> : pote ? <RondPote pote={pote} taille={TAILLE_AVATAR} /> : rondEmoji("🙂")}
         {groupe && autres.length > 0 ? (
           <View className="absolute -bottom-1 right-0 flex-row">
             {autres.slice(0, 2).map((p, i) => (

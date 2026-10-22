@@ -18,7 +18,7 @@ import { effacerConfirmationsNewsletterExpirees } from "../services/confirmation
 import { noterAction } from "../services/gestion/journal.ts";
 import { listerSauvegardes, sauvegarderBase } from "../services/gestion/sauvegardes.ts";
 import { testerSauvegarde } from "../services/gestion/test-sauvegarde.ts";
-import { effacerAppareilsSilencieux, effacerInteretsPasses } from "../services/menage-app.ts";
+import { effacerAppareilsSilencieux, effacerInteretsPasses, oublierClesApercuSansSession } from "../services/menage-app.ts";
 import { faireLeMenageDesComptes } from "../services/menage-comptes.ts";
 import { faireLeMenageSocial } from "../services/menage-social.ts";
 import { decrireBilanMenageSocial } from "../fonctions/social/decrire-bilan-menage-social.ts";
@@ -77,6 +77,8 @@ async function faireLeMenage() {
     // L'app : téléphones des notifications silencieux depuis 90 jours, « Ça m'intéresse » 30 jours après l'événement
     const appareils = await effacerAppareilsSilencieux();
     if (appareils > 0) await noterAction("serveur", "Téléphones des notifications effacés", `${appareils} téléphone(s) : 90 jours sans signe de vie, ou jeton mort`);
+    const clesApercu = await oublierClesApercuSansSession();
+    if (clesApercu > 0) await noterAction("serveur", "Clés d'aperçu des notifications oubliées (session fermée)", `${clesApercu} téléphone(s)`);
     const interets = await effacerInteretsPasses();
     if (interets > 0) await noterAction("serveur", "« Ça m'intéresse » effacés (30 jours après l'événement)", `${interets} intérêt(s)`);
     // Connexion par QR code : les demandes expirées depuis plus d'un jour (un nombre seulement dans le journal)

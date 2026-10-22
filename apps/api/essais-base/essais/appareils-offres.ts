@@ -1,5 +1,11 @@
 import "../socle/garde-fou.ts";
+import { randomBytes } from "node:crypto";
+
 import { inscrireAppareil, type InscriptionAppareil } from "../../src/services/appareils-push.ts";
+import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
+import { creerChiffrementSocial } from "../../src/services/chiffrement-social.ts";
+import { oublierClesApercuSansSession } from "../../src/services/menage-app.ts";
+import { creerApercusPush } from "../../src/services/notifications/apercus-push.ts";
 import { creerBaseEnMemoire } from "../socle/base-en-memoire.ts";
 import { insererLigne } from "../socle/inserer-ligne.ts";
 import { creerVerifications, terminerEssai } from "../socle/verifications.ts";
@@ -18,7 +24,7 @@ const JETON_ENTRE_DEUX = "d".repeat(64);
 const JETON_COMPTE = "e".repeat(64);
 
 const telephone = (jeton: string, offres: boolean, autres: Partial<InscriptionAppareil> = {}): InscriptionAppareil => ({
-  jeton, plateforme: "ios", ville: "Montpellier", offres, compteId: null, empreinteSession: null, ...autres,
+  jeton, plateforme: "ios", ville: "Montpellier", offres, compteId: null, empreinteSession: null, cleApercu: null, ...autres,
 });
 
 const lireAccord = async (jeton: string) => {
@@ -67,6 +73,24 @@ await inscrireAppareil(telephone(JETON_COMPTE, true, { compteId, empreinteSessio
 const lie = await essai.base.appareilPush.findUniqueOrThrow({ where: { jeton: JETON_COMPTE }, select: { compteId: true, sessionId: true } });
 egal([lie.compteId, lie.sessionId], [compteId, sessionId], "avec une session : lié au compte et à la session");
 egal(await lireAccord(JETON_COMPTE), [true, minute(10).toISOString()], "avec une session : l'accord est gardé pareil");
+
+const apercus = creerApercusPush(creerChiffrementSocial(creerChiffrementDonnees(randomBytes(32))))!;
+const cle = randomBytes(32);
+const lireCle = async (jeton: string) => (await essai.base.appareilPush.findUniqueOrThrow({ where: { jeton }, select: { cleApercuChiffree: true } })).cleApercuChiffree;
+await inscrireAppareil(telephone(JETON_COMPTE, true, { compteId, empreinteSession: "f".repeat(64), cleApercu: cle }), minute(11), apercus);
+const gardee = await lireCle(JETON_COMPTE);
+egal([typeof gardee, gardee?.startsWith("v"), gardee?.includes(cle.toString("base64url"))], ["string", true, false], "clé d'aperçu : gardée chiffrée, jamais telle quelle");
+const relue = apercus.chiffrerPour({ titre: "💬 Léa", texte: "Coucou" }, { jeton: JETON_COMPTE, cleApercuChiffree: gardee! });
+egal(typeof relue, "string", "et relisible pour chiffrer un aperçu");
+await inscrireAppareil(telephone(JETON_COMPTE, true, { compteId, empreinteSession: "f".repeat(64) }), minute(12), apercus);
+egal(await lireCle(JETON_COMPTE), null, "réinscrit sans clé : oubliée");
+await inscrireAppareil(telephone(JETON_LEA, false, { cleApercu: cle }), minute(13), apercus);
+egal(await lireCle(JETON_LEA), null, "sans compte : jamais gardée");
+await inscrireAppareil(telephone(JETON_COMPTE, true, { compteId, empreinteSession: "f".repeat(64), cleApercu: cle }), minute(14), apercus);
+egal(await oublierClesApercuSansSession(), 0, "session ouverte : la clé reste");
+await essai.sql("DELETE FROM sessions_comptes WHERE id = $1", [sessionId]);
+egal(await oublierClesApercuSansSession(), 1, "session fermée : le ménage de nuit oublie la clé");
+egal(await lireCle(JETON_COMPTE), null, "et elle n'est plus en base");
 
 const autres = await essai.sql("SELECT jeton, offres_acceptees FROM appareils_push WHERE jeton <> ALL($1) ORDER BY jeton", [[JETON_LEA, JETON_ANCIEN, JETON_ENTRE_DEUX, JETON_COMPTE]]);
 egal(autres, [{ jeton: JETON_MAX, offres_acceptees: "t" }], "chaque téléphone garde son propre accord");

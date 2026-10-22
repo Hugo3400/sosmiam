@@ -89,7 +89,9 @@ test("Vu : luJusqua d'un autre membre seulement si vous avez tous les deux les a
   const coupe = await lireFil(a, id);
   assert.equal(coupe.version, version, "coupé : lire ne se voit pas");
   assert.equal(coupe.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === b.idPublic).luJusqua, undefined);
-  assert.equal(banc.tables.membres.find((m) => m.conversationId === Number(id) && m.compteId === b.compteId)!.luJusqua, Number(second.message.id), "le lu avance quand même");
+  const ligneB = banc.tables.membres.find((m) => m.conversationId === Number(id) && m.compteId === b.compteId)!;
+  assert.equal(ligneB.luJusqua, Number(second.message.id), "le lu avance quand même");
+  assert.equal(ligneB.luLe, null, "mais l'heure de lecture n'est plus gardée");
 });
 
 test("mentions : @pseudo d'un membre (5 au plus, pas soi) ; prévenu même s'il a coupé, pas si pushSocial est coupé ; une cloche « mention »", async () => {

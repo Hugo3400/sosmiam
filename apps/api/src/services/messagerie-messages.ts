@@ -200,7 +200,8 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
 
     /**
      * Ne recule jamais ; ramené au dernier message visible pour moi (au plus `jusqua`). Montré aux autres (« Vu ») seulement
-     * entre deux membres qui ont tous les deux les accusés de lecture : la conversation change alors de version
+     * entre deux membres qui ont tous les deux les accusés de lecture : la conversation change alors de version. Sinon, seule
+     * la position est gardée (les non-lus), jamais l'heure de lecture
      */
     async marquerLu(moi: number, conversationId: number, jusqua: number, maintenant: Date): Promise<boolean> {
       const acces = await lecture.lireAcces(moi, conversationId);
@@ -211,7 +212,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
       const accuses = await c.depot.lire.lireAccusesLecture(acces.membres.map((m) => m.compteId));
       const vu = accuses.has(moi) && acces.membres.some((m) => m.compteId !== moi && accuses.has(m.compteId));
       await c.depot.ecrire(async (t) => {
-        if (!vu) return t.avancerMembre(conversationId, moi, { luJusqua: dernier.id, luLe: maintenant });
+        if (!vu) return t.avancerMembre(conversationId, moi, { luJusqua: dernier.id, luLe: null });
         if (!(await t.verrouillerConversation(conversationId))) return;
         const avant = (await t.lireMembres([conversationId])).find((m) => m.compteId === moi);
         if (!avant || avant.luJusqua >= dernier.id) return;

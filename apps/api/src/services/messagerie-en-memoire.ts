@@ -108,7 +108,7 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
     async avancerMembre(conversationId, compteId, m) {
       const membre = membreDe(conversationId, compteId);
       if (!membre) return;
-      if (m.luJusqua !== undefined && m.luJusqua > membre.luJusqua) Object.assign(membre, { luJusqua: m.luJusqua }, m.luLe ? { luLe: m.luLe } : {});
+      if (m.luJusqua !== undefined && m.luJusqua > membre.luJusqua) Object.assign(membre, { luJusqua: m.luJusqua }, m.luLe !== undefined ? { luLe: m.luLe } : {});
       if (m.visibleApres !== undefined) membre.visibleApres = Math.max(membre.visibleApres, m.visibleApres);
     },
     async retirerMembre(conversationId, compteId) {

@@ -16,6 +16,7 @@ import { utiliserRenvoiChoixOffres } from "~/hooks/utiliser-renvoi-choix-offres"
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
 import { noterNotificationOuverte } from "~/services/notification-ouverte";
+import { estReponseDepuisNotification } from "~/services/reponse-notification";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
 /**
@@ -120,7 +121,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
   useEffect(() => {
     if (Platform.OS === "web" || !pileAffichee) return;
     const ouvrir = (reponse: Notifications.NotificationResponse | null) => {
-      if (!reponse) return;
+      if (!reponse || estReponseDepuisNotification(reponse)) return;
       const cle = `${reponse.notification.request.identifier}@${reponse.notification.date}`;
       if (cle === derniereOuverte) return;
       derniereOuverte = cle;

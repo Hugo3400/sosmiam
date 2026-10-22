@@ -16,6 +16,12 @@ export async function effacerAppareilsSilencieux(maintenant = new Date()): Promi
   return count;
 }
 
+/** Les clés d'aperçu des téléphones dont la session est fermée (déconnexion ailleurs, mot de passe changé, expirée) : oubliées. */
+export async function oublierClesApercuSansSession(): Promise<number> {
+  const { count } = await baseDeDonnees.appareilPush.updateMany({ where: { sessionId: null, cleApercuChiffree: { not: null } }, data: { cleApercuChiffree: null } });
+  return count;
+}
+
 /** Les « Ça m'intéresse » d'un événement dont la dernière date est passée depuis plus de 30 jours. */
 export async function effacerInteretsPasses(maintenant = new Date()): Promise<number> {
   const limite = new Date(maintenant.getTime() - JOURS_APRES_EVENEMENT * UN_JOUR);

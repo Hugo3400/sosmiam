@@ -117,6 +117,11 @@ export default function EcranDiscussion() {
     setMenuOuvert(false);
     router.push({ pathname: "/potes/profil/[id]", params: { id: qui } });
   };
+  const voirGroupe = () => {
+    Keyboard.dismiss();
+    setMenuOuvert(false);
+    router.push({ pathname: "/potes/groupe/[id]", params: { id: conversation.id } });
+  };
   // Bloquer l'auteur d'un message : dans un groupe, ses messages disparaissent ; en privé, toute la conversation avec lui
   const apresBlocage = (prenom: string) => {
     if (groupe) annoncer(`🚫 C'est fait : tu ne verras plus les messages de ${prenom}`);
@@ -138,6 +143,7 @@ export default function EcranDiscussion() {
               setMenuOuvert(true);
             }}
             onVoirProfil={voirProfil}
+            onVoirGroupe={voirGroupe}
           />
 
           <ListeMessagesChat
@@ -203,6 +209,7 @@ export default function EcranDiscussion() {
         onVoirProfil={voirProfil}
         onBloque={(prenom) => partir(`C'est fait : tu as bloqué ${prenom}.`)}
         onQuitte={(titre) => partir(`Tu as quitté ${titre}.`)}
+        onVoirGroupe={voirGroupe}
       />
 
       <Annonce annonce={annonce} haut={marges.top + 8} onFin={finAnnonce} />

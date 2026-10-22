@@ -32,6 +32,7 @@ type Props = {
   onBloque: (prenom: string) => void;
   /** Groupe quitté : l'écran peut revenir à la liste */
   onQuitte: (titre: string) => void;
+  onVoirGroupe: () => void;
   onAnnoncer: (texte: string) => void;
 };
 
@@ -41,9 +42,9 @@ const TAILLE_MEMBRE = 36;
 
 /**
  * Le menu d'une conversation, dans une feuille qui monte du bas. Message privé : voir le profil, signaler ou bloquer le pote
- * (avec confirmation). Groupe : les membres (vers leur profil) et « Quitter le groupe » (avec confirmation).
+ * (avec confirmation). Groupe : les membres (vers leur profil), « Infos du groupe » et « Quitter le groupe » (avec confirmation).
  */
-export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoirProfil, onBloque, onQuitte, onAnnoncer }: Props) {
+export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoirProfil, onBloque, onQuitte, onVoirGroupe, onAnnoncer }: Props) {
   const couleurs = utiliserCouleurs();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
@@ -113,7 +114,13 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
   // Effacer pour soi seul : les autres gardent leurs messages
   const optionEffacer = conversation ? [{ cle: "effacer" as const, emoji: "🧽", titre: "Effacer la discussion pour moi", detail: "Tu ne verras plus les messages d'avant" }] : [];
   const options = groupe
-    ? [...optionEpingler, ...optionCouper, ...optionEffacer, { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" }]
+    ? [
+        { cle: "infos" as const, emoji: "👥", titre: "Infos du groupe", detail: "Sa photo, ses membres et tout ce qui s'y partage" },
+        ...optionEpingler,
+        ...optionCouper,
+        ...optionEffacer,
+        { cle: "quitter" as const, emoji: "👋", titre: "Quitter le groupe", detail: "Tu ne verras plus ses messages" },
+      ]
     : pote
       ? [
           { cle: "profil" as const, emoji: "👤", titre: "Voir le profil", detail: "Sa ville, ses badges, ses lieux sauvés" },
@@ -254,6 +261,7 @@ export function MenuDiscussion({ visible, conversation, membres, onFermer, onVoi
                       onPress={() => {
                         vibrerLegerement();
                         if (o.cle === "profil" && pote) onVoirProfil(pote.id);
+                        else if (o.cle === "infos") onVoirGroupe();
                         else if (o.cle === "epingler" && conversation) basculerEpingle(conversation.id);
                         else if (o.cle === "couper" && conversation) {
                           couper(conversation.id, !coupee);

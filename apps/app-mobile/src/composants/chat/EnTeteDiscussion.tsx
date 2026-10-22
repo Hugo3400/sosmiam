@@ -1,28 +1,30 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
-import type { Conversation } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { RondGroupe } from "~/composants/chat/RondGroupe";
 import { RondPote } from "~/composants/potes/RondPote";
+import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { listerPrenomsDiscussion } from "~/fonctions/chat/lister-prenoms-discussion";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
-  conversation: Conversation;
+  conversation: ConversationEnrichie;
   /** Les autres membres qu'on montre (sans toi ni les personnes bloquées) ; pour un message privé, le pote */
   membres: Pote[];
   onRetour: () => void;
-  /** Ouvre le menu de la conversation (« ⋯ », ou toucher le nom d'un groupe) */
+  /** Ouvre le menu de la conversation (« ⋯ ») */
   onOptions: () => void;
   onVoirProfil: (poteId: string) => void;
+  onVoirGroupe: () => void;
 };
 
 const TAILLE = 44;
 
-/** Le haut d'une conversation : retour, puis le pote (vers son profil) ou le groupe (emoji, titre, membres), et « ⋯ » pour le menu. */
-export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, onVoirProfil }: Props) {
+/** Le haut d'une conversation : retour, puis le pote (vers son profil) ou le groupe (photo ou emoji, titre, membres : vers ses infos), et « ⋯ » pour le menu. */
+export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, onVoirProfil, onVoirGroupe }: Props) {
   const couleurs = utiliserCouleurs();
   const groupe = conversation.type === "groupe";
   const pote = groupe ? null : (membres[0] ?? null);
@@ -45,18 +47,20 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={groupe ? `${titre}, groupe de ${nombre} : ${prenoms}` : pote ? `${titre}, @${pote.pseudo}` : titre}
-        accessibilityHint={groupe ? "Voir les membres du groupe" : pote ? "Ouvre son profil" : undefined}
+        accessibilityHint={groupe ? "Ouvre les infos du groupe : photo, membres, partages" : pote ? "Ouvre son profil" : undefined}
         accessibilityState={{ disabled: !groupe && !pote }}
         disabled={!groupe && !pote}
         onPress={() => {
           vibrerLegerement();
-          if (groupe) onOptions();
+          if (groupe) onVoirGroupe();
           else if (pote) onVoirProfil(pote.id);
         }}
         className="min-h-12 flex-1 flex-row items-center gap-2.5 active:opacity-70"
       >
         {pote ? (
           <RondPote pote={pote} taille={TAILLE} />
+        ) : groupe ? (
+          <RondGroupe conversation={conversation} taille={TAILLE} />
         ) : (
           <View
             accessibilityElementsHidden
@@ -66,7 +70,7 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
           >
             {/* Taille fixe : l'emoji suit le rond, pas la taille de texte du système */}
             <Text allowFontScaling={false} style={{ fontSize: TAILLE * 0.5, lineHeight: TAILLE * 0.64 }}>
-              {groupe ? (conversation.emoji ?? "💬") : "👤"}
+              👤
             </Text>
           </View>
         )}

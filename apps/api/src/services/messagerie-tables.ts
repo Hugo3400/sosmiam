@@ -97,7 +97,7 @@ export function creerTablesMessagerie(base: Client, relations: RelationsSociales
       if (m.luJusqua !== undefined) {
         await base.membreConversation.updateMany({
           where: { conversationId, compteId, luJusqua: { lt: m.luJusqua } },
-          data: { luJusqua: m.luJusqua, ...(m.luLe ? { luLe: m.luLe } : {}) },
+          data: { luJusqua: m.luJusqua, ...(m.luLe !== undefined ? { luLe: m.luLe } : {}) },
         });
       }
       if (m.visibleApres !== undefined) {

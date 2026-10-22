@@ -63,7 +63,7 @@ const MICRO_INDISPONIBLE =
   "Ce navigateur ne sait pas tendre l'oreille 👂 Les notes vocales s'enregistrent depuis l'app SOS Miam sur ton téléphone.";
 
 /**
- * Le champ d'écriture du chat entre potes, qui reste au-dessus du clavier : « + » pour partager un lieu ou une photo,
+ * Le champ d'écriture du chat entre potes, qui reste au-dessus du clavier : « + » pour partager des photos, un lieu, un GIF ou un sondage,
  * le texte, et le rond jaune qui envoie (ou, champ vide, qui enregistre une note vocale).
  */
 export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, reponseA, onAnnulerReponse, edition, onAnnulerEdition }: Props) {
@@ -229,7 +229,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
           {edition ? null : (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Partager un lieu ou une photo"
+              accessibilityLabel="Partager des photos, un lieu ou un GIF"
               onPress={() => {
                 vibrerLegerement();
                 // Le clavier resterait par-dessus la feuille et cacherait ses dernières lignes

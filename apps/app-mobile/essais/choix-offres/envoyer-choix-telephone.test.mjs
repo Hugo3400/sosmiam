@@ -210,3 +210,18 @@ test("envoi lâché par le moteur : plus aucune requête ne part", async () => {
     assert.deepEqual(requetes(t.journal), [], choix);
   }
 });
+
+test("clé de l'aperçu : jointe au PUT quand le compte en a une, absente sinon ; une lecture en panne ne bloque rien", async () => {
+  const CLE = "A".repeat(43);
+  const avec = creerOutils({ outils: { lireCleApercu: async () => CLE } });
+  assert.equal(await envoyerChoixTelephone("non", avec.outils), "parti");
+  assert.deepEqual(requetes(avec.journal), [["PUT", { jeton: JETON_NATIF, plateforme: "ios", ville: "Montpellier", offres: false, cleApercu: CLE }]]);
+  for (const lireCleApercu of [async () => null, async () => { throw new Error("trousseau"); }, undefined]) {
+    const t = creerOutils({ outils: { lireCleApercu } });
+    assert.equal(await envoyerChoixTelephone("non", t.outils), "parti");
+    assert.deepEqual(requetes(t.journal), [["PUT", { jeton: JETON_NATIF, plateforme: "ios", ville: "Montpellier", offres: false }]]);
+  }
+  const coupe = creerOutils({ outils: { lireCleApercu: async () => CLE } });
+  await envoyerChoixTelephone("couper", coupe.outils);
+  assert.deepEqual(requetes(coupe.journal), [["DELETE", JETON_NATIF]], "couper : aucune clé ne part");
+});

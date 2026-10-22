@@ -1,19 +1,27 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Linking, Modal, Platform, Pressable, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { MAX_PHOTOS_ALBUM } from "@sos-miam/commun/regles/chat";
+import { EnvoiPhotosChat } from "~/composants/chat/EnvoiPhotosChat";
+import { FeuilleGifChat } from "~/composants/chat/FeuilleGifChat";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
+import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   visible: boolean;
@@ -23,11 +31,13 @@ type Props = {
   onEnvoye: () => void;
 };
 
-type Option = "lieu" | "galerie" | "camera";
+type Option = "galerie" | "camera" | "lieu" | "gif" | "sondage";
 type Message = { texte: string; reglages?: boolean };
 
 // Une photo nette mais légère, telle que tu l'as choisie (pas de recadrage imposé)
 const OPTIONS_PHOTO: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], quality: 0.7 };
+const OPTIONS_GALERIE: ImagePicker.ImagePickerOptions = { ...OPTIONS_PHOTO, allowsMultipleSelection: true, selectionLimit: MAX_PHOTOS_ALBUM, orderedSelection: true };
+const ICONES: Record<Option, keyof typeof Ionicons.glyphMap> = { galerie: "images-outline", camera: "camera-outline", lieu: "location-outline", gif: "film-outline", sondage: "bar-chart-outline" };
 // Le temps que la liste des lieux redescende avant de fermer la feuille (deux fenêtres qui se ferment ensemble, l'iPhone n'aime pas)
 const APRES_CHOIX_LIEU = 350;
 
@@ -39,9 +49,15 @@ const PHOTO_PAS_PARTIE: Message = { texte: "Ta photo n'a pas pu partir. Réessai
 const LIEU_PAS_PARTI: Message = { texte: "Ce lieu n'a pas pu partir. Réessaie dans un instant, ou choisis-en un autre !" };
 const surLeWeb = Platform.OS === "web";
 
-/** Le « + » du chat, dans une feuille qui monte du bas : partager un lieu, une photo de ta galerie, ou en prendre une. */
+/**
+ * Le « + » du chat, dans une feuille qui monte du bas : des photos de ta galerie (avec un petit mot, EnvoiPhotosChat), en
+ * prendre une, un lieu, un GIF (FeuilleGifChat), et dans un groupe le sondage « On mange où ? ».
+ */
 export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }: Props) {
   const couleurs = utiliserCouleurs();
+  const router = useRouter();
+  const monId = utiliserMonId();
+  const { trouverPote } = utiliserCommunaute();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -49,6 +65,8 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
   const animationsReduites = useReducedMotion();
   const conversations = utiliserConversations();
   const [choixLieu, setChoixLieu] = useState(false);
+  const [choixGif, setChoixGif] = useState(false);
+  const [photos, setPhotos] = useState<string[] | null>(null);
   const [enCours, setEnCours] = useState<Option | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   // Une seule ouverture du sélecteur à la fois (deux appuis rapides n'ouvrent pas deux fois l'appareil photo)
@@ -65,6 +83,8 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
     if (visible) {
       setMessage(null);
       setChoixLieu(false);
+      setChoixGif(false);
+      setPhotos(null);
     }
   }
 
@@ -104,12 +124,14 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
         if (!permission.granted) return montrer(CAMERA_REFUSEE);
         resultat = await ImagePicker.launchCameraAsync(OPTIONS_PHOTO);
       } else {
-        // Le sélecteur de photos du système ne demande pas d'autorisation : tu ne partages que la photo choisie
-        resultat = await ImagePicker.launchImageLibraryAsync(OPTIONS_PHOTO);
+        // Le sélecteur de photos du système ne demande pas d'autorisation : tu ne partages que les photos choisies
+        resultat = await ImagePicker.launchImageLibraryAsync(OPTIONS_GALERIE);
       }
       // Annulé : rien ne part, la feuille reste là
       if (resultat.canceled || resultat.assets.length === 0) return;
-      const envoi = await dernieres.current.envoyerPhoto(conversationId, resultat.assets[0].uri);
+      // Galerie : avant d'envoyer, un coup d'œil et un petit mot (EnvoiPhotosChat)
+      if (source === "galerie") return setPhotos(resultat.assets.map((a) => a.uri));
+      const envoi = await dernieres.current.envoyerPhotos(conversationId, [resultat.assets[0].uri]);
       if (envoi !== "ok") return montrer(PHOTO_PAS_PARTIE);
       reussir();
       onFermer();
@@ -129,12 +151,30 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
     Linking.openSettings().catch(() => montrer({ texte: "Les réglages n'ont pas voulu s'ouvrir. Tu les trouveras dans l'appli Réglages de ton téléphone." }));
   }
 
-  const options: { cle: Option; emoji: string; titre: string; detail: string }[] = [
-    { cle: "lieu", emoji: "📍", titre: "Un lieu", detail: "Ta pépite du moment, avec un « On y va ? » pour tes potes" },
-    { cle: "galerie", emoji: "🖼️", titre: "Une photo de ta galerie", detail: "Ton plat du jour, ta tête de gourmand…" },
+  const conversation = conversations.trouverConversation(conversationId);
+  const groupe = conversation?.type === "groupe";
+  const pote = groupe ? null : trouverPote(conversation?.participants.find((p) => p !== monId) ?? "");
+  const nom = groupe ? nommerGroupe(conversation?.titre) : (pote?.prenom ?? "ton pote");
+  const options: { cle: Option; titre: string; detail: string; nouveau?: boolean }[] = [
+    { cle: "galerie", titre: T.photos, detail: T.photosDetail },
     // Sur le web (aperçu), il n'y a pas toujours d'appareil photo
-    ...(surLeWeb ? [] : [{ cle: "camera" as const, emoji: "📸", titre: "Prendre une photo", detail: "Clic-clac, direct dans la conversation" }]),
+    ...(surLeWeb ? [] : [{ cle: "camera" as const, titre: T.camera, detail: T.cameraDetail }]),
+    { cle: "lieu", titre: T.lieu, detail: T.lieuDetail },
+    { cle: "gif", titre: T.gif, detail: T.gifDetail },
+    ...(groupe ? [{ cle: "sondage" as const, titre: T.sondage, detail: T.sondageDetail, nouveau: true }] : []),
   ];
+
+  function choisir(cle: Option) {
+    setMessage(null);
+    if (cle === "lieu") return setChoixLieu(true);
+    if (cle === "gif") return setChoixGif(true);
+    if (cle === "sondage") {
+      onFermer();
+      router.push({ pathname: "/potes/sondage/[id]", params: { id: conversationId } });
+      return;
+    }
+    void choisirPhoto(cle);
+  }
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
@@ -147,8 +187,8 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
       >
         <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
           <PoigneeFeuille geste={geste} className="px-5">
-            <Text accessibilityRole="header" className="mb-2 font-titre text-2xl text-encre">
-              Partager dans la conversation
+            <Text accessibilityRole="header" numberOfLines={2} className="mb-2 font-titre text-2xl text-encre">
+              {T.titreFeuille(groupe ? `dans ${nom}` : `à ${nom}`)}
             </Text>
           </PoigneeFeuille>
           <ScrollView contentContainerClassName="px-5">
@@ -170,24 +210,29 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
                 <Pressable
                   key={o.cle}
                   accessibilityRole="button"
-                  accessibilityLabel={`${o.titre}, ${o.detail}`}
+                  accessibilityLabel={`${o.titre}${o.nouveau ? `, ${T.nouveau}` : ""}, ${o.detail}`}
                   accessibilityState={{ disabled: desactivee }}
                   disabled={desactivee || enCours === o.cle}
                   onPress={() => {
                     vibrerLegerement();
-                    if (o.cle === "lieu") {
-                      setMessage(null);
-                      setChoixLieu(true);
-                    } else void choisirPhoto(o.cle);
+                    choisir(o.cle);
                   }}
-                  className={`min-h-14 flex-row items-center gap-4 border-b border-ligne py-3 active:opacity-70 ${desactivee ? "opacity-40" : ""}`}
+                  className={`min-h-16 flex-row items-center gap-3.5 border-b border-ligne py-2.5 active:opacity-70 ${desactivee ? "opacity-40" : ""}`}
                 >
-                  <Text className="text-2xl">{o.emoji}</Text>
-                  <View className="flex-1">
-                    <Text className="font-texte-gras text-base text-encre">{o.titre}</Text>
+                  <View className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune">
+                    {enCours === o.cle ? <ActivityIndicator color={couleurs.nuit} /> : <Ionicons name={ICONES[o.cle]} size={20} color={couleurs.nuit} />}
+                  </View>
+                  <View className="flex-1 gap-0.5">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="font-texte-gras text-base text-encre">{lierPonctuation(o.titre)}</Text>
+                      {o.nouveau ? (
+                        <View className="rounded-full border border-encre bg-nuit px-2 py-px">
+                          <Text className="font-texte-gras text-[11px] text-jaune">{T.nouveau}</Text>
+                        </View>
+                      ) : null}
+                    </View>
                     <Text className="font-texte text-sm text-gris">{lierPonctuation(o.detail)}</Text>
                   </View>
-                  {enCours === o.cle ? <ActivityIndicator color={couleurs.encre} /> : <Ionicons name="chevron-forward" size={20} color={couleurs.gris} />}
                 </Pressable>
               );
             })}
@@ -199,8 +244,30 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
         </View>
       </Animated.View>
 
-      {/* Dans la feuille : la liste des lieux s'ouvre par-dessus (deux fenêtres côte à côte se gênent sur iPhone) */}
+      {/* Dans la feuille : la liste des lieux, les GIF et l'aperçu des photos s'ouvrent par-dessus (deux fenêtres côte à côte se gênent sur iPhone) */}
       <ChoixLieu visible={visible && choixLieu} titre="Quel lieu partager ?" onChoisir={choisirLieu} onFermer={() => setChoixLieu(false)} />
+      <FeuilleGifChat
+        visible={visible && choixGif}
+        conversationId={conversationId}
+        onFermer={() => setChoixGif(false)}
+        onEnvoye={() => {
+          setChoixGif(false);
+          reussir();
+          fermeture.current = setTimeout(onFermer, APRES_CHOIX_LIEU);
+        }}
+      />
+      <EnvoiPhotosChat
+        visible={visible && photos !== null}
+        conversationId={conversationId}
+        nom={nom}
+        photosDepart={photos ?? []}
+        onFermer={() => setPhotos(null)}
+        onEnvoye={() => {
+          setPhotos(null);
+          reussir();
+          fermeture.current = setTimeout(onFermer, APRES_CHOIX_LIEU);
+        }}
+      />
     </Modal>
   );
 }

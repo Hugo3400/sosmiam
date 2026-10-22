@@ -1,21 +1,19 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { FlatList, Modal, Pressable, ScrollView, Text, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PagePhotoVisionneuse, type PoigneePagePhoto } from "~/composants/chat/PagePhotoVisionneuse";
+import { VignetteVisionneuse } from "~/composants/chat/VignetteVisionneuse";
 import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
 import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
-import { lireSourcePhotoChat } from "~/fonctions/chat/lire-source-photo-chat";
 import { formaterIlYA } from "~/fonctions/dates/formater-il-y-a";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
-import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
 
 type Props = {
   visible: boolean;
@@ -28,26 +26,9 @@ type Props = {
 };
 
 const DELAI_DOUBLE_APPUI = 300;
-const TAILLE_VIGNETTE = 48;
 const HAUT_ENTETE = 68;
 const BAS_PIED = 112;
-
-function Vignette({ conversationId, message, choisie, numero, total, onPress }: { conversationId: string; message: MessageChatEnrichi; choisie: boolean; numero: number; total: number; onPress: () => void }) {
-  const media = utiliserMediaChat(conversationId, message);
-  const source = media.fichier ? lireSourcePhotoChat(media.fichier) : null;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={T.voirPhoto(numero, total)}
-      accessibilityState={{ selected: choisie }}
-      onPress={onPress}
-      style={{ width: TAILLE_VIGNETTE, height: TAILLE_VIGNETTE }}
-      className={`overflow-hidden rounded-lg border-2 bg-trait-nuit active:opacity-80 ${choisie ? "border-jaune" : "border-transparent"}`}
-    >
-      {source ? <Image source={source} contentFit="cover" style={{ flex: 1 }} /> : null}
-    </Pressable>
-  );
-}
+const HAUT_VIGNETTES = 48;
 
 export function VisionneusePhotosChat({ visible, conversationId, photos, depart, prenomDe, onFermer, onDoubleAppui }: Props) {
   const couleurs = utiliserCouleurs();
@@ -79,7 +60,7 @@ export function VisionneusePhotosChat({ visible, conversationId, photos, depart,
 
   const total = photos.length;
   const courante = photos[Math.min(index, total - 1)];
-  const hauteurPage = Math.max(200, height - marges.top - marges.bottom - HAUT_ENTETE - (total > 1 ? BAS_PIED : BAS_PIED - TAILLE_VIGNETTE));
+  const hauteurPage = Math.max(200, height - marges.top - marges.bottom - HAUT_ENTETE - (total > 1 ? BAS_PIED : BAS_PIED - HAUT_VIGNETTES));
 
   function appui(message: MessageChatEnrichi) {
     const maintenant = Date.now();
@@ -183,7 +164,7 @@ export function VisionneusePhotosChat({ visible, conversationId, photos, depart,
           {total > 1 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="grow justify-center gap-1.5">
               {photos.map((m, i) => (
-                <Vignette key={m.id} conversationId={conversationId} message={m} choisie={i === index} numero={i + 1} total={total} onPress={() => aller(i)} />
+                <VignetteVisionneuse key={m.id} conversationId={conversationId} message={m} choisie={i === index} numero={i + 1} total={total} onPress={() => aller(i)} />
               ))}
             </ScrollView>
           ) : null}
