@@ -55,6 +55,7 @@ model MembreConversation {
   visibleApres   Int          @default(0) @map("visible_apres")
   /// Lu jusqu'à ce message (id)
   luJusqua       Int          @default(0) @map("lu_jusqua")
+  luLe           DateTime?    @map("lu_le") @db.Timestamptz(3)
   /// « Couper les notifications » de cette conversation
   coupee         Boolean      @default(false)
   epingleeLe     DateTime?    @map("epinglee_le") @db.Timestamptz(3)
