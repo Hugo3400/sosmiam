@@ -14,7 +14,7 @@ const AUCUN_PSEUDO: ReadonlySet<string> = new Set();
 export function TexteMessageChat({ texte, pseudos = AUCUN_PSEUDO, deMoi }: Props) {
   const morceaux = decouperMentions(lierPonctuation(texte), pseudos);
   return (
-    <Text className={`font-texte text-base leading-[22px] ${deMoi ? "text-nuit" : "text-encre"}`}>
+    <Text selectable={false} className={`font-texte text-base leading-[22px] ${deMoi ? "text-nuit" : "text-encre"}`}>
       {morceaux.map((morceau, i) =>
         morceau.mention ? (
           <Text key={i} className={`font-texte-gras ${deMoi ? "bg-lait/70 text-nuit" : "bg-jaune-clair text-encre"}`}>
