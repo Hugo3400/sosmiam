@@ -1,17 +1,18 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { File } from "expo-file-system";
 import { Image } from "expo-image";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, Modal, Platform, Pressable, Text, useWindowDimensions, View, type PressableProps } from "react-native";
-import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMemo, useState } from "react";
+import { Keyboard, Platform, Pressable, Text, useWindowDimensions, type PressableProps } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 
-import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
-import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
+import { VisionneusePhotosChat } from "~/composants/chat/VisionneusePhotosChat";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
+import { lireSourcePhotoChat } from "~/fonctions/chat/lire-source-photo-chat";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
 type Props = {
+  conversationId: string;
+  message: MessageChatEnrichi;
+  prenom: string;
   /** Adresse de la photo dans les fichiers de l'app */
   fichier: string | undefined;
   /** Qui l'a envoyée et quand : « Photo de Léa, 14h32 », « Ta photo, 14h32 » */
@@ -26,7 +27,6 @@ type Props = {
   actionsLecteur?: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction">;
 };
 
-const DELAI_DOUBLE_APPUI = 300;
 // Ni trop haute, ni trop plate (largeur / hauteur)
 const RATIO_MIN = 0.7;
 const RATIO_MAX = 1.4;
@@ -36,7 +36,7 @@ const ratiosConnus = new Map<string, number>();
 
 /** Vrai si le fichier est encore là (sur le web, on ne peut pas vérifier : la photo dira elle-même si elle se charge). */
 function existeEncore(fichier: string): boolean {
-  if (Platform.OS === "web") return true;
+  if (Platform.OS === "web" || fichier.startsWith("exemple:")) return true;
   try {
     return new File(fichier).exists;
   } catch {
@@ -45,28 +45,16 @@ function existeEncore(fichier: string): boolean {
 }
 
 /**
- * Une photo du chat : vignette arrondie à bord encre ; la toucher l'ouvre en grand (double appui en grand : un cœur).
- * Fichier disparu ou illisible : un joli remplaçant plutôt qu'un trou.
+ * Une photo du chat : vignette arrondie à bord encre ; la toucher l'ouvre en grand (VisionneusePhotosChat, double appui en
+ * grand : un 😋). Fichier disparu ou illisible : un joli remplaçant plutôt qu'un trou.
  */
-export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui, actionsLecteur }: Props) {
-  const couleurs = utiliserCouleurs();
-  const marges = useSafeAreaInsets();
+export function PhotoChat({ conversationId, message, prenom, fichier, libelle, deMoi, onAppuiLong, onDoubleAppui, actionsLecteur }: Props) {
   const { width } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const present = useMemo(() => !!fichier && existeEncore(fichier), [fichier]);
   const [illisible, setIllisible] = useState(false);
   const [ratio, setRatio] = useState(() => (fichier ? ratiosConnus.get(fichier) : undefined) ?? RATIO_INCONNU);
   const [grande, setGrande] = useState(false);
-  // Le cœur qui éclot au double appui (son numéro relance l'animation), puis s'efface
-  const [coeur, setCoeur] = useState<number | null>(null);
-  const dernierAppui = useRef(0);
-  const minuterieCoeur = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (minuterieCoeur.current) clearTimeout(minuterieCoeur.current);
-    },
-    [],
-  );
 
   const largeur = Math.min(240, Math.round(width * 0.62));
   const coins = deMoi ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-tl-md";
@@ -92,20 +80,6 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
     );
   }
 
-  function appuiEnGrand() {
-    const maintenant = Date.now();
-    if (maintenant - dernierAppui.current < DELAI_DOUBLE_APPUI) {
-      dernierAppui.current = 0;
-      vibrerJaime();
-      if (!onDoubleAppui() || animationsReduites) return;
-      setCoeur(maintenant);
-      if (minuterieCoeur.current) clearTimeout(minuterieCoeur.current);
-      minuterieCoeur.current = setTimeout(() => setCoeur(null), 700);
-      return;
-    }
-    dernierAppui.current = maintenant;
-  }
-
   return (
     <>
       <Pressable
@@ -128,7 +102,7 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
         className={`overflow-hidden border-2 border-encre bg-ligne active:opacity-80 ${coins}`}
       >
         <Image
-          source={{ uri: fichier }}
+          source={lireSourcePhotoChat(fichier)}
           contentFit="cover"
           transition={animationsReduites ? 0 : 150}
           onLoad={({ source }) => {
@@ -142,50 +116,17 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
         />
       </Pressable>
 
-      <Modal visible={grande} transparent animationType="fade" onRequestClose={() => setGrande(false)} statusBarTranslucent>
-        <View accessibilityViewIsModal onAccessibilityEscape={() => setGrande(false)} className="flex-1 bg-black">
-          <Pressable accessible={false} onPress={appuiEnGrand} style={{ flex: 1 }}>
-            <Image
-              source={{ uri: fichier }}
-              contentFit="contain"
-              accessible
-              accessibilityLabel={libelle}
-              onError={() => {
-                setGrande(false);
-                setIllisible(true);
-              }}
-              style={{ flex: 1 }}
-            />
-          </Pressable>
-          {coeur !== null ? (
-            <View pointerEvents="none" style={{ position: "absolute", inset: 0, alignItems: "center", justifyContent: "center" }}>
-              <Animated.View key={coeur} entering={ZoomIn.springify().damping(12)} exiting={FadeOut.duration(250)}>
-                <Text allowFontScaling={false} style={{ fontSize: 96 }}>
-                  {T_MESSAGES.emojiDoubleToucher}
-                </Text>
-              </Animated.View>
-            </View>
-          ) : null}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Fermer la photo"
-            onPress={() => setGrande(false)}
-            hitSlop={8}
-            style={{ position: "absolute", top: marges.top + 8, right: 16 }}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-black/60 active:opacity-70"
-          >
-            <Ionicons name="close" size={24} color={couleurs.lait} />
-          </Pressable>
-          <Text
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            style={{ position: "absolute", bottom: marges.bottom + 16, left: 20, right: 20 }}
-            className="text-center font-texte text-sm text-white/80"
-          >
-            {libelle} · Double appui pour dire miam {T_MESSAGES.emojiDoubleToucher}
-          </Text>
-        </View>
-      </Modal>
+      {grande ? (
+        <VisionneusePhotosChat
+          visible
+          conversationId={conversationId}
+          photos={[message]}
+          depart={0}
+          prenomDe={() => prenom}
+          onFermer={() => setGrande(false)}
+          onDoubleAppui={onDoubleAppui}
+        />
+      ) : null}
     </>
   );
 }

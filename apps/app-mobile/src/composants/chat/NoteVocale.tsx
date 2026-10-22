@@ -6,6 +6,7 @@ import { ActivityIndicator, Platform, Pressable, Text, View, type PressableProps
 
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
+import { lireOndeVocal } from "~/fonctions/chat/lire-onde-vocal";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estEnregistrementEnCours, jouerNoteVocale, oublierNoteVocale, utiliserAudioChat } from "~/hooks/utiliser-audio-chat";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
@@ -15,6 +16,7 @@ type Props = {
   fichier: string | undefined;
   /** Durée enregistrée avec le message, en secondes */
   dureeSecondes: number | undefined;
+  onde?: string;
   /** Qui l'a envoyée et quand : « Note vocale de Léa, 14h32 », « Ta note vocale, 14h32 » */
   libelle: string;
   /** Ta note : sur ta bulle jaune */
@@ -29,6 +31,7 @@ type Etat = "arret" | "chargement" | "lecture" | "pause" | "introuvable";
 
 // Sans nouvelles du fichier au bout de ce délai, on le considère parti (une adresse du navigateur oubliée après rechargement)
 const ATTENTE_MAX = 8000;
+const HAUTEUR_ONDE = 22;
 
 /**
  * Vrai si le fichier est encore là. Sur le web, une note enregistrée vit à une adresse du navigateur (« blob: »),
@@ -52,11 +55,11 @@ async function existeEncore(fichier: string): Promise<boolean> {
 }
 
 /**
- * Une note vocale du chat : lecture ou pause, barre d'avancée et durée « 0:12 ». Le lecteur n'est créé qu'au premier
+ * Une note vocale du chat : lecture ou pause, la forme de la voix (ou une barre d'avancée sans elle) et durée « 0:12 ». Le lecteur n'est créé qu'au premier
  * « lire » (pas un lecteur par message affiché), le son sort du haut-parleur même en mode silencieux, et tout s'arrête
  * quand la bulle quitte l'écran. Une seule note joue à la fois, et aucune pendant que tu enregistres (utiliserAudioChat).
  */
-export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong, actionsLecteur }: Props) {
+export function NoteVocale({ fichier, dureeSecondes, onde, libelle, deMoi, onAppuiLong, actionsLecteur }: Props) {
   const couleurs = utiliserCouleurs();
   const { enregistrementEnCours } = utiliserAudioChat();
   const lecteur = useRef<AudioPlayer | null>(null);
@@ -169,6 +172,7 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
   }
 
   const enCours = etat === "lecture" || etat === "pause";
+  const niveaux = lireOndeVocal(onde);
   const avancee = enCours && duree > 0 ? Math.min(1, position / duree) : 0;
   // Pendant que tu enregistres une note, les autres attendent leur tour
   const action = enregistrementEnCours ? "à écouter après ton enregistrement" : etat === "lecture" ? "mettre en pause" : etat === "pause" ? "reprendre" : "lire";
@@ -196,9 +200,19 @@ export function NoteVocale({ fichier, dureeSecondes, libelle, deMoi, onAppuiLong
         )}
       </Pressable>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-1 gap-1.5">
-        <View className={`h-1.5 overflow-hidden rounded-full ${deMoi ? "bg-nuit/15" : "bg-encre/15"}`}>
-          <View style={{ width: `${avancee * 100}%` }} className={`h-full rounded-full ${deMoi ? "bg-nuit" : "bg-encre"}`} />
-        </View>
+        {niveaux ? (
+          <View style={{ height: HAUTEUR_ONDE }} className="flex-row items-center justify-between">
+            {niveaux.map((niveau, i) => {
+              const jouee = enCours && i / niveaux.length < avancee;
+              const teinte = !enCours ? (deMoi ? "bg-nuit" : "bg-gris") : jouee ? (deMoi ? "bg-nuit" : "bg-encre") : deMoi ? "bg-nuit/30" : "bg-gris/45";
+              return <View key={i} style={{ width: 2, height: 3 + (niveau / 9) * (HAUTEUR_ONDE - 3) }} className={`rounded-full ${teinte}`} />;
+            })}
+          </View>
+        ) : (
+          <View className={`h-1.5 overflow-hidden rounded-full ${deMoi ? "bg-nuit/15" : "bg-encre/15"}`}>
+            <View style={{ width: `${avancee * 100}%` }} className={`h-full rounded-full ${deMoi ? "bg-nuit" : "bg-encre"}`} />
+          </View>
+        )}
         <View className="flex-row items-center justify-between">
           <Text className={`font-texte-semi text-xs ${texte}`}>{formaterDureeVocal(enCours ? position : duree)}</Text>
           <Ionicons name="mic" size={13} color={deMoi ? couleurs.nuit : couleurs.gris} />

@@ -6,8 +6,14 @@ import { AccessibilityInfo, ActivityIndicator, Platform, Pressable, Text, View }
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 
 import { DUREE_MAX_VOCAL_SECONDES } from "@sos-miam/commun/regles/chat";
+import { BARRES_ONDE_EN_DIRECT, OndeEnDirect } from "~/composants/chat/OndeEnDirect";
+import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { calculerOndeVocal } from "~/fonctions/chat/calculer-onde-vocal";
+import { convertirNiveauMicro } from "~/fonctions/chat/convertir-niveau-micro";
 import { formaterChronoEnregistrement } from "~/fonctions/chat/formater-chrono-enregistrement";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
+import { suivreSilenceMicro } from "~/fonctions/chat/suivre-silence-micro";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { signalerEnregistrement } from "~/hooks/utiliser-audio-chat";
@@ -27,8 +33,12 @@ type Props = {
 
 type Phase = "preparation" | "enregistrement" | "envoi";
 
+type Mesures = { cle: number; barres: number[]; toutes: number[]; dernierSonMs: number; silencieux: boolean; mesure: boolean };
+
+const MESURES_VIDES: Mesures = { cle: -1, barres: [], toutes: [], dernierSonMs: 0, silencieux: false, mesure: false };
+
 // Une voix, pas un concert : mono et 64 kbit/s suffisent (une minute pèse environ 500 Ko)
-const OPTIONS_VOCAL: RecordingOptions = { ...RecordingPresets.HIGH_QUALITY, numberOfChannels: 1, bitRate: 64_000 };
+const OPTIONS_VOCAL: RecordingOptions = { ...RecordingPresets.HIGH_QUALITY, numberOfChannels: 1, bitRate: 64_000, isMeteringEnabled: true };
 const DUREE_MIN_MS = 1000;
 const ALERTE_SECONDES = 10;
 const MAX = formaterChronoEnregistrement(DUREE_MAX_VOCAL_SECONDES);
@@ -62,7 +72,8 @@ function jeterFichierTemporaire(uri: string | null) {
 
 /**
  * Une note vocale qui s'enregistre dès l'ouverture (après l'autorisation du micro) : point rouge, chrono jusqu'à une minute,
- * « Annuler » ou « Envoyer ». À la minute, elle part toute seule ; si l'écran se ferme en route, rien n'est envoyé.
+ * la voix en barres qui bougent et le micro qui respire avec elle (un mot si on n'entend rien depuis 3 s), « Annuler » ou
+ * « Envoyer » avec la forme de la voix. À la minute, elle part toute seule ; si l'écran se ferme en route, rien n'est envoyé.
  * Tant qu'il est ouvert, aucune note du chat ne joue (celle qui jouait se met en pause) : voir utiliserAudioChat.
  */
 export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props) {
@@ -70,8 +81,22 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
   const conversations = utiliserConversations();
   const animationsReduites = useReducedMotion();
   const enregistreur = useAudioRecorder(OPTIONS_VOCAL);
-  const etat = useAudioRecorderState(enregistreur, 200);
+  const etat = useAudioRecorderState(enregistreur, 150);
   const [phase, setPhase] = useState<Phase>("preparation");
+  const [mesures, setMesures] = useState<Mesures>(MESURES_VIDES);
+  if (phase === "enregistrement" && etat.durationMillis !== mesures.cle) {
+    const niveau = convertirNiveauMicro(etat.metering);
+    const suivi = suivreSilenceMicro(mesures.dernierSonMs, niveau, etat.durationMillis);
+    setMesures({
+      cle: etat.durationMillis,
+      barres: niveau === null ? mesures.barres : [...mesures.barres.slice(1 - BARRES_ONDE_EN_DIRECT), niveau],
+      toutes: niveau === null ? mesures.toutes : [...mesures.toutes, niveau],
+      mesure: mesures.mesure || niveau !== null,
+      ...suivi,
+    });
+  }
+  const mesuresLues = useRef(mesures);
+  mesuresLues.current = mesures;
   // Durée gardée à l'écran pendant l'envoi (l'arrêt remet le compteur de l'enregistreur à zéro)
   const [dureeFigee, setDureeFigee] = useState<number | null>(null);
   const chrono = useRef<View>(null);
@@ -173,7 +198,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     }
     // Tu as demandé l'envoi : la note part, même si tu quittes l'écran entre-temps
     const { envoyerVocal } = rappels.current.conversations;
-    const resultat = await envoyerVocal(conversationId, uri, duree / 1000);
+    const onde = calculerOndeVocal(mesuresLues.current.toutes) ?? undefined;
+    const resultat = await envoyerVocal(conversationId, uri, duree / 1000, onde);
     jeterFichierTemporaire(uri);
     if (!monte.current) return;
     if (resultat === "ok") rappels.current.onEnvoye();
