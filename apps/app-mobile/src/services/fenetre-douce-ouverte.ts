@@ -1,4 +1,4 @@
-export type FenetreDouce = "annonce-app" | "nouvelle-version";
+export type FenetreDouce = "annonce-app" | "nouvelle-version" | "nouveautes";
 
 let ouverte: FenetreDouce | null = null;
 const ecouteurs = new Set<() => void>();
