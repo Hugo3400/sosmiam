@@ -16,6 +16,7 @@ import { useReducedMotion } from "react-native-reanimated";
 
 import type { Conversation, MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { AstuceDoubleToucher } from "~/composants/chat/AstuceDoubleToucher";
 import { BulleChat } from "~/composants/chat/BulleChat";
 import { MenuMessageChat } from "~/composants/chat/MenuMessageChat";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
@@ -23,9 +24,11 @@ import { construireLignesDiscussion, type LigneDiscussion } from "~/fonctions/ch
 import { decrireMessageRecu } from "~/fonctions/chat/decrire-message-recu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserAstuceDoubleToucher } from "~/hooks/utiliser-astuce-double-toucher";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
@@ -81,6 +84,11 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
   // Le message du menu reste gardé pendant que la feuille se referme (il disparaît de la liste dès qu'il est signalé)
   const [menu, setMenu] = useState<{ message: MessageChat; auteur: Pote | null; deMoi: boolean } | null>(null);
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const [deplie, setDeplie] = useState<string | null>(null);
+  const { maintenantMs } = utiliserHorlogeMinute();
+  const maintenant = useMemo(() => new Date(maintenantMs), [maintenantMs]);
+  const { visible: astuceVisible, masquer: masquerAstuce } = utiliserAstuceDoubleToucher();
+  const basculerDetail = useCallback((id: string) => setDeplie((avant) => (avant === id ? null : id)), []);
 
   const conversationId = conversation.id;
   const groupe = conversation.type === "groupe";
@@ -88,6 +96,10 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
   const dernierVu = useRef(lignes[lignes.length - 1]?.message.date ?? "");
   const [lignesAuDepart] = useState(() => Math.min(LIGNES_AU_DEPART_MAX, Math.max(LIGNES_AU_DEPART_MIN, lignes.length)));
+  const dernierDeMoi = useMemo(() => {
+    for (let i = lignes.length - 1; i >= 0; i -= 1) if (lignes[i].deMoi) return lignes[i].message.id;
+    return null;
+  }, [lignes]);
   const ecranVisible = useRef(aLEcran);
   ecranVisible.current = aLEcran;
 
@@ -182,10 +194,15 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
           debutSerie={item.debutSerie}
           groupe={groupe}
           onOptions={() => ouvrirMenu(item)}
+          maintenant={maintenant}
+          deplie={deplie === item.message.id}
+          dernierDeMoi={dernierDeMoi === item.message.id}
+          onBasculerDetail={() => basculerDetail(item.message.id)}
+          onDoubleToucher={masquerAstuce}
         />
       </View>
     ),
-    [conversationId, groupe, ouvrirMenu],
+    [conversationId, groupe, ouvrirMenu, maintenant, deplie, dernierDeMoi, basculerDetail, masquerAstuce],
   );
 
   const prive = groupe ? null : (membres[0]?.prenom ?? null);
@@ -240,6 +257,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, re
 
   return (
     <View className="flex-1">
+      {astuceVisible ? <AstuceDoubleToucher /> : null}
       <FlatList
         ref={liste}
         data={lignes}

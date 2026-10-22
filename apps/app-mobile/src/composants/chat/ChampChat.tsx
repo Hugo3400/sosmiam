@@ -10,6 +10,7 @@ import { verifierEnregistrementPossible } from "~/fonctions/chat/verifier-enregi
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserBrouillonChat } from "~/hooks/utiliser-brouillon-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
@@ -48,7 +49,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
   const { trouverPote } = utiliserCommunaute();
   const monId = utiliserMonId();
   const champ = useRef<TextInput>(null);
-  const [texte, setTexte] = useState("");
+  const { texte, changer: changerTexte, vider: viderTexte } = utiliserBrouillonChat(conversationId);
   const [erreur, setErreur] = useState<ProblemeEnregistrement | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
@@ -96,7 +97,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
     const resultat = envoyerTexte(conversationId, texte);
     if (resultat === "ok") {
       dernierEnvoi.current = Date.now();
-      setTexte("");
+      viderTexte();
       apresEnvoi();
       // « Envoyer » laisse place au micro : le lecteur d'écran revient sur le champ plutôt que de rester sur une autre action
       setTimeout(() => deplacerFocusLecteurEcran(champ.current), 150);
@@ -168,7 +169,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
             accessibilityLabel={erreur ? `Ton message. ${retirerEmojiAnnonce(erreur.texte)}` : "Ton message"}
             value={texte}
             onChangeText={(nouveau) => {
-              setTexte(nouveau);
+              changerTexte(nouveau);
               if (erreur) setErreur(null);
             }}
             placeholder={invitation}

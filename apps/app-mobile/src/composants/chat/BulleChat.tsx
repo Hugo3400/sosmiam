@@ -11,6 +11,8 @@ import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { PhotoChat } from "~/composants/chat/PhotoChat";
 import { ReactionsMessage } from "~/composants/chat/ReactionsMessage";
 import { RondPote } from "~/composants/potes/RondPote";
+import { decrireEnvoiMessage } from "~/fonctions/chat/decrire-envoi-message";
+import { decrireMomentMessage } from "~/fonctions/chat/decrire-moment-message";
 import { estMessageToutEmoji } from "~/fonctions/chat/est-message-tout-emoji";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -33,6 +35,11 @@ type Props = {
   groupe: boolean;
   /** Menu du message (réactions, signaler, bloquer), par appui long ou par « ⋯ » */
   onOptions: () => void;
+  maintenant: Date;
+  deplie: boolean;
+  dernierDeMoi: boolean;
+  onBasculerDetail: () => void;
+  onDoubleToucher: () => void;
 };
 
 const TAILLE_AVATAR = 32;
@@ -51,7 +58,7 @@ const DELAI_APPUI_LONG = 350;
  * Un message du chat : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar (et leur prénom dans un groupe).
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un ❤️ ; appui long ou « ⋯ » : le menu.
  */
-export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions }: Props) {
+export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher }: Props) {
   const couleurs = utiliserCouleurs();
   const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
   // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, mais « Retirer »
@@ -62,9 +69,11 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   // Le cœur qui éclot sur la bulle au double appui (son numéro relance l'animation), puis s'efface
   const [coeur, setCoeur] = useState<number | null>(null);
   const minuterieCoeur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const minuterieDetail = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
       if (minuterieCoeur.current) clearTimeout(minuterieCoeur.current);
+      if (minuterieDetail.current) clearTimeout(minuterieDetail.current);
     },
     [],
   );
@@ -85,6 +94,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   }
 
   function coeurParDoubleAppui() {
+    onDoubleToucher();
     vibrerJaime();
     if (!basculerCoeur() || animationsReduites) return;
     setCoeur(Date.now());
@@ -92,15 +102,20 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     minuterieCoeur.current = setTimeout(() => setCoeur(null), 700);
   }
 
-  // Un appui seul ne fait rien sur la bulle : rien à retarder. Deux appuis rapprochés : le cœur
   function appuiSurLaBulle() {
-    const maintenant = Date.now();
-    if (maintenant - dernierAppui.current < DELAI_DOUBLE_APPUI) {
+    const instant = Date.now();
+    if (minuterieDetail.current) clearTimeout(minuterieDetail.current);
+    minuterieDetail.current = null;
+    if (instant - dernierAppui.current < DELAI_DOUBLE_APPUI) {
       dernierAppui.current = 0;
       coeurParDoubleAppui();
       return;
     }
-    dernierAppui.current = maintenant;
+    dernierAppui.current = instant;
+    minuterieDetail.current = setTimeout(() => {
+      minuterieDetail.current = null;
+      onBasculerDetail();
+    }, DELAI_DOUBLE_APPUI);
   }
 
   function ouvrirOptions() {
@@ -152,7 +167,10 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
         libelle={deMoi ? `Ta photo, ${heure}` : `Photo de ${prenom}, ${heure}`}
         deMoi={deMoi}
         onAppuiLong={onOptions}
-        onDoubleAppui={basculerCoeur}
+        onDoubleAppui={() => {
+          onDoubleToucher();
+          return basculerCoeur();
+        }}
         actionsLecteur={actionsLecteur}
       />
     );
@@ -215,7 +233,18 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     </View>
   );
 
-  const heureEcrite = (
+  const detail = deplie ? decrireMomentMessage(message.date, heure, maintenant, deMoi) : null;
+  const envoi = deMoi && dernierDeMoi && !message.etat ? decrireEnvoiMessage(message.date, maintenant) : null;
+  const heureEcrite = detail ? (
+    <View accessible accessibilityLabel={detail.lu} accessibilityLiveRegion="polite" className={`mt-1 rounded-full border border-ligne bg-carte px-2 py-0.5 ${deMoi ? "" : "ml-1"}`}>
+      <Text className="font-texte-semi text-xs text-encre">{detail.vu}</Text>
+    </View>
+  ) : envoi ? (
+    <View accessible accessibilityLabel={envoi.lu} className="mt-0.5 flex-row items-center gap-1">
+      <Ionicons name="checkmark" size={13} color={couleurs.encre} />
+      <Text className="font-texte-semi text-xs text-encre">{envoi.vu}</Text>
+    </View>
+  ) : (
     <Text accessibilityElementsHidden importantForAccessibility="no" className={`mt-0.5 font-texte text-[11px] text-gris ${deMoi ? "" : "ml-1"}`}>
       {heure}
     </Text>
