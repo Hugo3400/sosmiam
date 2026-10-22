@@ -10,6 +10,7 @@ import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { BulleMessage } from "~/composants/potes/BulleMessage";
 import { MenuMessage } from "~/composants/potes/MenuMessage";
+import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
@@ -103,7 +104,8 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
   useEffect(() => {
     if (!derniere || derniere.message.date <= dernierVu.current) return;
     dernierVu.current = derniere.message.date;
-    if (!derniere.deMoi) AccessibilityInfo.announceForAccessibility(`${derniere.auteur?.prenom ?? "Quelqu'un"} : ${derniere.message.texte}`);
+    const prenom = derniere.message.systeme ? TEXTES_MESSAGES.sosMiam : (derniere.auteur?.prenom ?? "Quelqu'un");
+    if (!derniere.deMoi) AccessibilityInfo.announceForAccessibility(`${prenom} : ${derniere.message.texte}`);
   }, [derniere]);
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {

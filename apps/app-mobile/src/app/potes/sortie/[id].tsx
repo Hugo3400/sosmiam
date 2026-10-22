@@ -251,6 +251,7 @@ export default function EcranSortie() {
               onChargerPlusAnciens={discussion.chargerPlusAnciens}
               margeBas={marges.bottom}
               onAnnoncer={annoncer}
+              participants={participants}
             />
           )}
         </View>

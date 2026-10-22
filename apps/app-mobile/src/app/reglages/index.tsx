@@ -17,6 +17,7 @@ import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
@@ -41,6 +42,8 @@ export default function Parametres() {
   const outilsDemo = effacement.avecDemo;
   const demo = utiliserModeDemo();
   const { connecte, compte, fermer } = utiliserSession();
+  const sourceSociale = utiliserSourceSociale();
+  const avecMessages = sourceSociale === "compte" || sourceSociale === "demo";
   const marges = useSafeAreaInsets();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -115,6 +118,9 @@ export default function Parametres() {
             detail="Les alertes qui t'intéressent, et du calme la nuit"
             onPress={() => router.push("/reglages/notifications")}
           />
+          {avecMessages ? (
+            <LigneReglage emoji="💬" titre="Messages" detail="Le « Vu », et ce que disent tes notifications" onPress={() => router.push("/reglages/messages")} />
+          ) : null}
         </SectionReglages>
 
         <SectionReglages titre={T.apparence.titre} section="parametres-apparence" resume={T.apparence.resume[reglageApparence]}>
