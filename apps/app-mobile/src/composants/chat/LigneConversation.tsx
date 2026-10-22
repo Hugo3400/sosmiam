@@ -4,8 +4,9 @@ import { Pressable, Text, View } from "react-native";
 import type { Conversation } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
 import { resumerDernierMessage } from "~/fonctions/chat/resumer-dernier-message";
-import { formaterMomentRelatif } from "~/fonctions/dates/formater-moment-relatif";
+import { formaterIlYA } from "~/fonctions/dates/formater-il-y-a";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -16,8 +17,9 @@ import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
   conversation: Conversation;
-  /** L'heure de l'écran (rafraîchie de temps en temps) : « 14h32 » devient « Hier » sans quitter la liste */
+  /** L'heure de l'écran (rafraîchie de temps en temps) : « à l'instant » devient « il y a 3 min » sans quitter la liste */
   maintenant: Date;
+  brouillon?: string;
 };
 
 const TAILLE_AVATAR = 52;
@@ -25,9 +27,9 @@ const TAILLE_MINI = 22;
 
 /**
  * Une conversation dans la liste des messages : l'avatar (le pote, ou l'emoji du groupe avec deux de ses membres),
- * le nom, l'aperçu du dernier message, son moment (« 14h32 », « Hier », « lun. ») et les non-lus. Lue d'un seul bloc.
+ * le nom, l'aperçu du dernier message, son moment (« il y a 3 min », « hier », « lun. ») et les non-lus. Lue d'un seul bloc.
  */
-export function LigneConversation({ conversation, maintenant }: Props) {
+export function LigneConversation({ conversation, maintenant, brouillon }: Props) {
   const router = useRouter();
   const { trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -50,13 +52,14 @@ export function LigneConversation({ conversation, maintenant }: Props) {
   const lieuNom = dernier?.lieuId !== undefined ? trouverLieu(dernier.lieuId)?.nom : undefined;
   const vide = groupe ? (conversation.creePar === monId ? "Groupe créé : lance la discussion" : "Nouveau groupe : dis bonjour") : "Pas encore de message : dis-lui bonjour";
   const apercu = dernier ? resumerDernierMessage(dernier, prefixe, lieuNom) : `${vide} 👋`;
-  const moment = dernier ? formaterMomentRelatif(dernier.date, maintenant) : null;
+  const moment = dernier ? formaterIlYA(dernier.date, maintenant) : null;
+  const apercuBrouillon = brouillon?.replace(/\s+/g, " ").trim() || null;
 
   const membres = autres.length + 1;
   const lu = [
     groupe ? `${nom}, groupe de ${membres} personne${membres > 1 ? "s" : ""}` : nom,
     nonLus > 0 ? `${nonLus} message${nonLus > 1 ? "s" : ""} non lu${nonLus > 1 ? "s" : ""}` : null,
-    dernier ? resumerDernierMessage(dernier, prefixe, lieuNom, true) : vide,
+    apercuBrouillon ? TEXTES_MESSAGES.brouillonLu(apercuBrouillon) : dernier ? resumerDernierMessage(dernier, prefixe, lieuNom, true) : vide,
     moment?.lu,
   ]
     .filter(Boolean)
@@ -105,7 +108,14 @@ export function LigneConversation({ conversation, maintenant }: Props) {
         </View>
         <View className="flex-row items-center gap-2">
           <Text numberOfLines={1} className={`flex-1 text-sm ${nonLus > 0 ? "font-texte-semi text-encre" : "font-texte text-gris"}`}>
-            {lierPonctuation(apercu)}
+            {apercuBrouillon ? (
+              <>
+                <Text className="font-texte-semi text-rouge-texte">{lierPonctuation(TEXTES_MESSAGES.brouillon)}</Text>
+                {lierPonctuation(apercuBrouillon)}
+              </>
+            ) : (
+              lierPonctuation(apercu)
+            )}
           </Text>
           {nonLus > 0 ? (
             <View className="min-w-6 items-center rounded-full bg-rouge-sos px-1.5 py-0.5">

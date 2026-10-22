@@ -1,5 +1,6 @@
 export const TEXTES_ESPACE_COMMUNAUTE = {
   titre: "Communauté",
+  messages: "Messages",
   bande: "Ma bande",
   miamis: "Les Miamis",
   choisir: "Choisir l'espace",

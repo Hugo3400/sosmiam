@@ -17,7 +17,7 @@ type Props = {
   onChoisirEspace: (espace: EspaceCommunaute) => void;
 };
 
-/** Le haut de Communauté : « Ma bande / Les Miamis », les boutons « Messages » (avec les non-lus) et « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
+/** Le haut de Communauté : « Messages / Ma bande / Les Miamis » (avec les non-lus), le bouton « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
 export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
@@ -28,27 +28,8 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
     <View className="gap-3 pt-2">
       <View className="flex-row items-center gap-3">
         <View className="min-w-0 flex-1">
-          <SelecteurEspaceCommunaute espace={espace} onChoisir={onChoisirEspace} />
+          <SelecteurEspaceCommunaute espace={espace} onChoisir={onChoisirEspace} nonLus={nonLus} />
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={nonLus > 0 ? `Messages, ${nonLus} non lu${nonLus > 1 ? "s" : ""}` : "Messages"}
-          accessibilityHint="Tes discussions avec ta bande, en privé ou en groupe"
-          onPress={() => {
-            vibrerLegerement();
-            router.push("/potes/messages");
-          }}
-          className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
-        >
-          <Ionicons name="chatbubbles" size={20} color={couleurs.encre} />
-          {nonLus > 0 ? (
-            <View className="absolute -right-2 -top-2 min-w-5 items-center rounded-full border-2 border-creme bg-rouge-sos px-1">
-              <Text allowFontScaling={false} className="font-texte-gras text-[11px] text-white">
-                {nonLus > 99 ? "99+" : nonLus}
-              </Text>
-            </View>
-          ) : null}
-        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Ajouter un pote"
