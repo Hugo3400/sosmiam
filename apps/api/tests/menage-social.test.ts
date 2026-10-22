@@ -431,3 +431,37 @@ test("rechiffrement : sous 15 % + 2 points de disque libre, les fichiers attende
     [3, "Fichiers à rechiffrer en pause : disque presque plein"],
   ]);
 });
+
+test("la photo d'un groupe : jamais un orphelin (étape 8), et suivie par le rechiffrement (nouveau nom dans conversations.photo)", async () => {
+  const medias = creerStockageMediasChatEnMemoire({ horloge: () => ilYa(2).getTime() });
+  const [photo, orphelin] = [PREMIER, DERNIER];
+  for (const nom of [photo, orphelin]) await medias.ecrire(nom, Buffer.from("chiffre"));
+  const cherche: unknown[] = [];
+  const base = {
+    messageConversation: { findMany: async () => [] },
+    conversation: {
+      findMany: async (a: { where: { photo: { in: string[] } } }) => (cherche.push(a.where), a.where.photo.in.filter((f) => f === photo).map((p) => ({ photo: p }))),
+    },
+    signalement: { findMany: async () => [] },
+  } as unknown as BaseMenage;
+  assert.equal(await effacerFichiersOrphelins(base, calculerSeuilsMenageSocial(T), medias), 1);
+  assert.deepEqual([medias.fichiers.has(photo), medias.fichiers.has(orphelin)], [true, false]);
+  assert.equal(cherche.length, 1);
+
+  const { s1, v2 } = deuxCles();
+  const anciens = creerStockageMediasChatEnMemoire();
+  await anciens.ecrire(photo, s1.chiffrerOctets(Buffer.from("photo du groupe"), photo));
+  const repointes: { where: { photo: string }; data: { photo: string } }[] = [];
+  const rechiffrement = {
+    $queryRaw: async (morceaux: TemplateStringsArray) => (morceaux.join("?").includes("count(*)") ? [{ restants: 0 }] : []),
+    $transaction: (requetes: Promise<unknown>[]) => Promise.all(requetes),
+    messageConversation: { updateMany: async () => ({ count: 0 }) },
+    conversation: { updateMany: async (a: { where: { photo: string }; data: { photo: string } }) => (repointes.push(a), { count: 1 }) },
+    signalement: { updateMany: async () => ({ count: 0 }) },
+  } as unknown as BaseMenage;
+  const bilan = await rechiffrerSocial(v2, anciens, rechiffrement);
+  assert.deepEqual(bilan, { rechiffres: 1, illisibles: 0, restants: 0, enAttenteDePlace: 0 });
+  assert.equal(repointes.length, 1);
+  assert.equal(repointes[0]!.where.photo, photo);
+  assert.ok(anciens.fichiers.has(repointes[0]!.data.photo), "le rechiffré est sur le disque, sous son nouveau nom");
+});
