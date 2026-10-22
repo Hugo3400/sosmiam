@@ -119,6 +119,7 @@ export function lireNomSysteme(osRelease: string): string | null {
 export function creerSystemeMachine({ executer = creerExecuteurCommande(), horloge = () => Date.now() }: { executer?: ExecuterCommande; horloge?: () => number } = {}) {
   let misesAJour: { le: number; nombre: number | null } | null = null;
   let gourmands: { le: number; liste: Gourmand[] } | null = null;
+  let lectureGourmands: Promise<Gourmand[]> | null = null;
 
   async function lireServices(): Promise<EtatServiceSysteme[]> {
     return lireEtatsServices(await executer("systemctl", ["is-active", ...SERVICES_SYSTEME.map((service) => service.unite)], DELAI_COMMANDE));
@@ -133,9 +134,16 @@ export function creerSystemeMachine({ executer = creerExecuteurCommande(), horlo
 
   async function lireGourmands(): Promise<Gourmand[]> {
     if (gourmands && horloge() - gourmands.le < DUREE_CACHE_GOURMANDS) return gourmands.liste;
-    const liste = lireSortieTop(await executer("top", ["-b", "-n", "2", "-d", "0.5", "-w", "200"], DELAI_COMMANDE));
-    gourmands = { le: horloge(), liste };
-    return liste;
+    lectureGourmands ??= executer("top", ["-b", "-n", "2", "-d", "0.5", "-w", "200"], DELAI_COMMANDE)
+      .then((sortie) => {
+        const liste = lireSortieTop(sortie);
+        gourmands = { le: horloge(), liste };
+        return liste;
+      })
+      .finally(() => {
+        lectureGourmands = null;
+      });
+    return lectureGourmands;
   }
 
   async function lireSante(): Promise<SanteSysteme> {

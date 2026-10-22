@@ -89,8 +89,10 @@ export function OngletCourbes({ tour }: { tour: number }) {
           <Resume points={memoire} formater={enGo} />
         </Bloc>
         <Bloc titre="Réseau" aide="reçu en haut, envoyé en bas">
-          <GraphiqueLigne points={recu} plafond={plafondReseau} graduations={grilleReseau} formaterGraduation={(v) => `${v} Ko/s`} formaterValeur={enKo} mesure="Reçu" hauteur={100} sansAxe />
-          <GraphiqueLigne points={envoye} plafond={plafondReseau} graduations={grilleReseau} formaterGraduation={(v) => `${v} Ko/s`} formaterValeur={enKo} mesure="Envoyé" hauteur={118} />
+          <div className="grid gap-4">
+            <GraphiqueLigne points={recu} plafond={plafondReseau} graduations={grilleReseau} formaterGraduation={(v) => `${v} Ko/s`} formaterValeur={enKo} mesure="Reçu" hauteur={100} sansAxe />
+            <GraphiqueLigne points={envoye} plafond={plafondReseau} graduations={grilleReseau} formaterGraduation={(v) => `${v} Ko/s`} formaterValeur={enKo} mesure="Envoyé" hauteur={118} />
+          </div>
           <Resume points={envoye} formater={enKo} sans />
         </Bloc>
         <Bloc titre="Espace disque utilisé" aide={`le haut du graphique = ${formaterOctets(disqueTotal * GO)}`}>

@@ -585,3 +585,14 @@
 - **Publication** : la personne peut parler de la faille une fois corrigée, ou **90 jours** après son signalement si rien n'a été fait, en nous prévenant avant.
 - **Conservation** : un signalement est effacé **2 ans après sa clôture** (corrigé ou non retenu). Le nom au tableau d'honneur reste tant que la personne le veut.
 - Signalement **dès 18 ans**, comme le reste de SOS Miam.
+
+## Maintenance et stats du serveur (décidé par Hugo le 22 octobre 2026)
+
+- **Beszel est retiré** (monitor.iodev.fr) : les stats du VPS vivent dans le logiciel de gestion, onglet Maintenance. Archive de Beszel : `/root/sauvegardes/beszel-2026-10-22.tar.gz`.
+- **Un sous-onglet par fonction** plutôt qu'une grande page : Machines, Courbes, Système, PM2, Journaux, Sauvegardes, Base, Alertes, Historique. « Serveurs de dev » quitte le menu et rejoint l'onglet PM2.
+- **Une seule machine pour l'instant** (pas de budget pour une autre) : l'écran est prêt pour plusieurs machines, mais le relais des machines distantes ne sera construit que le jour où il y en aura une.
+- **PM2 : SOS Miam seulement.** Les autres projets du VPS restent cachés.
+- **« Qui fait chauffer le processeur »** : gardé (les 5 programmes les plus gourmands de la machine).
+- **Historique : 30 jours** (une mesure par minute sur 24 h, puis une moyenne par heure), dans un fichier du serveur, sans la base.
+- **Alertes** (pastille du menu et notification Windows) : processeur au-dessus de 90 % pendant 10 minutes, mémoire ou disque pleins à 90 %, processeur à 80 °C, relevé muet depuis 3 minutes, un service du système ou un programme de SOS Miam arrêté, sauvegarde de plus de 30 heures.
+- **Journaux** : lus par Hugo seul pour l'instant ; les e-mails, les IP et les jetons sont masqués avant de quitter le serveur.

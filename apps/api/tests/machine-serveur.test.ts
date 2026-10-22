@@ -200,3 +200,20 @@ test("les routes de la machine : protégées, une seule machine, période par d�
     await banc.fermer();
   }
 });
+
+test("deux lectures simultanées des gourmands ne lancent qu'un seul top", async () => {
+  const { creerSystemeMachine } = await import("../src/services/gestion/systeme-machine.ts");
+  const appels: string[] = [];
+  const systeme = creerSystemeMachine({
+    executer: async (commande) => {
+      appels.push(commande);
+      await new Promise((resoudre) => setTimeout(resoudre, 20));
+      return "top - x\n    PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND\n 1 root 20 0 1 1 1 S 50.0 0.0 0:00.01 node\n";
+    },
+  });
+  const [a, b] = await Promise.all([systeme.lireGourmands(), systeme.lireGourmands()]);
+  assert.deepEqual(a, b);
+  assert.deepEqual(appels, ["top"]);
+  await systeme.lireGourmands();
+  assert.deepEqual(appels, ["top"]);
+});

@@ -12,6 +12,7 @@ export type SourceJournal = { id: string; nom: string; fichiers: FichierJournal[
 const OCTETS_LUS = 256 * 1024;
 const LIGNES_MAX = 400;
 const LONGUEUR_MAX = 600;
+const LONGUEUR_LUE = LONGUEUR_MAX + 400;
 const UNE_HEURE = 3_600_000;
 const MASQUE = "•••";
 
@@ -78,7 +79,10 @@ function niveauErreur(texte: string): NiveauLigne {
 }
 
 export function analyserLigne(brute: string, fichier: Pick<FichierJournal, "flux" | "sorte">): LigneJournal | null {
-  const propre = brute.replace(CODES_COULEUR, "").replace(/\s+$/, "");
+  const tronquee = brute.length > LONGUEUR_LUE;
+  const espace = tronquee ? brute.lastIndexOf(" ", LONGUEUR_LUE) : -1;
+  const debut = tronquee ? (espace > LONGUEUR_LUE / 2 ? brute.slice(0, espace) : brute.slice(0, LONGUEUR_LUE).replace(/\S{1,120}$/, "")) : brute;
+  const propre = debut.replace(CODES_COULEUR, "").trimEnd();
   if (!propre.trim()) return null;
   let heure: string | null = null;
   let texte = propre;
@@ -101,7 +105,7 @@ export function analyserLigne(brute: string, fichier: Pick<FichierJournal, "flux
     niveau = fichier.flux === "erreurs" ? niveauErreur(texte) : niveauSortie(texte);
   }
   const masque = masquerLigne(texte);
-  return { heure, niveau, flux: fichier.flux, texte: masque.length > LONGUEUR_MAX ? `${masque.slice(0, LONGUEUR_MAX)}…` : masque };
+  return { heure, niveau, flux: fichier.flux, texte: tronquee || masque.length > LONGUEUR_MAX ? `${masque.slice(0, LONGUEUR_MAX)}…` : masque };
 }
 
 export async function lireFinFichier(chemin: string, octets = OCTETS_LUS): Promise<string[] | null> {

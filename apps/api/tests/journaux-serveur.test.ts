@@ -44,6 +44,21 @@ test("une ligne nginx donne son heure et sa gravité, une ligne pm2 son niveau",
   assert.equal(analyserLigne("mot ".repeat(225), { flux: "sortie", sorte: "pm2" })?.texte.length, 601);
 });
 
+test("une ligne énorme sans « @ » est coupée avant d'être masquée : la boucle de l'API ne bloque pas", () => {
+  for (const enorme of ["a.".repeat(128 * 1024), " ".repeat(200 * 1024) + "x", `${"jeton".repeat(50_000)}@`]) {
+    const debut = performance.now();
+    const ligne = analyserLigne(enorme, { flux: "erreurs", sorte: "pm2" });
+    assert.ok(performance.now() - debut < 50, `${Math.round(performance.now() - debut)} ms`);
+    assert.ok(!ligne || ligne.texte.length <= 601);
+  }
+  for (const avecEspace of [true, false]) {
+    const ligne = analyserLigne(`${"x".repeat(990)}${avecEspace ? " " : ""}jean.dupont@exemple.fr suite`, { flux: "erreurs", sorte: "pm2" });
+    assert.ok(ligne && !/jean|dupo/.test(ligne.texte), ligne?.texte.slice(-40));
+  }
+  const coupee = analyserLigne(`${"mot ".repeat(240)}fin`, { flux: "sortie", sorte: "pm2" });
+  assert.ok(coupee?.texte.endsWith("…"));
+});
+
 test("seule la fin d'un gros fichier est lue, sans la ligne coupée", async () => {
   const dossier = await mkdtemp(join(tmpdir(), "sos-miam-journaux-"));
   dossiers.push(dossier);

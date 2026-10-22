@@ -28,7 +28,6 @@ import { EcranPremierLancement } from "~/ecrans/connexion/EcranPremierLancement.
 import { EcranDemandes } from "~/ecrans/demandes/EcranDemandes.tsx";
 import { EcranLieux } from "~/ecrans/lieux/EcranLieux.tsx";
 import { EcranMaintenance } from "~/ecrans/maintenance/EcranMaintenance.tsx";
-import { EcranServeurs } from "~/ecrans/maintenance/EcranServeurs.tsx";
 import { EcranMiamSafe } from "~/ecrans/miam-safe/EcranMiamSafe.tsx";
 import { EcranModeration } from "~/ecrans/moderation/EcranModeration.tsx";
 import { EcranNewsletter } from "~/ecrans/newsletter/EcranNewsletter.tsx";
@@ -192,7 +191,6 @@ export function Application() {
           {ecran === "chasse-aux-bugs" && <EcranChasseAuxBugs onDecision={actualiserAlertes} />}
           {ecran === "versions-app" && <EcranVersionsApp />}
           {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
-          {ecran === "serveurs" && <EcranServeurs />}
           {ecran === "reglages" && (
             <EcranReglages
               theme={theme}
