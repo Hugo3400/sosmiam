@@ -55,7 +55,7 @@ export type MessageApi = {
 };
 
 /** Un membre qui a accepté (ou le créateur) ; depuis : son arrivée, c'est-à-dire le moment où il a accepté */
-export type MembreConversationApi = { personne: PersonneResume; role: RoleConversation; depuis: string; luJusqua?: string };
+export type MembreConversationApi = { personne: PersonneResume; role: RoleConversation; depuis: string; luJusqua?: string; luLe?: string };
 
 export type ConversationApi = {
   id: string;
