@@ -27,7 +27,7 @@ export const CODES_REACTIONS = ["coeur", "rire", "miam", "pouce", "surprise"] as
 export const REACTIONS_PAR_CODE: Readonly<Record<CodeReaction, ReactionChat>> = {
   coeur: "❤️",
   rire: "😂",
-  miam: "🤤",
+  miam: "😋",
   pouce: "👍",
   surprise: "😮",
 };

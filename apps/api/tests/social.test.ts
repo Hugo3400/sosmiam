@@ -137,7 +137,7 @@ test("une lecture ne crée jamais le profil social ; écrire demande un pseudo, 
     assert.equal((await p.demander("POST", "/app/personnes/recherche", { debut: "zz" })).statut, 200);
     // Les listes des domaines : conversations, sorties et listes de lieux, vides
     const vides = [
-      [await p.demander("GET", "/app/conversations"), { ok: true, conversations: [], invitations: [], suite: null }],
+      [await p.demander("GET", "/app/conversations"), { ok: true, conversations: [], invitations: [], suite: null, epinglees: [] }],
       [await p.demander("GET", "/app/sorties"), { ok: true, sorties: [], invitations: [] }],
       [await p.demander("GET", "/app/listes"), { ok: true, miennes: [], coEcrites: [], suivies: [], invitations: [] }],
       [await p.demander("GET", "/app/listes/a-decouvrir"), { ok: true, listes: [], suite: null }],
@@ -159,9 +159,15 @@ test("POST /app/social/moi crée le profil une seule fois, même avec trois dema
   assert.equal(new Set(reponses.map((r) => r.corps.moi.personne.id)).size, 1);
   assert.match(reponses[0].corps.moi.personne.id, /^[a-z2-9]{10}$/);
   assert.equal([...banc.tables.profils.values()].filter((l) => l.compteId === p.compteId).length, 1);
-  assert.deepEqual(reponses[0].corps.moi.reglages, { trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true });
+  assert.deepEqual(reponses[0].corps.moi.reglages, { trouvable: true, suggerable: true, activitePartagee: true, pushSocial: true, accusesLecture: true, apercuMessages: true });
   const modifie = await p.demander("PATCH", "/app/social/moi", { trouvable: false, pushSocial: false });
-  assert.deepEqual(modifie.corps.moi.reglages, { trouvable: false, suggerable: true, activitePartagee: true, pushSocial: false });
+  assert.deepEqual(modifie.corps.moi.reglages, { trouvable: false, suggerable: true, activitePartagee: true, pushSocial: false, accusesLecture: true, apercuMessages: true });
+  const messagerie = await p.demander("PATCH", "/app/social/moi", { accusesLecture: false, apercuMessages: false });
+  assert.deepEqual([messagerie.corps.moi.reglages.accusesLecture, messagerie.corps.moi.reglages.apercuMessages], [false, false]);
+  assert.deepEqual([banc.tables.profils.get(p.compteId)!.accusesLecture, banc.tables.profils.get(p.compteId)!.apercuMessages], [false, false]);
+  assert.equal((await p.demander("GET", "/app/social/moi")).corps.moi.reglages.accusesLecture, false);
+  const refusLu = await p.demander("PATCH", "/app/social/moi", { accusesLecture: "non" });
+  assert.deepEqual([refusLu.statut, refusLu.corps.champ], [400, "accusesLecture"]);
   const refus = await p.demander("PATCH", "/app/social/moi", { suggerable: "oui" });
   assert.deepEqual([refus.statut, refus.corps.erreur, refus.corps.champ], [400, "champ-invalide", "suggerable"]);
 });

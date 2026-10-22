@@ -11,6 +11,7 @@ import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { PhotoChat } from "~/composants/chat/PhotoChat";
 import { ReactionsMessage } from "~/composants/chat/ReactionsMessage";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
 import { decrireEnvoiMessage } from "~/fonctions/chat/decrire-envoi-message";
 import { decrireMomentMessage } from "~/fonctions/chat/decrire-moment-message";
 import { estMessageToutEmoji } from "~/fonctions/chat/est-message-tout-emoji";
@@ -56,7 +57,7 @@ const DELAI_APPUI_LONG = 350;
 
 /**
  * Un message du chat : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar (et leur prénom dans un groupe).
- * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un ❤️ ; appui long ou « ⋯ » : le menu.
+ * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un 😋 ; appui long ou « ⋯ » : le menu.
  */
 export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher }: Props) {
   const couleurs = utiliserCouleurs();
@@ -78,7 +79,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     [],
   );
 
-  const coeurMis = (message.reactions["❤️"] ?? []).includes(monId);
+  const coeurMis = (message.reactions[T_MESSAGES.emojiDoubleToucher] ?? []).includes(monId);
   // Le fichier de la photo ou de la note : sur le téléphone (démo, ton envoi en cours), ou téléchargé depuis le serveur
   const media = utiliserMediaChat(conversationId, message);
   const fichier = media.fichier;
@@ -86,10 +87,10 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   const cache = message.etat === "supprime" || message.etat === "masque" || message.etat === "retire" || message.etat === "illisible" ? message.etat : null;
   const reactionsPossibles = !message.etat;
 
-  /** Met ou retire ton cœur ; vrai s'il vient d'être mis */
+  /** Met ou retire ton « miam » ; vrai s'il vient d'être mis */
   function basculerCoeur(): boolean {
     if (!reactionsPossibles) return false;
-    basculerReaction(conversationId, message.id, "❤️");
+    basculerReaction(conversationId, message.id, T_MESSAGES.emojiDoubleToucher);
     return !coeurMis;
   }
 
@@ -129,10 +130,10 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   const coins = deMoi ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-tl-md";
   const fond = deMoi ? "bg-jaune" : "bg-carte";
 
-  // VoiceOver : le cœur et le menu en actions (balayer vers le haut ou le bas), sur l'élément qui porte le message
+  // VoiceOver : le « miam » et le menu en actions (balayer vers le haut ou le bas), sur l'élément qui porte le message
   const actionsLecteur: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction"> = {
     accessibilityActions: [
-      { name: "coeur", label: coeurMis ? "Retirer ton cœur" : "Mettre un cœur" },
+      { name: "coeur", label: coeurMis ? "Retirer ton miam" : "Dire miam" },
       { name: "options", label: deMoi ? "Réagir" : "Réagir, signaler ou bloquer" },
     ],
     onAccessibilityAction: (evenement) => {
@@ -225,7 +226,7 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
         >
           <Animated.View key={coeur} entering={ZoomIn.springify().damping(12)} exiting={FadeOut.duration(250)}>
             <Text allowFontScaling={false} style={{ fontSize: 40, lineHeight: 48 }}>
-              ❤️
+              {T_MESSAGES.emojiDoubleToucher}
             </Text>
           </Animated.View>
         </View>

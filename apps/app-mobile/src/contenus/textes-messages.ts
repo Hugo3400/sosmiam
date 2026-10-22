@@ -13,6 +13,6 @@ export const TEXTES_MESSAGES = {
   brouillonLu: (texte: string) => `Brouillon : ${texte}`,
   nonLus: (n: number) => `${n} non lu${n > 1 ? "s" : ""}`,
   messagesNonLus: (n: number) => `${n} message${n > 1 ? "s" : ""} non lu${n > 1 ? "s" : ""}`,
-  astuceDoubleToucher: "Astuce : touche deux fois un message pour lui faire un cœur.",
-  emojiDoubleToucher: "❤️",
+  astuceDoubleToucher: "Astuce : touche deux fois un message pour dire miam.",
+  emojiDoubleToucher: "😋",
 } as const;

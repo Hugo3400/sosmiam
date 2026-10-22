@@ -6,6 +6,7 @@ import { Keyboard, Modal, Platform, Pressable, Text, useWindowDimensions, View, 
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
@@ -19,7 +20,7 @@ type Props = {
   deMoi: boolean;
   /** Appui long : le menu du message (réactions, signaler) */
   onAppuiLong: () => void;
-  /** Double appui sur la photo en grand : bascule ton cœur ; renvoie vrai s'il vient d'être mis (le cœur s'affiche alors en grand) */
+  /** Double appui sur la photo en grand : bascule ton « miam » ; renvoie vrai s'il vient d'être mis (le 😋 s'affiche alors en grand) */
   onDoubleAppui: () => boolean;
   /** Actions du lecteur d'écran (cœur, options), posées sur la vignette */
   actionsLecteur?: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction">;
@@ -160,7 +161,7 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
             <View pointerEvents="none" style={{ position: "absolute", inset: 0, alignItems: "center", justifyContent: "center" }}>
               <Animated.View key={coeur} entering={ZoomIn.springify().damping(12)} exiting={FadeOut.duration(250)}>
                 <Text allowFontScaling={false} style={{ fontSize: 96 }}>
-                  ❤️
+                  {T_MESSAGES.emojiDoubleToucher}
                 </Text>
               </Animated.View>
             </View>
@@ -181,7 +182,7 @@ export function PhotoChat({ fichier, libelle, deMoi, onAppuiLong, onDoubleAppui,
             style={{ position: "absolute", bottom: marges.bottom + 16, left: 20, right: 20 }}
             className="text-center font-texte text-sm text-white/80"
           >
-            {libelle} · Double appui pour un ❤️
+            {libelle} · Double appui pour dire miam {T_MESSAGES.emojiDoubleToucher}
           </Text>
         </View>
       </Modal>

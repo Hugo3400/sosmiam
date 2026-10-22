@@ -126,12 +126,12 @@ async function lireParPaquets<T, R>(lignes: readonly T[], lire: (ligne: T) => R)
   return lus;
 }
 
-/** Le texte (ou le mot et le lieu d'un lieu envoyé) d'un de TES messages ; null partout s'il ne se relit pas, ou plus */
+/** Le texte (ou le mot et le lieu d'un lieu envoyé, ou le petit mot d'une photo) d'un de TES messages ; null partout s'il ne se relit pas, ou plus */
 function lireMonMessage(chiffrement: ChiffrementSocial, m: DonneesExportSocial["messages"][number]): { texte: string | null; lieuId: number | null } {
-  if (!m.texteChiffre || (m.type !== "texte" && m.type !== "lieu")) return { texte: null, lieuId: null };
+  if (!m.texteChiffre || (m.type !== "texte" && m.type !== "lieu" && m.type !== "photo")) return { texte: null, lieuId: null };
   try {
     const clair = chiffrement.dechiffrerMessage(m.texteChiffre, m.conversationId, m.idClient);
-    if (m.type === "texte") return { texte: clair, lieuId: null };
+    if (m.type !== "lieu") return { texte: clair, lieuId: null };
     const lu: unknown = JSON.parse(clair);
     const { l, m: mot } = (typeof lu === "object" && lu !== null ? lu : {}) as { l?: unknown; m?: unknown };
     return { texte: typeof mot === "string" ? mot : null, lieuId: typeof l === "number" && Number.isSafeInteger(l) ? l : null };

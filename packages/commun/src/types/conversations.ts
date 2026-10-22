@@ -2,7 +2,7 @@
 // téléphone ; compte connecté : converti depuis l'API (types/messagerie.ts), avec les champs facultatifs ci-dessous.
 
 /** Réactions possibles sur un message */
-export const REACTIONS_CHAT = ["❤️", "😂", "🤤", "👍", "😮"] as const;
+export const REACTIONS_CHAT = ["❤️", "😂", "😋", "👍", "😮"] as const;
 export type ReactionChat = (typeof REACTIONS_CHAT)[number];
 
 export type MessageChat = {

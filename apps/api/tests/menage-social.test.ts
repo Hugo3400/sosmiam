@@ -209,7 +209,9 @@ test("fichiers orphelins : un fichier qui disparaît pendant le listage n'arrêt
   const medias = creerStockageMediasChatEnMemoire({ horloge: () => ilYa(2).getTime() });
   await medias.ecrire(PREMIER, Buffer.from("chiffre"));
   for (let i = 0; i < 501; i++) await medias.ecrire(medias.tirerNom(), Buffer.from("chiffre"));
-  const base = { messageConversation: { findMany: async () => [] }, signalement: { findMany: async () => [] } } as unknown as BaseMenage;
+  const base = {
+    messageConversation: { findMany: async () => [] }, conversation: { findMany: async () => [] }, signalement: { findMany: async () => [] },
+  } as unknown as BaseMenage;
   const effaces = await effacerFichiersOrphelins(base, calculerSeuilsMenageSocial(T), avecDisparition(medias, PREMIER));
   assert.equal(effaces, 501, "les 499 de la première page (plus courte d'un nom), puis les 2 de la suivante");
   assert.equal(medias.fichiers.size, 0);
@@ -237,6 +239,7 @@ test("rechiffrement : un fichier qui disparaît pendant le listage ne fait plus 
         return { count: 1 };
       },
     },
+    conversation: { updateMany: async () => ({ count: 0 }) },
     signalement: { updateMany: async () => ({ count: 0 }) },
   } as unknown as BaseMenage;
   const bilan = await rechiffrerSocial(v2, avecDisparition(medias, PREMIER), base, { fichiersParNuit: 1 });
@@ -366,6 +369,7 @@ test("étapes 1, 2, 7 et 8 : le fichier d'un signalement ouvert ou jugé depuis 
       $transaction: async (faire: (t: typeof tx) => Promise<unknown>) => faire(tx),
       // Les messages ne citent plus ces fichiers (fichier à NULL) : seuls les signalements peuvent les garder
       messageConversation: { findMany: async () => [] },
+      conversation: { findMany: async () => [] },
       signalement: {
         findMany: async (a: { where: Record<string, unknown> }) =>
           signalements.filter((l) => verifierFiltre(l, a.where)).map((l) => ({ fichierMedia: l.fichierMedia })),
@@ -389,6 +393,7 @@ test("rechiffrement : sous 15 % + 2 points de disque libre, les fichiers attende
     $queryRaw: async (morceaux: TemplateStringsArray) => (morceaux.join("?").includes("count(*)") ? [{ restants: 0 }] : []),
     $transaction: (requetes: Promise<unknown>[]) => Promise.all(requetes),
     messageConversation: { updateMany: async () => ({ count: 1 }) },
+    conversation: { updateMany: async () => ({ count: 0 }) },
     signalement: { updateMany: async () => ({ count: 0 }) },
   } as unknown as BaseMenage;
   const preparer = async (partLibre: number) => {

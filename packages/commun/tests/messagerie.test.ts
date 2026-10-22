@@ -10,10 +10,11 @@ import type { MembreGroupe } from "../src/types/messagerie.ts";
 import { estIdClient } from "../src/validation/est-id-client.ts";
 import { validerNouveauGroupe } from "../src/validation/valider-nouveau-groupe.ts";
 
-test("réactions : ❤️ coeur, 😂 rire, 🤤 miam, 👍 pouce, 😮 surprise, dans les deux sens", () => {
+test("réactions : ❤️ coeur, 😂 rire, 😋 miam, 👍 pouce, 😮 surprise, dans les deux sens", () => {
   assert.deepEqual(REACTIONS_CHAT.map(convertirReactionEnCode), ["coeur", "rire", "miam", "pouce", "surprise"]);
   assert.deepEqual(CODES_REACTIONS.map(convertirCodeEnReaction), [...REACTIONS_CHAT]);
   assert.equal(convertirReactionEnCode("❤"), "coeur");
+  assert.equal(convertirReactionEnCode("😋"), "miam");
   assert.equal(convertirReactionEnCode("🍕"), null);
   assert.equal(convertirCodeEnReaction("bisou"), null);
 });

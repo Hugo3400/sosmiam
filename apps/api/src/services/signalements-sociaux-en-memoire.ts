@@ -86,7 +86,7 @@ export async function lireContenuSignaleEnMemoire(
   if (cible === "message") {
     const m = tables.messages.get(id);
     const conversation = m ? tables.conversations.get(m.conversationId) : undefined;
-    if (!m || !conversation || m.supprimeLe || m.suspenduLe || m.retireLe) return null;
+    if (!m || !conversation || m.supprimeLe || m.suspenduLe || m.retireLe || m.systeme) return null;
     const membre = tables.membres.find((x) => x.conversationId === m.conversationId && x.compteId === compteId);
     if (!membre || m.id <= membre.visibleApres) return null;
     if (m.auteurId !== null && m.auteurId !== compteId && (await d.relations.bloqueEntre(compteId, m.auteurId))) return null;

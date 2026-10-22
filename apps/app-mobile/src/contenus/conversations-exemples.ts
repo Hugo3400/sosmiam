@@ -39,7 +39,7 @@ export function creerConversationsExemples(maintenant: Date): Conversation[] {
       creePar: "karim",
       messages: [
         { id: "gj1", auteur: "karim", date: ilYa(maintenant, 600), type: "texte", texte: "Quiz jeudi soir, qui est dispo ?", reactions: { "👍": ["lea", "tom"] } },
-        { id: "gj2", auteur: "tom", date: ilYa(maintenant, 590), type: "texte", texte: "Moi ! On se fait une tielle avant ?", reactions: { "🤤": ["karim"] } },
+        { id: "gj2", auteur: "tom", date: ilYa(maintenant, 590), type: "texte", texte: "Moi ! On se fait une tielle avant ?", reactions: { "😋": ["karim"] } },
         { id: "gj3", auteur: "lea", date: ilYa(maintenant, 580), type: "lieu", lieuId: 9, reactions: {} },
       ],
       luJusqua: ilYa(maintenant, 590),

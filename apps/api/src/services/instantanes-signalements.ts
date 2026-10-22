@@ -81,17 +81,17 @@ export async function verrouillerConversationDuMessage(tx: TransactionSociale, c
   if (message) await tx.$queryRaw`SELECT id FROM conversations WHERE id = ${message.conversationId} FOR UPDATE`;
 }
 
-/** La règle d'accès des messages (B.0) : membre, après ton arrivée, auteur sans blocage ; ni supprimé, ni masqué, ni retiré */
+/** La règle d'accès des messages (B.0) : membre, après ton arrivée, auteur sans blocage ; ni supprimé, ni masqué, ni retiré, ni de SOS Miam */
 async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, compteId: number, id: number, maintenant: Date): Promise<ContenuLu | null> {
   const m = await tx.messageConversation.findUnique({
     where: { id },
     select: {
       id: true, conversationId: true, auteurId: true, type: true, idClient: true, texteChiffre: true, fichier: true, typeMime: true, taille: true,
-      dureeSecondes: true, mediaExpireLe: true, creeLe: true, supprimeLe: true, suspenduLe: true, retireLe: true,
+      dureeSecondes: true, mediaExpireLe: true, creeLe: true, supprimeLe: true, suspenduLe: true, retireLe: true, systeme: true,
       conversation: { select: { type: true, titreChiffre: true, emoji: true } },
     },
   });
-  if (!m || m.supprimeLe || m.suspenduLe || m.retireLe) return null;
+  if (!m || m.supprimeLe || m.suspenduLe || m.retireLe || m.systeme) return null;
   const membre = await tx.membreConversation.findUnique({ where: { conversationId_compteId: { conversationId: m.conversationId, compteId } }, select: { visibleApres: true } });
   if (!membre || m.id <= membre.visibleApres) return null;
   if (m.auteurId !== null && m.auteurId !== compteId && (await d.relations.bloqueEntre(compteId, m.auteurId, tx))) return null;

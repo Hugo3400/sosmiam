@@ -27,7 +27,7 @@ async function estLimite(compteId: number, maintenant?: Date) {
 }
 const limiter = (p: PersonneDeTest, jusqua: Date | null = FIN) => limites.set(p.compteId, { jusqua, motif: "harcelement" });
 
-/** Les 19 écritures que les autres voient, avec un corps plausible (le refus passe avant toute vérification) */
+/** Les 21 écritures que les autres voient, avec un corps plausible (le refus passe avant toute vérification) */
 const ECRITURES_REFUSEES: [methode: string, chemin: string, corps?: Record<string, unknown>][] = [
   ["POST", "/app/bande/rejoindre", { pseudo: "miami.1", code: "abcdefgh", moyen: "lien" }],
   ["POST", "/app/bande/demandes", { personne: PERSONNE }],
@@ -36,7 +36,9 @@ const ECRITURES_REFUSEES: [methode: string, chemin: string, corps?: Record<strin
   ["PATCH", "/app/conversations/1", { titre: "Les affamés" }],
   ["POST", "/app/conversations/1/invites", { invites: [PERSONNE] }],
   ["POST", "/app/conversations/1/messages", { idClient: randomUUID(), type: "texte", texte: "On mange où ?" }],
+  ["PATCH", "/app/conversations/1/messages/1", { texte: "On mange où, finalement ?" }],
   ["POST", "/app/conversations/1/medias"],
+  ["PUT", "/app/conversations/1/photo"],
   ["PUT", "/app/conversations/1/messages/1/reactions/coeur"],
   ["POST", "/app/lieux-envoyes", { idClient: randomUUID(), lieuId: 1, a: [PERSONNE], mot: "Goûte ça !" }],
   ["POST", "/app/sorties", { titre: "Pizza du jeudi", emoji: "🍕", quand: "2026-10-16T19:00:00Z", finVote: "2026-10-15T19:00:00Z", invites: [PERSONNE], lieux: [1], idClient: randomUUID() }],
