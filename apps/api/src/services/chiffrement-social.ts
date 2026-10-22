@@ -20,6 +20,7 @@ export const SOUS_CLES_SOCIALES = {
   medias: "sos-miam/messagerie/medias/v1",
   invitations: "sos-miam/bande/invitations/v1",
   instantanes: "sos-miam/moderation/instantanes/v1",
+  apercus: "sos-miam/notifications/apercus/v1",
 } as const;
 
 export type UsageChiffrementSocial = keyof typeof SOUS_CLES_SOCIALES;
@@ -49,6 +50,7 @@ export const CONTEXTES_SOCIAUX = {
   code: (compteId: number) => `compte:${exigerId(compteId, "Compte")}`,
   /** Instantané d'un contenu signalé */
   instantane: (signalementId: number) => `signalement:${exigerId(signalementId, "Signalement")}`,
+  appareil: (empreinteJeton: string) => `appareil:${exigerMot(empreinteJeton, "Appareil")}`,
 } as const;
 
 export type ChiffrementSocial = {

@@ -3,6 +3,7 @@
 import { connect, type ClientHttp2Session } from "node:http2";
 
 import { signerJetonJwt } from "../../fonctions/notifications/signer-jeton-jwt.ts";
+import type { ApercuPush } from "./apercus-push.ts";
 import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type ReglagesGoogle } from "./reglages-push.ts";
 
 /**
@@ -18,6 +19,10 @@ import { lireReglagesApple, lireReglagesGoogle, type ReglagesApple, type Reglage
  * sonné chez cette personne ; l'iPhone le montre sans son, Android le range dans le canal « messages-discrets » (muet).
  * `social` : posé par l'applicateur des effets sociaux, et lui seul (messages, groupes, sorties, bande) : canal « messages »
  * sur Android. Tout le reste (campagnes du logiciel, visite revue par l'équipe…) part dans le canal « notifications ».
+ * `apercu` : le vrai message, en clair, gardé en mémoire ; prevenirCompte le chiffre pour chaque téléphone qui a donné sa clé
+ * (`apercuChiffre`) et ne le transmet jamais tel quel. Seul `apercuChiffre` part chez Apple ou Google : le téléphone le
+ * déchiffre et remplace le texte neutre (`titre`, `texte`), qui reste le secours.
+ * `categorie` « message » : le bouton « Répondre » de la notification.
  */
 export type MessagePush = {
   titre: string;
@@ -28,6 +33,9 @@ export type MessagePush = {
   sonore?: boolean;
   social?: boolean;
   badge?: number;
+  apercu?: ApercuPush;
+  apercuChiffre?: string;
+  categorie?: "message";
 };
 /** « envoyee », « jeton-invalide » (app désinstallée : on oublie ce téléphone) ou une erreur à réessayer plus tard */
 export type ResultatPush = "envoyee" | "jeton-invalide" | { erreur: string };
@@ -69,12 +77,19 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
     ...(regroupement ? { "thread-id": regroupement } : {}),
     ...(message.urgent ? { "interruption-level": "time-sensitive" } : {}),
     ...(message.badge !== undefined ? { badge: message.badge } : {}),
+    ...(message.apercuChiffre ? { "mutable-content": 1 } : {}),
+    ...(message.categorie ? { category: message.categorie } : {}),
   };
   return {
     entetes: regroupement ? { "apns-collapse-id": regroupement } : {},
     // lien et urgent à la racine : l'app les lit dans trigger.payload (content.data reste vide pour un message qui ne vient
     // pas du service d'Expo)
-    corps: JSON.stringify({ aps, ...(message.lien ? { lien: message.lien } : {}), ...(message.urgent ? { urgent: "1" } : {}) }),
+    corps: JSON.stringify({
+      aps,
+      ...(message.lien ? { lien: message.lien } : {}),
+      ...(message.urgent ? { urgent: "1" } : {}),
+      ...(message.apercuChiffre ? { apercu: message.apercuChiffre } : {}),
+    }),
   };
 }
 
@@ -85,6 +100,32 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
  */
 const lireCanalAndroid = (message: MessagePush) =>
   message.urgent ? "miam-safe" : message.sonore === false ? "messages-discrets" : message.social ? "messages" : "notifications";
+
+/**
+ * Avec un aperçu chiffré, un message de DONNÉES seulement : expo-notifications l'affiche lui-même avec title et message (le
+ * texte neutre, même app fermée), puis la tâche de l'app le remplace par le message déchiffré (même tag)
+ */
+export function construireDonneesGoogle(jeton: string, message: MessagePush, apercu: string) {
+  const regroupement = lireRegroupement(message);
+  const canal = lireCanalAndroid(message);
+  return {
+    message: {
+      token: jeton,
+      data: {
+        title: message.titre,
+        message: message.texte,
+        channelId: canal,
+        apercu,
+        ...(canal === "messages-discrets" ? {} : { vibrate: "true" }),
+        ...(message.lien ? { lien: message.lien } : {}),
+        ...(regroupement ? { tag: regroupement } : {}),
+        ...(message.categorie ? { categoryId: message.categorie } : {}),
+        ...(message.badge !== undefined ? { badge: String(message.badge) } : {}),
+      },
+      android: { priority: "high" },
+    },
+  };
+}
 
 /** Le corps d'une notification Google (FCM v1) pour ce téléphone */
 export function construireCorpsGoogle(jeton: string, message: MessagePush) {
@@ -178,7 +219,7 @@ async function envoyerGoogle(r: ReglagesGoogle, jeton: string, message: MessageP
     const reponse = await fetch(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(r.projet)}/messages:send`, {
       method: "POST",
       headers: { Authorization: `Bearer ${await lireJetonGoogle(r)}`, "Content-Type": "application/json" },
-      body: JSON.stringify(construireCorpsGoogle(jeton, message)),
+      body: JSON.stringify(message.apercuChiffre && !message.urgent ? construireDonneesGoogle(jeton, message, message.apercuChiffre) : construireCorpsGoogle(jeton, message)),
       signal: AbortSignal.timeout(20_000),
     });
     if (reponse.ok) return "envoyee";
