@@ -1,0 +1,18 @@
+export const TEXTES_MESSAGES = {
+  nouveauMessage: "Nouveau message",
+  indiceNouveauMessage: "Écris à un pote de ta bande",
+  nouveauGroupe: "Nouveau groupe",
+  indiceNouveauGroupe: "Pour discuter à plusieurs",
+  chercher: "Chercher une discussion",
+  indiceChercher: "Par prénom, @pseudo ou nom de groupe",
+  effacerRecherche: "Effacer la recherche",
+  aucunResultatTitre: "Personne à ce nom-là",
+  aucunResultat: (recherche: string) => `Aucune discussion ne répond à « ${recherche} ». Essaie un prénom, un @pseudo ou le nom d'un groupe : tes potes ne sont pas loin.`,
+  resultats: (n: number) => (n === 0 ? "Aucune discussion trouvée" : n === 1 ? "Une discussion trouvée" : `${n} discussions trouvées`),
+  brouillon: "Brouillon : ",
+  brouillonLu: (texte: string) => `Brouillon : ${texte}`,
+  nonLus: (n: number) => `${n} non lu${n > 1 ? "s" : ""}`,
+  messagesNonLus: (n: number) => `${n} message${n > 1 ? "s" : ""} non lu${n > 1 ? "s" : ""}`,
+  astuceDoubleToucher: "Astuce : touche deux fois un message pour lui faire un cœur.",
+  emojiDoubleToucher: "❤️",
+} as const;
