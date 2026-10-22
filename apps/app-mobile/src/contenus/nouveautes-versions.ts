@@ -20,7 +20,7 @@ export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
     titre: "Ta messagerie fait peau neuve",
     points: [
       { emoji: "💬", titre: "Les messages ont leur onglet", detail: "En premier dans Communauté, avec une pastille pour les non-lus." },
-      { emoji: "↩️", titre: "Répondre, modifier, le « Vu »", detail: "Et l'heure qui dit « il y a 5 min »." },
+      { emoji: "↩️", titre: "Répondre, modifier, copier, le « Vu »", detail: "Glisse une bulle pour lui répondre, et l'heure dit « il y a 5 min ». Le « Vu » se règle dans Paramètres › Messages." },
       { emoji: "🎞️", titre: "Les GIF débarquent", detail: "Cherche le GIF parfait et envoie-le à ta bande." },
       { emoji: "🍝", titre: "« On mange où ? »", detail: "Un sondage de lieux dans tes groupes, le gagnant ouvre la sortie." },
       { emoji: "🔔", titre: "Le message dans la notification", detail: "Lis-le sans ouvrir l'app, réponds-y d'un geste. Il reste chiffré jusqu'à ton téléphone." },

@@ -98,7 +98,7 @@ test("sondage : groupes seulement, lieux publiés et différents, fin entre 10 m
   assert.deepEqual([(await lancer(admin, id, [a, ferme])).statut, (await lancer(admin, id, [a, ferme])).corps.erreur], [404, "lieu-inconnu"]);
   const intrus = await banc.creerPersonne();
   assert.equal((await lancer(intrus, id, [a, b])).statut, 404);
-  limites.set(admin.compteId, { motif: "spam", fin: null } as unknown as LimitationActive);
+  limites.set(admin.compteId, { jusqua: null, motif: "spam" });
   try {
     const r = await lancer(admin, id, [a, b]);
     assert.deepEqual([r.statut, r.corps.erreur], [403, "compte-limite"]);
@@ -137,7 +137,7 @@ test("voter : un vote par membre, qu'on change ou retire jusqu'à la fin ; la ve
   await admin.demander("POST", `/app/conversations/${id}/invites`, { invites: [nouveau.idPublic] });
   await nouveau.demander("POST", `/app/conversations/${id}/reponse`, { rejoint: true });
   assert.equal((await voter(nouveau, id, messageId, 1)).statut, 404, "arrivé après le sondage : il ne le voit pas");
-  limites.set(membres[2]!.compteId, { motif: "spam", fin: null } as unknown as LimitationActive);
+  limites.set(membres[2]!.compteId, { jusqua: null, motif: "spam" });
   try {
     assert.equal((await voter(membres[2]!, id, messageId, 1)).corps.erreur, "compte-limite");
     assert.equal((await voter(membres[2]!, id, messageId)).corps.erreur, "compte-limite");
@@ -171,7 +171,11 @@ test("fin du sondage (tâche de la minute) : gagnant, message de SOS Miam chiffr
   await voter(membres[1]!, id, messageId, 2);
   await voter(admin, id, messageId, 1);
   await membres[2]!.demander("PUT", `/app/conversations/${id}/notifications`, { coupees: true });
-  assert.equal((await passer()).sondages, 0, "pas encore fini");
+  banc.horloge.maintenant += MINUTE;
+  await passer();
+  banc.horloge.maintenant -= MINUTE;
+  assert.equal(banc.tables.sondages.get(Number(messageId))!.closLe, null, "pas encore fini");
+  assert.equal((await passer()).sondages, 0);
   banc.horloge.maintenant += 15 * MINUTE;
   const [premier, second] = await Promise.all([passer(), passer()]);
   assert.equal(premier.sondages + second.sondages, 1, "deux passages en même temps : un seul le clôt");
@@ -202,6 +206,7 @@ test("fin du sondage : égalité au premier proposé, personne n'a voté, un son
   const vide = (await lancer(admin, id, [lieu(), lieu()], dans(10))).corps.message.id as string;
   const masque = (await lancer(admin, id, [lieu(), lieu()], dans(10))).corps.message.id as string;
   banc.tables.messages.get(Number(masque))!.suspenduLe = new Date(banc.horloge.maintenant);
+  await passer();
   banc.horloge.maintenant += 10 * MINUTE;
   const bilan = await passer();
   assert.equal(bilan.sondages, 3);
@@ -225,7 +230,7 @@ test("export : tes sondages avec leurs lieux déchiffrés, et tes votes ; un sig
   const lui = (await membres[0]!.demander("GET", "/app/social/export")).corps.export;
   assert.deepEqual(lui.votesSondages.map((v: { conversationId: string; lieuId: number }) => [v.conversationId, v.lieuId]), [[id, lieux[1]]]);
   assert.ok(!lui.conversations.some((c: { messages: { type: string }[] }) => c.messages.some((m) => m.type === "vote")), "jamais le sondage d'un autre");
-  const signale = await membres[0]!.demander("POST", "/app/signalements", { cible: "message", cibleId: messageId, raison: "autre", precision: null, explication: "Pour voir" });
+  const signale = await membres[0]!.demander("POST", "/app/signalements", { cible: "message", cibleId: messageId, raison: "haine", precision: null, explication: "" });
   assert.equal(signale.statut, 201, JSON.stringify(signale.corps));
   const s = [...banc.tables.signalements.values()].find((x) => x.cible === "message" && x.cibleId === messageId)!;
   const instantane = JSON.parse(banc.social.dependances.chiffrement!.dechiffrerInstantane(s.instantaneChiffre!, s.id));
