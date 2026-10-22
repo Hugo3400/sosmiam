@@ -77,6 +77,7 @@ import {
   changerSignalementSecurite, donnerBadgeSignalementSecurite, listerEntreesTableauHonneur, listerSignalementsSecurite, lireImageSignalementSecurite,
   retirerEntreeTableauHonneur, supprimerSignalementSecurite,
 } from "../securite.ts";
+import { ecrireVersionsAppGestion, lireVersionsAppGestion } from "./versions-app-gestion.ts";
 import { creerAnnonceApp, listerAnnoncesAppGestion, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp } from "./annonces-app-gestion.ts";
 import { prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue } from "../courriels/courriels-limitations.ts";
 import { lireBilanMois } from "./bilan-mois.ts";
@@ -116,7 +117,7 @@ export const servicesGestion = {
   listerComptes, lireCompteGestion, deconnecterPartout, exporterDonneesCompte,
   lireSurveillance, ecrireSeuilsSurveillance, marquerSurveilleVu, marquerContestationRelue,
   lireValidationLieu, reglerValidationLieu, changerCodePublic,
-  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, lirePhotoAvisGestion, deciderAvis, listerLimitationsEnCours, lirePhotoProfilPourEquipe, listerIdeesGestion, listerCommentairesIdeeGestion, changerStatutIdee, repondreIdee, choisirIdeeDuMois, supprimerIdee, masquerCommentaireIdee, listerEtiquettesLibres, retirerEtiquetteLibre, retirerSortieMiamis, listerOffresGestion, creerOffre, modifierOffre, publierOffre, fermerOffre, supprimerOffre, listerCandidaturesCarriere, lireCvCandidature, changerStatutCandidature, supprimerCandidature, listerSignalementsSecurite, changerSignalementSecurite, lireImageSignalementSecurite, donnerBadgeSignalementSecurite, supprimerSignalementSecurite, listerEntreesTableauHonneur, retirerEntreeTableauHonneur, listerAnnoncesAppGestion, creerAnnonceApp, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
+  listerPresse, trouverFichierPresse, creerLienPresse, lireLienPresse, listerEvenementsGestion, suspendreEvenement, lireReservationsGestion, listerAvisARelire, lirePhotoAvisGestion, deciderAvis, listerLimitationsEnCours, lirePhotoProfilPourEquipe, listerIdeesGestion, listerCommentairesIdeeGestion, changerStatutIdee, repondreIdee, choisirIdeeDuMois, supprimerIdee, masquerCommentaireIdee, listerEtiquettesLibres, retirerEtiquetteLibre, retirerSortieMiamis, listerOffresGestion, creerOffre, modifierOffre, publierOffre, fermerOffre, supprimerOffre, listerCandidaturesCarriere, lireCvCandidature, changerStatutCandidature, supprimerCandidature, listerSignalementsSecurite, changerSignalementSecurite, lireImageSignalementSecurite, donnerBadgeSignalementSecurite, supprimerSignalementSecurite, listerEntreesTableauHonneur, retirerEntreeTableauHonneur, lireVersionsAppGestion, ecrireVersionsAppGestion, listerAnnoncesAppGestion, creerAnnonceApp, modifierAnnonceApp, publierAnnonceApp, supprimerAnnonceApp, prevenirCompteLimite, prevenirLimitationLevee, prevenirLimitationMaintenue,
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,

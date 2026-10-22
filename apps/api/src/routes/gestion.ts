@@ -17,6 +17,7 @@ import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-
 import { creerControleursCommunaute } from "../controleurs/gestion/controleurs-communaute.ts";
 import { creerControleursCarriere } from "../controleurs/gestion/controleurs-carriere.ts";
 import { creerControleursSecurite } from "../controleurs/gestion/controleurs-securite.ts";
+import { creerControleursVersionsApp } from "../controleurs/gestion/controleurs-versions-app.ts";
 import { creerControleursMiamSafe } from "../controleurs/gestion/controleurs-miam-safe.ts";
 import { creerControleursServeursDev } from "../controleurs/gestion/controleurs-serveurs-dev.ts";
 import { creerControleursModeration } from "../controleurs/gestion/controleurs-moderation.ts";
@@ -89,6 +90,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const communaute = creerControleursCommunaute(services, moderationSociale);
   const carriere = creerControleursCarriere(services);
   const securite = creerControleursSecurite(services);
+  const versionsApp = creerControleursVersionsApp(services);
   const g = creerControleursBigSos(services);
   const n = creerControleursNotifications(services);
   const o = creerControleursModeration(services, moderationSociale, avisGestion);
@@ -237,6 +239,8 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.delete("/securite/signalements/:id", securite.supprimer);
   routes.get("/securite/tableau-honneur", securite.tableau);
   routes.delete("/securite/tableau-honneur/:id", securite.retirerDuTableau);
+  routes.get("/versions-app", versionsApp.lire);
+  routes.put("/versions-app", versionsApp.ecrire);
   routes.get("/defis", d.liste);
   routes.post("/defis", d.creer);
   routes.put("/defis/:id", d.modifier);
