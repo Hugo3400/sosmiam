@@ -10,10 +10,10 @@ import { ContextePublications, type EtatPublications } from "~/hooks/utiliser-pu
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { enregistrerPublicationsServeur, lirePublicationsServeur } from "~/stockage/publications-serveur";
+import { TAILLE_PAGE_FIL } from "~/contenus/taille-page-fil";
 
 // Une relecture au retour dans l'app, au plus toutes les 10 minutes ; 20 publications par page (le maximum de l'API : 30)
 const RELECTURE_MS = 10 * 60_000;
-const PAR_PAGE = 20;
 
 /** Pour chaque publication lue : ton J'aime était-il déjà sur le serveur à ce moment-là (son compteur le compte alors) ? */
 type AimeesALaLecture = Readonly<Record<string, boolean>>;
@@ -64,7 +64,7 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
   const recharger = useCallback(async () => {
     if (DEMO_VISITES_ACTIVE) return;
     derniereLecture.current = Date.now();
-    const r = await contenu.listerPublications(null, PAR_PAGE);
+    const r = await contenu.listerPublications(null, TAILLE_PAGE_FIL);
     if (!r.ok) return setHorsLigne(true);
     const connus = jaimesConnus.current;
     setHorsLigne(false);
@@ -78,7 +78,7 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
     if (DEMO_VISITES_ACTIVE || !suite || enCours.current) return;
     enCours.current = true;
     try {
-      const r = await contenu.listerPublications(suite, PAR_PAGE);
+      const r = await contenu.listerPublications(suite, TAILLE_PAGE_FIL);
       if (!r.ok) return setHorsLigne(true);
       const connus = jaimesConnus.current;
       setHorsLigne(false);

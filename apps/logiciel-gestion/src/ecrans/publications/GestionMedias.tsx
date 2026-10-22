@@ -9,9 +9,9 @@ import { ajouterMedia, retirerMedia, type Media, type TypeMedia } from "~/servic
 import { VignetteMedia } from "./VignetteMedia.tsx";
 
 const ACCEPTE: Record<TypeMedia, string> = {
-  video: "video/mp4,video/quicktime,video/webm",
-  affiche: "image/jpeg,image/png,image/webp",
-  photo: "image/jpeg,image/png,image/webp",
+  video: "video/mp4,video/quicktime",
+  affiche: "image/jpeg,image/png",
+  photo: "image/jpeg,image/png",
 };
 
 /** Vidéo + affiche, ou photos (10 au plus) : envoi et retrait des fichiers d'une publication déjà enregistrée. */

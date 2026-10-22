@@ -31,7 +31,10 @@ export function EcranVersionsApp() {
     if (erreur?.code === "introuvable") return <p className="rounded-xl bg-jaune-clair px-4 py-3 text-sm">Pas encore branché sur le serveur : cet écran marchera après le prochain redémarrage de l'API.</p>;
     return <MessageErreur erreur={erreur} reessayer={recharger} />;
   }
-  const changer = (quoi: "minimale" | "derniere", systeme: "ios" | "android", valeur: string) => setSaisie({ ...saisie, [quoi]: { ...saisie[quoi], [systeme]: valeur.trim() } });
+  const changer = (quoi: "minimale" | "derniere", systeme: "ios" | "android", valeur: string) => {
+    setSaisie({ ...saisie, [quoi]: { ...saisie[quoi], [systeme]: valeur.trim() } });
+    setEtat({ enCours: false, erreur: null, message: null });
+  };
   const toutesValides = SYSTEMES.every(({ cle }) => FORME.test(saisie.minimale[cle]) && FORME.test(saisie.derniere[cle]));
   const trop = SYSTEMES.find(({ cle }) => toutesValides && comparerVersionsApp(saisie.minimale[cle], saisie.derniere[cle]) > 0);
   const minimaleMontee = SYSTEMES.filter(({ cle }) => toutesValides && comparerVersionsApp(saisie.minimale[cle], donnees.minimale[cle]) > 0);
@@ -87,7 +90,7 @@ export function EcranVersionsApp() {
         actions={<><Bouton onClick={() => setConfirmer(false)}>Annuler</Bouton><Bouton variante="danger" onClick={() => void enregistrer()}>Oui, bloquer</Bouton></>}
       >
         <p className="text-sm">
-          Tu montes la version minimale pour {minimaleMontee.map((s) => `${s.nom} (${donnees.minimale[s.cle]} → ${saisie.minimale[s.cle]})`).join(" et ")}.
+          Tu montes la version minimale : {minimaleMontee.map((s) => `${s.nom} ${donnees.minimale[s.cle]} → ${saisie.minimale[s.cle]}`).join(", ")}.
           Tous ceux qui ont une version plus ancienne seront <strong>bloqués</strong> jusqu'à leur mise à jour. Vérifie d'abord que la nouvelle version est bien en ligne sur le store.
         </p>
       </Modale>

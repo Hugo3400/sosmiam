@@ -4,6 +4,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { preparerMediaPublication } from "../../fonctions/publications/preparer-media-publication.ts";
 import { FORMATS, PHOTOS_MAX, TAILLE_MAX_IMAGE, TAILLE_MAX_VIDEO } from "./formats-medias.ts";
 
 export const DOSSIER_MEDIAS = process.env.DOSSIER_MEDIAS || "/var/lib/sos-miam/medias";
@@ -11,7 +12,7 @@ export const DOSSIER_MEDIAS = process.env.DOSSIER_MEDIAS || "/var/lib/sos-miam/m
 export type TypeMedia = "video" | "affiche" | "photo";
 
 
-export type ErreurMedia = "format-refuse" | "fichier-trop-lourd" | "publication-introuvable" | "melange-video-photos" | "trop-de-photos";
+export type ErreurMedia = "format-refuse" | "fichier-trop-lourd" | "publication-introuvable" | "melange-video-photos" | "trop-de-photos" | "nettoyage-impossible";
 
 /**
  * Ajoute un fichier à une publication. Une publication a soit une vidéo (et son affiche), soit des photos (10 au plus) :
@@ -29,14 +30,16 @@ export async function ajouterMedia(publicationId: number, type: TypeMedia, typeM
   }
   if (type === "photo" && photos.length >= PHOTOS_MAX) return { erreur: "trop-de-photos" as ErreurMedia };
 
+  const prepare = await preparerMediaPublication(contenu, format.video);
+  if (!prepare.ok) return { erreur: prepare.erreur as ErreurMedia };
   const fichier = `${randomUUID()}.${format.extension}`;
   await mkdir(DOSSIER_MEDIAS, { recursive: true, mode: 0o755 });
-  await writeFile(join(DOSSIER_MEDIAS, fichier), contenu, { mode: 0o644 });
+  await writeFile(join(DOSSIER_MEDIAS, fichier), prepare.octets, { mode: 0o644 });
   const remplaces = type === "photo" ? [] : publication.medias.filter((media) => media.type === type);
   const media = await baseDeDonnees.$transaction(async (transaction) => {
     if (remplaces.length > 0) await transaction.mediaPublication.deleteMany({ where: { id: { in: remplaces.map((m) => m.id) } } });
     return transaction.mediaPublication.create({
-      data: { publicationId, type, fichier, typeMime, taille: contenu.length, ordre: type === "photo" ? photos.length : 0 },
+      data: { publicationId, type, fichier, typeMime, taille: prepare.octets.length, ordre: type === "photo" ? photos.length : 0 },
     });
   });
   await supprimerFichiersMedias(remplaces.map((m) => m.fichier));

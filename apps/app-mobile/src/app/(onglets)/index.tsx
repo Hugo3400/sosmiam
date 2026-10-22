@@ -19,6 +19,7 @@ import type { ChoixSignalement } from "~/composants/signalement/SignalementPubli
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
+import { TAILLE_PAGE_FIL } from "~/contenus/taille-page-fil";
 import type { Publication } from "~/contenus/type-publication";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
@@ -26,6 +27,7 @@ import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age"
 import { ordonnerPublications } from "~/fonctions/lieux/ordonner-publications";
 import { trouverRaisonLieu } from "~/fonctions/lieux/trouver-raison-lieu";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
+import { ordonnerParPage } from "~/fonctions/publications/ordonner-par-page";
 import { estPublieeParSuivi } from "~/fonctions/publications/est-publiee-par-suivi";
 import { envoyerSignalementPublication } from "~/fonctions/signalement/envoyer-signalement-publication";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -130,12 +132,16 @@ export default function PourToi() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const { lieux: tousLesLieux } = utiliserLieux();
-  const { publications: toutesLesPublications, horsLigne: filHorsLigne } = utiliserPublications();
+  const { publications: toutesLesPublications, horsLigne: filHorsLigne, source: sourceFil, aUneSuite, chargerSuite } = utiliserPublications();
   const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
   const publications = useMemo(
-    () => ordonnerPublications(toutesLesPublications, lieux, profil, suivisDuTri, depart),
-    [toutesLesPublications, lieux, profil, suivisDuTri, depart],
+    () => ordonnerParPage(
+      toutesLesPublications,
+      sourceFil === "serveur" ? TAILLE_PAGE_FIL : Number.POSITIVE_INFINITY,
+      (page) => ordonnerPublications(page, lieux, profil, suivisDuTri, depart),
+    ),
+    [toutesLesPublications, sourceFil, lieux, profil, suivisDuTri, depart],
   );
 
   const { estMasquee } = activite;
@@ -385,6 +391,8 @@ export default function PourToi() {
             getItemLayout={(_, index) => ({ length: taille.hauteur, offset: taille.hauteur * index, index })}
             onViewableItemsChanged={auChangementDeVisible}
             viewabilityConfig={VISIBILITE}
+            onEndReached={aUneSuite ? () => void chargerSuite() : undefined}
+            onEndReachedThreshold={1.5}
             // Peu de publications montées à la fois : chaque vidéo a son lecteur. Les premières ne sont jamais démontées.
             initialNumToRender={2}
             maxToRenderPerBatch={2}
