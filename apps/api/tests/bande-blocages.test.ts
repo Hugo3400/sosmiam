@@ -146,7 +146,7 @@ function sortie(organisateur: PersonneDeTest, invites: [PersonneDeTest, "invite"
 function conversation(type: "prive" | "groupe" | "sortie", membres: PersonneDeTest[]) {
   const id = prendreId(banc.tables, "conversations");
   banc.tables.conversations.set(id, { id, type, clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: null, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
-  for (const m of membres) banc.tables.membres.push({ conversationId: id, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
+  for (const m of membres) banc.tables.membres.push({ conversationId: id, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null, luLe: null });
   return id;
 }
 /** Une liste de lieux */

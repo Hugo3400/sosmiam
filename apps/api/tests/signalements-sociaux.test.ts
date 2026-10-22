@@ -51,7 +51,7 @@ function preparerMessage(auteur: PersonneDeTest, membres: PersonneDeTest[], o: {
     });
   }
   for (const m of [auteur, ...membres]) {
-    banc.tables.membres.push({ conversationId, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant(), epingleeLe: null });
+    banc.tables.membres.push({ conversationId, compteId: m.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant(), epingleeLe: null, luLe: null });
   }
   const id = prendreId(banc.tables, "messages");
   const idClient = randomUUID();

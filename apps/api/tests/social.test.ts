@@ -339,7 +339,7 @@ test("le pouls bouge : bande, demandes, cloche, non-lus (blocages dans les deux 
   const conversation = { id: 900, type: "groupe", clePrive: null, titreChiffre: null, emoji: "🍕", photo: null, creeParId: lea.compteId, version: 3, dernierMessageLe: date(), modifieLe: date(), creeLe: date() };
   banc.tables.conversations.set(900, conversation);
   for (const p of [moi, lea, bloque]) {
-    banc.tables.membres.push({ conversationId: 900, compteId: p.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
+    banc.tables.membres.push({ conversationId: 900, compteId: p.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null, luLe: null });
   }
   const message = (id: number, auteurId: number | null, enPlus: Record<string, unknown> = {}) => banc.tables.messages.set(id, {
     id, conversationId: 900, auteurId, type: "texte", idClient: `id-${id}`, texteChiffre: "v1:x", fichier: null, typeMime: null, taille: null,

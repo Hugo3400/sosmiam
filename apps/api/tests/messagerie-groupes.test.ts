@@ -167,7 +167,7 @@ test("groupes seulement : un privé ne se renomme ni ne se quitte (404) ; la dis
     id: conversationId, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: createur.compteId, version: 0,
     dernierMessageLe: maintenant, modifieLe: maintenant, creeLe: maintenant,
   });
-  for (const p of [createur, b!]) banc.tables.membres.push({ conversationId, compteId: p.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
+  for (const p of [createur, b!]) banc.tables.membres.push({ conversationId, compteId: p.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null, luLe: null });
   const sortieId = prendreId(banc.tables, "sorties");
   banc.tables.sorties.set(sortieId, {
     id: sortieId, conversationId, organisateurId: createur.compteId, titre: "Pizza du jeudi", emoji: "🍕", quand: new Date(maintenant.getTime() + 2 * JOUR),

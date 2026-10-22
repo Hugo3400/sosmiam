@@ -141,7 +141,7 @@ test("photo du groupe : discussion d'une sortie refusée, quotas d'un média, ef
     id: sortieConversation, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: admin.compteId, version: 0,
     dernierMessageLe: new Date(banc.horloge.maintenant), modifieLe: new Date(banc.horloge.maintenant), creeLe: new Date(banc.horloge.maintenant),
   });
-  banc.tables.membres.push({ conversationId: sortieConversation, compteId: admin.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: new Date(banc.horloge.maintenant), epingleeLe: null });
+  banc.tables.membres.push({ conversationId: sortieConversation, compteId: admin.compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: new Date(banc.horloge.maintenant), epingleeLe: null, luLe: null });
   assert.deepEqual([(await photoGroupe(admin, String(sortieConversation))).statut, corps(await photoGroupe(admin, String(sortieConversation))).erreur], [409, "geree-par-la-sortie"]);
   banc.social.medias.reglerPartLibre(0.1);
   assert.equal((await photoGroupe(admin, id)).statut, 503, "le disque presque plein compte aussi");

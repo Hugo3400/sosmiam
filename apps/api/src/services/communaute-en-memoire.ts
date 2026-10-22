@@ -167,12 +167,12 @@ export function creerTablesCommunauteEnMemoire(social: TablesSociales, relations
       social.conversations.set(id, {
         id, type: "sortie", clePrive: null, titreChiffre: null, emoji: null, photo: null, creeParId: organisateurId, version: 0, dernierMessageLe: maintenant, modifieLe: maintenant, creeLe: maintenant,
       });
-      social.membres.push({ conversationId: id, compteId: organisateurId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
+      social.membres.push({ conversationId: id, compteId: organisateurId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null, luLe: null });
       return id;
     },
     async ajouterMembre(conversationId, compteId, maintenant) {
       if (social.membres.some((m) => m.conversationId === conversationId && m.compteId === compteId)) return;
-      social.membres.push({ conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null });
+      social.membres.push({ conversationId, compteId, role: "membre", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: maintenant, epingleeLe: null, luLe: null });
       toucherConversation(conversationId, maintenant);
     },
     async retirerMembre(conversationId, compteId, maintenant) {

@@ -95,7 +95,7 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
       return tables.membres.filter((m) => ids.has(m.conversationId)).map(versMembre);
     },
     async ajouterMembre(m) {
-      if (!membreDe(m.conversationId, m.compteId)) tables.membres.push({ ...m, epingleeLe: null });
+      if (!membreDe(m.conversationId, m.compteId)) tables.membres.push({ ...m, epingleeLe: null, luLe: null });
     },
     async modifierMembre(conversationId, compteId, m) {
       const membre = membreDe(conversationId, compteId);

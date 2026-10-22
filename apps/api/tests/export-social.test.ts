@@ -179,7 +179,7 @@ test("sorties, listes, commentaires, cloche, signalements, masques et médias", 
   const t = banc.tables;
   const c = 9100;
   t.conversations.set(c, { id: c, type: "groupe", clePrive: null, titreChiffre: null, emoji: "📷", photo: null, creeParId: moi.compteId, version: 0, dernierMessageLe: date(), modifieLe: date(), creeLe: date() });
-  t.membres.push({ conversationId: c, compteId: moi.compteId, role: "admin", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null });
+  t.membres.push({ conversationId: c, compteId: moi.compteId, role: "admin", visibleApres: 0, luJusqua: 0, coupee: false, arriveLe: date(), epingleeLe: null, luLe: null });
   t.messages.set(9101, {
     id: 9101, conversationId: c, auteurId: moi.compteId, type: "photo", idClient: randomUUID(), texteChiffre: null, fichier: null, typeMime: "image/jpeg", taille: 1234,
     largeur: 10, hauteur: 10, dureeSecondes: null, mediaExpireLe: date(), creeLe: date(), supprimeLe: null, suspenduLe: null, retireLe: null, reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null,
