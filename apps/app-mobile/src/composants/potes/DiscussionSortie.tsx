@@ -1,22 +1,28 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, FlatList, Keyboard, Platform, Pressable, Text, TextInput, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
+import { CarteMessageSysteme } from "~/composants/chat/CarteMessageSysteme";
+import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
 import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { BulleMessage } from "~/composants/potes/BulleMessage";
 import { MenuMessage } from "~/composants/potes/MenuMessage";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import type { MessageSortieEnrichi } from "~/hooks/utiliser-discussion-sortie";
+import { utiliserMentionsChamp } from "~/hooks/utiliser-mentions-champ";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 /** Un message prêt à afficher : son auteur, son heure, et le jour à écrire au-dessus quand il change */
 export type LigneDiscussion = {
-  message: MessageSortie;
+  message: MessageSortieEnrichi;
   auteur: Pote | null;
   deMoi: boolean;
   /** « 14h32 » */
@@ -38,6 +44,7 @@ type Props = {
   margeBas: number;
   /** Petit message en haut de l'écran (aussi lu par le lecteur d'écran) */
   onAnnoncer: (texte: string) => void;
+  participants: Pote[];
 };
 
 const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
@@ -52,8 +59,10 @@ const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "reti
 const PRES_DU_BAS = 120;
 
 /** La partie « La discussion » d'une sortie : les messages en bulles, et le champ en bas qui reste au-dessus du clavier. */
-export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer }: Props) {
+export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer, participants }: Props) {
   const couleurs = utiliserCouleurs();
+  const { moi } = utiliserCommunaute();
+  const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
   // Tes messages refusés parce que ton compte est limité : la bulle le dit, sans « Réessaie », et peut être retirée
   const { envoisEnPause, retirerEnPause } = utiliserConversations();
@@ -68,6 +77,12 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
   // Le message du menu reste gardé pendant que la feuille se referme (il disparaît de la liste dès qu'il est signalé)
   const [menu, setMenu] = useState<{ message: MessageSortie; auteur: Pote | null } | null>(null);
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const aMentionner = useMemo(() => participants.filter((p) => p.id !== monId && !!p.pseudo), [participants, monId]);
+  const pseudos = useMemo(() => new Set([...participants.map((p) => p.pseudo), moi.pseudo].filter((p) => !!p).map((p) => p.toLowerCase())), [participants, moi.pseudo]);
+  const mentions = utiliserMentionsChamp(texte, aMentionner, (nouveau) => {
+    setTexte(nouveau);
+    if (erreur) setErreur(null);
+  });
 
   // Clavier ouvert : la barre du bas du téléphone est sous le clavier, le champ n'a plus besoin de s'en écarter
   useEffect(() => {
@@ -101,6 +116,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
     if (resultat === "ok") {
       vibrerLegerement();
       setTexte("");
+      mentions.oublierSelection();
       setErreur(null);
       collerEnBas.current = true;
       // Tes propres messages ne sont pas relus : un mot suffit pour savoir que c'est parti (sinon on retouche « Envoyer » pour rien)
@@ -166,7 +182,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
         }
         renderItem={({ item, index }) => {
           const precedente = lignes[index - 1];
-          const debutSerie = !precedente || item.jour !== null || precedente.message.auteur !== item.message.auteur;
+          const debutSerie = !precedente || item.jour !== null || precedente.message.auteur !== item.message.auteur || !!precedente.message.systeme;
           return (
             <View>
               {item.jour ? (
@@ -174,33 +190,40 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                   {item.jour}
                 </Text>
               ) : null}
-              <BulleMessage
-                texte={item.message.texte}
-                auteur={item.auteur}
-                deMoi={item.deMoi}
-                heure={item.heure}
-                debutSerie={debutSerie}
-                etat={item.message.etat}
-                onRenvoyer={() => renvoyer(item.message.id)}
-                enPause={envoisEnPause.has(item.message.id)}
-                onRetirer={() => retirerEnPause(item.message.id)}
-                onOptions={
-                  item.deMoi || ETATS_CACHES.has(item.message.etat)
-                    ? undefined
-                    : () => {
-                        // Clavier ouvert, il cacherait le bas de la feuille (« Signaler », « Bloquer », « Annuler ») : on le range d'abord
-                        Keyboard.dismiss();
-                        setMenu({ message: item.message, auteur: item.auteur });
-                        setMenuOuvert(true);
-                      }
-                }
-              />
+              {item.message.systeme ? (
+                <CarteMessageSysteme systeme={item.message.systeme} texte={item.message.texte} heure={item.heure} />
+              ) : (
+                <BulleMessage
+                  texte={item.message.texte}
+                  auteur={item.auteur}
+                  deMoi={item.deMoi}
+                  heure={item.heure}
+                  debutSerie={debutSerie}
+                  etat={item.message.etat}
+                  onRenvoyer={() => renvoyer(item.message.id)}
+                  enPause={envoisEnPause.has(item.message.id)}
+                  onRetirer={() => retirerEnPause(item.message.id)}
+                  pseudos={pseudos}
+                  mentionne={!item.deMoi && (item.message.mentions ?? []).includes(monId)}
+                  onOptions={
+                    item.deMoi || ETATS_CACHES.has(item.message.etat)
+                      ? undefined
+                      : () => {
+                          // Clavier ouvert, il cacherait le bas de la feuille (« Signaler », « Bloquer », « Annuler ») : on le range d'abord
+                          Keyboard.dismiss();
+                          setMenu({ message: item.message, auteur: item.auteur });
+                          setMenuOuvert(true);
+                        }
+                  }
+                />
+              )}
             </View>
           );
         }}
       />
 
       <View style={{ paddingBottom: clavierOuvert ? 8 : margeBas + 8 }} className="gap-1.5 border-t border-ligne bg-creme px-4 pt-2">
+        {mentions.suggestions.length > 0 ? <SuggestionsMentions potes={mentions.suggestions} onChoisir={mentions.mentionner} /> : null}
         {erreur ? (
           <Text accessibilityLabel={retirerEmoji(erreur)} className="font-texte-semi text-sm leading-5 text-rouge-texte">
             {lierPonctuation(erreur)}
@@ -209,11 +232,13 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
         <View className="flex-row items-end gap-2">
           <TextInput
             accessibilityLabel={erreur ? `Ton message. ${retirerEmoji(erreur)}` : "Ton message"}
+            accessibilityHint="Tape @ pour mentionner un pote"
             value={texte}
             onChangeText={(nouveau) => {
               setTexte(nouveau);
               if (erreur) setErreur(null);
             }}
+            onSelectionChange={mentions.suivreSelection}
             placeholder="Écris à la bande…"
             placeholderTextColor={couleurs.gris}
             selectionColor={couleurs.encre}

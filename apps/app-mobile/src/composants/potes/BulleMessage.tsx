@@ -3,7 +3,9 @@ import { Pressable, Text, View } from "react-native";
 
 import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
 import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
+import { TexteMessageChat } from "~/composants/chat/TexteMessageChat";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
@@ -27,6 +29,8 @@ type Props = {
   enPause?: boolean;
   /** Un de tes messages en pause : le retirer de l'écran */
   onRetirer?: () => void;
+  pseudos?: ReadonlySet<string>;
+  mentionne?: boolean;
 };
 
 const TAILLE_AVATAR = 32;
@@ -36,11 +40,15 @@ const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "reti
  * Un message de la discussion d'une sortie : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar et leur
  * prénom. Compte connecté : « Envoi… » le temps qu'il parte, « Pas parti. Touche pour réessayer. » s'il n'est pas parti.
  */
-export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false, onRetirer }: Props) {
+export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false, onRetirer, pseudos, mentionne = false }: Props) {
   const couleurs = utiliserCouleurs();
   // Supprimé, masqué, retiré par la modération ou illisible : le texte dit ce qu'il en est, en discret
   const cache = ETATS_CACHES.has(etat);
-  const texteBulle = <Text className={cache ? "font-texte text-sm italic text-gris" : `font-texte text-base leading-[22px] ${deMoi && etat !== "echec" ? "text-nuit" : "text-encre"}`}>{lierPonctuation(texte)}</Text>;
+  const texteBulle = cache ? (
+    <Text className="font-texte text-sm italic text-gris">{lierPonctuation(texte)}</Text>
+  ) : (
+    <TexteMessageChat texte={texte} pseudos={pseudos} deMoi={deMoi && etat !== "echec"} />
+  );
 
   if (deMoi) {
     const echec = etat === "echec";
@@ -90,7 +98,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
       </View>
       <Pressable
         accessible
-        accessibilityLabel={`${prenom}, ${heure} : ${texte}`}
+        accessibilityLabel={`${prenom}, ${heure}${mentionne ? `, ${TEXTES_MESSAGES.mentionne}` : ""} : ${texte}`}
         onLongPress={
           onOptions
             ? () => {
@@ -108,7 +116,9 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
           </Text>
         ) : null}
         <View className={`rounded-2xl rounded-tl-md border-2 px-3.5 py-2.5 ${cache ? "border-dashed border-gris/50 bg-carte/60" : "border-encre bg-carte"}`}>{texteBulle}</View>
-        <Text className="ml-1 mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>
+        <Text className={`ml-1 mt-0.5 font-texte text-[11px] ${mentionne ? "font-texte-semi text-encre" : "text-gris"}`}>
+          {mentionne ? `${heure} · ${TEXTES_MESSAGES.mentionne}` : heure}
+        </Text>
       </Pressable>
       {onOptions ? (
         <Pressable

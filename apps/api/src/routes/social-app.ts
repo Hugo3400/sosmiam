@@ -10,7 +10,8 @@
 // - compte limité par l'équipe (décision de Hugo du 15 octobre 2026) : refuserSiLimite (403 compte-limite { details: { jusqua
 //   } }) sur les seules écritures que les AUTRES voient (messages, groupes, sorties, listes, commentaires, demandes…), posé
 //   après la session et la limite par compte, avant le profil social (un refus n'en crée pas), la clé et le corps d'un
-//   média ; tout le reste passe (lire, signaler, contester, bloquer, quitter, accepter, voter, J'aime, supprimer le sien…).
+//   média ; tout le reste passe (lire, signaler, contester, bloquer, quitter, accepter, voter pour une sortie ou une idée, J'aime,
+//   supprimer le sien…).
 //   L'inventaire : tests/limitation-inventaire-routes.test.ts ;
 // - 404 AVANT 403 : on vérifie d'abord que tu VOIS la ressource (sinon 404 *-inconnu(e)), seulement ensuite un 403 ; une
 //   personne qui t'a bloqué est « inconnue » (404 personne-inconnue), jamais « bloquée » ;
