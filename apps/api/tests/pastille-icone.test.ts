@@ -5,6 +5,7 @@ import { after, before, test } from "node:test";
 import { MAX_PASTILLE_ICONE } from "../../../packages/commun/src/regles/chat.ts";
 import { construireCorpsGoogle, construireEnvoiApple, type MessagePush } from "../src/services/notifications/expedier-push.ts";
 import { creerLecteurPastille } from "../src/services/notifications/lire-pastille-compte.ts";
+import { prendreId } from "../src/services/tables-sociales-en-memoire.ts";
 import { creerBancSocial } from "./outils/creer-banc-social.ts";
 
 process.env.DATABASE_URL ??= "postgresql://essai@127.0.0.1:1/essai";
@@ -85,6 +86,10 @@ test("pastille du compte : messages non lus (privés, groupes, sorties) + invita
   assert.deepEqual([pouls.messages.nonLus, pouls.messages.invitations, pouls.sorties.invitations], [2, 1, 1]);
   assert.ok(pouls.cloche.nonVues >= 2, "les invitations sont aussi dans la cloche");
   assert.equal(await lire(moi.compteId), attendu);
-  for (let i = 0; i < 120; i++) await lea.demander("POST", `/app/conversations/${prive}/messages`, { idClient: randomUUID(), type: "texte", texte: `Message ${i}` });
+  const modele = [...banc.tables.messages.values()].find((m) => m.conversationId === Number(prive))!;
+  for (let i = 0; i < 120; i++) {
+    const id = prendreId(banc.tables, "messages");
+    banc.tables.messages.set(id, { ...modele, id, idClient: randomUUID() });
+  }
   assert.equal(await lire(moi.compteId), MAX_PASTILLE_ICONE);
 });

@@ -3,12 +3,14 @@ import assert from "node:assert/strict";
 
 import { convertirCodeEnReaction } from "../src/fonctions/messagerie/convertir-code-en-reaction.ts";
 import { convertirReactionEnCode } from "../src/fonctions/messagerie/convertir-reaction-en-code.ts";
+import { calculerPastilleIcone } from "../src/fonctions/messagerie/calculer-pastille-icone.ts";
 import { peutAdministrerGroupe } from "../src/fonctions/messagerie/peut-administrer-groupe.ts";
 import { CODES_REACTIONS } from "../src/regles/chat.ts";
 import { REACTIONS_CHAT } from "../src/types/conversations.ts";
 import type { MembreGroupe } from "../src/types/messagerie.ts";
 import { estIdClient } from "../src/validation/est-id-client.ts";
 import { validerNouveauGroupe } from "../src/validation/valider-nouveau-groupe.ts";
+import { validerNouveauSondage } from "../src/validation/valider-nouveau-sondage.ts";
 
 test("réactions : ❤️ coeur, 😂 rire, 😋 miam, 👍 pouce, 😮 surprise, dans les deux sens", () => {
   assert.deepEqual(REACTIONS_CHAT.map(convertirReactionEnCode), ["coeur", "rire", "miam", "pouce", "surprise"]);
@@ -91,4 +93,26 @@ test("administrer un groupe : les admins ; sans admin, le plus ancien membre ; j
   const egalite = [membre("tom", "2026-10-01T10:00:00Z"), membre("lea", "2026-10-01T10:00:00Z")];
   assert.equal(peutAdministrerGroupe("groupe", "lea", egalite), true);
   assert.equal(peutAdministrerGroupe("groupe", "tom", egalite), false);
+});
+
+const T = new Date("2026-10-22T18:00:00.000Z");
+const dans = (minutes: number) => new Date(T.getTime() + minutes * 60_000).toISOString();
+
+test("sondage « On mange où ? » : 2 à 4 lieux différents, fin entre 10 minutes et 7 jours", () => {
+  assert.deepEqual(validerNouveauSondage({ lieux: [4, 9], finLe: "2026-10-22T20:30:00+02:00" }, T), { ok: true, sondage: { lieux: [4, 9], finLe: "2026-10-22T18:30:00.000Z" } });
+  assert.equal(validerNouveauSondage({ lieux: [1, 2, 3, 4], finLe: dans(10) }, T).ok, true);
+  assert.equal(validerNouveauSondage({ lieux: [1, 2], finLe: dans(7 * 24 * 60) }, T).ok, true);
+  for (const lieux of [[1], [1, 2, 3, 4, 5], [1, 1], [1, 0], [1, 2.5], [1, "2"], "1,2", undefined]) {
+    assert.deepEqual(validerNouveauSondage({ lieux, finLe: dans(60) }, T), { ok: false, champ: "lieux" }, JSON.stringify(lieux));
+  }
+  for (const finLe of [dans(9), dans(7 * 24 * 60 + 1), "demain", "2026-10-22", 1_800_000_000_000, undefined]) {
+    assert.deepEqual(validerNouveauSondage({ lieux: [1, 2], finLe }, T), { ok: false, champ: "finLe" }, String(finLe));
+  }
+});
+
+test("pastille de l'icône : non-lus et invitations des messages et des sorties, plus la cloche pas vue ; 99 au plus", () => {
+  const pouls = { messages: { nonLus: 3, invitations: 1 }, sorties: { nonLus: 2, invitations: 1 }, cloche: { nonVues: 4 } };
+  assert.equal(calculerPastilleIcone(pouls as never), 11);
+  assert.equal(calculerPastilleIcone({ messages: { nonLus: 99, invitations: 5 }, sorties: { nonLus: 99, invitations: 0 }, cloche: { nonVues: 99 } } as never), 99);
+  assert.equal(calculerPastilleIcone({ messages: { nonLus: 0, invitations: 0 }, sorties: { nonLus: 0, invitations: 0 }, cloche: { nonVues: 0 } } as never), 0);
 });
