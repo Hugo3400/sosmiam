@@ -62,7 +62,7 @@ test("sondage : 2 à 4 lieux publiés, chiffrés un par un dans leurs options, p
   assert.equal(options.length, 3);
   const chiffrement = banc.social.dependances.chiffrement!;
   for (const [i, o] of options.entries()) {
-    assert.ok(o.lieuChiffre.startsWith("v") && !o.lieuChiffre.includes(String(lieux[i])), "jamais l'id du lieu en clair");
+    assert.ok(/^v\d+:/.test(o.lieuChiffre) && !o.lieuChiffre.split(":").includes(String(lieux[i])), "jamais l'id du lieu en clair");
     assert.equal(dechiffrerLieuSondage(chiffrement, o.lieuChiffre, { conversationId: ligne.conversationId, idClient: ligne.idClient, ordre: o.ordre }), lieux[i]);
     assert.equal(dechiffrerLieuSondage(chiffrement, o.lieuChiffre, { conversationId: ligne.conversationId, idClient: ligne.idClient, ordre: o.ordre + 1 }), null, "déplacé d'une option à l'autre, il ne se relit plus");
   }

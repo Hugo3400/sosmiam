@@ -1,38 +1,69 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
+import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
+import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
+import { citerMessage } from "~/fonctions/chat/citer-message";
+import { decrireCitation } from "~/fonctions/chat/decrire-citation";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
-  icone: "arrow-undo" | "create-outline";
-  titre: string;
-  detail: string;
-  libelleFermer: string;
-  onFermer: () => void;
+  reponseA: MessageChatEnrichi | null;
+  edition: MessageChatEnrichi | null;
+  onAnnulerReponse: () => void;
+  onAnnulerEdition: () => void;
 };
 
-export function BandeauReponseChat({ icone, titre, detail, libelleFermer, onFermer }: Props) {
+export function BandeauReponseChat({ reponseA, edition, onAnnulerReponse, onAnnulerEdition }: Props) {
   const couleurs = utiliserCouleurs();
+  const { trouverPote } = utiliserCommunaute();
+  const { trouverLieu } = utiliserLieux();
+  const monId = utiliserMonId();
+  const { maintenantMs } = utiliserHorlogeMinute();
+  if (!edition && !reponseA) return null;
+
+  let bandeau: { icone: "arrow-undo" | "create-outline"; titre: string; detail: string; fermer: string; onFermer: () => void };
+  if (edition) {
+    const minutes = calculerMinutesPourModifier(edition.date, new Date(maintenantMs));
+    bandeau = { icone: "create-outline", titre: T.modification, detail: minutes > 0 ? T.modifierDetail(minutes) : "Plus que quelques secondes ⏳", fermer: T.annulerModification, onFermer: onAnnulerEdition };
+  } else {
+    const cite = reponseA!;
+    const prenom = cite.auteur === monId ? null : (trouverPote(cite.auteur)?.prenom ?? "Quelqu'un");
+    const { vu } = decrireCitation(citerMessage(cite), cite.lieuId === undefined ? undefined : trouverLieu(cite.lieuId)?.nom);
+    bandeau = {
+      icone: "arrow-undo",
+      titre: prenom ? T.reponseA(prenom) : "Réponse à ton message",
+      detail: vu,
+      fermer: prenom ? T.nePlusRepondre(prenom) : "Ne plus répondre à ton message",
+      onFermer: onAnnulerReponse,
+    };
+  }
+
   return (
     <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-ligne bg-carte pl-3">
       <View className="w-1 self-stretch rounded-full bg-jaune" style={{ marginVertical: 8 }} />
-      <Ionicons name={icone} size={18} color={couleurs.encre} />
-      <View accessible accessibilityLabel={`${titre}. ${detail}`} className="flex-1 py-1.5">
+      <Ionicons name={bandeau.icone} size={18} color={couleurs.encre} />
+      <View accessible accessibilityLabel={`${bandeau.titre}. ${bandeau.detail}`} className="flex-1 py-1.5">
         <Text numberOfLines={1} className="font-texte-gras text-[13px] text-encre">
-          {titre}
+          {bandeau.titre}
         </Text>
         <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-          {lierPonctuation(detail)}
+          {lierPonctuation(bandeau.detail)}
         </Text>
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={libelleFermer}
+        accessibilityLabel={bandeau.fermer}
         onPress={() => {
           vibrerLegerement();
-          onFermer();
+          bandeau.onFermer();
         }}
         className="h-11 w-11 items-center justify-center active:opacity-60"
       >

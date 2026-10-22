@@ -2,8 +2,8 @@ import {
   LONGUEUR_MAX_EXPLICATION_SIGNALEMENT,
   LONGUEUR_MIN_EXPLICATION_SIGNALEMENT,
   RAISONS_AVEC_EXPLICATION_OBLIGATOIRE,
-} from "../regles/signalement";
-import { RAISONS_SIGNALEMENT, type RaisonSignalement, type Signalement } from "../types/signalement";
+} from "../regles/signalement.ts";
+import { RAISONS_SIGNALEMENT, type RaisonSignalement, type Signalement } from "../types/signalement.ts";
 
 /**
  * Vérifie qu'une donnée lue (téléphone, plus tard API) est un signalement complet :

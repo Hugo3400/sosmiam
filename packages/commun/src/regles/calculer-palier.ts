@@ -1,5 +1,5 @@
-import type { ProgressionAmbassadeur } from "../types/ambassadeur";
-import { PALIERS_AMBASSADEUR } from "./ambassadeurs";
+import type { ProgressionAmbassadeur } from "../types/ambassadeur.ts";
+import { PALIERS_AMBASSADEUR } from "./ambassadeurs.ts";
 
 /**
  * Calcule le palier atteint avec ces points, le suivant et ce qu'il manque pour y arriver.

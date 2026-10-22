@@ -12,9 +12,6 @@ import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
 import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
 import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
-import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
-import { citerMessage } from "~/fonctions/chat/citer-message";
-import { decrireCitation } from "~/fonctions/chat/decrire-citation";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { verifierEnregistrementPossible } from "~/fonctions/chat/verifier-enregistrement-possible";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -24,7 +21,6 @@ import { utiliserBrouillonChat } from "~/hooks/utiliser-brouillon-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations, type ResultatEnvoiChat, type ResultatModificationChat } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
-import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMentionsChamp } from "~/hooks/utiliser-mentions-champ";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
@@ -74,7 +70,6 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
   const couleurs = utiliserCouleurs();
   const { trouverConversation, envoyerTexte, modifierMessage } = utiliserConversations();
   const { trouverPote, bloques } = utiliserCommunaute();
-  const { trouverLieu } = utiliserLieux();
   const monId = utiliserMonId();
   const champ = useRef<TextInput>(null);
   const { texte: brouillon, changer: changerBrouillon, vider: viderTexte } = utiliserBrouillonChat(conversationId);
@@ -140,9 +135,6 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
   const longueur = texte.trim().length;
   const micro = longueur === 0 && !edition;
   const auteurCite = reponseA ? (reponseA.auteur === monId ? null : (trouverPote(reponseA.auteur)?.prenom ?? "Quelqu'un")) : null;
-  const titreReponse = reponseA ? (auteurCite ? T.reponseA(auteurCite) : "Réponse à ton message") : "";
-  const citation = reponseA ? decrireCitation(citerMessage(reponseA), reponseA.lieuId === undefined ? undefined : trouverLieu(reponseA.lieuId)?.nom) : null;
-  const minutesRestantes = edition ? calculerMinutesPourModifier(edition.date, new Date()) : 0;
   const libelleChamp = edition ? "Ton message, en modification" : auteurCite ? `Ta réponse à ${auteurCite}` : reponseA ? "Ta réponse à ton message" : "Ton message";
 
   function montrerErreur(probleme: ProblemeEnregistrement) {
@@ -217,26 +209,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
 
       {mentions.suggestions.length > 0 && !enregistrement ? <SuggestionsMentions potes={mentions.suggestions} onChoisir={mentions.mentionner} /> : null}
 
-      {edition && !enregistrement ? (
-        <BandeauReponseChat
-          icone="create-outline"
-          titre={T.modification}
-          detail={minutesRestantes > 0 ? T.modifierDetail(minutesRestantes) : "Plus que quelques secondes ⏳"}
-          libelleFermer={T.annulerModification}
-          onFermer={() => {
-            setErreur(null);
-            onAnnulerEdition();
-          }}
-        />
-      ) : reponseA && citation && !enregistrement ? (
-        <BandeauReponseChat
-          icone="arrow-undo"
-          titre={titreReponse}
-          detail={citation.vu}
-          libelleFermer={auteurCite ? T.nePlusRepondre(auteurCite) : "Ne plus répondre à ton message"}
-          onFermer={onAnnulerReponse}
-        />
-      ) : null}
+      {enregistrement ? null : <BandeauReponseChat reponseA={reponseA} edition={edition} onAnnulerReponse={onAnnulerReponse} onAnnulerEdition={onAnnulerEdition} />}
 
       {enregistrement ? (
         <EnregistreurVocal
