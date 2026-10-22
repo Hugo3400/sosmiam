@@ -17,6 +17,7 @@ export function trouverProblemes(etat: EtatServeur, maintenant = Date.now()): st
   if (etat.disque && 1 - etat.disque.libre / etat.disque.total >= DISQUE_PLEIN) {
     problemes.push(`Le disque du serveur est plein à ${Math.round((1 - etat.disque.libre / etat.disque.total) * 100)} %.`);
   }
+  problemes.push(...(etat.machine?.problemes ?? []));
   const derniere = etat.sauvegardes.derniere;
   if (!derniere) problemes.push("Aucune sauvegarde de la base pour l'instant.");
   else if (maintenant - new Date(derniere.creeLe).getTime() > SAUVEGARDE_TROP_VIEILLE) problemes.push("La dernière sauvegarde de la base date de plus de 30 heures.");

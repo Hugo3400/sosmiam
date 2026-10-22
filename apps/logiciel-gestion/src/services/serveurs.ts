@@ -13,6 +13,7 @@ export type ServeurSuivi = {
   statutPm2: string | null;
   depuis: string | null;
   memoire: number | null;
+  processeur?: number | null;
   redemarrages: number | null;
 };
 

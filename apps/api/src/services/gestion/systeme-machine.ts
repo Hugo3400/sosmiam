@@ -42,6 +42,8 @@ const ROLES_PROGRAMMES: Readonly<Record<string, string>> = Object.freeze({
   esbuild: "Une compilation",
   tsc: "Une compilation",
   sshd: "Les connexions au serveur",
+  ngrok: "Le tunnel du serveur de l'app (Expo)",
+  MainThread: "Un outil de VS Code à distance",
   "PM2": "pm2, le chef des programmes",
 });
 

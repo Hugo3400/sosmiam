@@ -17,6 +17,7 @@ export type EtatServeur = {
   disque: { total: number; libre: number } | null;
   processus: ProcessusServeur[] | null;
   sauvegardes: { cleExiste: boolean; derniere: { nom: string; taille: number; creeLe: string } | null; nombre: number };
+  machine?: { releveLe: string | null; problemes: string[] };
 };
 
 export const lireEtatServeur = () => appeler<EtatServeur>("GET", "/maintenance");

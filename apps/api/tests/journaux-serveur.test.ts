@@ -21,6 +21,8 @@ test("les e-mails, IP, jetons et paramètres d'adresse sont masqués avant de qu
   assert.equal(masquerLigne("Authorization: Bearer eyJhbGciOi.zzz"), "Authorization: Bearer •••");
   assert.equal(masquerLigne("session 3f9a1c0e8b7d6a5f4e3d2c1b0a9f8e7d6c5b4a39 ouverte"), "session ••• ouverte");
   assert.equal(masquerLigne("de 2a01:cb19:8b5:4200:1d2e:aa1:bb2:cc3"), "de •••");
+  assert.equal(masquerLigne("client: 2a06:98c0:3600::2, server"), "client: •••, server");
+  assert.equal(masquerLigne("à 23:50:29, ligne index.js:45:11"), "à 23:50:29, ligne index.js:45:11");
   assert.equal(masquerLigne("Le Capitaine est là ? Oui."), "Le Capitaine est là ? Oui.");
 });
 

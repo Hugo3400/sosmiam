@@ -57,7 +57,7 @@ export function masquerLigne(texte: string): string {
     .replace(/([A-Za-z0-9._%+-])[A-Za-z0-9._%+-]*@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})/g, `$1${MASQUE}@$2`)
     .replace(/\?[^\s"']+/g, `?${MASQUE}`)
     .replace(/\b(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}\b/g, (tout, a: string, b: string) => (a === "127" ? tout : `${a}.${b}.${MASQUE}`))
-    .replace(/\b(?:[0-9a-f]{1,4}:){3,7}[0-9a-f]{1,4}\b/gi, MASQUE)
+    .replace(/(?<![\w:])[0-9a-f]{0,4}(?::[0-9a-f]{0,4}){2,7}(?![\w:])/gi, (tout) => (tout.includes("::") || tout.split(":").length >= 5 ? MASQUE : tout))
     .replace(/\b[A-Za-z0-9_-]{32,}\b/g, MASQUE);
 }
 
