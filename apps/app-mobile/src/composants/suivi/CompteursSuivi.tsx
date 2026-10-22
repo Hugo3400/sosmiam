@@ -30,9 +30,12 @@ const preparer = (onglet: Onglet, nombre: number, mot: string): Compteur => ({
  */
 export function CompteursSuivi({ id }: Props) {
   const router = useRouter();
-  const { compteursDe, abonnesDe, abonnementsDe } = utiliserSuivisPersonnes();
+  const { compteursDe, abonnesDe, abonnementsDe, lectureSuivis } = utiliserSuivisPersonnes();
+  const { lectureActivite } = utiliserActivite();
+  const monId = utiliserMonId();
   const compteurs = compteursDe(id);
-  if (!compteurs) return null;
+  const lusSurLeServeur = id !== monId || (lectureSuivis === "lue" && lectureActivite === "lue");
+  if (!compteurs || !lusSurLeServeur) return null;
 
   const abonnes = preparer("abonnes", compteurs.abonnes, "abonné");
   const abonnements = preparer("abonnements", compteurs.abonnements, "abonnement");
