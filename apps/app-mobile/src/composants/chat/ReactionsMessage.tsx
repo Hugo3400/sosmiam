@@ -13,13 +13,14 @@ type Props = {
   message: MessageChat;
   /** Ton message : les puces se rangent à droite, sous ta bulle */
   deMoi: boolean;
+  centre?: boolean;
 };
 
 /**
  * Les réactions sous une bulle : « ❤️ 2 », la tienne entourée. Toucher une puce met ou retire ta réaction.
  * Les personnes bloquées ne comptent pas.
  */
-export function ReactionsMessage({ conversationId, message, deMoi }: Props) {
+export function ReactionsMessage({ conversationId, message, deMoi, centre = false }: Props) {
   const { basculerReaction } = utiliserConversations();
   const { bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -32,7 +33,7 @@ export function ReactionsMessage({ conversationId, message, deMoi }: Props) {
   if (puces.length === 0) return null;
 
   return (
-    <View className={`mt-1 flex-row flex-wrap gap-1 ${deMoi ? "justify-end self-end" : "self-start"}`}>
+    <View className={`mt-1 flex-row flex-wrap gap-1 ${centre ? "justify-center self-center" : deMoi ? "justify-end self-end" : "self-start"}`}>
       {puces.map(({ reaction, nombre, dontMoi }) => (
         <Pressable
           key={reaction}

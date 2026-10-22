@@ -81,6 +81,10 @@ import { contesterSignalement } from "./services/gestion/moderation.ts";
 import { creerAppliquerEffetsSociaux } from "./controleurs/effets-sociaux.ts";
 import { planifierFinDesVotes } from "./taches/terminer-votes-sorties.ts";
 import { planifierTachesSortiesMiamis } from "./taches/sorties-miamis.ts";
+import { planifierTachesMessagerie } from "./taches/taches-messagerie.ts";
+import { chargerClientGiphy } from "./services/giphy.ts";
+import { brancherPastillePush } from "./services/notifications/prevenir-compte.ts";
+import { creerLecteurPastille } from "./services/notifications/lire-pastille-compte.ts";
 import { planifierExpirationReservations } from "./taches/expirer-reservations.ts";
 import { releveMachine } from "./services/gestion/releve-machine.ts";
 import { noterAction } from "./services/gestion/journal.ts";
@@ -150,11 +154,17 @@ const socialApp = creerDependancesSociales({
   // Disque des médias sous 15 % libres (B.12) : une ligne au journal du logiciel, une fois par heure au plus
   quandDisquePresquePlein: (part) => void noterAction("serveur", "Disque presque plein : envois de médias suspendus", `${Math.round(part * 100)} % libres`).catch((erreur: unknown) => console.error("Journal :", resumerErreur(erreur))),
   estLimite: limitations.estLimite, // Compte limité par l'équipe : 403 compte-limite sur ce que les autres voient (routes/social-app.ts)
+  gif: chargerClientGiphy(),
 });
+brancherPastillePush(creerLecteurPastille(socialApp.social.lirePouls));
 // Sorties : chaque minute, les votes échus reçoivent leur lieu retenu, et les participants sont prévenus (cloche et
 // téléphone, hors anti-spam) ; pas pendant un essai sur un autre schéma
 const arreterVotes = process.env.SCHEMA_BASE ? () => {} : planifierFinDesVotes({
   sorties: socialApp.sorties,
+  appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
+});
+const arreterTachesMessagerie = process.env.SCHEMA_BASE ? () => {} : planifierTachesMessagerie({
+  messagerie: socialApp.messagerie,
   appliquer: creerAppliquerEffetsSociaux({ cloche: socialApp.cloche, prevenirCompte, lirePushSocial: (ids) => socialApp.relations.lirePushSocial(ids), horloge: Date.now }),
 });
 const arreterSortiesMiamis = process.env.SCHEMA_BASE || !socialApp.communaute ? () => {} : planifierTachesSortiesMiamis({
@@ -296,6 +306,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     clearInterval(minuteurNotifications);
     arreterSauvegardes();
     arreterVotes();
+    arreterTachesMessagerie();
     arreterSortiesMiamis();
     arreterExpirations();
     arreterReleveMachine();

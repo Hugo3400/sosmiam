@@ -22,7 +22,9 @@ import { creerMediasMessagerie } from "./messagerie-medias.ts";
 import { creerMessagesMessagerie } from "./messagerie-messages.ts";
 import { creerPartagesMessagerie } from "./messagerie-partages.ts";
 import { creerPhotoGroupe } from "./messagerie-photo-groupe.ts";
+import { creerSondagesMessagerie } from "./messagerie-sondages.ts";
 import { ecrireMessageSysteme } from "./messagerie-systeme.ts";
+import { creerTachesMessagerie } from "./messagerie-taches.ts";
 import { creerMemoireSonsInvitations } from "./sorties-regles.ts";
 import {
   CONVERSATIONS_PAR_PAGE, MAX_INVITATIONS_LUES, MESSAGES_PAR_PAGE, type ContexteMessagerie, type LigneMembre, type RefusGroupe,
@@ -59,6 +61,8 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
   const medias = creerMediasMessagerie(c, lecture, messages);
   const photo = creerPhotoGroupe(c, lecture, medias);
   const partages = creerPartagesMessagerie(c, lecture);
+  const sondages = creerSondagesMessagerie(c, lecture);
+  const taches = creerTachesMessagerie(c);
   const sons = creerMemoireSonsInvitations();
 
   /** Membre d'un GROUPE (privé : conversation-inconnue ; sortie : geree-par-la-sortie), et admin si demandé */
@@ -315,6 +319,8 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
     lirePhotoGroupe: photo.lirePhotoGroupe,
     listerPartages: partages.listerPartages,
     basculerReaction: messages.basculerReaction,
+    voterSondage: sondages.voterSondage,
+    passerTaches: taches.passerTaches,
     lireMessageVisible: lecture.lireMessageVisible,
   };
   return { ...services, ...creerLieuxEnvoyes(c, assurerPrive, messages) };

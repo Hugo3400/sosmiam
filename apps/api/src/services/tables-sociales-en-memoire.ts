@@ -7,8 +7,8 @@
 import type {
   AbonnementListe, Blocage, CleIdempotence, CoAuteurListe, CommentairePublication, Conversation, DemandeBande, DepartGroupe,
   ElementMasque, InvitationGroupe, InvitationSortie, JaimeCommentaire, LieuDeListe, ListeLieux, MembreBande, MembreConversation,
-  MessageConversation, NotificationCloche, ProfilSocial, PropositionSortie, ReactionMessage, Signalement, Sortie, SuiviPersonne,
-  VoteSortie,
+  MessageConversation, NotificationCloche, OptionSondage, ProfilSocial, PropositionSortie, ReactionMessage, Signalement, SondageMessage, Sortie,
+  SuiviPersonne, VoteSondage, VoteSortie,
 } from "../base-de-donnees/client-genere/client.ts";
 import { calculerSeuilsMenageSocial } from "../fonctions/social/calculer-seuils-menage-social.ts";
 import { estFichierGardeParSignalement } from "../fonctions/social/est-fichier-garde-par-signalement.ts";
@@ -58,6 +58,9 @@ export type TablesSociales = {
   reactions: ReactionMessage[];
   departs: DepartGroupe[];
   invitationsGroupes: InvitationGroupe[];
+  sondages: Map<number, SondageMessage>;
+  optionsSondages: Map<number, OptionSondage>;
+  votesSondages: VoteSondage[];
   sorties: Map<number, Sortie>;
   invitationsSorties: InvitationSortie[];
   propositions: Map<number, PropositionSortie>;
@@ -76,7 +79,7 @@ export type TablesSociales = {
   rescousses: { compteId: number; lieuId: number; creeLe: Date }[];
   gardes: { compteId: number; lieuId: number; creeLe: Date }[];
   /** Dernier id donné, par table à clé auto-incrémentée (prendreId) */
-  derniersIds: Record<"cloche" | "conversations" | "messages" | "sorties" | "propositions" | "listes" | "commentaires" | "signalements", number>;
+  derniersIds: Record<"cloche" | "conversations" | "messages" | "sorties" | "propositions" | "listes" | "commentaires" | "signalements" | "optionsSondages", number>;
 };
 
 export type TableAIdentifiant = keyof TablesSociales["derniersIds"];
@@ -99,6 +102,9 @@ export function creerTablesSocialesEnMemoire(comptes: Map<number, CompteSocialEn
     reactions: [],
     departs: [],
     invitationsGroupes: [],
+    sondages: new Map(),
+    optionsSondages: new Map(),
+    votesSondages: [],
     sorties: new Map(),
     invitationsSorties: [],
     propositions: new Map(),
@@ -115,7 +121,7 @@ export function creerTablesSocialesEnMemoire(comptes: Map<number, CompteSocialEn
     journalPoints: [],
     rescousses: [],
     gardes: [],
-    derniersIds: { cloche: 0, conversations: 0, messages: 0, sorties: 0, propositions: 0, listes: 0, commentaires: 0, signalements: 0 },
+    derniersIds: { cloche: 0, conversations: 0, messages: 0, sorties: 0, propositions: 0, listes: 0, commentaires: 0, signalements: 0, optionsSondages: 0 },
   };
 }
 
@@ -160,6 +166,14 @@ function oublierSorties(tables: TablesSociales, sortieIds: readonly number[]): v
   retirer(tables.votes, (v) => propositions.has(v.propositionId));
 }
 
+export function oublierSondagesEnMemoire(tables: Pick<TablesSociales, "sondages" | "optionsSondages" | "votesSondages">, messageIds: Iterable<number>): void {
+  const messages = new Set(messageIds);
+  if (messages.size === 0) return;
+  for (const id of messages) tables.sondages.delete(id);
+  retirerDeMap(tables.optionsSondages, (o) => messages.has(o.messageId));
+  retirer(tables.votesSondages, (v) => messages.has(v.messageId));
+}
+
 /** Les cascades de commentaires effacés : leurs J'aime partent, les réponses restent (reponseA remis à null) */
 function oublierCommentaires(tables: TablesSociales, commentaireIds: readonly number[]): void {
   const commentaires = new Set(commentaireIds);
@@ -193,6 +207,7 @@ export function oublierCompteEnMemoire(tables: TablesSociales, id: number): void
   retirer(tables.invitationsGroupes, (l) => l.compteId === id);
   retirer(tables.invitationsSorties, (l) => l.compteId === id);
   retirer(tables.votes, (l) => l.compteId === id);
+  retirer(tables.votesSondages, (l) => l.compteId === id);
   const listes = new Set(retirerDeMap(tables.listes, (l) => l.auteurId === id));
   retirer(tables.lieuxListes, (l) => listes.has(l.listeId));
   retirer(tables.coAuteurs, (l) => listes.has(l.listeId) || l.compteId === id);
@@ -224,7 +239,7 @@ export function lireFichiersGardesEnMemoire(tables: Pick<TablesSociales, "signal
 
 /**
  * effacerConversations (effacer-conversations.ts) sur les tables en mémoire, avec les mêmes cascades que la base : membres,
- * invitations aux groupes, messages et leurs réactions, départs, et la sortie avec ses invitations, propositions et votes.
+ * invitations aux groupes, messages avec leurs réactions et leurs sondages, départs, et la sortie avec ses invitations, propositions et votes.
  * Les fichiers des messages et la photo du groupe sont rendus ; apresTransaction() les retire du stockage, sauf ceux qu'un signalement garde
  * (lireFichiersGardesEnMemoire : ouvert, ou jugé depuis moins de 183 jours). Les signalements restent.
  */
@@ -240,6 +255,7 @@ export async function effacerConversationsEnMemoire(
   ];
   const messages = new Set(retirerDeMap(tables.messages, dans));
   retirer(tables.reactions, (r) => messages.has(r.messageId));
+  oublierSondagesEnMemoire(tables, messages);
   retirer(tables.membres, dans);
   retirer(tables.departs, dans);
   retirer(tables.invitationsGroupes, dans);

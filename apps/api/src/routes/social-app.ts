@@ -59,7 +59,9 @@ import { creerRoutesSignalementsSociaux } from "./signalements-sociaux.ts";
 import type { ServicesExportSocial } from "../services/export-social-regles.ts";
 import type { ServicesLimitations } from "../services/limitations-comptes-regles.ts";
 import type { ServicesCommunaute } from "../services/communaute-regles.ts";
+import type { ClientGif } from "../services/giphy.ts";
 import { creerRoutesCommunaute } from "./communaute.ts";
+import { creerRoutesGif } from "./gif.ts";
 
 /** Toutes les lectures sociales (pouls, fils, profils, listes…), par compte : une seule limite pour tous les domaines */
 export const LIMITE_LECTURES_SOCIALES = { fenetre: 10 * 60_000, maximum: 900 };
@@ -104,6 +106,7 @@ export type DependancesSocialApp = {
   /** « Télécharger mes données sociales » : tes données et TES messages déchiffrés (lot L7, GET /app/social/export) */
   exportSocial: ServicesExportSocial;
   communaute?: ServicesCommunaute;
+  gif?: ClientGif | null;
 };
 
 /** Ce que chaque domaine reçoit pour construire ses routes */
@@ -160,6 +163,7 @@ export function creerRoutesSocialesApp(d: DependancesSocialApp, protection: Prot
   monter("/suivis-personnes", creerRoutesSuivisPersonnes(d, contexte));
   monter("/conversations", creerRoutesConversations(d, contexte));
   monter("/lieux-envoyes", creerRoutesLieuxEnvoyes(d, contexte));
+  monter("/gif", creerRoutesGif(d, contexte));
   monter("/sorties", creerRoutesSorties(d, contexte));
   monter("/listes", creerRoutesListes(d, contexte));
   // Les commentaires montent leur propre chaîne (la liste d'une publication se lit sans session)

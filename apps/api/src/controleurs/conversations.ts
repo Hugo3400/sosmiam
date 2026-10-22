@@ -5,11 +5,12 @@
 // après (téléphone). Jamais un texte de message au journal.
 import type { Request, Response } from "express";
 
-import { CODES_REACTIONS, LONGUEUR_MAX_TITRE_GROUPE } from "../../../../packages/commun/src/regles/chat.ts";
+import { CODES_REACTIONS, FORME_ID_GIF, LONGUEUR_MAX_TITRE_GROUPE, MAX_LIEUX_SONDAGE } from "../../../../packages/commun/src/regles/chat.ts";
 import { LONGUEUR_MAX_MESSAGE, LONGUEUR_MAX_MOT_RECOMMANDATION } from "../../../../packages/commun/src/regles/potes.ts";
 import type { CodeReaction, RoleConversation, TypePartage } from "../../../../packages/commun/src/types/messagerie.ts";
 import { estEmojiSeul } from "../../../../packages/commun/src/validation/est-emoji-seul.ts";
 import { validerNouveauGroupe } from "../../../../packages/commun/src/validation/valider-nouveau-groupe.ts";
+import { validerNouveauSondage } from "../../../../packages/commun/src/validation/valider-nouveau-sondage.ts";
 import { lireIdentifiantPublic } from "../fonctions/social/lire-identifiant-public.ts";
 import { lireProfilSocialPose } from "../middlewares/profil-social.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
@@ -25,7 +26,7 @@ export const ERREURS_MESSAGERIE: Readonly<Record<string, number>> = {
   "conversation-inconnue": 404, "conversation-fermee": 403, "pas-dans-la-bande": 409, "groupe-plein": 409, "reserve-aux-admins": 403,
   "geree-par-la-sortie": 409, "personne-inconnue": 404, "invitation-inconnue": 404, "message-inconnu": 404, "reserve-a-l-auteur": 403,
   "lieu-inconnu": 404, "reponse-introuvable": 400, "pas-l-auteur": 403, "trop-tard": 409, "non-modifiable": 409, "trop-d-epinglees": 409,
-  "album-plein": 409,
+  "album-plein": 409, "reserve-aux-groupes": 409, "sondage-clos": 409, "gif-refuse": 400, "gif-inconnu": 404, "gif-indisponible": 503,
 };
 
 /** Invités d'un groupe : 1 à 19 (avec toi, 20 personnes) */
@@ -74,7 +75,10 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
     return cible;
   }
 
-  /** Le message d'un envoi : texte (1 à 500 caractères) ou lieu (et son mot de 140) ; 400 message-refuse pour un mot interdit */
+  /**
+   * Le message d'un envoi : texte (1 à 500 caractères), lieu (et son mot de 140), sondage (2 à 4 lieux, fin entre 10 min et
+   * 7 jours) ou GIF (son identifiant chez GIPHY) ; 400 message-refuse pour un mot interdit
+   */
   function lireMessage(requete: Request): MessageAEnvoyer {
     const corps = lireCorps(requete);
     const idClient = lireIdClient(requete);
@@ -82,6 +86,15 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
     if (reponseA === null) throw new ChampInvalide("reponseA");
     const commun = { idClient, ...(reponseA !== undefined ? { reponseA } : {}) };
     if (corps.type === "texte") return { ...commun, type: "texte", texte: lireTexteSocial(corps, "texte", LONGUEUR_MAX_MESSAGE, true) };
+    if (corps.type === "vote") {
+      const v = validerNouveauSondage({ lieux: corps.lieux, finLe: corps.finLe }, maintenant());
+      if (!v.ok) throw new ChampInvalide(v.champ);
+      return { ...commun, type: "vote", lieux: v.sondage.lieux, finLe: new Date(v.sondage.finLe) };
+    }
+    if (corps.type === "gif") {
+      if (typeof corps.gifId !== "string" || !FORME_ID_GIF.test(corps.gifId)) throw new ChampInvalide("gifId");
+      return { ...commun, type: "gif", gifId: corps.gifId };
+    }
     if (corps.type !== "lieu") throw new ChampInvalide("type");
     const lieuId = corps.lieuId;
     if (typeof lieuId !== "number" || !Number.isSafeInteger(lieuId) || lieuId < 1) throw new ChampInvalide("lieuId");
@@ -235,7 +248,7 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
       reponse.json({ ok: true });
     },
 
-    /** POST /app/conversations/:id/messages { idClient, type, texte?, lieuId? } : 201 nouveau, 200 envoi rejoué */
+    /** POST /app/conversations/:id/messages { idClient, type, texte?, lieuId?, lieux?, finLe?, gifId? } : 201 nouveau, 200 envoi rejoué */
     async envoyer(requete: Request, reponse: Response) {
       const id = lireNumero(requete, "id");
       const message = lireMessage(requete);
@@ -259,6 +272,19 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
       const r = await d.messagerie.supprimerMessage(moi(reponse), lireNumero(requete, "id"), lireNumero(requete, "messageId"), maintenant());
       if (!r.ok) rendreRefus(reponse, r.erreur);
       reponse.json({ ok: true, version: r.version });
+    },
+
+    voter(oui: boolean) {
+      return async (requete: Request, reponse: Response) => {
+        const id = lireNumero(requete, "id");
+        const messageId = lireNumero(requete, "messageId");
+        const brut = oui ? lireCorps(requete).ordre : null;
+        if (oui && (typeof brut !== "number" || !Number.isInteger(brut) || brut < 1 || brut > MAX_LIEUX_SONDAGE)) throw new ChampInvalide("ordre");
+        const r = await d.messagerie.voterSondage(moi(reponse), id, messageId, oui ? (brut as number) : null, maintenant());
+        if (!r.ok && r.erreur === "option-inconnue") throw new ChampInvalide("ordre");
+        if (!r.ok) rendreRefus(reponse, r.erreur);
+        reponse.json({ ok: true, message: r.message, version: r.version });
+      };
     },
 
     /** PUT (oui) ou DELETE (non) /app/conversations/:id/messages/:messageId/reactions/:reaction */

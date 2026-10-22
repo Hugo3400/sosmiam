@@ -8,8 +8,11 @@ import type {
   CodeReaction, ConversationApi, InvitationGroupeApi, MembreConversationApi, MessageApi,
 } from "../../../../packages/commun/src/types/messagerie.ts";
 import type { PersonneResume } from "../../../../packages/commun/src/types/social.ts";
+import { dechiffrerLieuSondage } from "../fonctions/social/dechiffrer-lieu-sondage.ts";
+import { lireGifMessage } from "../fonctions/social/lire-gif-message.ts";
 import { presenterConversation } from "../fonctions/social/presenter-conversation.ts";
 import { presenterMessage, type ContenuMessage } from "../fonctions/social/presenter-message.ts";
+import { presenterSondage, type LigneSondage } from "../fonctions/social/presenter-sondage.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
 import { lireComplementsMessages } from "./messagerie-complements.ts";
 import type {
@@ -27,8 +30,8 @@ export function exigerChiffrement(c: Pick<ContexteMessagerie, "chiffrement">): C
 }
 
 /**
- * Le texte d'un message (ou le mot et le lieu d'un message « lieu », chiffrés ensemble), ou « illisible ». Le petit mot d'une
- * photo qui ne se relit pas est seulement absent : la photo reste
+ * Le texte d'un message (ou le mot et le lieu d'un message « lieu », chiffrés ensemble ; la question d'un sondage ; le GIF
+ * d'un message « gif »), ou « illisible ». Le petit mot d'une photo qui ne se relit pas est seulement absent : la photo reste
  */
 export function lireContenu(chiffrement: ChiffrementSocial, l: LigneMessage): ContenuMessage | "illisible" {
   if (l.type === "vocal" || l.supprimeLe || l.retireLe || l.suspenduLe) return { texte: null, lieuId: null };
@@ -43,7 +46,11 @@ export function lireContenu(chiffrement: ChiffrementSocial, l: LigneMessage): Co
   if (!l.texteChiffre) return "illisible";
   try {
     const clair = chiffrement.dechiffrerMessage(l.texteChiffre, l.conversationId, l.idClient);
-    if (l.type === "texte") return { texte: clair, lieuId: null };
+    if (l.type === "texte" || l.type === "vote") return { texte: clair, lieuId: null };
+    if (l.type === "gif") {
+      const gif = lireGifMessage(clair);
+      return gif ? { texte: null, lieuId: null, gif } : "illisible";
+    }
     const lu: unknown = JSON.parse(clair);
     const { l: lieuId, m: mot } = (typeof lu === "object" && lu !== null ? lu : {}) as { l?: unknown; m?: unknown };
     if (typeof lieuId !== "number" || !Number.isSafeInteger(lieuId) || lieuId < 1 || (mot !== null && typeof mot !== "string")) return "illisible";
@@ -110,10 +117,18 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
     const chiffrement = exigerChiffrement(c);
     const lireUn = (l: LigneMessage) => lireContenu(chiffrement, l);
     const contenus = new Map(lignes.map((l) => [l.id, lireUn(l)]));
-    const [lues, complements] = await Promise.all([
+    const votes = lignes.filter((l) => l.type === "vote").map((l) => l.id);
+    const [lues, complements, sondages] = await Promise.all([
       lire.lireReactions(lignes.map((l) => l.id)),
       lireComplementsMessages(c, moi, lignes, contenus, { caches, exclus, lireContenu: lireUn }),
+      votes.length > 0 ? lire.lireSondages(votes) : new Map<number, LigneSondage>(),
     ]);
+    const presenterVote = (l: LigneMessage) => {
+      const sondage = sondages.get(l.id);
+      return sondage
+        ? presenterSondage(sondage, moi, (o) => dechiffrerLieuSondage(chiffrement, o.lieuChiffre, { conversationId: l.conversationId, idClient: l.idClient, ordre: o.ordre }))
+        : undefined;
+    };
     const reactions = lues.filter((r) => r.compteId === moi || !caches.has(r.compteId));
     const personnes = await c.relations.presenter([
       ...lignes.flatMap((l) => (l.auteurId === null ? [] : [l.auteurId])), ...reactions.map((r) => r.compteId), ...complements.comptes,
@@ -127,6 +142,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
       const auteur = l.auteurId === null ? null : (personnes.get(l.auteurId) ?? null);
       return presenterMessage(l, {
         auteur, contenu: contenus.get(l.id)!, reactions: parCode, maintenant, reponseA: complements.citation(l, personnes), mentions: complements.mentions(l, personnes),
+        vote: l.type === "vote" ? presenterVote(l) : undefined,
       });
     });
   }
@@ -187,7 +203,8 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
         .sort(parArrivee)
         .flatMap((m) => {
           const personne = personnes.get(m.compteId);
-          return personne ? [{ personne, role: x.type === "groupe" ? m.role : "membre", depuis: m.arriveLe.toISOString(), ...(montreLu(m) ? { luJusqua: String(m.luJusqua) } : {}) }] : [];
+          const lu = montreLu(m) ? { luJusqua: String(m.luJusqua), ...(m.luLe ? { luLe: m.luLe.toISOString() } : {}) } : {};
+          return personne ? [{ personne, role: x.type === "groupe" ? m.role : "membre", depuis: m.arriveLe.toISOString(), ...lu }] : [];
         });
       const invites = invitations.filter((i) => i.conversationId === x.id).flatMap((i) => personnes.get(i.compteId) ?? []);
       const dernier = derniers.get(x.id);

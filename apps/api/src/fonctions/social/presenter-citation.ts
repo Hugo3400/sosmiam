@@ -6,7 +6,7 @@ export function presenterCitation(l: LigneMessage, o: { auteurId: string | null;
   const etat: MessageCiteApi["etat"] = o.cache ? "masque"
     : l.supprimeLe ? "supprime" : l.retireLe ? "retire" : l.suspenduLe ? "masque" : o.contenu === "illisible" ? "illisible" : "visible";
   const contenu = etat === "visible" && o.contenu !== "illisible" ? o.contenu : null;
-  const texte = contenu && (l.type === "texte" || l.type === "lieu") ? contenu.texte : null;
+  const texte = contenu && (l.type === "texte" || l.type === "lieu" || l.type === "vote") ? contenu.texte : null;
   return {
     id: String(l.id),
     auteurId: o.cache ? null : o.auteurId,

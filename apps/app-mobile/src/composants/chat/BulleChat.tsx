@@ -3,21 +3,26 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type PressableProps } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
-import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { CarteLieuChat } from "~/composants/chat/CarteLieuChat";
+import { CarteMessageSysteme } from "~/composants/chat/CarteMessageSysteme";
+import { CitationMessage } from "~/composants/chat/CitationMessage";
+import { GlisserPourRepondre } from "~/composants/chat/GlisserPourRepondre";
 import { NoteVocale } from "~/composants/chat/NoteVocale";
 import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { PhotoChat } from "~/composants/chat/PhotoChat";
 import { ReactionsMessage } from "~/composants/chat/ReactionsMessage";
+import { TexteMessageChat } from "~/composants/chat/TexteMessageChat";
 import { RondPote } from "~/composants/potes/RondPote";
 import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { decrireEnvoiMessage } from "~/fonctions/chat/decrire-envoi-message";
 import { decrireMomentMessage } from "~/fonctions/chat/decrire-moment-message";
 import { estMessageToutEmoji } from "~/fonctions/chat/est-message-tout-emoji";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
@@ -25,7 +30,7 @@ import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
   conversationId: string;
-  message: MessageChat;
+  message: MessageChatEnrichi;
   /** Qui l'a écrit (null si on ne le connaît plus) */
   auteur: Pote | null;
   deMoi: boolean;
@@ -41,6 +46,10 @@ type Props = {
   dernierDeMoi: boolean;
   onBasculerDetail: () => void;
   onDoubleToucher: () => void;
+  onRepondre?: () => void;
+  onVoirCitation?: (id: string) => void;
+  pseudos?: ReadonlySet<string>;
+  vu?: { vu: string; lu: string } | null;
 };
 
 const TAILLE_AVATAR = 32;
@@ -59,9 +68,12 @@ const DELAI_APPUI_LONG = 350;
  * Un message du chat : les tiens à droite en jaune, ceux des potes à gauche avec leur avatar (et leur prénom dans un groupe).
  * Texte, lieu, photo ou note vocale, puis les réactions dessous. Double appui sur la bulle : un 😋 ; appui long ou « ⋯ » : le menu.
  */
-export function BulleChat({ conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher }: Props) {
+export function BulleChat(props: Props) {
+  const { conversationId, message, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher } = props;
+  const { onRepondre, onVoirCitation, pseudos, vu } = props;
   const couleurs = utiliserCouleurs();
   const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
+  const { trouverPote } = utiliserCommunaute();
   // Pas parti parce que ton compte est limité : ni « Réessaie » ni renvoi, mais « Retirer »
   const enPause = message.etat === "echec" && envoisEnPause.has(message.id);
   const monId = utiliserMonId();
@@ -119,10 +131,27 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     }, DELAI_DOUBLE_APPUI);
   }
 
+  function appuiSurLaCarte() {
+    const instant = Date.now();
+    if (instant - dernierAppui.current < DELAI_DOUBLE_APPUI) {
+      dernierAppui.current = 0;
+      coeurParDoubleAppui();
+      return;
+    }
+    dernierAppui.current = instant;
+  }
+
   function ouvrirOptions() {
     vibrerLegerement();
     onOptions();
   }
+
+  const reponseA = message.reponseA;
+  const auteurCite = !reponseA ? null : reponseA.auteur === monId ? "Toi" : reponseA.auteur ? (trouverPote(reponseA.auteur)?.prenom ?? "Quelqu'un") : "Compte supprimé";
+  const mentionne = !deMoi && (message.mentions ?? []).includes(monId);
+  const complements = [message.modifieLe ? T_MESSAGES.modifie : null, mentionne ? T_MESSAGES.mentionne : null].filter((c): c is string => c !== null);
+  const suite = complements.map((c) => ` · ${c}`).join("");
+  const suiteLue = complements.map((c) => `, ${c}`).join("");
 
   // Un auteur qui a supprimé son compte : « Compte supprimé » (ses messages restent)
   const prenom = deMoi ? "Toi" : (auteur?.prenom ?? (message.auteur === "" ? "Compte supprimé" : "Quelqu'un"));
@@ -134,17 +163,32 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   const actionsLecteur: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction"> = {
     accessibilityActions: [
       { name: "coeur", label: coeurMis ? "Retirer ton miam" : "Dire miam" },
-      { name: "options", label: deMoi ? "Réagir" : "Réagir, signaler ou bloquer" },
+      ...(onRepondre && !message.etat && !message.systeme ? [{ name: "repondre", label: T_MESSAGES.repondre }] : []),
+      ...(reponseA && onVoirCitation ? [{ name: "citation", label: T_MESSAGES.voirCitation }] : []),
+      ...(message.systeme ? [] : [{ name: "options", label: deMoi ? "Réagir" : "Réagir, signaler ou bloquer" }]),
     ],
     onAccessibilityAction: (evenement) => {
-      if (evenement.nativeEvent.actionName === "coeur") {
+      const action = evenement.nativeEvent.actionName;
+      if (action === "coeur") {
         vibrerJaime();
         AccessibilityInfo.announceForAccessibility(basculerCoeur() ? "Cœur mis" : "Cœur retiré");
-      } else if (evenement.nativeEvent.actionName === "options") {
+      } else if (action === "repondre") {
+        onRepondre?.();
+      } else if (action === "citation" && reponseA) {
+        onVoirCitation?.(reponseA.id);
+      } else if (action === "options") {
         onOptions();
       }
     },
   };
+
+  if (message.systeme) {
+    return (
+      <CarteMessageSysteme systeme={message.systeme} texte={message.texte ?? ""} heure={heure} onPress={reactionsPossibles ? appuiSurLaCarte : undefined} actionsLecteur={actionsLecteur}>
+        <ReactionsMessage conversationId={conversationId} message={message} deMoi={false} centre />
+      </CarteMessageSysteme>
+    );
+  }
 
   let contenu: ReactNode;
   if (cache || ((message.type === "photo" || message.type === "vocal") && media.etat === "expire")) {
@@ -191,10 +235,10 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
     );
   } else {
     const texte = message.texte ?? "";
-    const enGrand = estMessageToutEmoji(texte);
+    const enGrand = !reponseA && estMessageToutEmoji(texte);
     contenu = (
       <Pressable
-        accessibilityLabel={`${prenom}, ${heure} : ${texte}`}
+        accessibilityLabel={`${prenom}, ${heure}${suiteLue}${reponseA ? `, en réponse à ${auteurCite}` : ""} : ${texte}`}
         onPress={appuiSurLaBulle}
         onLongPress={ouvrirOptions}
         delayLongPress={DELAI_APPUI_LONG}
@@ -207,8 +251,13 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
             {texte.trim()}
           </Text>
         ) : (
-          // Espace insécable avant « ? ! : ; » : le signe ne part jamais seul à la ligne
-          <Text className={`font-texte text-base leading-[22px] ${deMoi ? "text-nuit" : "text-encre"}`}>{lierPonctuation(texte)}</Text>
+          <>
+            {reponseA ? (
+              <CitationMessage citation={reponseA} auteur={auteurCite} deMoi={deMoi} onPress={onVoirCitation ? () => onVoirCitation(reponseA.id) : undefined} />
+            ) : null}
+            {/* Espace insécable avant « ? ! : ; » : le signe ne part jamais seul à la ligne */}
+            <TexteMessageChat texte={texte} pseudos={pseudos} deMoi={deMoi} />
+          </>
         )}
       </Pressable>
     );
@@ -235,78 +284,90 @@ export function BulleChat({ conversationId, message, auteur, deMoi, heure, debut
   );
 
   const detail = deplie ? decrireMomentMessage(message.date, heure, maintenant, deMoi) : null;
-  const envoi = deMoi && dernierDeMoi && !message.etat ? decrireEnvoiMessage(message.date, maintenant) : null;
+  const envoi = deMoi && dernierDeMoi && !message.etat ? (vu ?? decrireEnvoiMessage(message.date, maintenant)) : null;
   const heureEcrite = detail ? (
-    <View accessible accessibilityLabel={detail.lu} accessibilityLiveRegion="polite" className={`mt-1 rounded-full border border-ligne bg-carte px-2 py-0.5 ${deMoi ? "" : "ml-1"}`}>
-      <Text className="font-texte-semi text-xs text-encre">{detail.vu}</Text>
+    <View accessible accessibilityLabel={`${detail.lu}${suiteLue}`} accessibilityLiveRegion="polite" className={`mt-1 rounded-full border border-ligne bg-carte px-2 py-0.5 ${deMoi ? "" : "ml-1"}`}>
+      <Text className="font-texte-semi text-xs text-encre">{`${detail.vu}${suite}`}</Text>
     </View>
   ) : envoi ? (
-    <View accessible accessibilityLabel={envoi.lu} className="mt-0.5 flex-row items-center gap-1">
-      <Ionicons name="checkmark" size={13} color={couleurs.encre} />
-      <Text className="font-texte-semi text-xs text-encre">{envoi.vu}</Text>
+    <View accessible accessibilityLabel={`${envoi.lu}${suiteLue}`} className="mt-0.5 flex-row items-center gap-1">
+      <Ionicons name={vu ? "checkmark-done" : "checkmark"} size={13} color={couleurs.encre} />
+      <Text className="font-texte-semi text-xs text-encre">{`${envoi.vu}${suite}`}</Text>
     </View>
   ) : (
-    <Text accessibilityElementsHidden importantForAccessibility="no" className={`mt-0.5 font-texte text-[11px] text-gris ${deMoi ? "" : "ml-1"}`}>
-      {heure}
+    <Text accessibilityElementsHidden importantForAccessibility="no" className={`mt-0.5 font-texte text-[11px] ${mentionne ? "font-texte-semi text-encre" : "text-gris"} ${deMoi ? "" : "ml-1"}`}>
+      {`${heure}${suite}`}
     </Text>
   );
+  const repondreActif = !!onRepondre && !message.etat;
+  const repondre = () => onRepondre?.();
 
   if (deMoi) {
     return (
-      <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
-        {bulle}
-        <ReactionsMessage conversationId={conversationId} message={message} deMoi />
-        {enPause ? (
-          <PauseMessageLimite onRetirer={() => retirerEnPause(message.id)} />
-        ) : message.etat === "echec" ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Pas parti. Touche pour réessayer."
-            onPress={() => {
-              vibrerLegerement();
-              renvoyer(conversationId, message.id);
-            }}
-            className="mt-0.5 min-h-8 justify-center active:opacity-70"
-          >
-            <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
-          </Pressable>
-        ) : message.etat === "envoi" ? (
-          <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
-            Envoi…
-          </Text>
-        ) : (
-          heureEcrite
+      <GlisserPourRepondre actif={repondreActif} onRepondre={repondre}>
+        {(icone) => (
+          <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
+            {icone}
+            {bulle}
+            <ReactionsMessage conversationId={conversationId} message={message} deMoi />
+            {enPause ? (
+              <PauseMessageLimite onRetirer={() => retirerEnPause(message.id)} />
+            ) : message.etat === "echec" ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Pas parti. Touche pour réessayer."
+                onPress={() => {
+                  vibrerLegerement();
+                  renvoyer(conversationId, message.id);
+                }}
+                className="mt-0.5 min-h-8 justify-center active:opacity-70"
+              >
+                <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
+              </Pressable>
+            ) : message.etat === "envoi" ? (
+              <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
+                Envoi…
+              </Text>
+            ) : (
+              heureEcrite
+            )}
+          </View>
         )}
-      </View>
+      </GlisserPourRepondre>
     );
   }
 
   return (
-    <View className={`max-w-[92%] flex-row items-start gap-1.5 self-start ${debutSerie ? "mt-3" : "mt-1"}`}>
-      <View style={{ width: TAILLE_AVATAR }} className={avecPrenom ? "pt-5" : ""}>
-        {debutSerie && auteur ? <RondPote pote={auteur} taille={TAILLE_AVATAR} /> : null}
-      </View>
-      <View className="shrink items-start">
-        {avecPrenom ? (
-          // Déjà lu avec le message : pas besoin de le lire deux fois
-          <Text accessibilityElementsHidden importantForAccessibility="no" numberOfLines={1} className="mb-0.5 ml-1 font-texte-semi text-[13px] text-gris">
-            {prenom}
-          </Text>
-        ) : null}
-        {bulle}
-        <ReactionsMessage conversationId={conversationId} message={message} deMoi={false} />
-        {heureEcrite}
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Options du message de ${prenom}`}
-        accessibilityHint="Réagir, signaler ce message ou bloquer cette personne"
-        hitSlop={{ left: 4, right: 4 }}
-        onPress={ouvrirOptions}
-        className={`h-11 w-9 items-center justify-center active:opacity-60 ${avecPrenom ? "mt-5" : ""}`}
-      >
-        <Ionicons name="ellipsis-horizontal" size={18} color={couleurs.gris} />
-      </Pressable>
-    </View>
+    <GlisserPourRepondre actif={repondreActif} onRepondre={repondre}>
+      {(icone) => (
+        <View className={`max-w-[92%] flex-row items-start gap-1.5 self-start ${debutSerie ? "mt-3" : "mt-1"}`}>
+          {icone}
+          <View style={{ width: TAILLE_AVATAR }} className={avecPrenom ? "pt-5" : ""}>
+            {debutSerie && auteur ? <RondPote pote={auteur} taille={TAILLE_AVATAR} /> : null}
+          </View>
+          <View className="shrink items-start">
+            {avecPrenom ? (
+              // Déjà lu avec le message : pas besoin de le lire deux fois
+              <Text accessibilityElementsHidden importantForAccessibility="no" numberOfLines={1} className="mb-0.5 ml-1 font-texte-semi text-[13px] text-gris">
+                {prenom}
+              </Text>
+            ) : null}
+            {bulle}
+            <ReactionsMessage conversationId={conversationId} message={message} deMoi={false} />
+            {heureEcrite}
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Options du message de ${prenom}`}
+            accessibilityHint="Réagir, signaler ce message ou bloquer cette personne"
+            hitSlop={{ left: 4, right: 4 }}
+            onPress={ouvrirOptions}
+            className={`h-11 w-9 items-center justify-center active:opacity-60 ${avecPrenom ? "mt-5" : ""}`}
+          >
+            <Ionicons name="ellipsis-horizontal" size={18} color={couleurs.gris} />
+          </Pressable>
+        </View>
+      )}
+    </GlisserPourRepondre>
   );
 }

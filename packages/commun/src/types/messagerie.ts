@@ -22,6 +22,21 @@ export type MediaMessageApi = {
   onde?: string;
 };
 
+export type OptionSondageApi = { ordre: number; lieuId: number; votes: number };
+
+export type SondageApi = {
+  finLe: string;
+  closLe: string | null;
+  gagnant: number | null;
+  options: OptionSondageApi[];
+  monVote: number | null;
+  votants: number;
+};
+
+export type GifApi = { id: string; url: string; largeur: number; hauteur: number };
+
+export type PageGifsApi = { gifs: GifApi[] };
+
 export type MessageCiteApi = {
   id: string;
   auteurId: string | null;
@@ -52,6 +67,8 @@ export type MessageApi = {
   legende?: string;
   systeme?: string;
   mentions?: string[];
+  vote?: SondageApi;
+  gif?: GifApi;
 };
 
 /** Un membre qui a accepté (ou le créateur) ; depuis : son arrivée, c'est-à-dire le moment où il a accepté */

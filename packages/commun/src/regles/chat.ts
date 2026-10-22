@@ -71,3 +71,16 @@ export const MAX_CONVERSATIONS_EPINGLEES = 3;
 export const MAX_MENTIONS_MESSAGE = 5;
 export const LONGUEUR_MAX_EXTRAIT_CITATION = 120;
 export const FORME_ONDE_VOCAL = /^[0-9]{16,48}$/;
+
+export const MIN_LIEUX_SONDAGE = 2;
+export const MAX_LIEUX_SONDAGE = 4;
+export const MIN_DUREE_SONDAGE_MINUTES = 10;
+export const MAX_DUREE_SONDAGE_JOURS = 7;
+export const QUESTION_SONDAGE = "On mange où ?";
+
+export const FORME_ID_GIF = /^[A-Za-z0-9]{6,40}$/;
+export const LONGUEUR_MAX_RECHERCHE_GIF = 50;
+export const GIFS_PAR_PAGE = 24;
+export const MAX_PAGE_GIF = 40;
+
+export const MAX_PASTILLE_ICONE = 99;

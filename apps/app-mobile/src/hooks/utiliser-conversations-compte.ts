@@ -6,23 +6,25 @@ import type { ReponseMessage } from "@sos-miam/commun/client-api/contrat-message
 import { convertirReactionEnCode } from "@sos-miam/commun/fonctions/messagerie/convertir-reaction-en-code";
 import { LONGUEUR_MAX_TITRE_GROUPE, MAX_PARTICIPANTS_GROUPE } from "@sos-miam/commun/regles/chat";
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
-import type { MessageChat } from "@sos-miam/commun/types/conversations";
 import type { ConversationApi, InvitationGroupeApi } from "@sos-miam/commun/types/messagerie";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
+import { citerMessage } from "~/fonctions/chat/citer-message";
 import { convertirConversationApi } from "~/fonctions/chat/convertir-conversation-api";
 import { convertirMessageApi } from "~/fonctions/chat/convertir-message-api";
 import { fusionnerFil } from "~/fonctions/chat/fusionner-fil";
 import { preparerPhotoChat } from "~/fonctions/chat/preparer-photo-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import type { EtatConversations, ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserModificationsConversationsCompte } from "~/hooks/utiliser-modifications-conversations-compte";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { effacerMediasChatCompte, garderEnvoiChat, oublierEnvoiChat, oublierMediaChat } from "~/stockage/medias-chat-compte";
 
-type Fil = { messages: MessageChat[]; suite: string | null; version: number };
+type Fil = { messages: MessageChatEnrichi[]; suite: string | null; version: number };
 /** Un envoi en cours ou raté : son message à l'écran, et de quoi le renvoyer tel quel (même idClient : jamais deux fois) */
-type Envoi = { conversationId: string; message: MessageChat };
+type Envoi = { conversationId: string; message: MessageChatEnrichi };
 
 // Une discussion ouverte est relue toutes les 5 s pendant une minute, puis toutes les 15 s (C.3)
 const RELECTURE_RAPIDE_MS = 5000;
@@ -77,7 +79,8 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     const r = await sociaux.messagerie.listerConversations();
     if (!tant(g)) return;
     if (r.ok) {
-      const gardees = r.conversations.filter((c) => c.type !== "sortie");
+      const premieres = r.conversations.filter((c) => c.type !== "sortie");
+      const gardees = [...premieres, ...(r.epinglees ?? []).filter((e) => e.type !== "sortie" && !premieres.some((c) => c.id === e.id))];
       const deSorties = r.conversations.filter((c) => c.type === "sortie");
       gardees.forEach(noterPersonnes);
       if (deSorties.length > 0) setSorties((avant) => ({ ...avant, ...Object.fromEntries(deSorties.map((c) => [c.id, c])) }));
@@ -224,15 +227,17 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
   );
 
   const lancer = useCallback(
-    (conversationId: string, contenu: Omit<MessageChat, "id" | "auteur" | "date" | "reactions">, partir: (idClient: string) => Promise<ReponseMessage>) => {
+    (conversationId: string, contenu: Omit<MessageChatEnrichi, "id" | "auteur" | "date" | "reactions">, partir: (idClient: string) => Promise<ReponseMessage>) => {
       const idClient = Crypto.randomUUID();
-      const message: MessageChat = { id: `envoi:${idClient}`, idClient, auteur: monId, date: new Date().toISOString(), reactions: {}, etat: "envoi", ...contenu };
+      const message: MessageChatEnrichi = { id: `envoi:${idClient}`, idClient, auteur: monId, date: new Date().toISOString(), reactions: {}, etat: "envoi", ...contenu };
       departs.current.set(idClient, () => partir(idClient));
       setEnvois((avant) => ({ ...avant, [idClient]: { conversationId, message } }));
       void essayer(idClient);
     },
     [monId, essayer],
   );
+
+  const modifications = utiliserModificationsConversationsCompte({ sociaux, monId, generation, fils, setFils, liste, setListe, chargerListe });
 
   return useMemo((): EtatConversations => {
     const bloques = new Set(communaute.bloques.map((p) => p.id));
@@ -317,12 +322,18 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       },
       suivreFil,
       chargerPlusAnciens: (id) => void lireFil(id, true),
-      envoyerTexte: (id, texte) => {
+      envoyerTexte: (id, texte, o) => {
         const verdict = verifierTexte(texte);
         if (verdict !== "ok") return verdict;
         if (!ouverte(id)) return "interdit";
         const propre = texte.trim();
-        lancer(id, { type: "texte", texte: propre }, (idClient) => sociaux.messagerie.envoyerTexte(id, idClient, propre));
+        const cite = o?.reponseA ? fils[id]?.messages.find((m) => m.id === o.reponseA && !m.id.startsWith("envoi:") && !m.systeme) : undefined;
+        lancer(id, { type: "texte", texte: propre, ...(cite ? { reponseA: citerMessage(cite) } : {}) }, async (idClient) => {
+          if (!cite) return sociaux.messagerie.envoyerTexte(id, idClient, propre);
+          const r = await sociaux.messagerie.envoyerTexte(id, idClient, propre, { reponseA: cite.id });
+          const code: string = r.ok ? "" : r.erreur;
+          return code === "reponse-introuvable" || code === "erreur-serveur" ? sociaux.messagerie.envoyerTexte(id, idClient, propre) : r;
+        });
         return "ok";
       },
       envoyerLieu: (id, lieuId) => {
@@ -426,6 +437,7 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
         setFils(({ [id]: _parti, ...reste }) => reste);
         void sociaux.messagerie.retirerMembre(id, "moi").then(() => relirePouls());
       },
+      ...modifications,
       effacer: async () => {
         departs.current.clear();
         setFils({});
@@ -435,6 +447,6 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
       },
     };
   }, [
-    pret, liste, sorties, invitationsApi, fils, envois, enPause, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe,
+    pret, liste, sorties, invitationsApi, fils, envois, enPause, communaute, monId, pouls, sociaux, suivreFil, lireFil, lancer, essayer, noterPersonnes, garderConversation, relirePouls, chargerListe, modifications,
   ]);
 }

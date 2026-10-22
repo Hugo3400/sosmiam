@@ -312,7 +312,7 @@ test("des milliers de messages : déchiffrés par paquets, en laissant passer le
     profil: null, bande: [], demandesEnvoyees: [], demandesRecues: [], abonnements: [], abonnes: [], demandesSuiviRecues: [],
     conversations: [1, 2].map((id) => ({ id, type: "groupe", titreChiffre: null, titreSortie: null })),
     membres: [1, 2].map((conversationId) => ({ conversationId, compteId: 1 })), messages,
-    invitationsGroupes: [], reactions: [], sorties: [], invitationsSorties: [], participantsSorties: [], propositions: [], votes: [], listes: [], coAuteur: [],
+    invitationsGroupes: [], reactions: [], sondages: [], votesSondages: [], sorties: [], invitationsSorties: [], participantsSorties: [], propositions: [], votes: [], listes: [], coAuteur: [],
     abonnementsListes: [], lieuxListes: [], commentaires: [], jaimesCommentaires: [], cloche: [], signalements: [], masques: [],
   };
   const relations = {

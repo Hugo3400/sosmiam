@@ -1,4 +1,4 @@
-// Contrat de la messagerie de l'app (compte connecté), mêmes routes que l'API (/app/conversations, /app/lieux-envoyes) :
+// Contrat de la messagerie de l'app (compte connecté), mêmes routes que l'API (/app/conversations, /app/lieux-envoyes, /app/gif) :
 // privé, groupes, discussions des sorties, messages, photos et notes vocales, lieux envoyés (« Envoyer à un pote »). Une
 // personne est désignée par son identifiant public. On n'entre dans un groupe qu'en ACCEPTANT une invitation (réponse de
 // Hugo du 14/10/2026) : un invité voit l'invitation (InvitationGroupeApi), ni les messages ni les membres. Chaque envoi porte
@@ -7,7 +7,7 @@
 
 import type {
   CodeReaction, ConversationApi, FilMessagesApi, InvitationGroupeApi, LieuEnvoyeApi, MessageApi, NouveauGroupeApi,
-  PageConversationsApi, PagePartagesApi, RoleConversation, TypePartage,
+  PageConversationsApi, PageGifsApi, PagePartagesApi, RoleConversation, TypePartage,
 } from "../types/messagerie.ts";
 import type { ReponseApi } from "./reponse-api.ts";
 
@@ -64,6 +64,17 @@ export interface ServiceMessagerie {
   retirerPhotoGroupe(id: string): Promise<ReponseApi<{ conversation: ConversationApi }>>;
   preparerLecturePhotoGroupe(id: string): Promise<{ url: string; entetes: Record<string, string> }>;
   listerPartages(id: string, type: TypePartage, avant?: string): Promise<ReponseApi<PagePartagesApi>>;
+  /** Groupes seulement : 2 à 4 lieux publiés, fin entre 10 min et 7 jours. « reserve-aux-groupes », « lieu-inconnu » */
+  envoyerSondage(id: string, idClient: string, lieux: number[], finLe: string): Promise<ReponseMessage>;
+  /** Un vote par membre, changeable jusqu'à la fin. « sondage-clos », « message-inconnu » */
+  voterSondage(id: string, messageId: string, ordre: number): Promise<ReponseMessage>;
+  retirerVoteSondage(id: string, messageId: string): Promise<ReponseMessage>;
+  /** « gif-refuse », « gif-inconnu », « gif-indisponible » */
+  envoyerGif(id: string, idClient: string, gifId: string): Promise<ReponseMessage>;
+  /** GET /app/gif/tendances : 24 par page, via notre serveur (filtre PG-13). « gif-indisponible » */
+  listerGifTendances(page?: number): Promise<ReponseApi<PageGifsApi>>;
+  /** GET /app/gif/recherche : q de 1 à 50 caractères */
+  chercherGif(q: string, page?: number): Promise<ReponseApi<PageGifsApi>>;
   /** POST /app/lieux-envoyes : un message « lieu » dans le privé de chaque pote (1 à 20) ; même idClient pour tous */
   envoyerLieuAPotes(idClient: string, lieuId: number, a: string[], mot?: string | null): Promise<ReponseApi<{ envoyes: LieuEnvoyeApi[]; ignores: string[] }>>;
   listerLieuxRecus(apres?: string): Promise<ReponseApi<PageLieuxEnvoyes>>;

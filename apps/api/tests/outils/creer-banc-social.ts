@@ -32,7 +32,7 @@ export type PersonneDeTest = {
 
 type OptionsPersonne = { pseudo?: string; prenom?: string; prive?: boolean; ville?: string; avatar?: string; sansPseudo?: boolean; sansProfil?: boolean };
 
-export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSocialAppEnMemoire, "prevenirCompte" | "tirer" | "partLibre" | "lireRole" | "estLimite"> = {}) {
+export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSocialAppEnMemoire, "prevenirCompte" | "tirer" | "partLibre" | "lireRole" | "estLimite" | "gif"> = {}) {
   const horloge = { maintenant: Date.parse("2026-10-14T10:00:00Z") };
   const lireHorloge = () => horloge.maintenant;
   const memoire = creerComptesEnMemoire(lireHorloge);

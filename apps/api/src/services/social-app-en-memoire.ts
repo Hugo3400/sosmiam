@@ -26,6 +26,7 @@ import { creerExportSocialEnMemoire } from "./export-social-en-memoire.ts";
 import type { ListerLimitationsExport } from "./export-social-regles.ts";
 import { creerCommunaute } from "./communaute.ts";
 import { creerDepotCommunauteEnMemoire } from "./communaute-en-memoire.ts";
+import type { ClientGif } from "./giphy.ts";
 
 export type OptionsSocialAppEnMemoire = {
   /** Absent : une clé de test tirée au hasard ; null : pas de clé (routes 🔐 en 503 chiffrement-indisponible) */
@@ -45,6 +46,7 @@ export type OptionsSocialAppEnMemoire = {
   estLimite?: DependancesSocialApp["estLimite"];
   /** Les limitations du compte lues par l'export (listerLimitationsDuCompte de creerLimitationsEnMemoire) ; absente : pas de champ */
   listerLimitations?: ListerLimitationsExport;
+  gif?: ClientGif | null;
 };
 
 export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
@@ -81,7 +83,7 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
     // Un domaine par ligne, à la fin (lots L3 à L7)
     bande: creerBandeEnMemoire(tables, relations, chiffrement, tirer, o.lireAncienTitulaire),
     suivis: creerSuivisPersonnesEnMemoire(tables, relations, social),
-    messagerie: creerMessagerie({ depot: creerDepotMessagerieEnMemoire(tables, relations, medias), relations, chiffrement, medias }),
+    messagerie: creerMessagerie({ depot: creerDepotMessagerieEnMemoire(tables, relations, medias), relations, chiffrement, medias, gif: o.gif }),
     sorties: creerSortiesEnMemoire(tables, relations, medias),
     listes: creerListesEnMemoire(tables, relations),
     commentaires: creerCommentairesEnMemoire(tables, { relations, social, lireRole: (c, l) => dependances.lireRole(c, l), chiffrement }),
@@ -89,6 +91,7 @@ export function creerSocialAppEnMemoire(o: OptionsSocialAppEnMemoire = {}) {
     decisions: creerDecisionsModerationAppEnMemoire(tables, (id, texte, maintenant) => dependances.contesterSignalement(id, texte, maintenant)),
     exportSocial: creerExportSocialEnMemoire(tables, relations, chiffrement, o.listerLimitations),
     communaute,
+    gif: o.gif ?? null,
   };
   return { dependances, tables, pushs, contestations, medias };
 }

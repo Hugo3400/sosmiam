@@ -65,14 +65,22 @@ export async function lireDonneesExportSocial(base: Base, compteId: number): Pro
     }),
     base.elementMasque.findMany({ where: { compteId }, select: { cible: true, cibleId: true, creeLe: true } }),
   ]);
-  const lieuxListes = await base.lieuDeListe.findMany({
-    where: { listeId: { in: listes.map((l) => l.id) } },
-    select: { listeId: true, lieuId: true, ajouteParId: true },
-  });
+  const [lieuxListes, sondages, votesSondages] = await Promise.all([
+    base.lieuDeListe.findMany({ where: { listeId: { in: listes.map((l) => l.id) } }, select: { listeId: true, lieuId: true, ajouteParId: true } }),
+    base.sondageMessage.findMany({
+      where: { message: { auteurId: compteId } },
+      select: { messageId: true, finLe: true, closLe: true, gagnant: true, options: { select: { ordre: true, lieuChiffre: true }, orderBy: { ordre: "asc" } } },
+    }),
+    base.voteSondage.findMany({
+      where: { compteId },
+      select: { messageId: true, voteLe: true, option: { select: { ordre: true, lieuChiffre: true } }, sondage: { select: { message: { select: { conversationId: true, idClient: true } } } } },
+    }),
+  ]);
   return {
     profil, bande, demandesEnvoyees, demandesRecues, abonnements, abonnes, demandesSuiviRecues,
     conversations: conversations.map(({ sortie, ...c }) => ({ ...c, titreSortie: sortie?.titre ?? null })),
-    membres, messages, invitationsGroupes, reactions, sorties, invitationsSorties, participantsSorties, propositions,
+    membres, messages, invitationsGroupes, reactions, sondages, sorties, invitationsSorties, participantsSorties, propositions,
+    votesSondages: votesSondages.map((v) => ({ messageId: v.messageId, voteLe: v.voteLe, ...v.option, ...v.sondage.message })),
     votes: votes.map((v) => v.proposition),
     listes: listes.map(({ auteur, ...l }) => ({ ...l, auteurPrive: auteur.prive })),
     coAuteur: coAuteur.map((c) => c.listeId), abonnementsListes: abonnementsListes.map((a) => a.listeId), lieuxListes,

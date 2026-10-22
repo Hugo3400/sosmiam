@@ -39,6 +39,8 @@ const exigerMot = (valeur: string, quoi: string) => {
 export const CONTEXTES_SOCIAUX = {
   /** Texte d'un message, ou le { l, m } d'un message « lieu » ; l'idClient ne change jamais, même si l'auteur part */
   message: (conversationId: number, idClient: string) => `conversation:${exigerId(conversationId, "Conversation")}:message:${exigerMot(idClient, "idClient")}`,
+  optionSondage: (conversationId: number, idClient: string, ordre: number) =>
+    `conversation:${exigerId(conversationId, "Conversation")}:message:${exigerMot(idClient, "idClient")}:option:${exigerId(ordre, "Option")}`,
   /** Titre d'un groupe */
   titre: (conversationId: number) => `conversation:${exigerId(conversationId, "Conversation")}:titre`,
   /** Photo ou note vocale, par le nom de son fichier (« <uuid>.bin ») */

@@ -7,7 +7,7 @@ import { exigerChiffrementSocial } from "../middlewares/exiger-chiffrement-socia
 import { limiterEnvoisMedias } from "../middlewares/limiter-envois-medias.ts";
 import type { ContexteRoutesSociales, DependancesSocialApp } from "./social-app.ts";
 
-/** Messages texte et lieu, et leurs modifications, par compte */
+/** Messages (texte, lieu, sondage, GIF) et leurs modifications, par compte */
 export const LIMITE_MESSAGES = { fenetre: 60_000, maximum: 30 };
 /** Photos et notes vocales (et photo d'un groupe), par compte (en plus des quotas en base : 50 par 24 h, 1 Go gardé) */
 export const LIMITE_MEDIAS = { fenetre: 10 * 60_000, maximum: 20 };
@@ -24,9 +24,9 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  * (Retry-After) ; 400 champ-invalide { champ } ; 400 message-refuse { champ } (filtre de mots). Compte limité par l'équipe
  * (refuserSiLimite, avant le profil social, la clé et le corps d'un média) : 403 compte-limite { details: { jusqua } } sur
  * POST /groupes, PATCH /:id, POST /:id/invites, PUT /:id/membres/:personne/role, POST /:id/messages, PATCH
- * /:id/messages/:messageId, POST /:id/medias, PUT /:id/photo et PUT des réactions ; le reste passe
- * (répondre à une invitation, quitter, couper, épingler, lu, effacer pour moi, supprimer son message ou la photo du groupe,
- * retirer sa réaction…).
+ * /:id/messages/:messageId, POST /:id/medias, PUT /:id/photo, PUT des réactions, PUT et DELETE du vote d'un sondage ; le
+ * reste passe (répondre à une invitation, quitter, couper, épingler, lu, effacer pour moi, supprimer son message ou la photo
+ * du groupe, retirer sa réaction…).
  * - Ce que tu vois : les conversations dont tu es MEMBRE ; dans un groupe, on n'entre qu'en acceptant une invitation (avant :
  *   seulement l'invitation, ni les messages ni les membres). Les messages après ton arrivée (ou ton « Effacer pour moi »),
  *   sans ceux d'une personne avec qui il y a un blocage (dans un sens ou dans l'autre), ni ceux que tu as signalés. Un privé
@@ -66,15 +66,24 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  *          · 409 geree-par-la-sortie · 403 reserve-aux-admins
  * PUT    /app/conversations/:id/notifications { coupees: boolean } → 200 { ok }
  * PUT    /app/conversations/:id/lu { jusqua: string } → 200 { ok } : ne recule jamais, ramené au dernier message visible pour
- *          toi ; montré aux autres membres (membres[].luJusqua, « Vu ») seulement entre deux personnes qui ont toutes les deux
- *          les accusés de lecture (la version monte alors)
+ *          toi ; quand il avance, son heure est notée ; montré aux autres membres (membres[].luJusqua et membres[].luLe, « Vu
+ *          · il y a 2 min ») seulement entre deux personnes qui ont toutes les deux les accusés de lecture, sans blocage
+ *          (la version monte alors)
  * PUT    /app/conversations/:id/epingle { epinglee: boolean } → 200 { ok } : 3 au plus · 409 trop-d-epinglees | geree-par-la-sortie
  * POST   /app/conversations/:id/effacer → 200 { ok } : « Effacer la discussion pour moi »
- * POST   /app/conversations/:id/messages { idClient, type: "texte" | "lieu", texte?, lieuId?, reponseA? } 🔐 → 201 { ok, message, version }
- *          (texte de 1 à 500 caractères ; lieu publié et son mot de 140 au plus, chiffrés ensemble ; chaque autre membre est
- *          prévenu sur son téléphone) | 200 (même idClient : rien de nouveau, aucune notification)
- *          · 400 champ-invalide | message-refuse { champ: "idClient" | "type" | "texte" | "lieuId" } · 404 conversation-inconnue
- *          | lieu-inconnu · 403 conversation-fermee · 400 reponse-introuvable · 429 (30 par minute)
+ * POST   /app/conversations/:id/messages { idClient, type: "texte" | "lieu" | "vote" | "gif", texte?, lieuId?, lieux?, finLe?,
+ *          gifId?, reponseA? } 🔐 → 201 { ok, message, version }
+ *          (texte de 1 à 500 caractères ; lieu publié et son mot de 140 au plus, chiffrés ensemble ; « vote » : sondage « On
+ *          mange où ? » d'un groupe, 2 à 4 lieux publiés différents, chacun CHIFFRÉ dans son option, fin entre 10 min et 7 jours ;
+ *          « gif » : relu chez GIPHY par le serveur (classé G, PG ou PG-13), gardé chiffré ; chaque autre membre est prévenu sur
+ *          son téléphone, sans le lieu ni le texte) | 200 (même idClient : rien de nouveau, aucune notification)
+ *          · 400 champ-invalide | message-refuse { champ: "idClient" | "type" | "texte" | "lieuId" | "lieux" | "finLe" | "gifId" }
+ *          · 404 conversation-inconnue | lieu-inconnu | gif-inconnu · 403 conversation-fermee · 400 reponse-introuvable
+ *          | gif-refuse · 409 reserve-aux-groupes · 503 gif-indisponible · 429 (30 par minute)
+ * PUT    /app/conversations/:id/sondages/:messageId/vote { ordre } 🔐 ; DELETE (même adresse) 🔐 → 200 { ok, message, version } :
+ *          un vote par membre, qu'on change ou retire jusqu'à la fin (la version monte) · 404 message-inconnu · 409 sondage-clos
+ *          · 400 champ-invalide { champ: "ordre" } · 403 conversation-fermee. À la fin (tâche de la minute) : gagnant, message
+ *          de SOS Miam « sondage-clos » et notification sans le lieu
  * PATCH  /app/conversations/:id/messages/:messageId { texte } 🔐 → 200 { ok, message, version } : ton texte, 15 min au plus
  *          après l'envoi · 404 message-inconnu · 403 pas-l-auteur | conversation-fermee · 409 trop-tard | non-modifiable
  * POST   /app/conversations/:id/medias 🔐 : corps brut (Content-Type image/jpeg, audio/mp4 ou audio/x-m4a ; 6 Mo au plus),
@@ -89,8 +98,8 @@ export const TAILLE_MAX_CORPS_MEDIA = "6mb";
  * GET    /app/conversations/:id/photo 🔐 → 200 les octets (image/jpeg, private, no-store) · 404 conversation-inconnue | photo-inconnue
  * GET    /app/conversations/:id/partages?type=photo|lieu[&avant=<messageId>] 🔐 → 200 { ok, messages, suite } : 30 par page,
  *          le plus récent d'abord
- * DELETE /app/conversations/:id/messages/:messageId → 200 { ok, version } : ton message, pour tout le monde · 404
- *          message-inconnu · 403 reserve-a-l-auteur
+ * DELETE /app/conversations/:id/messages/:messageId → 200 { ok, version } : ton message, pour tout le monde (un sondage part
+ *          avec ses votes) · 404 message-inconnu · 403 reserve-a-l-auteur
  * PUT    /app/conversations/:id/messages/:messageId/reactions/:reaction ; DELETE (même adresse) → 200 { ok, version } :
  *          coeur, rire, miam, pouce ou surprise, cumulables · 400 champ-invalide { champ: "reaction" } · 404 message-inconnu
  *          · 403 conversation-fermee
@@ -140,5 +149,7 @@ export function creerRoutesConversations(d: DependancesSocialApp, contexte: Cont
   routes.delete("/:id/messages/:messageId", gestes, exigerProfilSocial, c.supprimerMessage);
   routes.put("/:id/messages/:messageId/reactions/:reaction", gestes, refuserSiLimite, exigerProfilSocial, c.reagir(true));
   routes.delete("/:id/messages/:messageId/reactions/:reaction", gestes, exigerProfilSocial, c.reagir(false));
+  routes.put("/:id/sondages/:messageId/vote", gestes, refuserSiLimite, exigerProfilSocial, cle, c.voter(true));
+  routes.delete("/:id/sondages/:messageId/vote", gestes, refuserSiLimite, exigerProfilSocial, cle, c.voter(false));
   return routes;
 }

@@ -7,6 +7,7 @@ import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { effacerConversations, supprimerMediasLibres } from "./effacer-conversations.ts";
 import { creerTablesMessages } from "./messagerie-tables-messages.ts";
+import { creerTablesSondages } from "./messagerie-tables-sondages.ts";
 import type { DepotMessagerie, LigneConversation, LigneInvitationGroupe, LigneMembre, TablesMessagerie } from "./messagerie-regles.ts";
 import type { RelationsSociales, TransactionSociale } from "./relations-sociales-regles.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
@@ -30,6 +31,7 @@ const versInvitation = (i: Omit<LigneInvitationGroupe, "statut"> & { statut: str
 export function creerTablesMessagerie(base: Client, relations: RelationsSociales, medias: StockageMediasChat, tx?: TransactionSociale): TablesMessagerie {
   return {
     ...creerTablesMessages(base),
+    ...creerTablesSondages(base),
 
     async lireConversations(ids) {
       if (ids.length === 0) return new Map();
@@ -93,7 +95,10 @@ export function creerTablesMessagerie(base: Client, relations: RelationsSociales
     },
     async avancerMembre(conversationId, compteId, m) {
       if (m.luJusqua !== undefined) {
-        await base.membreConversation.updateMany({ where: { conversationId, compteId, luJusqua: { lt: m.luJusqua } }, data: { luJusqua: m.luJusqua } });
+        await base.membreConversation.updateMany({
+          where: { conversationId, compteId, luJusqua: { lt: m.luJusqua } },
+          data: { luJusqua: m.luJusqua, ...(m.luLe ? { luLe: m.luLe } : {}) },
+        });
       }
       if (m.visibleApres !== undefined) {
         await base.membreConversation.updateMany({ where: { conversationId, compteId, visibleApres: { lt: m.visibleApres } }, data: { visibleApres: m.visibleApres } });

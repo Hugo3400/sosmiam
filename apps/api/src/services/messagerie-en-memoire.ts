@@ -7,6 +7,7 @@ import type { Conversation, InvitationGroupe, MembreConversation, MessageConvers
 import type { LigneMessage } from "../fonctions/social/presenter-message.ts";
 import type { DepotMessagerie, FiltreMessages, LigneConversation, LigneInvitationGroupe, LigneMembre, TablesMessagerie } from "./messagerie-regles.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
+import { creerTablesSondagesEnMemoire } from "./messagerie-sondages-en-memoire.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
 import { effacerConversationsEnMemoire, lireFichiersGardesEnMemoire, prendreId, type TablesSociales } from "./tables-sociales-en-memoire.ts";
 
@@ -48,6 +49,8 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
   });
 
   return {
+    ...creerTablesSondagesEnMemoire(tables),
+
     async lireConversations(ids) {
       return new Map(ids.flatMap((id) => {
         const c = tables.conversations.get(id);
@@ -105,7 +108,7 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
     async avancerMembre(conversationId, compteId, m) {
       const membre = membreDe(conversationId, compteId);
       if (!membre) return;
-      if (m.luJusqua !== undefined) membre.luJusqua = Math.max(membre.luJusqua, m.luJusqua);
+      if (m.luJusqua !== undefined && m.luJusqua > membre.luJusqua) Object.assign(membre, { luJusqua: m.luJusqua }, m.luLe ? { luLe: m.luLe } : {});
       if (m.visibleApres !== undefined) membre.visibleApres = Math.max(membre.visibleApres, m.visibleApres);
     },
     async retirerMembre(conversationId, compteId) {

@@ -27,6 +27,7 @@ export type MessagePush = {
   regroupement?: string;
   sonore?: boolean;
   social?: boolean;
+  badge?: number;
 };
 /** « envoyee », « jeton-invalide » (app désinstallée : on oublie ce téléphone) ou une erreur à réessayer plus tard */
 export type ResultatPush = "envoyee" | "jeton-invalide" | { erreur: string };
@@ -67,6 +68,7 @@ export function construireEnvoiApple(message: MessagePush): { entetes: Record<st
     ...(message.sonore === false ? {} : { sound: "default" }),
     ...(regroupement ? { "thread-id": regroupement } : {}),
     ...(message.urgent ? { "interruption-level": "time-sensitive" } : {}),
+    ...(message.badge !== undefined ? { badge: message.badge } : {}),
   };
   return {
     entetes: regroupement ? { "apns-collapse-id": regroupement } : {},
@@ -112,6 +114,7 @@ export function construireCorpsGoogle(jeton: string, message: MessagePush) {
           ...(regroupement ? { tag: regroupement } : {}),
           channel_id: canal,
           ...(canal === "messages-discrets" ? {} : { default_sound: true, default_vibrate_timings: true, notification_priority: canal === "miam-safe" ? "PRIORITY_MAX" : "PRIORITY_HIGH" }),
+          ...(message.badge !== undefined ? { notification_count: message.badge } : {}),
         },
       },
     },

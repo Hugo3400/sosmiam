@@ -10,6 +10,7 @@ import { ListeMessagesChat, type PoigneeListeMessages } from "~/composants/chat/
 import { MenuDiscussion } from "~/composants/chat/MenuDiscussion";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { mettreEnPauseNoteQuiJoue } from "~/hooks/utiliser-audio-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -40,6 +41,8 @@ export default function EcranDiscussion() {
   const [aLEcran, setALEcran] = useState(false);
   const [auPremierPlan, setAuPremierPlan] = useState(AppState.currentState !== "background");
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
+  const [reponseA, setReponseA] = useState<MessageChatEnrichi | null>(null);
+  const [edition, setEdition] = useState<MessageChatEnrichi | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
 
@@ -143,10 +146,36 @@ export default function EcranDiscussion() {
             membres={membres}
             aLEcran={aLEcran}
             onBloque={apresBlocage}
+            onAnnoncer={annoncer}
+            onRepondre={
+              ecriturePermise
+                ? (message) => {
+                    setEdition(null);
+                    setReponseA(message);
+                  }
+                : undefined
+            }
+            onModifier={
+              ecriturePermise
+                ? (message) => {
+                    setReponseA(null);
+                    setEdition(message);
+                  }
+                : undefined
+            }
           />
 
           {ecriturePermise ? (
-            <ChampChat conversationId={conversation.id} margeBas={marges.bottom} onEnvoye={() => liste.current?.allerEnBas()} onAnnoncer={annoncer} />
+            <ChampChat
+              conversationId={conversation.id}
+              margeBas={marges.bottom}
+              onEnvoye={() => liste.current?.allerEnBas()}
+              onAnnoncer={annoncer}
+              reponseA={reponseA}
+              onAnnulerReponse={() => setReponseA(null)}
+              edition={edition}
+              onAnnulerEdition={() => setEdition(null)}
+            />
           ) : (
             <View style={{ paddingBottom: marges.bottom + 12 }} className="gap-2 border-t border-ligne bg-creme px-5 pt-3">
               <Text accessibilityRole="header" accessibilityLabel="Discussion en pause" className="font-texte-gras text-base text-encre">
@@ -169,6 +198,7 @@ export default function EcranDiscussion() {
         visible={menuOuvert}
         conversation={conversation}
         membres={membres}
+        onAnnoncer={annoncer}
         onFermer={() => setMenuOuvert(false)}
         onVoirProfil={voirProfil}
         onBloque={(prenom) => partir(`C'est fait : tu as bloqué ${prenom}.`)}

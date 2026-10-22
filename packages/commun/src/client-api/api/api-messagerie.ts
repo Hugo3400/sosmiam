@@ -1,8 +1,8 @@
-// La messagerie, version API (routes /app/conversations et /app/lieux-envoyes ; contrat dans contrat-messagerie.ts). Rien de
+// La messagerie, version API (routes /app/conversations, /app/lieux-envoyes et /app/gif ; contrat dans contrat-messagerie.ts). Rien de
 // personnel dans les adresses : un message, un titre ou un mot partent toujours dans le corps ; une photo ou une note
 // vocale en corps brut, avec leur idClient dans l'en-tête Idempotency-Key.
 
-import type { CodeReaction, ConversationApi, LieuEnvoyeApi, MessageApi, PageConversationsApi, PagePartagesApi } from "../../types/messagerie.ts";
+import type { CodeReaction, ConversationApi, LieuEnvoyeApi, MessageApi, PageConversationsApi, PageGifsApi, PagePartagesApi } from "../../types/messagerie.ts";
 import type { ClientHttp } from "../client-http.ts";
 import type { PageLieuxEnvoyes, ReponseFil, ServiceMessagerie } from "../contrat-messagerie.ts";
 
@@ -12,6 +12,7 @@ const ecrireApres = (suite?: string) => (suite ? `?apres=${encodeURIComponent(su
 export function creerMessagerieApi(client: ClientHttp): ServiceMessagerie {
   const conversation = (id: string) => `/app/conversations/${encodeURIComponent(id)}`;
   const message = (id: string, messageId: string) => `${conversation(id)}/messages/${encodeURIComponent(messageId)}`;
+  const sondage = (id: string, messageId: string) => `${conversation(id)}/sondages/${encodeURIComponent(messageId)}`;
   type AvecMessage = { message: MessageApi; version: number };
   return {
     listerConversations: (apres) => client.demander<PageConversationsApi>("GET", `/app/conversations${ecrireApres(apres)}`),
@@ -59,6 +60,14 @@ export function creerMessagerieApi(client: ClientHttp): ServiceMessagerie {
       if (avant !== undefined) parametres.set("avant", avant);
       return client.demander<PagePartagesApi>("GET", `${conversation(id)}/partages?${parametres.toString()}`);
     },
+    envoyerSondage: (id, idClient, lieux, finLe) =>
+      client.demander<AvecMessage>("POST", `${conversation(id)}/messages`, { corps: { idClient, type: "vote", lieux, finLe } }),
+    voterSondage: (id, messageId, ordre) => client.demander<AvecMessage>("PUT", `${sondage(id, messageId)}/vote`, { corps: { ordre } }),
+    retirerVoteSondage: (id, messageId) => client.demander<AvecMessage>("DELETE", `${sondage(id, messageId)}/vote`),
+    envoyerGif: (id, idClient, gifId) => client.demander<AvecMessage>("POST", `${conversation(id)}/messages`, { corps: { idClient, type: "gif", gifId } }),
+    listerGifTendances: (page = 0) => client.demander<PageGifsApi>("GET", `/app/gif/tendances?page=${encodeURIComponent(String(page))}`),
+    chercherGif: (q, page = 0) =>
+      client.demander<PageGifsApi>("GET", `/app/gif/recherche?${new URLSearchParams({ q, page: String(page) }).toString()}`),
     envoyerLieuAPotes: (idClient, lieuId, a, mot) =>
       client.demander<{ envoyes: LieuEnvoyeApi[]; ignores: string[] }>("POST", "/app/lieux-envoyes", { corps: { idClient, lieuId, a, mot: mot ?? null } }),
     listerLieuxRecus: (apres) => client.demander<PageLieuxEnvoyes>("GET", `/app/lieux-envoyes/recus${ecrireApres(apres)}`),

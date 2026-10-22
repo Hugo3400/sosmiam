@@ -24,7 +24,7 @@ export type ServicesSociaux = {
   bande: ServiceBande;
   /** Suivis entre personnes (/app/suivis-personnes) */
   suivis: ServiceSuivisPersonnes;
-  /** Messagerie, médias du chat et lieux envoyés (/app/conversations, /app/lieux-envoyes) */
+  /** Messagerie, médias du chat, lieux envoyés et GIF (/app/conversations, /app/lieux-envoyes, /app/gif) */
   messagerie: ServiceMessagerie;
   /** Sorties entre potes (/app/sorties) */
   sorties: ServiceSorties;

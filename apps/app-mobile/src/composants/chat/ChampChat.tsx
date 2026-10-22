@@ -1,10 +1,20 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, Keyboard, Linking, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AccessibilityInfo, ActivityIndicator, Keyboard, Linking, Platform, Pressable, Text, TextInput, View } from "react-native";
 
+import { DELAI_MODIFICATION_MESSAGE_MINUTES } from "@sos-miam/commun/regles/chat";
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
+import type { Pote } from "@sos-miam/commun/types/potes";
+import { BandeauReponseChat } from "~/composants/chat/BandeauReponseChat";
 import { EnregistreurVocal, type ProblemeEnregistrement } from "~/composants/chat/EnregistreurVocal";
 import { FeuilleAjoutChat } from "~/composants/chat/FeuilleAjoutChat";
+import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
+import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
+import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
+import { citerMessage } from "~/fonctions/chat/citer-message";
+import { decrireCitation } from "~/fonctions/chat/decrire-citation";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { verifierEnregistrementPossible } from "~/fonctions/chat/verifier-enregistrement-possible";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -12,8 +22,10 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonChat } from "~/hooks/utiliser-brouillon-chat";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
-import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
+import { utiliserConversations, type ResultatEnvoiChat, type ResultatModificationChat } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserMentionsChamp } from "~/hooks/utiliser-mentions-champ";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 
 type Props = {
@@ -24,6 +36,10 @@ type Props = {
   onEnvoye: () => void;
   /** Petit message en haut de l'écran (aussi lu par le lecteur d'écran) */
   onAnnoncer: (texte: string) => void;
+  reponseA: MessageChatEnrichi | null;
+  onAnnulerReponse: () => void;
+  edition: MessageChatEnrichi | null;
+  onAnnulerEdition: () => void;
 };
 
 const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
@@ -36,6 +52,17 @@ const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
 // Juste après un envoi, le micro prend la place d'« Envoyer » : un double appui réflexe ne lance pas un enregistrement
 const DELAI_MICRO_APRES_ENVOI = 700;
 
+const REFUS_MODIFICATION: Record<Exclude<ResultatModificationChat, "ok">, string> = {
+  vide: "Un message vide, ça ne se garde pas 😉 Écris au moins un mot, ou annule la modification.",
+  "trop-long": REFUS["trop-long"],
+  "mot-interdit": REFUS["mot-interdit"],
+  interdit: "Cette discussion n'est plus ouverte pour toi : ton message reste comme il était.",
+  "trop-tard": `Trop tard pour le retoucher : passé ${DELAI_MODIFICATION_MESSAGE_MINUTES} minutes, un message reste tel quel. Envoie-en un autre pour préciser 😉`,
+  "non-modifiable": "Ce message ne se modifie plus (il a peut-être été supprimé ou masqué). Un nouveau message fera très bien l'affaire !",
+  "compte-limite": REFUS_LIMITATION.message,
+  reseau: "Pas enregistré : ta connexion fait la sieste. Réessaie dans un instant 📡",
+};
+
 const MICRO_INDISPONIBLE =
   "Ce navigateur ne sait pas tendre l'oreille 👂 Les notes vocales s'enregistrent depuis l'app SOS Miam sur ton téléphone.";
 
@@ -43,13 +70,23 @@ const MICRO_INDISPONIBLE =
  * Le champ d'écriture du chat entre potes, qui reste au-dessus du clavier : « + » pour partager un lieu ou une photo,
  * le texte, et le rond jaune qui envoie (ou, champ vide, qui enregistre une note vocale).
  */
-export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Props) {
+export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, reponseA, onAnnulerReponse, edition, onAnnulerEdition }: Props) {
   const couleurs = utiliserCouleurs();
-  const { trouverConversation, envoyerTexte } = utiliserConversations();
-  const { trouverPote } = utiliserCommunaute();
+  const { trouverConversation, envoyerTexte, modifierMessage } = utiliserConversations();
+  const { trouverPote, bloques } = utiliserCommunaute();
+  const { trouverLieu } = utiliserLieux();
   const monId = utiliserMonId();
   const champ = useRef<TextInput>(null);
-  const { texte, changer: changerTexte, vider: viderTexte } = utiliserBrouillonChat(conversationId);
+  const { texte: brouillon, changer: changerBrouillon, vider: viderTexte } = utiliserBrouillonChat(conversationId);
+  const [texteEdition, setTexteEdition] = useState(edition?.texte ?? "");
+  const [editionSuivie, setEditionSuivie] = useState(edition?.id ?? null);
+  if ((edition?.id ?? null) !== editionSuivie) {
+    setEditionSuivie(edition?.id ?? null);
+    setTexteEdition(edition?.texte ?? "");
+  }
+  const texte = edition ? texteEdition : brouillon;
+  const changerTexte = edition ? setTexteEdition : changerBrouillon;
+  const [enregistrementEnCours, setEnregistrementEnCours] = useState(false);
   const [erreur, setErreur] = useState<ProblemeEnregistrement | null>(null);
   const [clavierOuvert, setClavierOuvert] = useState(false);
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
@@ -76,11 +113,38 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
     return () => clearTimeout(minuterie);
   }, [enregistrement]);
 
+  const cible = reponseA?.id ?? edition?.id ?? null;
+  useEffect(() => {
+    if (!cible) return;
+    setErreur(null);
+    const minuterie = setTimeout(() => champ.current?.focus(), 80);
+    return () => clearTimeout(minuterie);
+  }, [cible]);
+
   const conversation = trouverConversation(conversationId);
+  const groupe = conversation?.type === "groupe";
+  const participants = conversation?.participants;
+  const aMentionner = useMemo(() => {
+    if (!groupe || !participants) return [];
+    const bloquesIds = new Set(bloques.map((b) => b.id));
+    return participants
+      .filter((id) => id !== monId && !bloquesIds.has(id))
+      .map(trouverPote)
+      .filter((p): p is Pote => p !== null && !!p.pseudo);
+  }, [groupe, participants, bloques, trouverPote, monId]);
+  const mentions = utiliserMentionsChamp(texte, aMentionner, (nouveau) => {
+    changerTexte(nouveau);
+    if (erreur) setErreur(null);
+  });
   const pote = conversation?.type === "prive" ? trouverPote(conversation.participants.find((id) => id !== monId) ?? "") : null;
-  const invitation = pote ? `Écris à ${pote.prenom}…` : "Écris au groupe…";
+  const invitation = edition ? "Corrige ton message…" : pote ? `Écris à ${pote.prenom}…` : "Écris au groupe…";
   const longueur = texte.trim().length;
-  const micro = longueur === 0;
+  const micro = longueur === 0 && !edition;
+  const auteurCite = reponseA ? (reponseA.auteur === monId ? null : (trouverPote(reponseA.auteur)?.prenom ?? "Quelqu'un")) : null;
+  const titreReponse = reponseA ? (auteurCite ? T.reponseA(auteurCite) : "Réponse à ton message") : "";
+  const citation = reponseA ? decrireCitation(citerMessage(reponseA), reponseA.lieuId === undefined ? undefined : trouverLieu(reponseA.lieuId)?.nom) : null;
+  const minutesRestantes = edition ? calculerMinutesPourModifier(edition.date, new Date()) : 0;
+  const libelleChamp = edition ? "Ton message, en modification" : auteurCite ? `Ta réponse à ${auteurCite}` : reponseA ? "Ta réponse à ton message" : "Ton message";
 
   function montrerErreur(probleme: ProblemeEnregistrement) {
     setErreur(probleme);
@@ -93,11 +157,27 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
     onEnvoye();
   }
 
+  async function enregistrerModification(message: MessageChatEnrichi) {
+    if (enregistrementEnCours) return;
+    if (texte.trim() === (message.texte ?? "").trim()) return onAnnulerEdition();
+    setEnregistrementEnCours(true);
+    const resultat = await modifierMessage(conversationId, message.id, texte);
+    setEnregistrementEnCours(false);
+    if (resultat !== "ok") return montrerErreur({ texte: REFUS_MODIFICATION[resultat] });
+    vibrerLegerement();
+    setErreur(null);
+    onAnnulerEdition();
+    onAnnoncer(T.messageModifie);
+  }
+
   function envoyer() {
-    const resultat = envoyerTexte(conversationId, texte);
+    if (edition) return void enregistrerModification(edition);
+    const resultat = envoyerTexte(conversationId, texte, reponseA ? { reponseA: reponseA.id } : undefined);
     if (resultat === "ok") {
       dernierEnvoi.current = Date.now();
       viderTexte();
+      mentions.oublierSelection();
+      if (reponseA) onAnnulerReponse();
       apresEnvoi();
       // « Envoyer » laisse place au micro : le lecteur d'écran revient sur le champ plutôt que de rester sur une autre action
       setTimeout(() => deplacerFocusLecteurEcran(champ.current), 150);
@@ -136,6 +216,29 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
         </View>
       ) : null}
 
+      {mentions.suggestions.length > 0 && !enregistrement ? <SuggestionsMentions potes={mentions.suggestions} onChoisir={mentions.mentionner} /> : null}
+
+      {edition && !enregistrement ? (
+        <BandeauReponseChat
+          icone="create-outline"
+          titre={T.modification}
+          detail={minutesRestantes > 0 ? T.modifierDetail(minutesRestantes) : "Plus que quelques secondes ⏳"}
+          libelleFermer={T.annulerModification}
+          onFermer={() => {
+            setErreur(null);
+            onAnnulerEdition();
+          }}
+        />
+      ) : reponseA && citation && !enregistrement ? (
+        <BandeauReponseChat
+          icone="arrow-undo"
+          titre={titreReponse}
+          detail={citation.vu}
+          libelleFermer={auteurCite ? T.nePlusRepondre(auteurCite) : "Ne plus répondre à ton message"}
+          onFermer={onAnnulerReponse}
+        />
+      ) : null}
+
       {enregistrement ? (
         <EnregistreurVocal
           conversationId={conversationId}
@@ -151,27 +254,31 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
         />
       ) : (
         <View className="flex-row items-end gap-2">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Partager un lieu ou une photo"
-            onPress={() => {
-              vibrerLegerement();
-              // Le clavier resterait par-dessus la feuille et cacherait ses dernières lignes
-              Keyboard.dismiss();
-              setFeuilleOuverte(true);
-            }}
-            className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
-          >
-            <Ionicons name="add" size={26} color={couleurs.encre} />
-          </Pressable>
+          {edition ? null : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Partager un lieu ou une photo"
+              onPress={() => {
+                vibrerLegerement();
+                // Le clavier resterait par-dessus la feuille et cacherait ses dernières lignes
+                Keyboard.dismiss();
+                setFeuilleOuverte(true);
+              }}
+              className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
+            >
+              <Ionicons name="add" size={26} color={couleurs.encre} />
+            </Pressable>
+          )}
           <TextInput
             ref={champ}
-            accessibilityLabel={erreur ? `Ton message. ${retirerEmojiAnnonce(erreur.texte)}` : "Ton message"}
+            accessibilityLabel={`${libelleChamp}${erreur ? `. ${retirerEmojiAnnonce(erreur.texte)}` : ""}`}
+            accessibilityHint={groupe ? "Tape @ pour mentionner un pote" : undefined}
             value={texte}
             onChangeText={(nouveau) => {
               changerTexte(nouveau);
               if (erreur) setErreur(null);
             }}
+            onSelectionChange={mentions.suivreSelection}
             placeholder={invitation}
             placeholderTextColor={couleurs.gris}
             selectionColor={couleurs.encre}
@@ -193,13 +300,18 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer }: Pr
             </Pressable>
           ) : (
             <Pressable
-              key="envoyer"
+              key={edition ? "enregistrer" : "envoyer"}
               accessibilityRole="button"
-              accessibilityLabel="Envoyer"
+              accessibilityLabel={edition ? T.enregistrerModification : "Envoyer"}
+              accessibilityState={{ busy: enregistrementEnCours }}
               onPress={envoyer}
               className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
             >
-              <Ionicons name="arrow-up" size={22} color={couleurs.nuit} />
+              {enregistrementEnCours ? (
+                <ActivityIndicator size="small" color={couleurs.nuit} />
+              ) : (
+                <Ionicons name={edition ? "checkmark" : "arrow-up"} size={22} color={couleurs.nuit} />
+              )}
             </Pressable>
           )}
         </View>

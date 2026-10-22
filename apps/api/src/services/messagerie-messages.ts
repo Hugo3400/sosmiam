@@ -1,12 +1,14 @@
 // Les messages de la messagerie, écrits une fois pour la base et pour les tests (voir messagerie-regles.ts) : envoyer un
-// texte ou un lieu (chiffrés tels quels, idClient idempotent), supprimer le sien pour tout le monde, réagir, lire, couper,
+// texte, un lieu, un sondage ou un GIF (chiffrés, idClient idempotent), supprimer le sien pour tout le monde, réagir, lire, couper,
 // effacer pour soi. Ordre de chaque envoi, dans une seule transaction : verrou de la conversation, idClient déjà reçu
 // (rejoué : rien de nouveau, aucune notification), lieu publié, droit d'écrire, version + 1, puis l'INSERT. Chaque autre
 // membre est prévenu sur son téléphone (hors anti-spam, décision 4), sauf s'il a coupé la conversation, coupé les
 // notifications sociales, ou s'il y a un blocage entre vous ; dans un groupe ou une sortie, une personne mentionnée
 // (« @pseudo ») l'est même si elle a coupé la conversation. Jamais le texte d'un message dans une notification ni au journal.
-import { DELAI_MODIFICATION_MESSAGE_MINUTES, MAX_CONVERSATIONS_EPINGLEES } from "../../../../packages/commun/src/regles/chat.ts";
+import { DELAI_MODIFICATION_MESSAGE_MINUTES, MAX_CONVERSATIONS_EPINGLEES, QUESTION_SONDAGE } from "../../../../packages/commun/src/regles/chat.ts";
 import type { CodeReaction, MessageApi } from "../../../../packages/commun/src/types/messagerie.ts";
+import { chiffrerLieuSondage } from "../fonctions/social/chiffrer-lieu-sondage.ts";
+import { ecrireGifMessage } from "../fonctions/social/ecrire-gif-message.ts";
 import { ecrirePushMention } from "../fonctions/social/ecrire-push-mention.ts";
 import { ecrirePushMessage } from "../fonctions/social/ecrire-push-message.ts";
 import { trouverMentionnes } from "../fonctions/social/trouver-mentionnes.ts";
@@ -68,6 +70,17 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
     return { ok: true, message, version: issue.version, rejoue: false, effets };
   }
 
+  async function preparerContenu(moi: number, conversationId: number, m: MessageAEnvoyer): Promise<{ contenu: string } | IssueEnvoi> {
+    if (m.type === "texte") return { contenu: m.texte };
+    if (m.type === "lieu") return { contenu: JSON.stringify({ l: m.lieuId, m: m.texte }) };
+    if (m.type === "vote") return { contenu: QUESTION_SONDAGE };
+    const deja = relireEnvoi(moi, await c.depot.lire.lireMessageParIdClient(conversationId, m.idClient));
+    if (deja) return deja;
+    const gif = c.gif ? await c.gif.lire(m.gifId) : "indisponible";
+    if (gif === "inconnu" || gif === "refuse" || gif === "indisponible") return { refus: `gif-${gif}` };
+    return { contenu: ecrireGifMessage(gif) };
+  }
+
   /** Un champ de message vide, pour INSERT */
   const sansMedia = { fichier: null, typeMime: null, taille: null, largeur: null, hauteur: null, dureeSecondes: null, mediaExpireLe: null };
   const sansEtat = { supprimeLe: null, suspenduLe: null, retireLe: null };
@@ -75,18 +88,25 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
   return {
     terminerEnvoi,
 
-    /** Texte (1 à 500 caractères) ou lieu publié avec son mot (140), chiffrés ensemble, tels quels */
+    /**
+     * Texte (1 à 500 caractères) ou lieu publié avec son mot (140), chiffrés ensemble, tels quels ; sondage d'un groupe (2 à 4
+     * lieux publiés, chacun chiffré dans son option) ; GIF relu chez GIPHY avant la transaction, gardé chiffré
+     */
     async envoyer(moi: number, conversationId: number, m: MessageAEnvoyer, maintenant: Date): Promise<ResultatEnvoi> {
       const chiffrement = exigerChiffrement(c);
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) return refus("conversation-inconnue");
-      const contenu = m.type === "texte" ? m.texte : JSON.stringify({ l: m.lieuId, m: m.texte });
+      if (m.type === "vote" && acces.conversation.type !== "groupe") return refus("reserve-aux-groupes");
+      const preparation = await preparerContenu(moi, conversationId, m);
+      if (!("contenu" in preparation)) return terminerEnvoi(moi, acces, preparation, maintenant);
+      const { contenu } = preparation;
       const issue = await c.depot.ecrire(async (t): Promise<IssueEnvoi> => {
         if (!(await t.verrouillerConversation(conversationId))) return { refus: "conversation-inconnue" };
         const deja = relireEnvoi(moi, await t.lireMessageParIdClient(conversationId, m.idClient));
         if (deja) return deja;
         // Après l'idClient : un envoi rejoué retrouve son message même si le lieu n'est plus publié depuis
         if (m.type === "lieu" && !(await t.estLieuPublie(m.lieuId))) return { refus: "lieu-inconnu" };
+        if (m.type === "vote") for (const lieuId of m.lieux) if (!(await t.estLieuPublie(lieuId))) return { refus: "lieu-inconnu" };
         if (m.reponseA !== undefined) {
           const cite = (await lecture.lireVisible(moi, conversationId, m.reponseA, t))?.message;
           if (!cite || cite.systeme !== null || cite.supprimeLe || cite.retireLe || cite.suspenduLe) return { refus: "reponse-introuvable" };
@@ -100,6 +120,10 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
           texteChiffre: chiffrement.chiffrerMessage(contenu, conversationId, m.idClient),
         });
         if (!message) return relireEnvoi(moi, await t.lireMessageParIdClient(conversationId, m.idClient)) ?? { refus: "conversation-inconnue" };
+        if (m.type === "vote") {
+          const options = m.lieux.map((lieuId, i) => ({ ordre: i + 1, lieuChiffre: chiffrerLieuSondage(chiffrement, lieuId, { conversationId, idClient: m.idClient, ordre: i + 1 }) }));
+          await t.creerSondage({ messageId: message.id, finLe: m.finLe, options });
+        }
         return { message, version, membres: await t.lireMembres([conversationId]) };
       });
       return terminerEnvoi(moi, acces, issue, maintenant, m.type === "texte" ? m.texte : null);
@@ -141,6 +165,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
         const ligne = await t.lireMessage(messageId);
         if (!ligne || ligne.supprimeLe) return { version: visible.conversation.version, fichier: null };
         await t.modifierMessage(messageId, { supprimeLe: maintenant, texteChiffre: null, fichier: null });
+        if (ligne.type === "vote") await t.supprimerSondage(messageId);
         return { version: (await t.toucherConversation(conversationId, maintenant, false)) ?? visible.conversation.version, fichier: ligne.fichier };
       });
       if (!r) return refus("message-inconnu");
@@ -179,11 +204,11 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
       const accuses = await c.depot.lire.lireAccusesLecture(acces.membres.map((m) => m.compteId));
       const vu = accuses.has(moi) && acces.membres.some((m) => m.compteId !== moi && accuses.has(m.compteId));
       await c.depot.ecrire(async (t) => {
-        if (!vu) return t.avancerMembre(conversationId, moi, { luJusqua: dernier.id });
+        if (!vu) return t.avancerMembre(conversationId, moi, { luJusqua: dernier.id, luLe: maintenant });
         if (!(await t.verrouillerConversation(conversationId))) return;
         const avant = (await t.lireMembres([conversationId])).find((m) => m.compteId === moi);
         if (!avant || avant.luJusqua >= dernier.id) return;
-        await t.avancerMembre(conversationId, moi, { luJusqua: dernier.id });
+        await t.avancerMembre(conversationId, moi, { luJusqua: dernier.id, luLe: maintenant });
         await t.toucherConversation(conversationId, maintenant, false);
       });
       return true;

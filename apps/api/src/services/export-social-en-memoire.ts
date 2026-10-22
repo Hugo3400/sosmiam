@@ -36,6 +36,16 @@ export function lireDonneesExportSocialEnMemoire(tables: TablesSociales, compteI
     messages,
     invitationsGroupes,
     reactions: tables.reactions.filter((r) => r.compteId === compteId),
+    sondages: messages.flatMap((m) => {
+      const s = tables.sondages.get(m.id);
+      const options = [...tables.optionsSondages.values()].filter((o) => o.messageId === m.id).sort((a, b) => a.ordre - b.ordre);
+      return s ? [{ ...s, options: options.map((o) => ({ ordre: o.ordre, lieuChiffre: o.lieuChiffre })) }] : [];
+    }),
+    votesSondages: tables.votesSondages.filter((v) => v.compteId === compteId).flatMap((v) => {
+      const option = tables.optionsSondages.get(v.optionId);
+      const message = tables.messages.get(v.messageId);
+      return option && message ? [{ messageId: v.messageId, voteLe: v.voteLe, ordre: option.ordre, lieuChiffre: option.lieuChiffre, conversationId: message.conversationId, idClient: message.idClient }] : [];
+    }),
     sorties: [...tables.sorties.values()].filter((s) => avecMonInvitation.has(s.id)),
     invitationsSorties,
     participantsSorties: tables.invitationsSorties.filter((i) => i.statut === "accepte" && avecMonInvitation.has(i.sortieId)),

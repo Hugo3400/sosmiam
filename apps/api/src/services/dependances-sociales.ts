@@ -21,6 +21,7 @@ import { creerSignalementsSociaux } from "./signalements-sociaux.ts";
 import { creerExportSocial } from "./export-social.ts";
 import { creerCommunaute } from "./communaute.ts";
 import { creerDepotCommunaute } from "./communaute-tables.ts";
+import type { ClientGif } from "./giphy.ts";
 
 export type OptionsDependancesSociales = {
   /** La clé des données (chargerChiffrementDonnees) ; null : pas de clé */
@@ -38,6 +39,7 @@ export type OptionsDependancesSociales = {
   /** limitations.estLimite (session Site) : un compte limité par l'équipe ne peut plus écrire ce que les autres voient ;
    *  absente : rien n'est refusé */
   estLimite?: DependancesSocialApp["estLimite"];
+  gif?: ClientGif | null;
 };
 
 export function creerDependancesSociales(o: OptionsDependancesSociales): DependancesSocialApp {
@@ -62,7 +64,7 @@ export function creerDependancesSociales(o: OptionsDependancesSociales): Dependa
     // Un domaine par ligne, à la fin (lots L3 à L7)
     bande: creerBande({ relations, chiffrement, tirer: o.tirer }),
     suivis: creerSuivisPersonnes({ relations, social }),
-    messagerie: creerMessagerie({ depot: creerDepotMessagerie({ relations, medias }), relations, chiffrement, medias }),
+    messagerie: creerMessagerie({ depot: creerDepotMessagerie({ relations, medias }), relations, chiffrement, medias, gif: o.gif }),
     sorties: creerSorties({ relations, medias }),
     listes: creerListes({ relations }),
     commentaires: creerCommentaires({ relations, social, lireRole: o.lireRole, chiffrement }),
@@ -70,5 +72,6 @@ export function creerDependancesSociales(o: OptionsDependancesSociales): Dependa
     decisions: creerDecisionsModerationApp({ contesterSignalement: o.contesterSignalement }),
     exportSocial: creerExportSocial({ relations, chiffrement }),
     communaute,
+    gif: o.gif ?? null,
   };
 }

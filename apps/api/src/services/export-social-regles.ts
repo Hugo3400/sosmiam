@@ -30,6 +30,8 @@ import type {
   MembreBande, MembreConversation, MessageConversation, NotificationCloche, ProfilSocial, ReactionMessage, Signalement, Sortie,
   SuiviPersonne,
 } from "../base-de-donnees/client-genere/client.ts";
+import { dechiffrerLieuSondage } from "../fonctions/social/dechiffrer-lieu-sondage.ts";
+import { lireGifMessage } from "../fonctions/social/lire-gif-message.ts";
 import { trouverOrganisateurEffectif } from "../fonctions/social/trouver-organisateur-effectif.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
 import type { LimitationLue } from "./limitations-comptes-regles.ts";
@@ -73,6 +75,8 @@ export type DonneesExportSocial = {
   messages: Pick<MessageConversation, "id" | "conversationId" | "type" | "idClient" | "texteChiffre" | "taille" | "creeLe">[];
   invitationsGroupes: Pick<InvitationGroupe, "conversationId" | "inviteParId" | "statut" | "creeLe">[];
   reactions: Pick<ReactionMessage, "messageId" | "reaction" | "creeLe">[];
+  sondages: { messageId: number; finLe: Date; closLe: Date | null; gagnant: number | null; options: { ordre: number; lieuChiffre: string }[] }[];
+  votesSondages: { messageId: number; conversationId: number; idClient: string; ordre: number; lieuChiffre: string; voteLe: Date }[];
   /** Les sorties où tu as une invitation (pas celles que tu as quittées) ; tes invitations, propositions et votes (lieu par sortie) */
   sorties: Pick<Sortie, "id" | "titre" | "quand" | "organisateurId">[];
   invitationsSorties: Pick<InvitationSortie, "sortieId" | "statut" | "inviteParId">[];
@@ -126,17 +130,36 @@ async function lireParPaquets<T, R>(lignes: readonly T[], lire: (ligne: T) => R)
   return lus;
 }
 
-/** Le texte (ou le mot et le lieu d'un lieu envoyé, ou le petit mot d'une photo) d'un de TES messages ; null partout s'il ne se relit pas, ou plus */
-function lireMonMessage(chiffrement: ChiffrementSocial, m: DonneesExportSocial["messages"][number]): { texte: string | null; lieuId: number | null } {
-  if (!m.texteChiffre || (m.type !== "texte" && m.type !== "lieu" && m.type !== "photo")) return { texte: null, lieuId: null };
+type MessageExporte = ExportSocialApi["conversations"][number]["messages"][number];
+
+/**
+ * Le texte (ou le mot et le lieu d'un lieu envoyé, le petit mot d'une photo, la question et les lieux d'un sondage, le GIF)
+ * d'un de TES messages ; null partout s'il ne se relit pas, ou plus
+ */
+function lireMonMessage(
+  chiffrement: ChiffrementSocial, m: DonneesExportSocial["messages"][number], sondage?: DonneesExportSocial["sondages"][number],
+): Pick<MessageExporte, "texte" | "lieuId" | "sondage" | "gif"> {
+  const avecSondage = m.type === "vote" && sondage ? {
+    sondage: {
+      finLe: iso(sondage.finLe), closLe: isoOuNull(sondage.closLe), gagnant: sondage.gagnant,
+      options: sondage.options.map((o) => ({
+        ordre: o.ordre, lieuId: dechiffrerLieuSondage(chiffrement, o.lieuChiffre, { conversationId: m.conversationId, idClient: m.idClient, ordre: o.ordre }),
+      })),
+    },
+  } : {};
+  if (!m.texteChiffre || (m.type !== "texte" && m.type !== "lieu" && m.type !== "photo" && m.type !== "vote" && m.type !== "gif")) return { texte: null, lieuId: null, ...avecSondage };
   try {
     const clair = chiffrement.dechiffrerMessage(m.texteChiffre, m.conversationId, m.idClient);
-    if (m.type !== "lieu") return { texte: clair, lieuId: null };
+    if (m.type === "gif") {
+      const gif = lireGifMessage(clair);
+      return { texte: null, lieuId: null, ...(gif ? { gif: { id: gif.id, url: gif.url } } : {}) };
+    }
+    if (m.type !== "lieu") return { texte: clair, lieuId: null, ...avecSondage };
     const lu: unknown = JSON.parse(clair);
     const { l, m: mot } = (typeof lu === "object" && lu !== null ? lu : {}) as { l?: unknown; m?: unknown };
     return { texte: typeof mot === "string" ? mot : null, lieuId: typeof l === "number" && Number.isSafeInteger(l) ? l : null };
   } catch {
-    return { texte: null, lieuId: null };
+    return { texte: null, lieuId: null, ...avecSondage };
   }
 }
 
@@ -181,7 +204,12 @@ export async function assemblerExportSocial(
     i.statut === "invite" && (i.inviteParId === null || !caches.has(i.inviteParId));
   const aTitrer = new Set([...mesConversations, ...d.invitationsGroupes.filter(invitationLisible).map((i) => i.conversationId)]);
   const titres = new Map(await lireParPaquets(conversations.filter((c) => aTitrer.has(c.id)), (c) => [c.id, lireTitre(chiffrement, c)] as const));
-  const contenus = new Map(await lireParPaquets(d.messages, (m) => [m.id, lireMonMessage(chiffrement, m)] as const));
+  const sondages = new Map(d.sondages.map((x) => [x.messageId, x]));
+  const contenus = new Map(await lireParPaquets(d.messages, (m) => [m.id, lireMonMessage(chiffrement, m, sondages.get(m.id))] as const));
+  const votesSondages = await lireParPaquets([...d.votesSondages].sort((a, b) => a.voteLe.getTime() - b.voteLe.getTime() || a.messageId - b.messageId), (v) => ({
+    conversationId: String(v.conversationId), messageId: String(v.messageId), ordre: v.ordre,
+    lieuId: dechiffrerLieuSondage(chiffrement, v.lieuChiffre, { conversationId: v.conversationId, idClient: v.idClient, ordre: v.ordre }), date: iso(v.voteLe),
+  }));
 
   // Sorties : ton invitation, les participants (qui a la main), tes propositions et tes votes, rangés par sortie
   const invitationSortie = new Map(d.invitationsSorties.map((i) => [i.sortieId, i]));
@@ -239,7 +267,7 @@ export async function assemblerExportSocial(
         membres: membre ? (membresDe.get(c.id) ?? []).flatMap((m) => nommer(m.compteId, (p) => p.pseudo)) : [],
         messages: messages.map((m) => ({
           date: iso(m.creeLe),
-          type: m.type as "texte" | "lieu" | "photo" | "vocal",
+          type: m.type as MessageExporte["type"],
           ...(contenus.get(m.id) ?? { texte: null, lieuId: null }),
           taille: m.type === "photo" || m.type === "vocal" ? m.taille : null,
         })),
@@ -252,6 +280,7 @@ export async function assemblerExportSocial(
       statut: i.statut === "refuse" ? ("refuse" as const) : ("invite" as const),
     })),
     reactions: [...d.reactions].sort(parDate).map((r) => ({ messageId: String(r.messageId), reaction: r.reaction as CodeReaction, date: iso(r.creeLe) })),
+    votesSondages,
     sorties: [...d.sorties].sort((a, b) => a.quand.getTime() - b.quand.getTime() || a.id - b.id).flatMap((s) => {
       const mienne = invitationSortie.get(s.id);
       // Sans ton invitation, tu as quitté la sortie (même celle que tu as créée : la colonne garde ton id) ; choix de

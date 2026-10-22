@@ -1,19 +1,24 @@
 import { createContext, useContext } from "react";
 
-import type { Conversation, InvitationGroupeChat, ReactionChat } from "@sos-miam/commun/types/conversations";
+import type { InvitationGroupeChat, ReactionChat } from "@sos-miam/commun/types/conversations";
+import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import type { ResultatTexte } from "~/hooks/utiliser-communaute";
 import type { SourceSociale } from "~/hooks/utiliser-source-sociale";
 
 /** Refus d'envoi propres au chat */
 export type ResultatEnvoiChat = ResultatTexte | "interdit";
 
+export type ResultatModificationChat = ResultatEnvoiChat | "trop-tard" | "non-modifiable" | "compte-limite" | "reseau";
+
+export type ResultatEpingleChat = "ok" | "plein" | "reseau";
+
 export type EtatConversations = {
   /** D'où vient le chat : la démo (le téléphone), le serveur (compte connecté), ou rien (visite, attente) */
   source: SourceSociale;
   pret: boolean;
   /** Tes conversations (privées et groupes), la plus récente d'abord, sans les personnes bloquées */
-  conversations: Conversation[];
-  trouverConversation: (id: string) => Conversation | null;
+  conversations: ConversationEnrichie[];
+  trouverConversation: (id: string) => ConversationEnrichie | null;
   /** Nombre de messages non lus, toutes conversations confondues (pastille sur Potes) */
   nonLus: number;
   nonLusDe: (id: string) => number;
@@ -53,7 +58,9 @@ export type EtatConversations = {
   effacerPourMoi: (conversationId: string) => void;
   /** Supprime ton message pour tout le monde (compte connecté) : il reste « Message supprimé » */
   supprimerMessage: (conversationId: string, messageId: string) => void;
-  envoyerTexte: (conversationId: string, texte: string) => ResultatEnvoiChat;
+  envoyerTexte: (conversationId: string, texte: string, o?: { reponseA?: string }) => ResultatEnvoiChat;
+  modifierMessage: (conversationId: string, messageId: string, texte: string) => Promise<ResultatModificationChat>;
+  epingler: (conversationId: string, epinglee: boolean) => Promise<ResultatEpingleChat>;
   envoyerLieu: (conversationId: string, lieuId: number) => ResultatEnvoiChat;
   /** Photo choisie ou prise (fichier temporaire du sélecteur) */
   envoyerPhoto: (conversationId: string, uriTemporaire: string) => Promise<ResultatEnvoiChat>;

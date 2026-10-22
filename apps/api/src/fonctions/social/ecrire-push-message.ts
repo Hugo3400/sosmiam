@@ -1,7 +1,7 @@
 import type { TypeConversation } from "../../../../../packages/commun/src/types/messagerie.ts";
 import type { MessagePush } from "../../services/notifications/expedier-push.ts";
 
-type TypeMessage = "texte" | "lieu" | "photo" | "vocal";
+type TypeMessage = "texte" | "lieu" | "photo" | "vocal" | "vote" | "gif";
 
 /** Privé : ce que le pote a fait, sans jamais le contenu */
 const DANS_UN_PRIVE: Readonly<Record<TypeMessage, string>> = {
@@ -9,6 +9,8 @@ const DANS_UN_PRIVE: Readonly<Record<TypeMessage, string>> = {
   photo: "T'a envoyé une photo.",
   vocal: "T'a laissé une note vocale.",
   lieu: "T'a envoyé un lieu à tester.",
+  vote: "A lancé un sondage.",
+  gif: "T'a envoyé un GIF.",
 };
 /** Groupe : « Léa a écrit. », « Léa a envoyé une photo. »… */
 const DANS_UN_GROUPE: Readonly<Record<TypeMessage, string>> = {
@@ -16,6 +18,8 @@ const DANS_UN_GROUPE: Readonly<Record<TypeMessage, string>> = {
   photo: "a envoyé une photo.",
   vocal: "a envoyé une note vocale.",
   lieu: "a envoyé un lieu.",
+  vote: "a lancé un sondage.",
+  gif: "a envoyé un GIF.",
 };
 /** Discussion d'une sortie : « Léa a écrit dans la discussion. »… */
 const DANS_UNE_SORTIE: Readonly<Record<TypeMessage, string>> = {
@@ -23,6 +27,8 @@ const DANS_UNE_SORTIE: Readonly<Record<TypeMessage, string>> = {
   photo: "a envoyé une photo dans la discussion.",
   vocal: "a laissé une note vocale dans la discussion.",
   lieu: "a proposé un lieu dans la discussion.",
+  vote: "a lancé un sondage dans la discussion.",
+  gif: "a envoyé un GIF dans la discussion.",
 };
 
 /**

@@ -5,7 +5,7 @@ import type { MessageChat } from "@sos-miam/commun/types/conversations";
  * qu'on avait sur sa période, et les messages plus anciens déjà chargés (« Voir les messages d'avant ») restent devant.
  * plusAnciens : une page chargée par « avant », à mettre devant tout le reste.
  */
-export function fusionnerFil(deja: readonly MessageChat[], page: readonly MessageChat[], plusAnciens = false): MessageChat[] {
+export function fusionnerFil<M extends MessageChat>(deja: readonly M[], page: readonly M[], plusAnciens = false): M[] {
   if (plusAnciens) {
     const connus = new Set(deja.map((m) => m.id));
     return [...page.filter((m) => !connus.has(m.id)), ...deja];

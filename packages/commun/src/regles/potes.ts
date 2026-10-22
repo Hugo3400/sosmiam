@@ -39,5 +39,7 @@ export const DELAI_MIN_SORTIE_MINUTES = 15;
 export const DELAI_MAX_SORTIE_JOURS = 366;
 /** La fin du vote : au moins 10 minutes plus tard, et au plus tard à l'heure de la sortie */
 export const DELAI_MIN_FIN_VOTE_MINUTES = 10;
+export const RAPPEL_SORTIE_MINUTES_AVANT = 60;
+export const DELAI_MIN_RAPPEL_SORTIE_MINUTES = 70;
 /** Sorties à venir organisées par une même personne */
 export const MAX_SORTIES_A_VENIR = 20;

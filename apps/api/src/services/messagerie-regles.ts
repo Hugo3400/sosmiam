@@ -9,13 +9,16 @@ import type {
   RoleConversation, TypeConversation, TypePartage,
 } from "../../../../packages/commun/src/types/messagerie.ts";
 import type { LigneMessage } from "../fonctions/social/presenter-message.ts";
+import type { LigneSondage } from "../fonctions/social/presenter-sondage.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
+import type { ClientGif } from "./giphy.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 import type { ConversationsEffacees } from "./effacer-conversations.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import type { StockageMediasChat } from "./stockage-medias-chat.ts";
 
 export type { LigneMessage } from "../fonctions/social/presenter-message.ts";
+export type { LigneSondage } from "../fonctions/social/presenter-sondage.ts";
 
 /** Conversations par page de GET /app/conversations */
 export const CONVERSATIONS_PAR_PAGE = 30;
@@ -49,10 +52,13 @@ export type LigneMembre = {
   role: RoleConversation;
   visibleApres: number;
   luJusqua: number;
+  luLe: Date | null;
   coupee: boolean;
   arriveLe: Date;
   epingleeLe: Date | null;
 };
+
+export type LigneRappelSortie = { id: number; conversationId: number; titre: string; quand: Date; creeLe: Date };
 
 /** « invite » : en attente ; « refuse » : refusée en silence (on ne réinvite pas). Accepter efface la ligne */
 export type LigneInvitationGroupe = {
@@ -92,10 +98,10 @@ export interface TablesMessagerie {
   effacerConversations(ids: readonly number[]): Promise<ConversationsEffacees>;
 
   lireMembres(conversationIds: readonly number[]): Promise<LigneMembre[]>;
-  ajouterMembre(m: Omit<LigneMembre, "epingleeLe">): Promise<void>;
+  ajouterMembre(m: Omit<LigneMembre, "epingleeLe" | "luLe">): Promise<void>;
   modifierMembre(conversationId: number, compteId: number, m: Partial<Pick<LigneMembre, "role" | "coupee" | "epingleeLe">>): Promise<boolean>;
   /** luJusqua et visibleApres ne reculent jamais (deux téléphones du même compte en même temps) */
-  avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number }): Promise<void>;
+  avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number; luLe?: Date }): Promise<void>;
   retirerMembre(conversationId: number, compteId: number): Promise<void>;
   listerMesEpinglees(compteId: number): Promise<LigneConversation[]>;
   compterEpinglees(compteId: number): Promise<number>;
@@ -152,6 +158,18 @@ export interface TablesMessagerie {
   /** Ne recule jamais */
   ecrireLieuxVus(compteId: number, jusqua: number): Promise<void>;
 
+  creerSondage(s: { messageId: number; finLe: Date; options: readonly { ordre: number; lieuChiffre: string }[] }): Promise<void>;
+  lireSondages(messageIds: readonly number[]): Promise<Map<number, LigneSondage>>;
+  voterSondage(messageId: number, compteId: number, ordre: number, maintenant: Date): Promise<boolean>;
+  retirerVoteSondage(messageId: number, compteId: number): Promise<boolean>;
+  supprimerSondage(messageId: number): Promise<void>;
+  listerSondagesEchus(maintenant: Date, nombre: number): Promise<{ messageId: number; conversationId: number }[]>;
+  cloreSondage(messageId: number, gagnant: number | null, maintenant: Date): Promise<boolean>;
+  lireNomsLieux(ids: readonly number[]): Promise<Map<number, string>>;
+  listerSortiesARappeler(apres: Date, jusqua: Date, nombre: number): Promise<number[]>;
+  prendreRappelSortie(sortieId: number, apres: Date, jusqua: Date, maintenant: Date): Promise<LigneRappelSortie | null>;
+  lireParticipantsSortie(sortieId: number): Promise<number[]>;
+
   /** Pote de la bande de a, dans la transaction (un retrait de la bande au même moment ne laisse rien passer) */
   listerPotesParmi(compteId: number, ids: readonly number[]): Promise<Set<number>>;
   bloqueEntre(a: number, b: number): Promise<boolean>;
@@ -181,6 +199,7 @@ export type ContexteMessagerie = {
   /** null : clé des données absente (les routes 🔐 ont déjà répondu 503) */
   chiffrement: ChiffrementSocial | null;
   medias: StockageMediasChat;
+  gif?: ClientGif | null;
 };
 
 /** Un message que tu peux voir (B.0) : de cette conversation, dont tu es membre, après ton arrivée, d'un auteur sans blocage */
@@ -188,7 +207,11 @@ export type MessageVisible = { message: LigneMessage; conversation: LigneConvers
 /** La règle d'accès de B.0 ; null : le message n'existe pas pour toi. Sert aussi aux signalements de messages (lot L6) */
 export type LireMessageVisible = (compteId: number, conversationId: number, messageId: number) => Promise<MessageVisible | null>;
 
-export type MessageAEnvoyer = { idClient: string; reponseA?: number } & ({ type: "texte"; texte: string } | { type: "lieu"; lieuId: number; texte: string | null });
+export type MessageAEnvoyer = { idClient: string; reponseA?: number } & (
+  | { type: "texte"; texte: string }
+  | { type: "lieu"; lieuId: number; texte: string | null }
+  | { type: "vote"; lieux: number[]; finLe: Date }
+  | { type: "gif"; gifId: string });
 export type MediaRecu = { idClient: string } & (
   | { type: "photo"; octets: Buffer; largeur: number; hauteur: number; album?: string | null; legende?: string | null }
   | { type: "vocal"; octets: Buffer; dureeSecondes: number; onde?: string | null });
@@ -196,7 +219,7 @@ export type MediaRecu = { idClient: string } & (
 /** « id-client-pris » : ce idClient a déjà servi à quelqu'un d'autre dans cette conversation (400 champ-invalide idClient) */
 export type RefusEnvoi =
   | "conversation-inconnue" | "conversation-fermee" | "lieu-inconnu" | "trop-de-medias" | "stockage-plein" | "id-client-pris"
-  | "reponse-introuvable" | "album-plein" | "album-invalide";
+  | "reponse-introuvable" | "album-plein" | "album-invalide" | "reserve-aux-groupes" | "gif-refuse" | "gif-inconnu" | "gif-indisponible";
 /** rejoue : même idClient déjà reçu (200, aucun effet) */
 export type ResultatEnvoi =
   | { ok: true; message: MessageApi; version: number; rejoue: boolean; effets: EffetSocial[] }
@@ -211,6 +234,10 @@ export type RefusModification = "message-inconnu" | "pas-l-auteur" | "trop-tard"
 export type RefusPhotoGroupe = "conversation-inconnue" | "geree-par-la-sortie" | "reserve-aux-admins" | "trop-de-medias" | "stockage-plein";
 
 export type LectureFil = FilMessagesApi | { inchange: true; version: number } | { invitation: InvitationGroupeApi };
+
+export type RefusVote = "message-inconnu" | "conversation-fermee" | "sondage-clos" | "option-inconnue";
+
+export type BilanTachesMessagerie = { sondages: number; rappels: number; echecs: number; effets: EffetSocial[] };
 
 export interface ServicesMessagerie {
   listerConversations(compteId: number, apres: string | null, maintenant: Date): Promise<PageConversationsApi>;
@@ -257,6 +284,9 @@ export interface ServicesMessagerie {
   listerPartages(compteId: number, conversationId: number, type: TypePartage, avant: number | null, maintenant: Date): Promise<PagePartagesApi | null>;
   basculerReaction(compteId: number, conversationId: number, messageId: number, reaction: CodeReaction, oui: boolean, maintenant: Date): Promise<
     { ok: true; version: number } | Refus<"message-inconnu" | "conversation-fermee">>;
+  voterSondage(compteId: number, conversationId: number, messageId: number, ordre: number | null, maintenant: Date): Promise<
+    { ok: true; message: MessageApi; version: number } | Refus<RefusVote>>;
+  passerTaches(maintenant: Date): Promise<BilanTachesMessagerie>;
   envoyerLieu(compteId: number, idClient: string, lieuId: number, a: number[], mot: string | null, maintenant: Date): Promise<
     { ok: true; envoyes: LieuEnvoyeApi[]; ignores: number[]; rejoue: boolean; effets: EffetSocial[] } | Refus<"lieu-inconnu" | "pas-dans-la-bande" | "id-client-pris">>;
   listerLieuxRecus(compteId: number, apres: string | null): Promise<{ lieux: LieuEnvoyeApi[]; suite: string | null }>;
