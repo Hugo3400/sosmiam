@@ -15,6 +15,7 @@ import { renvoyerSignalementsEnAttente } from "~/fonctions/signalement/renvoyer-
 import { utiliserEtatVersion } from "~/hooks/utiliser-etat-version";
 import { utiliserFinDeSession } from "~/hooks/utiliser-fin-de-session";
 import { utiliserInvitationEnAttente } from "~/hooks/utiliser-invitation-en-attente";
+import { utiliserPastilleIcone } from "~/hooks/utiliser-pastille-icone";
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
@@ -41,6 +42,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const pret = policesChargees && !chargement && modes.pret && !reprise;
   // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran (une fois la pile affichée)
   utiliserInscriptionTelephone(pret);
+  utiliserPastilleIcone();
   // Session expirée côté serveur (ou profil sans session) : retour à l'accueil, où « Me connecter » t'attend
   utiliserFinDeSession();
   // Un lien d'invitation ouvert avant d'avoir un compte : rouvert une fois le compte créé
