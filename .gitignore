@@ -1,3 +1,6 @@
+# Copies mémoire d'un programme planté (core dumps) : jamais dans le dépôt
+core
+core.[0-9]*
 # Dépendances et constructions
 node_modules/
 build/
