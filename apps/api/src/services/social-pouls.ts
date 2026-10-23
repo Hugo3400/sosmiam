@@ -41,7 +41,7 @@ export type LignePouls = {
  * visibleApres, ni supprimés, ni masqués ou retirés par la modération, ni d'une personne avec qui il y a un blocage ; 99 au
  * plus par conversation. Privés et groupes dans « messages », discussions des sorties dans « sorties ».
  */
-export function construireRequetePouls(compteId: number, maintenant: Date, sansSystemes = false): Prisma.Sql {
+export function construireRequetePouls(compteId: number, maintenant: Date, ancienneApp = false): Prisma.Sql {
   return Prisma.sql`
     WITH caches AS (
       SELECT bloque_id AS id FROM blocages WHERE bloqueur_id = ${compteId}
@@ -60,7 +60,7 @@ export function construireRequetePouls(compteId: number, maintenant: Date, sansS
           WHERE m.conversation_id = conv.id AND m.id > conv.depuis
             AND m.auteur_id IS DISTINCT FROM ${compteId}
             AND m.supprime_le IS NULL AND m.suspendu_le IS NULL AND m.retire_le IS NULL
-            AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (SELECT id FROM caches))${sansSystemes ? Prisma.sql` AND m.systeme IS NULL` : Prisma.empty}
+            AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (SELECT id FROM caches))${ancienneApp ? Prisma.sql` AND m.systeme IS NULL` : Prisma.empty}
           LIMIT ${MAX_COMPTEUR_POULS}
         ) AS visibles
       ) AS n
@@ -71,7 +71,8 @@ export function construireRequetePouls(compteId: number, maintenant: Date, sansS
         COUNT(*) FILTER (WHERE (SELECT cloche_vue_le FROM profil) IS NULL OR n.cree_le > (SELECT cloche_vue_le FROM profil)) AS non_vues,
         MAX(n.id) AS max_id, COUNT(*) AS nombre, MAX(n.cree_le) AS max_le
       FROM notifications_cloche n
-      WHERE n.compte_id = ${compteId} AND (n.acteur_id IS NULL OR n.acteur_id NOT IN (SELECT id FROM caches))
+      WHERE n.compte_id = ${compteId} AND (n.acteur_id IS NULL OR n.acteur_id NOT IN (SELECT id FROM caches))${
+        ancienneApp ? Prisma.sql` AND NOT (n.type = 'mention' AND COALESCE(n.cible, '') = 'conversation')` : Prisma.empty}
     )
     SELECT
       EXISTS (SELECT 1 FROM profil) AS "aProfil",

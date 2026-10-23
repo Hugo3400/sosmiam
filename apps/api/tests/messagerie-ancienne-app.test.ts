@@ -132,6 +132,8 @@ test("cloche d'une app d'avant la 1.0.2 : sans les mentions d'une discussion (el
   const ancienne = (await moi.demanderAncienne("GET", "/app/cloche")).corps.cloche.notifications as { type: string; cible: { type: string } | null }[];
   assert.ok(!ancienne.some((n) => n.type === "mention" && n.cible?.type === "conversation"));
   assert.equal(ancienne.length, neuve.length - 1, "le reste de la cloche ne change pas");
+  const nonVues = async (p: Promise<{ corps: { pouls: { cloche: { nonVues: number } } } }>) => (await p).corps.pouls.cloche.nonVues;
+  assert.equal(await nonVues(moi.demanderAncienne("GET", "/app/social/pouls")), (await nonVues(moi.demander("GET", "/app/social/pouls"))) - 1, "et son compteur ne la compte pas");
 });
 
 test("app d'avant la 1.0.2 : une discussion qui n'a que des messages de SOS Miam ne compte aucun non-lu (liste, pouls) ; la 1.0.2 les compte", async () => {

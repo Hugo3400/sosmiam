@@ -613,10 +613,10 @@
 - Avant le build : passes d'optimisation et de sécurité, et tout ce qui est fait va dans « Les nouveautés » de l'app.
 - **Les apps d'avant la 1.0.2 restent propres (23 octobre 2026)** :
   - **Version annoncée :** l'app annonce sa version à chaque demande (en-tête X-Version-App). Sans cet en-tête, l'API garde son comportement d'avant.
-  - **Messages de SOS Miam :** ni le rappel de sortie ni « sondage clos » ne sont montrés. La lecture couvre ceux qui suivent le dernier message lu, donc leur pastille s'efface.
+  - **Messages de SOS Miam :** ni le rappel de sortie ni « sondage clos » ne sont montrés, ni comptés dans les non-lus (liste des discussions, sorties, pouls). La lecture couvre ceux qui suivent le dernier message lu.
   - **GIF et sondages :** remplacés par une petite ligne qui invite à mettre l'app à jour.
   - **Cloche :** sans les mentions d'une discussion.
   - **« Vu » :** l'heure de lecture n'est jamais gardée.
   - **Pastille de l'icône :** envoyée seulement aux téléphones qui ont donné leur clé d'aperçu, c'est-à-dire en 1.0.2 ou plus.
-- **« Vu » sans effet rétroactif (23 octobre 2026)** : une lecture n'est montrée que si son heure a été gardée, donc seulement les lectures faites depuis la mise en ligne de la 1.0.2, jamais les positions de lecture d'avant.
+- **« Vu » sans effet rétroactif (23 octobre 2026)** : une lecture n'est montrée que si son heure a été gardée, donc seulement les lectures faites depuis la mise en ligne de la 1.0.2, jamais les positions de lecture d'avant. « Effacer pour moi » efface aussi l'heure, donc jamais de « Vu » sur des messages non lus.
 - **Fiches importées dans l'app (décision de Hugo du 23 octobre 2026, avec Site)** : la source est citée à la fin du texte de la fiche, pour toutes les versions, par exemple « 📚 Texte et infos : l'office de tourisme de Marseille (marseille-tourisme.com). », avec la licence pour DATAtourisme. Dans la 1.0.2, la carte « non vérifié » dit « Ses infos viennent de… ». La note interne ne quitte jamais l'API.

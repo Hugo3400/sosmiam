@@ -24,7 +24,7 @@ const plusRecentDAbord = <T extends { creeLe: Date }>(lignes: T[]) => [...lignes
 const auPlusTard = (dates: Date[]) => (dates.length === 0 ? null : new Date(Math.max(...dates.map((d) => d.getTime()))));
 
 /** La même ligne que la requête de social-pouls.ts, calculée sur les tables en mémoire */
-function calculerLignePouls(tables: TablesSociales, compteId: number, maintenant: Date, sansSystemes = false): LignePouls {
+function calculerLignePouls(tables: TablesSociales, compteId: number, maintenant: Date, ancienneApp = false): LignePouls {
   const caches = listerCachesEnMemoire(tables, compteId);
   const profil = tables.profils.get(compteId);
   const conversations = tables.membres.flatMap((m) => {
@@ -35,14 +35,15 @@ function calculerLignePouls(tables: TablesSociales, compteId: number, maintenant
     .filter(({ c }) => (c.type === "sortie") === (type === "sorties"))
     .reduce((somme, { c, depuis }) => somme + Math.min(MAX_COMPTEUR_POULS, [...tables.messages.values()].filter((m) =>
       m.conversationId === c.id && m.id > depuis && m.auteurId !== compteId && !m.supprimeLe && !m.suspenduLe && !m.retireLe
-      && (m.auteurId === null || !caches.has(m.auteurId)) && (!sansSystemes || m.systeme === null)).length), 0);
+      && (m.auteurId === null || !caches.has(m.auteurId)) && (!ancienneApp || m.systeme === null)).length), 0);
   const privesEtGroupes = conversations.filter(({ c }) => c.type !== "sortie");
   const invitationsGroupes = tables.invitationsGroupes.filter((i) => i.compteId === compteId && i.statut === "invite");
   const sorties = tables.invitationsSorties.flatMap((i) => {
     const sortie = i.compteId === compteId && (i.statut === "invite" || i.statut === "accepte") ? tables.sorties.get(i.sortieId) : undefined;
     return sortie ? [{ i, sortie }] : [];
   });
-  const cloche = [...tables.cloche.values()].filter((n) => n.compteId === compteId && (n.acteurId === null || !caches.has(n.acteurId)));
+  const cloche = [...tables.cloche.values()].filter((n) => n.compteId === compteId && (n.acteurId === null || !caches.has(n.acteurId))
+    && !(ancienneApp && n.type === "mention" && n.cible === "conversation"));
   const vue = profil?.clocheVueLe ?? null;
   const demandesBande = tables.demandes.filter((d) => d.aId === compteId && d.refuseeLe === null);
   const demandesSuivis = tables.suivis.filter((s) => s.suiviId === compteId && s.statut === "demande");
