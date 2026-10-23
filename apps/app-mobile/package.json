@@ -20,7 +20,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-google-signin/google-signin": "^16.1.5",
-    "expo": "~57.0.29",
+    "expo": "~57.0.31",
     "expo-apple-authentication": "~57.0.2",
     "expo-asset": "~57.0.20",
     "expo-audio": "~57.0.5",
