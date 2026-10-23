@@ -9,6 +9,7 @@
 import { PART_LIBRE_MIN_DISQUE } from "../../../../packages/commun/src/regles/chat.ts";
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import { rechiffrerMediaSocial } from "../fonctions/social/rechiffrer-media-social.ts";
+import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { rechiffrerTexteSocial } from "../fonctions/social/rechiffrer-texte-social.ts";
 import type { ChiffrementDonnees } from "./chiffrement-donnees.ts";
 import { CONTEXTES_SOCIAUX, creerChiffrementSocial, type ChiffrementSocial, type UsageTexteSocial } from "./chiffrement-social.ts";
@@ -39,7 +40,7 @@ export type OptionsRechiffrementSocial = {
   fichiersParNuit?: number;
 };
 
-type LigneChiffree = { id: number; chiffre: string; conversationId?: number; idClient?: string; ordre?: number };
+type LigneChiffree = { id: number; chiffre: string; conversationId?: number; idClient?: string; ordre?: number; jeton?: string };
 
 /**
  * Avant chaque fichier réécrit, la part libre du disque doit rester au-dessus de PART_LIBRE_MIN_DISQUE (15 %, sous laquelle
@@ -84,6 +85,10 @@ const TABLES: readonly TableChiffree[] = [
     contexte: (l) => CONTEXTES_SOCIAUX.optionSondage(Number(l.conversationId), String(l.idClient ?? ""), Number(l.ordre)),
   },
   { table: "signalements", cle: "id", colonne: "instantane_chiffre", plus: "", usage: "instantanes", contexte: (l) => CONTEXTES_SOCIAUX.instantane(l.id) },
+  {
+    table: "appareils_push", cle: "id", colonne: "cle_apercu_chiffree", plus: ", jeton", usage: "apercus",
+    contexte: (l) => CONTEXTES_SOCIAUX.appareil(calculerEmpreinteJeton(String(l.jeton ?? ""))),
+  },
 ];
 
 /** Les chiffrés d'une table écrits avec une ancienne clé : réécrits par paquets, dans l'ordre des clés */

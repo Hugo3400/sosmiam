@@ -18,8 +18,13 @@ export function brancherPastillePush(lire: LirePastille | null): void {
   pastilleBranchee = lire;
 }
 
-function chiffrerApercu(apercus: ApercusPush | null, message: MessagePush, appareil: { jeton: string; cleApercuChiffree?: string | null }): MessagePush {
-  const { apercu, apercuChiffre: _ignore, ...reste } = message;
+/**
+ * Ce qui part vers ce téléphone : l'aperçu seulement chiffré pour lui, et la pastille de l'icône seulement s'il a donné sa
+ * clé (une app d'avant la 1.0.2 ne sait pas la remettre à zéro : sur iPhone, elle resterait affichée)
+ */
+function preparerPourAppareil(apercus: ApercusPush | null, message: MessagePush, appareil: { jeton: string; cleApercuChiffree?: string | null }): MessagePush {
+  const { apercu, apercuChiffre: _ignore, badge, ...sansAjouts } = message;
+  const reste = appareil.cleApercuChiffree && badge !== undefined ? { ...sansAjouts, badge } : sansAjouts;
   if (!apercu || !apercus || !appareil.cleApercuChiffree) return reste;
   try {
     return { ...reste, apercuChiffre: apercus.chiffrerPour(apercu, { jeton: appareil.jeton, cleApercuChiffree: appareil.cleApercuChiffree }) };
@@ -64,11 +69,11 @@ export async function prevenirCompteEtCompter(
     select: { id: true, jeton: true, plateforme: true, cleApercuChiffree: true },
   });
   if (appareils.length === 0) return 0;
-  const badge = message.badge ?? (await lirePastille(pastille, compteId));
+  const badge = message.badge ?? (appareils.some((a) => a.cleApercuChiffree) ? await lirePastille(pastille, compteId) : undefined);
   const avecBadge = badge === undefined ? message : { ...message, badge };
   const envoyees = await Promise.all(
     appareils.map(async (appareil) => {
-      const resultat = await envoyer({ jeton: appareil.jeton, plateforme: appareil.plateforme }, chiffrerApercu(apercus, avecBadge, appareil));
+      const resultat = await envoyer({ jeton: appareil.jeton, plateforme: appareil.plateforme }, preparerPourAppareil(apercus, avecBadge, appareil));
       if (resultat === "jeton-invalide") await appareilsPush.update({ where: { id: appareil.id }, data: { actif: false } });
       // L'erreur vient d'Apple ou de Google (statut et raison), sans donnée personnelle
       else if (resultat !== "envoyee") console.error("Notification d'un compte :", resultat.erreur);
