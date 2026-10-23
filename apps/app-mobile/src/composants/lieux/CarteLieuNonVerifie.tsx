@@ -7,9 +7,11 @@ import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
 
 /**
  * Sur la fiche d'un lieu non vérifié : il n'a pas encore de compte SOS Miam, donc pas de visite validée, de points ni de
- * rescousse ici pour l'instant. Tu le connais ? Invite-le (feuille de partage, lien d'inscription gratuite).
+ * rescousse ici pour l'instant. Tu le connais ? Invite-le (feuille de partage, lien d'inscription gratuite). Une fiche
+ * importée dit d'où viennent ses infos (sa source).
  */
-export function CarteLieuNonVerifie({ lieu }: { lieu: Pick<Lieu, "nom"> }) {
+export function CarteLieuNonVerifie({ lieu }: { lieu: Pick<Lieu, "nom" | "source"> }) {
+  const origine = lieu.source ? `Ses infos viennent de ${lieu.source.nom}.` : "Il a été ajouté par l'équipe ou par un ambassadeur.";
   const inviter = utiliserInviterLieu();
   return (
     <View className="gap-3 rounded-carte border-2 border-dashed border-gris/60 bg-carte p-4">
@@ -18,7 +20,7 @@ export function CarteLieuNonVerifie({ lieu }: { lieu: Pick<Lieu, "nom"> }) {
       </Text>
       <Text className="font-texte text-sm leading-5 text-gris">
         {lierPonctuation(
-          "Il a été ajouté par l'équipe ou par un ambassadeur. Tu peux le garder, t'y rendre et donner ton avis, mais pas encore valider ta visite ni lui donner une rescousse : ça s'ouvre dès qu'il nous rejoint.",
+          `${origine} Tu peux le garder, t'y rendre et donner ton avis, mais pas encore valider ta visite ni lui donner une rescousse : ça s'ouvre dès qu'il nous rejoint.`,
         )}
       </Text>
       <Bouton libelle="Inviter ce lieu" variante="blanc" indice="Partage-lui le lien d'inscription, c'est gratuit" onPress={() => inviter(lieu)} />

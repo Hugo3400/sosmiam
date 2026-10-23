@@ -1,9 +1,12 @@
 // Un lieu de la base, mis au format de l'app (type LieuApi de packages/commun). Jamais la note interne, le statut ni qui
-// gère le lieu : seulement « vérifié » (au moins un rattachement validé, docs/decisions.md « Lieux vérifiés »).
+// gère le lieu : seulement « vérifié » (au moins un rattachement validé, docs/decisions.md « Lieux vérifiés »), et la source
+// d'une fiche importée (déjà lue dans la note par le service), citée à la fin du texte comme le veut sa licence.
 import type { InfosPratiques } from "../../../../../packages/commun/src/types/infos-pratiques.ts";
 import { JOURS_LIEU_NOUVEAU } from "../../../../../packages/commun/src/regles/lieux-nouveaux.ts";
 import type { CreneauOuverture, EnvieLieu, LieuApi, TypeLieu } from "../../../../../packages/commun/src/types/lieu.ts";
+import type { SourceLieu } from "../../../../../packages/commun/src/types/source-lieu.ts";
 import { formaterHeureParis } from "../dates/formater-heure-paris.ts";
+import { ecrireLigneSourceLieu } from "./ecrire-ligne-source-lieu.ts";
 
 /** Ce que le service lit d'un lieu publié */
 export type LigneLieuApp = {
@@ -49,6 +52,8 @@ export type LigneLieuApp = {
   alerteJusqua: Date | null;
   /** Première mise en ligne (posée par la base) : « nouveau » pendant JOURS_LIEU_NOUVEAU jours */
   publieLe: Date | null;
+  /** D'où viennent le texte et les infos d'une fiche importée (lireSourceLieu sur la note) ; jamais la note elle-même */
+  source?: SourceLieu | null;
 };
 
 const JOUR_MS = 24 * 60 * 60 * 1000;
@@ -105,7 +110,7 @@ export function presenterLieuApp(l: LigneLieuApp, maintenant: Date): LieuApi {
     ...(l.prixMoyen !== null ? { prixMoyen: l.prixMoyen } : {}),
     info: l.info,
     couleurs: l.couleurs.length >= 2 ? [l.couleurs[0], l.couleurs[1]] : COULEURS_REPLI,
-    texte: l.texte,
+    texte: l.source ? `${l.texte}\n\n${ecrireLigneSourceLieu(l.source)}` : l.texte,
     rescousses: l.rescousses,
     ...(alerte ? { alerte } : {}),
     ...(sos ? { sos: { places: sos.places, jusqua: formaterHeureParis(sos.jusqua), ...(sos.offre ? { offre: sos.offre } : {}) } } : {}),
@@ -119,5 +124,6 @@ export function presenterLieuApp(l: LigneLieuApp, maintenant: Date): LieuApi {
     reservable: l.reservable,
     verifie,
     ...(pratique ? { pratique } : {}),
+    ...(l.source ? { source: l.source } : {}),
   };
 }

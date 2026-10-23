@@ -1,5 +1,7 @@
-// Les lieux lus par l'app, dans la base : seulement les lieux publiés, jamais la note interne ni le statut.
+// Les lieux lus par l'app, dans la base : seulement les lieux publiés, jamais la note interne ni le statut (la note n'est lue
+// que pour en tirer la source d'une fiche importée, puis oubliée).
 import type { CarteLieu } from "../../../../packages/commun/src/types/carte.ts";
+import { lireSourceLieu } from "../../../../packages/commun/src/fonctions/lieux/lire-source-lieu.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { presenterLieuApp, type LigneLieuApp } from "../fonctions/lieux/presenter-lieu-app.ts";
 import { presenterCarte } from "../fonctions/pro/presenter-carte.ts";
@@ -9,7 +11,7 @@ const CHAMPS = {
   id: true, nom: true, type: true, emoji: true, info: true, texte: true, quartier: true, ville: true, latitude: true, longitude: true,
   prix: true, prixMoyen: true, couleurs: true, horaires: true, ouverture: true, plat: true, tags: true, envies: true, reservable: true,
   telephone: true, siteWeb: true, instagram: true, animaux: true, accessible: true, terrasse: true, wifi: true, enfants: true,
-  parking: true, paiements: true, reservation: true, decouvertPar: true, alerte: true, alerteJusqua: true, publieLe: true,
+  parking: true, paiements: true, reservation: true, decouvertPar: true, alerte: true, alerteJusqua: true, publieLe: true, note: true,
   _count: { select: { rattachements: { where: { statut: "valide" } }, rescousses: true } },
 } as const;
 
@@ -19,12 +21,14 @@ const champs = (maintenant: Date) => ({
   sos: { where: { arreteLe: null, jusqua: { gt: maintenant } }, orderBy: { creeLe: "desc" as const }, take: 1, select: { places: true, jusqua: true, offre: true } },
 });
 
-type LigneLue = Omit<LigneLieuApp, "rattachementsValides" | "rescousses" | "sos"> & {
+type LigneLue = Omit<LigneLieuApp, "rattachementsValides" | "rescousses" | "sos" | "source"> & {
+  note: string | null;
   _count: { rattachements: number; rescousses: number };
   sos: { places: number; jusqua: Date; offre: string | null }[];
 };
-const versLigne = ({ _count, sos, ...l }: LigneLue): LigneLieuApp => ({
+const versLigne = ({ _count, sos, note, ...l }: LigneLue): LigneLieuApp => ({
   ...l,
+  source: lireSourceLieu(note),
   rattachementsValides: _count.rattachements,
   rescousses: _count.rescousses,
   sos: sos[0] ?? null,
