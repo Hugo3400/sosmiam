@@ -81,7 +81,12 @@ export function creerClientGiphy(o: { cle: string; fetch?: typeof fetch; horloge
     oublierVieux(appels, maintenant);
     if (appels.length >= plafond) return false;
     if (compteId !== undefined) {
-      if (parCompte.size > MAX_COMPTES_SUIVIS) for (const [id, liste] of parCompte) if ((oublierVieux(liste, maintenant), liste.length === 0)) parCompte.delete(id);
+      if (parCompte.size > MAX_COMPTES_SUIVIS) {
+        for (const [id, liste] of parCompte) {
+          oublierVieux(liste, maintenant);
+          if (liste.length === 0) parCompte.delete(id);
+        }
+      }
       const siens = parCompte.get(compteId) ?? [];
       oublierVieux(siens, maintenant);
       if (siens.length >= plafondCompte) return false;

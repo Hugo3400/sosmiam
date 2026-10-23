@@ -124,6 +124,17 @@ test("client GIPHY : en panne, trop lent ou au plafond de l'heure → indisponib
   await compte.chercher("b", 0);
   assert.equal(await compte.chercher("c", 0), "indisponible");
   assert.equal(appels.length, 2, "le plafond de la clé de test est tenu sans demander");
+  const parCompte = fauxGiphy(() => ({ corps: { data: [] } }));
+  let heure = 0;
+  const partage = creerClientGiphy({ cle: CLE, fetch: parCompte.faux, horloge: () => heure, appelsParHeure: 10, appelsParCompteParHeure: 2 });
+  await partage.chercher("a", 0, 7);
+  await partage.chercher("b", 0, 7);
+  assert.equal(await partage.chercher("c", 0, 7), "indisponible", "un compte ne prend pas tout le quota de la clé");
+  assert.deepEqual(await partage.chercher("a", 0, 7), [], "ce qui est déjà en cache reste servi");
+  assert.deepEqual(await partage.chercher("c", 0, 8), [], "les autres comptes cherchent toujours");
+  heure += 60 * 60_000 + 1;
+  assert.deepEqual(await partage.chercher("d", 0, 7), [], "une heure après, il peut de nouveau");
+  assert.equal(parCompte.appels.length, 4);
   const ecrit = JSON.stringify(journal.mock.calls.map((c) => c.arguments));
   assert.ok(journal.mock.callCount() >= 3);
   assert.ok(!ecrit.includes(CLE) && !ecrit.includes("api_key"), "jamais la clé");
