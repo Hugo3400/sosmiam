@@ -113,7 +113,7 @@ export function utiliserEnvoisConversationsCompte({ sociaux, generation, fils, s
         const verdict = validerNouveauSondage({ lieux, finLe }, new Date());
         if (!verdict.ok) return verdict.champ === "lieux" ? "lieux" : "fin";
         const { sondage } = verdict;
-        const vote = { finLe: sondage.finLe, closLe: null, gagnant: null, options: sondage.lieux.map((lieuId, ordre) => ({ ordre, lieuId, votes: 0 })), monVote: null, votants: 0 };
+        const vote = { finLe: sondage.finLe, closLe: null, gagnant: null, options: sondage.lieux.map((lieuId, i) => ({ ordre: i + 1, lieuId, votes: 0 })), monVote: null, votants: 0 };
         lancer(id, { type: "vote", texte: QUESTION_SONDAGE, vote }, (idClient) => sociaux.messagerie.envoyerSondage(id, idClient, sondage.lieux, sondage.finLe));
         return "ok";
       },
