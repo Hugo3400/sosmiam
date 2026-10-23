@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "fr.sosmiam.app",
+      "appleTeamId": "4F7UVS2357",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -18,7 +19,11 @@
         "applinks:sosmiam.fr"
       ],
       "entitlements": {
-        "com.apple.developer.usernotifications.time-sensitive": true
+        "com.apple.developer.usernotifications.time-sensitive": true,
+        "keychain-access-groups": [
+          "$(AppIdentifierPrefix)fr.sosmiam.app",
+          "$(AppIdentifierPrefix)fr.sosmiam.app.partage"
+        ]
       }
     },
     "android": {
@@ -148,7 +153,8 @@
         }
       ],
       "expo-sharing",
-      "expo-asset"
+      "expo-asset",
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true
