@@ -156,6 +156,12 @@
       "expo-asset",
       "@bacons/apple-targets"
     ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/359ff738-c273-4f67-8756-25a4d7a456c4"
+    },
     "experiments": {
       "typedRoutes": true
     },
