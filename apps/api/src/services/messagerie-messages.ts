@@ -16,7 +16,9 @@ import { ecrirePushMessage } from "../fonctions/social/ecrire-push-message.ts";
 import { trouverMentionnes } from "../fonctions/social/trouver-mentionnes.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 import { exigerChiffrement, lireTitre, type AccesConversation, type LectureMessagerie } from "./messagerie-lecture.ts";
-import type { ContexteMessagerie, LigneMembre, LigneMessage, MessageAEnvoyer, RefusEnvoi, RefusModification, ResultatEnvoi } from "./messagerie-regles.ts";
+import type {
+  AppCliente, ContexteMessagerie, LigneMembre, LigneMessage, MessageAEnvoyer, RefusEnvoi, RefusModification, ResultatEnvoi,
+} from "./messagerie-regles.ts";
 
 const refus = <E extends string>(erreur: E) => ({ ok: false as const, erreur });
 
@@ -29,6 +31,8 @@ export const relireEnvoi = (moi: number, deja: LigneMessage | null): IssueEnvoi 
   deja ? (deja.auteurId === moi ? { deja } : { refus: "id-client-pris" }) : null;
 
 export const SANS_AJOUTS = { reponseAId: null, modifieLe: null, album: null, onde: null, systeme: null } as const;
+
+const PROLONGEMENT_MAX = 20;
 
 export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureMessagerie) {
   /** Les notifications d'un nouveau message : les autres membres, sans ceux qui ont coupé, ni blocage, ni pushSocial faux */
@@ -201,16 +205,29 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
     /**
      * Ne recule jamais ; ramené au dernier message visible pour moi (au plus `jusqua`). Montré aux autres (« Vu ») seulement
      * entre deux membres qui ont tous les deux les accusés de lecture : la conversation change alors de version. Sinon, seule
-     * la position est gardée (les non-lus), jamais l'heure de lecture
+     * la position est gardée (les non-lus), jamais l'heure de lecture. Une app d'avant la 1.0.2 ne voit pas les messages de
+     * SOS Miam : sa lecture couvre aussi ceux qui suivent tout de suite le dernier qu'elle a lu, et ne montre jamais de « Vu »
      */
-    async marquerLu(moi: number, conversationId: number, jusqua: number, maintenant: Date): Promise<boolean> {
+    async marquerLu(moi: number, conversationId: number, jusqua: number, maintenant: Date, app: AppCliente = {}): Promise<boolean> {
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) return false;
       const { caches } = await c.relations.listerBlocages(moi);
-      const [dernier] = await c.depot.lire.listerMessages(conversationId, { apres: acces.membre.visibleApres, caches, exclus: new Set() }, jusqua + 1, 1);
-      if (!dernier || dernier.id <= acces.membre.luJusqua) return true;
+      const filtre = { apres: acces.membre.visibleApres, caches, exclus: new Set<number>() };
+      const [lu] = await c.depot.lire.listerMessages(conversationId, filtre, jusqua + 1, 1);
+      if (!lu) return true;
+      let dernier = lu;
+      if (app.ancienneApp) {
+        const suite = await c.depot.lire.listerMessages(conversationId, { ...filtre, apres: Math.max(filtre.apres, lu.id) }, null, PROLONGEMENT_MAX + 1);
+        if (suite.length <= PROLONGEMENT_MAX) {
+          for (const m of [...suite].reverse()) {
+            if (m.systeme === null) break;
+            dernier = m;
+          }
+        }
+      }
+      if (dernier.id <= acces.membre.luJusqua) return true;
       const accuses = await c.depot.lire.lireAccusesLecture(acces.membres.map((m) => m.compteId));
-      const vu = accuses.has(moi) && acces.membres.some((m) => m.compteId !== moi && accuses.has(m.compteId));
+      const vu = !app.ancienneApp && accuses.has(moi) && acces.membres.some((m) => m.compteId !== moi && accuses.has(m.compteId));
       await c.depot.ecrire(async (t) => {
         if (!vu) return t.avancerMembre(conversationId, moi, { luJusqua: dernier.id, luLe: null });
         if (!(await t.verrouillerConversation(conversationId))) return;

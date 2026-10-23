@@ -8,6 +8,7 @@ import type {
   CodeReaction, ConversationApi, InvitationGroupeApi, MembreConversationApi, MessageApi,
 } from "../../../../packages/commun/src/types/messagerie.ts";
 import type { PersonneResume } from "../../../../packages/commun/src/types/social.ts";
+import { adapterMessageAncienneApp } from "../fonctions/social/adapter-message-ancienne-app.ts";
 import { dechiffrerLieuSondage } from "../fonctions/social/dechiffrer-lieu-sondage.ts";
 import { lireGifMessage } from "../fonctions/social/lire-gif-message.ts";
 import { presenterConversation } from "../fonctions/social/presenter-conversation.ts";
@@ -16,7 +17,7 @@ import { presenterSondage, type LigneSondage } from "../fonctions/social/present
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
 import { lireComplementsMessages } from "./messagerie-complements.ts";
 import type {
-  ContexteMessagerie, LigneConversation, LigneInvitationGroupe, LigneMembre, LigneMessage, LireMessageVisible, MessageVisible, TablesMessagerie,
+  AppCliente, ContexteMessagerie, LigneConversation, LigneInvitationGroupe, LigneMembre, LigneMessage, LireMessageVisible, MessageVisible, TablesMessagerie,
 } from "./messagerie-regles.ts";
 import { MAX_COMPTEUR_POULS } from "./social-regles.ts";
 
@@ -111,8 +112,13 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
     return peutAdministrerGroupe("groupe", moiId, lignes);
   }
 
-  /** Des messages visibles pour moi, avec leur auteur et leurs réactions (sans les personnes avec qui il y a un blocage) */
-  async function presenterMessages(moi: number, lignes: readonly LigneMessage[], caches: ReadonlySet<number>, maintenant: Date, exclus?: ReadonlySet<number>): Promise<MessageApi[]> {
+  /**
+   * Des messages visibles pour moi, avec leur auteur et leurs réactions (sans les personnes avec qui il y a un blocage) ; pour
+   * une app d'avant la 1.0.2, un GIF ou un sondage devient un petit texte qui invite à mettre l'app à jour
+   */
+  async function presenterMessages(
+    moi: number, lignes: readonly LigneMessage[], caches: ReadonlySet<number>, maintenant: Date, exclus?: ReadonlySet<number>, app: AppCliente = {},
+  ): Promise<MessageApi[]> {
     if (lignes.length === 0) return [];
     const chiffrement = exigerChiffrement(c);
     const lireUn = (l: LigneMessage) => lireContenu(chiffrement, l);
@@ -133,7 +139,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
     const personnes = await c.relations.presenter([
       ...lignes.flatMap((l) => (l.auteurId === null ? [] : [l.auteurId])), ...reactions.map((r) => r.compteId), ...complements.comptes,
     ]);
-    return lignes.map((l) => {
+    const presentes = lignes.map((l) => {
       const parCode: Partial<Record<CodeReaction, string[]>> = {};
       for (const code of CODES_REACTIONS) {
         const qui = reactions.filter((r) => r.messageId === l.id && r.reaction === code).flatMap((r) => personnes.get(r.compteId)?.id ?? []);
@@ -145,14 +151,18 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
         vote: l.type === "vote" ? presenterVote(l) : undefined,
       });
     });
+    return app.ancienneApp ? presentes.map(adapterMessageAncienneApp) : presentes;
   }
 
   /**
    * Des conversations dont je suis membre, présentées (les autres sont sautées). Un privé avec quelqu'un avec qui il y a un
    * blocage est sauté. sansEffacees : sans celles que j'ai effacées pour moi tant qu'aucun message n'est arrivé depuis (pour
-   * un groupe, mon « visibleApres » d'arrivée ne compte pas : le message qu'il désigne est d'avant mon arrivée).
+   * un groupe, mon « visibleApres » d'arrivée ne compte pas : le message qu'il désigne est d'avant mon arrivée). Pour une app
+   * d'avant la 1.0.2 (app.ancienneApp), le dernier message n'est jamais un message de SOS Miam.
    */
-  async function presenterConversations(moi: number, conversations: readonly LigneConversation[], maintenant: Date, o: { sansEffacees?: boolean } = {}): Promise<ConversationApi[]> {
+  async function presenterConversations(
+    moi: number, conversations: readonly LigneConversation[], maintenant: Date, o: { sansEffacees?: boolean } & AppCliente = {},
+  ): Promise<ConversationApi[]> {
     if (conversations.length === 0) return [];
     const chiffrement = exigerChiffrement(c);
     const ids = conversations.map((x) => x.id);
@@ -183,17 +193,18 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
       });
     }
     const [derniers, nonLus] = await Promise.all([
-      lire.lireDerniersMessages(visibles.map((x) => ({ id: x.id, apres: mien.get(x.id)!.visibleApres })), caches, exclus),
+      lire.lireDerniersMessages(visibles.map((x) => ({ id: x.id, apres: mien.get(x.id)!.visibleApres })), caches, exclus, o.ancienneApp === true),
       lire.compterNonLus(moi, visibles.map((x) => ({ id: x.id, depuis: Math.max(mien.get(x.id)!.luJusqua, mien.get(x.id)!.visibleApres) })), caches, MAX_COMPTEUR_POULS),
     ]);
-    const messages = new Map((await presenterMessages(moi, [...derniers.values()], caches, maintenant, exclus)).map((m) => [Number(m.id), m]));
+    const messages = new Map((await presenterMessages(moi, [...derniers.values()], caches, maintenant, exclus, o)).map((m) => [Number(m.id), m]));
     const autres = visibles.flatMap((x) => (x.type === "prive" ? (autreDe(x.id)?.compteId ?? []) : []));
     const [liens, personnes, accuses] = await Promise.all([
       c.relations.lireLiens(moi, autres),
       c.relations.presenter([...membres.map((m) => m.compteId), ...invitations.map((i) => i.compteId)]),
       lire.lireAccusesLecture([...new Set(membres.map((m) => m.compteId))]),
     ]);
-    const montreLu = (m: LigneMembre) => m.compteId !== moi && m.luJusqua > 0 && accuses.has(moi) && accuses.has(m.compteId) && !caches.has(m.compteId);
+    const montreLu = (m: LigneMembre) =>
+      m.compteId !== moi && m.luJusqua > 0 && m.luLe !== null && accuses.has(moi) && accuses.has(m.compteId) && !caches.has(m.compteId);
     return visibles.map((x) => {
       const moiMembre = mien.get(x.id)!;
       const autre = x.type === "prive" ? autreDe(x.id) : undefined;
@@ -203,7 +214,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
         .sort(parArrivee)
         .flatMap((m) => {
           const personne = personnes.get(m.compteId);
-          const lu = montreLu(m) ? { luJusqua: String(m.luJusqua), ...(m.luLe ? { luLe: m.luLe.toISOString() } : {}) } : {};
+          const lu = montreLu(m) && m.luLe ? { luJusqua: String(m.luJusqua), luLe: m.luLe.toISOString() } : {};
           return personne ? [{ personne, role: x.type === "groupe" ? m.role : "membre", depuis: m.arriveLe.toISOString(), ...lu }] : [];
         });
       const invites = invitations.filter((i) => i.conversationId === x.id).flatMap((i) => personnes.get(i.compteId) ?? []);
@@ -224,9 +235,9 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
   }
 
   /** Une conversation dont je suis membre, présentée ; null sinon */
-  async function presenterUne(moi: number, conversationId: number, maintenant: Date): Promise<ConversationApi | null> {
+  async function presenterUne(moi: number, conversationId: number, maintenant: Date, app: AppCliente = {}): Promise<ConversationApi | null> {
     const conversation = (await lire.lireConversations([conversationId])).get(conversationId);
-    return conversation ? ((await presenterConversations(moi, [conversation], maintenant))[0] ?? null) : null;
+    return conversation ? ((await presenterConversations(moi, [conversation], maintenant, app))[0] ?? null) : null;
   }
 
   /** Ce que voit un invité avant de répondre : titre, emoji, qui l'invite et combien de membres (jamais leurs noms) */

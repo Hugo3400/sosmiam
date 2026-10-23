@@ -2,6 +2,7 @@
 // décisions de la modération y arrivent aussi).
 import type { Request, Response } from "express";
 
+import { estAncienneApp } from "../fonctions/social/est-ancienne-app.ts";
 import { lireProfilSocialPose } from "../middlewares/profil-social.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import type { DependancesSocialApp } from "../routes/social-app.ts";
@@ -22,7 +23,10 @@ export function creerControleursCloche(d: Pick<DependancesSocialApp, "cloche">, 
   return {
     /** GET /app/cloche[?apres=] */
     async lister(requete: Request, reponse: Response) {
-      reponse.json({ ok: true, cloche: await d.cloche.lister(moi(reponse), lireCurseurApres(requete)) });
+      const cloche = await d.cloche.lister(moi(reponse), lireCurseurApres(requete));
+      if (!estAncienneApp(requete.get("X-Version-App"))) return reponse.json({ ok: true, cloche });
+      const notifications = cloche.notifications.filter((n) => !(n.type === "mention" && n.cible?.type === "conversation"));
+      reponse.json({ ok: true, cloche: { ...cloche, notifications } });
     },
 
     /** POST /app/cloche/vu { jusqua?: date ISO } : sans jusqua, maintenant */

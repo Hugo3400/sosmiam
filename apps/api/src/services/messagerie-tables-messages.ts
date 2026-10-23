@@ -49,13 +49,14 @@ const liste = (ids: Iterable<number>) => Prisma.join([...ids].length > 0 ? [...i
 
 /** Le filtre d'un message visible : auteur sans blocage (un compte supprimé reste visible), pas signalé par moi */
 const filtreVisible = (f: Omit<FiltreMessages, "apres">) => Prisma.sql`(m.auteur_id IS NULL OR m.auteur_id NOT IN (${liste(f.caches)}))
-  AND m.id NOT IN (${liste(f.exclus)})`;
+  AND m.id NOT IN (${liste(f.exclus)})${f.sansSystemes ? Prisma.sql` AND m.systeme IS NULL` : Prisma.empty}`;
 
 const filtrePage = (f: FiltreMessages, avant: number | null): Prisma.MessageConversationWhereInput[] => [
   { id: { gt: f.apres } },
   avant === null ? {} : { id: { lt: avant } },
   f.exclus.size > 0 ? { id: { notIn: [...f.exclus] } } : {},
   f.caches.size > 0 ? { OR: [{ auteurId: null }, { auteurId: { notIn: [...f.caches] } }] } : {},
+  f.sansSystemes ? { systeme: null } : {},
 ];
 
 /** Lieux des privés dont je suis membre, après mon « Effacer pour moi », dans un privé sans personne de bloqué */
@@ -112,14 +113,14 @@ export function creerTablesMessages(base: Client): Messages {
       });
       return lignes.map(convertirLigneMessage);
     },
-    async lireDerniersMessages(conversations, caches, exclus) {
+    async lireDerniersMessages(conversations, caches, exclus, sansSystemes = false) {
       if (conversations.length === 0) return new Map();
       const valeurs = Prisma.join(conversations.map((c) => Prisma.sql`(${c.id}::int, ${c.apres}::int)`));
       const lignes = await base.$queryRaw<LigneBrute[]>`
         SELECT ${COLONNES} FROM (VALUES ${valeurs}) AS v(cid, apres)
         CROSS JOIN LATERAL (
           SELECT * FROM messages_conversations m
-          WHERE m.conversation_id = v.cid AND m.id > v.apres AND ${filtreVisible({ caches, exclus })}
+          WHERE m.conversation_id = v.cid AND m.id > v.apres AND ${filtreVisible({ caches, exclus, sansSystemes })}
           ORDER BY m.id DESC LIMIT 1
         ) m`;
       return new Map(lignes.map((l) => [l.conversationId, convertirLigneMessage(l)]));

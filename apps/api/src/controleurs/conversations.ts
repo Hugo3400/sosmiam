@@ -11,6 +11,7 @@ import type { CodeReaction, RoleConversation, TypePartage } from "../../../../pa
 import { estEmojiSeul } from "../../../../packages/commun/src/validation/est-emoji-seul.ts";
 import { validerNouveauGroupe } from "../../../../packages/commun/src/validation/valider-nouveau-groupe.ts";
 import { validerNouveauSondage } from "../../../../packages/commun/src/validation/valider-nouveau-sondage.ts";
+import { estAncienneApp } from "../fonctions/social/est-ancienne-app.ts";
 import { lireIdentifiantPublic } from "../fonctions/social/lire-identifiant-public.ts";
 import { lireProfilSocialPose } from "../middlewares/profil-social.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
@@ -56,6 +57,7 @@ export function lireNumero(requete: Request, nom: "id" | "messageId"): number {
 export function creerControleursConversations(d: Pick<DependancesSocialApp, "messagerie" | "relations">, contexte: Pick<ContexteRoutesSociales, "horloge" | "appliquer">) {
   const maintenant = () => new Date(contexte.horloge());
   const moi = (reponse: Response) => lireProfilSocialPose(reponse).compteId;
+  const lireApp = (requete: Request) => ({ ancienneApp: estAncienneApp(requete.get("X-Version-App")) });
 
   /** Des identifiants publics en comptes ; les inconnus (et ceux qui t'ont bloqué) sont gardés pour la liste des ignorés */
   async function resoudre(ids: readonly string[], compteId: number) {
@@ -104,7 +106,7 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
   return {
     /** GET /app/conversations[?apres=] */
     async lister(requete: Request, reponse: Response) {
-      reponse.json({ ok: true, ...(await d.messagerie.listerConversations(moi(reponse), lireCurseurApres(requete), maintenant())) });
+      reponse.json({ ok: true, ...(await d.messagerie.listerConversations(moi(reponse), lireCurseurApres(requete), maintenant(), lireApp(requete))) });
     },
 
     /** GET /app/conversations/:id[?version=][&avant=] */
@@ -115,7 +117,7 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
       if (version === undefined) throw new ChampInvalide("version");
       const avant = brutAvant === undefined ? null : lireIdentifiant(brutAvant);
       if (avant === null && brutAvant !== undefined) throw new ChampInvalide("avant");
-      const lu = await d.messagerie.lireFil(moi(reponse), id, { version, avant }, maintenant());
+      const lu = await d.messagerie.lireFil(moi(reponse), id, { version, avant }, maintenant(), lireApp(requete));
       if (!lu) rendreRefus(reponse, "conversation-inconnue");
       if ("messages" in lu) return reponse.json({ ok: true, fil: lu });
       reponse.json({ ok: true, ...lu });
@@ -217,7 +219,7 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
       const id = lireNumero(requete, "id");
       const jusqua = lireIdentifiant(lireCorps(requete).jusqua);
       if (jusqua === null) throw new ChampInvalide("jusqua");
-      if (!(await d.messagerie.marquerLu(moi(reponse), id, jusqua, maintenant()))) rendreRefus(reponse, "conversation-inconnue");
+      if (!(await d.messagerie.marquerLu(moi(reponse), id, jusqua, maintenant(), lireApp(requete)))) rendreRefus(reponse, "conversation-inconnue");
       reponse.json({ ok: true });
     },
 

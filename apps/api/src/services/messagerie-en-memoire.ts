@@ -18,7 +18,7 @@ const versInvitation = (i: InvitationGroupe): LigneInvitationGroupe => ({ ...i, 
 const versMessage = (m: MessageConversation): LigneMessage => ({ ...m, type: m.type as LigneMessage["type"] });
 /** Un message visible selon le filtre : auteur sans blocage (un compte supprimé reste visible), pas signalé */
 const estVisible = (m: MessageConversation, f: Omit<FiltreMessages, "apres">) =>
-  (m.auteurId === null || !f.caches.has(m.auteurId)) && !f.exclus.has(m.id);
+  (m.auteurId === null || !f.caches.has(m.auteurId)) && !f.exclus.has(m.id) && (!f.sansSystemes || m.systeme === null);
 /** Retire d'un tableau, sur place (comme un DELETE ; les autres domaines lisent le même tableau) ; rend le nombre retiré */
 function retirer<T>(lignes: T[], quoi: (ligne: T) => boolean): number {
   let retires = 0;
@@ -199,9 +199,9 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
         .slice(0, nombre)
         .map(versMessage);
     },
-    async lireDerniersMessages(conversations, caches, exclus) {
+    async lireDerniersMessages(conversations, caches, exclus, sansSystemes = false) {
       return new Map(conversations.flatMap(({ id, apres }) => {
-        const [dernier] = messagesDe(id).filter((m) => m.id > apres && estVisible(m, { caches, exclus })).sort((a, b) => b.id - a.id);
+        const [dernier] = messagesDe(id).filter((m) => m.id > apres && estVisible(m, { caches, exclus, sansSystemes })).sort((a, b) => b.id - a.id);
         return dernier ? [[id, versMessage(dernier)] as const] : [];
       }));
     },

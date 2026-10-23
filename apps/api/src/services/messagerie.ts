@@ -111,22 +111,22 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
   }
 
   const services: Omit<ServicesMessagerie, "envoyerLieu" | "listerLieuxRecus" | "listerLieuxEnvoyes" | "marquerLieuxVus"> = {
-    async listerConversations(moi, apres, maintenant) {
+    async listerConversations(moi, apres, maintenant, app = {}) {
       const lignes = await lire.listerMesConversations(moi, lireCurseurDate(apres) ?? null, CONVERSATIONS_PAR_PAGE + 1);
       const page = lignes.slice(0, CONVERSATIONS_PAR_PAGE);
       const dernier = page.at(-1);
       const suite = lignes.length > CONVERSATIONS_PAR_PAGE && dernier ? ecrireCurseurDate(dernier.dernierMessageLe, dernier.id) : null;
       // Effacées pour moi et privés bloqués : sautés après lecture (une page peut être plus courte, la suite reste juste)
-      const conversations = await lecture.presenterConversations(moi, page, maintenant, { sansEffacees: true });
+      const conversations = await lecture.presenterConversations(moi, page, maintenant, { sansEffacees: true, ...app });
       if (apres) return { conversations, invitations: [], suite };
       const [invitations, epinglees] = await Promise.all([
         lire.listerMesInvitations(moi, MAX_INVITATIONS_LUES).then((lues) => lecture.presenterInvitations(moi, lues)),
-        lire.listerMesEpinglees(moi).then((lues) => lecture.presenterConversations(moi, lues, maintenant, { sansEffacees: true })),
+        lire.listerMesEpinglees(moi).then((lues) => lecture.presenterConversations(moi, lues, maintenant, { sansEffacees: true, ...app })),
       ]);
       return { conversations, invitations, suite, epinglees };
     },
 
-    async lireFil(moi, conversationId, o, maintenant) {
+    async lireFil(moi, conversationId, o, maintenant, app = {}) {
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) {
         const invitation = (await lire.lireInvitations([conversationId])).find((i) => i.compteId === moi && i.statut === "invite");
@@ -137,12 +137,12 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       const { conversation, membre } = acces;
       if (o.version !== null && o.avant === null && o.version === conversation.version) return { inchange: true, version: conversation.version };
       const [{ caches }, exclus] = await Promise.all([c.relations.listerBlocages(moi), lire.lireMessagesSignales(moi)]);
-      const lignes = await lire.listerMessages(conversationId, { apres: membre.visibleApres, caches, exclus }, o.avant, MESSAGES_PAR_PAGE + 1);
+      const lignes = await lire.listerMessages(conversationId, { apres: membre.visibleApres, caches, exclus, sansSystemes: app.ancienneApp === true }, o.avant, MESSAGES_PAR_PAGE + 1);
       const page = lignes.slice(0, MESSAGES_PAR_PAGE);
-      const [presentee] = await lecture.presenterConversations(moi, [conversation], maintenant);
+      const [presentee] = await lecture.presenterConversations(moi, [conversation], maintenant, app);
       if (!presentee) return null;
       const suite = lignes.length > MESSAGES_PAR_PAGE && page.length > 0 ? String(page[page.length - 1]!.id) : null;
-      const messagesApi = (await lecture.presenterMessages(moi, page, caches, maintenant, exclus)).reverse();
+      const messagesApi = (await lecture.presenterMessages(moi, page, caches, maintenant, exclus, app)).reverse();
       return { conversation: presentee, messages: messagesApi, suite, version: conversation.version };
     },
 

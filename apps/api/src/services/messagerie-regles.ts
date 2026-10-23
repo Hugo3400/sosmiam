@@ -74,7 +74,12 @@ export type LigneReaction = { messageId: number; compteId: number; reaction: Cod
 
 /** Les messages qu'un membre ne voit pas : avant son arrivée ou son « Effacer pour moi » (apres), d'un compte avec qui il y a
  *  un blocage (caches, dans un sens ou dans l'autre), ceux qu'il a signalés (exclus) */
-export type FiltreMessages = { apres: number; caches: ReadonlySet<number>; exclus: ReadonlySet<number> };
+/** sansSystemes : sans les messages de SOS Miam (une app d'avant la 1.0.2 ne sait pas les montrer) */
+export type FiltreMessages = { apres: number; caches: ReadonlySet<number>; exclus: ReadonlySet<number>; sansSystemes?: boolean };
+
+/** L'app qui demande : ancienneApp, une version d'avant la 1.0.2 (sans en-tête X-Version-App), qui ne connaît ni les messages
+ *  de SOS Miam, ni les GIF, ni les sondages, ni le « Vu » */
+export type AppCliente = { ancienneApp?: boolean };
 
 export type CompteursMedias = { envoisCompte24h: number; octetsCompte: number; octetsServeur24h: number };
 
@@ -125,7 +130,7 @@ export interface TablesMessagerie {
   /** Le plus récent d'abord, id > filtre.apres et < avant, sans les auteurs cachés ni les messages exclus */
   listerMessages(conversationId: number, filtre: FiltreMessages, avant: number | null, nombre: number): Promise<LigneMessage[]>;
   /** Le dernier message visible de chaque conversation (apres : celui de chacune) */
-  lireDerniersMessages(conversations: readonly { id: number; apres: number }[], caches: ReadonlySet<number>, exclus: ReadonlySet<number>): Promise<Map<number, LigneMessage>>;
+  lireDerniersMessages(conversations: readonly { id: number; apres: number }[], caches: ReadonlySet<number>, exclus: ReadonlySet<number>, sansSystemes?: boolean): Promise<Map<number, LigneMessage>>;
   /** Le plus grand id de message de chaque conversation (tous les messages) */
   lireDerniersIds(conversationIds: readonly number[]): Promise<Map<number, number>>;
   /** Messages d'un autre que moi après `depuis`, ni supprimés, ni masqués, ni retirés, ni d'un compte caché ; `max` au plus */
@@ -240,9 +245,9 @@ export type RefusVote = "message-inconnu" | "conversation-fermee" | "sondage-clo
 export type BilanTachesMessagerie = { sondages: number; rappels: number; echecs: number; effets: EffetSocial[] };
 
 export interface ServicesMessagerie {
-  listerConversations(compteId: number, apres: string | null, maintenant: Date): Promise<PageConversationsApi>;
+  listerConversations(compteId: number, apres: string | null, maintenant: Date, app?: AppCliente): Promise<PageConversationsApi>;
   /** null : la conversation n'existe pas pour toi ; { invitation } : tu es invité dans ce groupe, pas encore membre */
-  lireFil(compteId: number, conversationId: number, o: { version: number | null; avant: number | null }, maintenant: Date): Promise<LectureFil | null>;
+  lireFil(compteId: number, conversationId: number, o: { version: number | null; avant: number | null }, maintenant: Date, app?: AppCliente): Promise<LectureFil | null>;
   ouvrirPrive(compteId: number, autreId: number, maintenant: Date): Promise<{ ok: true; conversation: ConversationApi; cree: boolean } | Refus<"pas-dans-la-bande">>;
   /** cle : Idempotency-Key ; invites : chacun reçoit une invitation à accepter ; ignores : pas de ta bande, ou bloqués */
   creerGroupe(compteId: number, g: { titre: string; emoji: string; invites: number[] }, cle: string, maintenant: Date): Promise<
@@ -263,7 +268,7 @@ export interface ServicesMessagerie {
     { ok: true; conversation: ConversationApi } | Refus<RefusGroupe>>;
   /** Faux : la conversation n'existe pas pour toi */
   couper(compteId: number, conversationId: number, coupee: boolean): Promise<boolean>;
-  marquerLu(compteId: number, conversationId: number, jusqua: number, maintenant: Date): Promise<boolean>;
+  marquerLu(compteId: number, conversationId: number, jusqua: number, maintenant: Date, app?: AppCliente): Promise<boolean>;
   epingler(compteId: number, conversationId: number, epinglee: boolean, maintenant: Date): Promise<
     { ok: true } | Refus<"conversation-inconnue" | "geree-par-la-sortie" | "trop-d-epinglees">>;
   effacerPourMoi(compteId: number, conversationId: number): Promise<boolean>;
