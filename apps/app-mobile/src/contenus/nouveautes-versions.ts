@@ -30,7 +30,7 @@ export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
       { emoji: "📌", titre: "Épingler, chercher, brouillons", detail: "Tes discussions préférées en haut, et rien ne se perd en route." },
       { emoji: "😋", titre: "Mentions et double toucher", detail: "@ un pote pour le prévenir, touche deux fois un message pour dire miam." },
       { emoji: "👥", titre: "Les infos du groupe", detail: "Son nom, sa photo, ses membres, et tout ce qui s'y est partagé." },
-      { emoji: "⏰", titre: "Le rappel de sortie", detail: "En haut de la discussion, et 1 h avant." },
+      { emoji: "⏰", titre: "Le rappel de sortie", detail: "1 h avant, un petit mot dans la discussion et une notification." },
       { emoji: "🎉", titre: "Les nouveautés", detail: "Cette fenêtre, et leur page dans les Paramètres." },
     ],
   },

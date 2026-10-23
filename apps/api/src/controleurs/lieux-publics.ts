@@ -21,7 +21,7 @@ export function creerControleurLieuxDuPlan(lister: () => Promise<LieuDuPlan[]>, 
   let enCours: Promise<string> | null = null;
 
   const preparerCorps = async () => {
-    const lieux = (await lister()).map(({ id, modifieLe }) => ({ id, modifieLe: modifieLe.toISOString() }));
+    const lieux = (await lister()).map(({ id, modifieLe, indexable }) => ({ id, modifieLe: modifieLe.toISOString(), indexable }));
     return JSON.stringify({ ok: true, lieux });
   };
 

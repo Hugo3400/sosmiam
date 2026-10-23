@@ -1,4 +1,6 @@
+import { lireSourceLieu } from "../../../../packages/commun/src/fonctions/lieux/lire-source-lieu.ts";
 import type { CarteLieu } from "../../../../packages/commun/src/types/carte.ts";
+import type { SourceLieu } from "../../../../packages/commun/src/types/source-lieu.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { presenterCarte } from "../fonctions/pro/presenter-carte.ts";
 
@@ -28,13 +30,19 @@ export async function listerLieuxPublics(): Promise<LieuPublic[]> {
 }
 
 /** Une fiche publiée pour le plan du site : son identifiant et sa dernière modification */
-export type LieuDuPlan = { id: number; modifieLe: Date };
+export type LieuDuPlan = { id: number; modifieLe: Date; indexable: boolean };
 /** Le plus d'adresses qu'un plan du site peut tenir (protocole sitemaps.org) */
 export const LIEUX_DU_PLAN_MAX = 50_000;
 
 /** Tous les lieux publiés (statut « publie »), rangés par identifiant : seulement id et modifieLe, rien d'autre. */
 export async function listerLieuxDuPlan(): Promise<LieuDuPlan[]> {
-  return baseDeDonnees.lieu.findMany({ where: { statut: "publie" }, select: { id: true, modifieLe: true }, orderBy: { id: "asc" }, take: LIEUX_DU_PLAN_MAX });
+  const lignes = await baseDeDonnees.lieu.findMany({
+    where: { statut: "publie" },
+    select: { id: true, modifieLe: true, note: true, _count: { select: { rattachements: { where: { statut: "valide" } } } } },
+    orderBy: { id: "asc" },
+    take: LIEUX_DU_PLAN_MAX,
+  });
+  return lignes.map(({ id, modifieLe, note, _count }) => ({ id, modifieLe, indexable: _count.rattachements > 0 || lireSourceLieu(note) === null }));
 }
 
 /**
@@ -48,6 +56,7 @@ export type FichePublique = LieuPublic & {
   animaux: string | null; accessible: boolean | null; terrasse: boolean | null; wifi: boolean | null; enfants: boolean | null;
   parking: boolean | null; paiements: string[]; reservation: string | null;
   estVerifie: boolean;
+  source: SourceLieu | null;
   /** La carte remplie par le lieu (majLe : « AAAA-MM-JJ »), ou null ; carteMajLe : le moment exact (ISO 8601), ou null */
   carte: CarteLieu | null; carteMajLe: string | null;
 };
@@ -59,12 +68,12 @@ export async function lireFichePublique(id: number): Promise<FichePublique | nul
     select: {
       id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true,
       adresse: true, horaires: true, texte: true, telephone: true, siteWeb: true, instagram: true, animaux: true, accessible: true,
-      terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true, carte: true, carteMajLe: true,
+      terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true, carte: true, carteMajLe: true, note: true,
       _count: { select: { rattachements: { where: { statut: "valide" } } } },
     },
   });
   if (!lieu) return null;
-  const { _count, carte: carteGardee, carteMajLe: majLeGarde, ...fiche } = lieu;
+  const { _count, carte: carteGardee, carteMajLe: majLeGarde, note, ...fiche } = lieu;
   const { carte, majLe } = presenterCarte((carteGardee ?? null) as Omit<CarteLieu, "majLe"> | null, majLeGarde);
-  return { ...fiche, estVerifie: _count.rattachements > 0, carte, carteMajLe: majLe };
+  return { ...fiche, estVerifie: _count.rattachements > 0, source: lireSourceLieu(note), carte, carteMajLe: majLe };
 }

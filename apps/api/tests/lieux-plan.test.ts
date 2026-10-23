@@ -29,14 +29,14 @@ function lancerApplication(lister: () => Promise<LieuDuPlan[]>) {
   }));
 }
 
-test("GET /lieux/plan : identifiant et date de modification (ISO 8601), rien d'autre, cache public court", async () => {
-  const adresse = await lancerApplication(async () => [{ id: 3, modifieLe: new Date("2026-10-08T21:15:00Z") }, { id: 12, modifieLe: new Date("2026-10-09T08:00:00Z") }]);
+test("GET /lieux/plan : identifiant, date de modification (ISO 8601) et indexable, rien d'autre, cache public court", async () => {
+  const adresse = await lancerApplication(async () => [{ id: 3, modifieLe: new Date("2026-10-08T21:15:00Z"), indexable: true }, { id: 12, modifieLe: new Date("2026-10-09T08:00:00Z"), indexable: false }]);
   const reponse = await fetch(`${adresse}/lieux/plan`);
   assert.equal(reponse.status, 200);
   assert.equal(reponse.headers.get("cache-control"), "public, max-age=300");
   assert.match(reponse.headers.get("content-type") ?? "", /^application\/json/);
   assert.deepEqual(await reponse.json(), {
-    ok: true, lieux: [{ id: 3, modifieLe: "2026-10-08T21:15:00.000Z" }, { id: 12, modifieLe: "2026-10-09T08:00:00.000Z" }],
+    ok: true, lieux: [{ id: 3, modifieLe: "2026-10-08T21:15:00.000Z", indexable: true }, { id: 12, modifieLe: "2026-10-09T08:00:00.000Z", indexable: false }],
   });
   assert.deepEqual(await (await fetch(`${adresse}/lieux`)).json(), { ok: true, lieux: [] });
   assert.equal((await fetch(`${adresse}/lieux/publics/3`)).status, 404);
@@ -64,7 +64,7 @@ test("GET /lieux/plan : aucun lieu publié → liste vide ; base en panne → 50
 test("GET /lieux/plan : une seule lecture de la base par minute, partagée par les demandes simultanées", async () => {
   const horloge = { maintenant: 0 };
   let lectures = 0;
-  let lieux: LieuDuPlan[] = [{ id: 1, modifieLe: new Date("2026-10-09T08:00:00Z") }];
+  let lieux: LieuDuPlan[] = [{ id: 1, modifieLe: new Date("2026-10-09T08:00:00Z"), indexable: true }];
   const application = express();
   application.use("/lieux", creerRoutePlanLieux(async () => {
     lectures += 1;
@@ -75,7 +75,7 @@ test("GET /lieux/plan : une seule lecture de la base par minute, partagée par l
   const lire = async () => ((await (await fetch(`${adresse}/lieux/plan`)).json()) as { lieux: { id: number }[] }).lieux.map(({ id }) => id);
   assert.deepEqual(await Promise.all([lire(), lire(), lire()]), [[1], [1], [1]]);
   assert.equal(lectures, 1);
-  lieux = [{ id: 1, modifieLe: new Date("2026-10-09T08:00:00Z") }, { id: 2, modifieLe: new Date("2026-10-09T09:00:00Z") }];
+  lieux = [{ id: 1, modifieLe: new Date("2026-10-09T08:00:00Z"), indexable: true }, { id: 2, modifieLe: new Date("2026-10-09T09:00:00Z"), indexable: true }];
   horloge.maintenant = DUREE_CACHE_PLAN_LIEUX - 1;
   assert.deepEqual(await lire(), [1]);
   assert.equal(lectures, 1);
