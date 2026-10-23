@@ -27,7 +27,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     adresses = [
       ...pagesIndexees.map((chemin) => ({ adresse: `https://${site.adresse}${chemin}` })),
       ...(offres ?? []).map(({ id, publieeLe }) => ({ adresse: `https://${site.adresse}/carriere/${id}`, modifieLe: publieeLe })),
-      ...(lieux ?? []).filter(({ id }) => !LIEUX_NON_INDEXES.has(id)).map(({ id, modifieLe }) => ({ adresse: `https://${site.adresse}/lieux/${id}`, modifieLe })),
+      ...(lieux ?? []).filter(({ id, indexable }) => indexable === true && !LIEUX_NON_INDEXES.has(id)).map(({ id, modifieLe }) => ({ adresse: `https://${site.adresse}/lieux/${id}`, modifieLe })),
     ];
   }
   return new Response(construirePlanDuSite(adresses), {

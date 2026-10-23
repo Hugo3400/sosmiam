@@ -7,11 +7,12 @@ import { BlocCarteDuLieu } from "~/composants/lieux/BlocCarteDuLieu";
 import { BlocInfosPratiques } from "~/composants/lieux/BlocInfosPratiques";
 import { BlocPrevention } from "~/composants/lieux/BlocPrevention";
 import { EncartCeLieuEstAToi } from "~/composants/lieux/EncartCeLieuEstAToi";
+import { SourceDuLieu } from "~/composants/lieux/SourceDuLieu";
 import { PictoCategorie } from "~/composants/marque/PictoCategorie";
 import { DonneesStructurees } from "~/composants/mise-en-page/DonneesStructurees";
 import { categoriesLieux } from "~/contenus/categories-lieux";
 import { site } from "~/contenus/legal/informations-legales";
-import { LIEUX_NON_INDEXES } from "~/contenus/lieux-non-indexes";
+import { estFicheIndexable } from "~/fonctions/lieux/est-fiche-indexable";
 import { creerDonneesFilAriane } from "~/fonctions/seo/creer-donnees-fil-ariane";
 import { creerDonneesLieu } from "~/fonctions/seo/creer-donnees-lieu";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
@@ -39,7 +40,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
   const resume = [lieu.info, lieu.quartier && `${lieu.quartier}, ${lieu.ville}`, lieu.texte].filter(Boolean).join(" · ");
   const description = resume.length > 155 ? `${resume.slice(0, 152).trimEnd()}…` : resume || `${lieu.nom}, à ${lieu.ville}, sur SOS Miam.`;
   const meta = creerMeta({ titre: `${lieu.nom} à ${lieu.ville}`, description });
-  return LIEUX_NON_INDEXES.has(lieu.id) ? [...meta, { name: "robots", content: "noindex" }] : meta;
+  return estFicheIndexable(lieu) ? meta : [...meta, { name: "robots", content: "noindex" }];
 }
 
 /** Une fiche se met à jour vite (le gérant la modifie) : une minute en cache, comme l'API. */
@@ -84,7 +85,7 @@ export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
           </div>
           {!lieu.estVerifie && (
             <p className="mt-4 rounded-xl border-2 border-dashed border-encre bg-creme px-4 py-3 text-sm">
-              {lierPonctuation("Lieu non vérifié : il n'a pas encore de compte SOS Miam. Ses infos viennent de l'équipe ou d'un ambassadeur.")}
+              {lierPonctuation(`Lieu non vérifié : il n'a pas encore de compte SOS Miam. Ses infos viennent ${lieu.source ? `de ${lieu.source.nom}` : "de l'équipe ou d'un ambassadeur"}.`)}
             </p>
           )}
           <p className="mt-5 flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -99,8 +100,10 @@ export default function PageFicheLieu({ loaderData }: Route.ComponentProps) {
               <h2 id="fiche-presentation" className="sr-only">Présentation</h2>
               {lieu.horaires && <p className="font-semibold"><span aria-hidden="true">🕒 </span><span className="sr-only">Horaires : </span>{lieu.horaires}</p>}
               {lieu.texte && <p className={`whitespace-pre-line [overflow-wrap:anywhere] ${lieu.horaires ? "mt-4" : ""}`}>{lieu.texte}</p>}
+              {lieu.source && <SourceDuLieu source={lieu.source} className="mt-4" />}
             </section>
           )}
+          {lieu.source && !lieu.horaires && !lieu.texte && <SourceDuLieu source={lieu.source} />}
           {/* La carte remplie par le lieu ; avec de l'alcool, le message sanitaire suit, juste dessous */}
           {lieu.carte && <BlocCarteDuLieu carte={lieu.carte} type={lieu.type} />}
           <BlocInfosPratiques infos={lieu} />

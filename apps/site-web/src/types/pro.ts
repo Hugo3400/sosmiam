@@ -4,6 +4,7 @@
 // pas encore packages/commun).
 import type { CarteLieu } from "~/types/carte";
 import type { CategorieLieu } from "~/types/lieux";
+import type { SourceLieu } from "../../../../packages/commun/src/types/source-lieu.ts";
 
 /** Le rôle d'un compte dans un lieu : le gérant (il modifie la fiche) ou un membre de l'équipe (il la lit). */
 export type RoleLieu = "gerant" | "equipe";
@@ -143,4 +144,5 @@ export type FichePublique = BaseFiche & {
   carte?: CarteLieu | null;
   /** Moment exact de sa dernière mise à jour (ISO 8601), ou null */
   carteMajLe?: string | null;
+  source?: SourceLieu | null;
 };

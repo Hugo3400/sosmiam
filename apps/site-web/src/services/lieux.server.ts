@@ -20,7 +20,7 @@ export async function listerLieuxPublics(): Promise<LieuPublic[] | null> {
 }
 
 /** Une fiche publiée pour le plan du site : son identifiant et sa dernière modification (ISO 8601) */
-export type LieuDuPlan = { id: number; modifieLe: string };
+export type LieuDuPlan = { id: number; modifieLe: string; indexable?: boolean };
 
 /**
  * Tous les lieux publiés pour /sitemap.xml (GET /lieux/plan de l'API), ou null si l'API ne répond pas (2 s au plus) :

@@ -111,6 +111,7 @@ export const documentMentionsLegales: DocumentLegal = {
           ],
         },
         "Ces polices sont distribuées sous licence [SIL Open Font License 1.1](https://openfontlicense.org). Elles sont hébergées avec le site, sur notre serveur chez notre hébergeur : aucun service de polices extérieur (comme Google Fonts) n'est appelé quand tu consultes le site.",
+        "Fiches de lieux : le texte et les infos de certaines fiches « non vérifiées » viennent des offices de tourisme de Montpellier, Lyon, Lille et Marseille, et de [DATAtourisme](https://www.datatourisme.fr) (sous [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/)) : la source est indiquée sur chaque fiche concernée.",
       ],
     },
     {
