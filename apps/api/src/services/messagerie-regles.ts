@@ -105,9 +105,11 @@ export interface TablesMessagerie {
   lireMembres(conversationIds: readonly number[]): Promise<LigneMembre[]>;
   ajouterMembre(m: Omit<LigneMembre, "epingleeLe" | "luLe">): Promise<void>;
   modifierMembre(conversationId: number, compteId: number, m: Partial<Pick<LigneMembre, "role" | "coupee" | "epingleeLe">>): Promise<boolean>;
-  /** luJusqua et visibleApres ne reculent jamais (deux téléphones du même compte en même temps) */
-  /** Ne recule jamais ; luLe suit une avancée de luJusqua, et luLe null oublie l'heure de lecture même sans avancée */
-  avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number; luLe?: Date | null }): Promise<void>;
+  /**
+   * luJusqua et visibleApres ne reculent jamais (deux téléphones du même compte en même temps) ; luLe suit une avancée de
+   * luJusqua ; oublierHeure (« Effacer pour moi ») efface l'heure de lecture même sans avancée
+   */
+  avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number; luLe?: Date | null; oublierHeure?: boolean }): Promise<void>;
   retirerMembre(conversationId: number, compteId: number): Promise<void>;
   listerMesEpinglees(compteId: number): Promise<LigneConversation[]>;
   compterEpinglees(compteId: number): Promise<number>;
@@ -272,7 +274,7 @@ export interface ServicesMessagerie {
   marquerLu(compteId: number, conversationId: number, jusqua: number, maintenant: Date, app?: AppCliente): Promise<boolean>;
   epingler(compteId: number, conversationId: number, epinglee: boolean, maintenant: Date): Promise<
     { ok: true } | Refus<"conversation-inconnue" | "geree-par-la-sortie" | "trop-d-epinglees">>;
-  effacerPourMoi(compteId: number, conversationId: number): Promise<boolean>;
+  effacerPourMoi(compteId: number, conversationId: number, maintenant: Date): Promise<boolean>;
   envoyer(compteId: number, conversationId: number, message: MessageAEnvoyer, maintenant: Date): Promise<ResultatEnvoi>;
   verifierEnvoiMedia(compteId: number, conversationId: number, idClient: string, taille: number, maintenant: Date): Promise<"ok" | RefusEnvoi>;
   envoyerMedia(compteId: number, conversationId: number, media: MediaRecu, maintenant: Date): Promise<ResultatEnvoi>;

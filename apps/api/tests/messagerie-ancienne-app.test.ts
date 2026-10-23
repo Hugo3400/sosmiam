@@ -186,9 +186,12 @@ test("« Effacer pour moi » efface l'heure de lecture, même quand tout était 
   await moi.demander("PUT", `/app/conversations/${id}/lu`, { jusqua: message.id });
   const avant = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === moi.idPublic);
   assert.equal(avant.luJusqua, message.id);
+  const versionAvant = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil.version as number;
   assert.equal((await moi.demander("POST", `/app/conversations/${id}/effacer`)).statut, 200);
-  const apres = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === moi.idPublic);
+  const filApres = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil;
+  const apres = filApres.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === moi.idPublic);
   assert.equal(apres.luJusqua, undefined);
+  assert.ok(filApres.version > versionAvant, "les autres membres relisent la discussion : le « Vu » part tout de suite");
   assert.equal(banc.tables.membres.find((m) => m.conversationId === Number(id) && m.compteId === moi.compteId)!.luLe, null);
 });
 

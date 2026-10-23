@@ -241,11 +241,16 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
     },
 
     /** « Effacer la discussion pour moi » : plus rien d'avant ; elle revient dans ma liste au prochain message */
-    async effacerPourMoi(moi: number, conversationId: number): Promise<boolean> {
+    async effacerPourMoi(moi: number, conversationId: number, maintenant: Date): Promise<boolean> {
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) return false;
       const dernier = (await c.depot.lire.lireDerniersIds([conversationId])).get(conversationId) ?? 0;
-      if (dernier > 0) await c.depot.ecrire((t) => t.avancerMembre(conversationId, moi, { visibleApres: dernier, luJusqua: dernier, luLe: null }));
+      if (dernier === 0) return true;
+      await c.depot.ecrire(async (t) => {
+        const avecHeure = acces.membre.luLe !== null && (await t.verrouillerConversation(conversationId));
+        await t.avancerMembre(conversationId, moi, { visibleApres: dernier, luJusqua: dernier, luLe: null, oublierHeure: true });
+        if (avecHeure) await t.toucherConversation(conversationId, maintenant, false);
+      });
       return true;
     },
 

@@ -246,7 +246,7 @@ export function creerControleursConversations(d: Pick<DependancesSocialApp, "mes
     /** POST /app/conversations/:id/effacer */
     async effacerPourMoi(requete: Request, reponse: Response) {
       const id = lireNumero(requete, "id");
-      if (!(await d.messagerie.effacerPourMoi(moi(reponse), id))) rendreRefus(reponse, "conversation-inconnue");
+      if (!(await d.messagerie.effacerPourMoi(moi(reponse), id, maintenant()))) rendreRefus(reponse, "conversation-inconnue");
       reponse.json({ ok: true });
     },
 

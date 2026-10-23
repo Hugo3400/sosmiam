@@ -60,7 +60,9 @@ const tables = creerTablesMessagerie(essai.base as never, {} as never, creerStoc
 const luLe = async () => (await q(`SELECT lu_jusqua, lu_le FROM membres_conversations WHERE conversation_id = 1 AND compte_id = 10`))[0]!;
 await tables.avancerMembre(1, 10, { luJusqua: 1, luLe: new Date("2026-10-23T10:05:00Z") });
 egal([Number((await luLe()).lu_jusqua), (await luLe()).lu_le !== null], [1, true], "une lecture avec son heure");
-await tables.avancerMembre(1, 10, { visibleApres: 1, luJusqua: 1, luLe: null });
+await tables.avancerMembre(1, 10, { luJusqua: 1, luLe: null });
+egal((await luLe()).lu_le !== null, true, "une lecture sans « Vu » qui n'avance rien (autre téléphone) ne retire pas l'heure posée");
+await tables.avancerMembre(1, 10, { visibleApres: 1, luJusqua: 1, luLe: null, oublierHeure: true });
 egal([Number((await luLe()).lu_jusqua), (await luLe()).lu_le], [1, null], "effacer pour soi sans rien de neuf : l'heure est oubliée quand même");
 
 await terminerEssai(import.meta.url, essai, verifications.nombre);

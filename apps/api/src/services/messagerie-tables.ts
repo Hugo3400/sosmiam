@@ -100,7 +100,7 @@ export function creerTablesMessagerie(base: Client, relations: RelationsSociales
           data: { luJusqua: m.luJusqua, ...(m.luLe !== undefined ? { luLe: m.luLe } : {}) },
         });
       }
-      if (m.luLe === null) await base.membreConversation.updateMany({ where: { conversationId, compteId, luLe: { not: null } }, data: { luLe: null } });
+      if (m.oublierHeure) await base.membreConversation.updateMany({ where: { conversationId, compteId, luLe: { not: null } }, data: { luLe: null } });
       if (m.visibleApres !== undefined) {
         await base.membreConversation.updateMany({ where: { conversationId, compteId, visibleApres: { lt: m.visibleApres } }, data: { visibleApres: m.visibleApres } });
       }
