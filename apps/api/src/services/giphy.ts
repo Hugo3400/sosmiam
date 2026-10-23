@@ -12,15 +12,16 @@ const MAX_PAGES_GARDEES = 200;
 const MAX_GIFS_GARDES = 1_000;
 const HEURE_MS = 60 * 60_000;
 export const APPELS_GIPHY_PAR_HEURE = 100;
+const MAX_COMPTES_SUIVIS = 5_000;
 const CLASSES_PERMISES: ReadonlySet<string> = new Set(["g", "pg", "pg-13"]);
 const FORME_CLE = /^[A-Za-z0-9]{16,128}$/;
 
 export type GifLu = GifApi | "inconnu" | "refuse" | "indisponible";
 
 export interface ClientGif {
-  tendances(page: number): Promise<GifApi[] | "indisponible">;
-  chercher(q: string, page: number): Promise<GifApi[] | "indisponible">;
-  lire(id: string): Promise<GifLu>;
+  tendances(page: number, compteId?: number): Promise<GifApi[] | "indisponible">;
+  chercher(q: string, page: number, compteId?: number): Promise<GifApi[] | "indisponible">;
+  lire(id: string, compteId?: number): Promise<GifLu>;
 }
 
 export function chargerCleGiphy(chemin: string = process.env.SOS_MIAM_GIPHY_CLE_FICHIER || FICHIER_CLE_GIPHY_DEFAUT): string | null {
@@ -60,25 +61,39 @@ const estPermis = (brut: unknown) => {
   return typeof classe === "string" && CLASSES_PERMISES.has(classe);
 };
 
-export function creerClientGiphy(o: { cle: string; fetch?: typeof fetch; horloge?: () => number; appelsParHeure?: number }): ClientGif {
+export function creerClientGiphy(o: { cle: string; fetch?: typeof fetch; horloge?: () => number; appelsParHeure?: number; appelsParCompteParHeure?: number }): ClientGif {
   const lireFetch = o.fetch ?? fetch;
   const horloge = o.horloge ?? Date.now;
   const plafond = o.appelsParHeure ?? APPELS_GIPHY_PAR_HEURE;
+  const plafondCompte = o.appelsParCompteParHeure ?? Math.max(5, Math.floor(plafond / 5));
+  const parCompte = new Map<number, number[]>();
   const pages = creerMemoire<GifApi[]>(MAX_PAGES_GARDEES, DUREE_CACHE_GIF_MS, horloge);
   const gifs = creerMemoire<GifApi>(MAX_GIFS_GARDES, DUREE_CACHE_GIF_MS, horloge);
   const enCours = new Map<string, Promise<GifApi[] | "indisponible">>();
   const appels: number[] = [];
 
-  function prendreUnAppel(): boolean {
+  const oublierVieux = (liste: number[], maintenant: number) => {
+    while (liste.length > 0 && liste[0]! <= maintenant - HEURE_MS) liste.shift();
+  };
+
+  function prendreUnAppel(compteId: number | undefined): boolean {
     const maintenant = horloge();
-    while (appels.length > 0 && appels[0]! <= maintenant - HEURE_MS) appels.shift();
+    oublierVieux(appels, maintenant);
     if (appels.length >= plafond) return false;
+    if (compteId !== undefined) {
+      if (parCompte.size > MAX_COMPTES_SUIVIS) for (const [id, liste] of parCompte) if ((oublierVieux(liste, maintenant), liste.length === 0)) parCompte.delete(id);
+      const siens = parCompte.get(compteId) ?? [];
+      oublierVieux(siens, maintenant);
+      if (siens.length >= plafondCompte) return false;
+      siens.push(maintenant);
+      parCompte.set(compteId, siens);
+    }
     appels.push(maintenant);
     return true;
   }
 
-  async function demander(chemin: string, parametres: Record<string, string>): Promise<{ statut: number; corps: unknown } | "indisponible"> {
-    if (!prendreUnAppel()) return "indisponible";
+  async function demander(chemin: string, parametres: Record<string, string>, compteId?: number): Promise<{ statut: number; corps: unknown } | "indisponible"> {
+    if (!prendreUnAppel(compteId)) return "indisponible";
     try {
       const reponse = await lireFetch(`${ADRESSE_GIPHY}${chemin}?${new URLSearchParams({ api_key: o.cle, ...parametres }).toString()}`, {
         headers: { Accept: "application/json" },
@@ -109,12 +124,12 @@ export function creerClientGiphy(o: { cle: string; fetch?: typeof fetch; horloge
     });
   }
 
-  function lister(cle: string, chemin: string, parametres: Record<string, string>): Promise<GifApi[] | "indisponible"> {
+  function lister(cle: string, chemin: string, parametres: Record<string, string>, compteId?: number): Promise<GifApi[] | "indisponible"> {
     const garde = pages.lire(cle);
     if (garde) return Promise.resolve(garde);
     const deja = enCours.get(cle);
     if (deja) return deja;
-    const promesse = demander(chemin, parametres).then((r) => {
+    const promesse = demander(chemin, parametres, compteId).then((r) => {
       if (r === "indisponible" || r.statut !== 200) return "indisponible" as const;
       const page = lirePage(r.corps);
       pages.ecrire(cle, page);
@@ -127,13 +142,13 @@ export function creerClientGiphy(o: { cle: string; fetch?: typeof fetch; horloge
   const pagination = (page: number) => ({ limit: String(GIFS_PAR_PAGE), offset: String(page * GIFS_PAR_PAGE), rating: "pg-13", bundle: "messaging_non_clips" });
 
   return {
-    tendances: (page) => lister(`tendances|${page}`, "/trending", pagination(page)),
-    chercher: (q, page) => lister(`recherche|${page}|${q}`, "/search", { q, ...pagination(page), lang: "fr" }),
-    async lire(id) {
+    tendances: (page, compteId) => lister(`tendances|${page}`, "/trending", pagination(page), compteId),
+    chercher: (q, page, compteId) => lister(`recherche|${page}|${q}`, "/search", { q, ...pagination(page), lang: "fr" }, compteId),
+    async lire(id, compteId) {
       if (!FORME_ID_GIF.test(id)) return "inconnu";
       const garde = gifs.lire(id);
       if (garde) return garde;
-      const r = await demander(`/${encodeURIComponent(id)}`, {});
+      const r = await demander(`/${encodeURIComponent(id)}`, {}, compteId);
       if (r === "indisponible") return "indisponible";
       const donnees = typeof r.corps === "object" && r.corps !== null ? (r.corps as { data?: unknown }).data : undefined;
       if (r.statut === 404 || typeof donnees !== "object" || donnees === null || (donnees as { id?: unknown }).id !== id) return "inconnu";

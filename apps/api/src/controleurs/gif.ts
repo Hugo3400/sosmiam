@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 
 import { LONGUEUR_MAX_RECHERCHE_GIF, MAX_PAGE_GIF } from "../../../../packages/commun/src/regles/chat.ts";
 import type { ClientGif } from "../services/giphy.ts";
+import { lireCompteId } from "./comptes-champs.ts";
 import { ChampInvalide } from "./gestion/lire-champs.ts";
 import { refuserSocial } from "./social-champs.ts";
 
@@ -33,12 +34,12 @@ export function creerControleursGif(gif: ClientGif | null | undefined) {
   return {
     async tendances(requete: Request, reponse: Response) {
       const client = exigerClient();
-      await rendre(reponse, await client.tendances(lirePage(requete)));
+      await rendre(reponse, await client.tendances(lirePage(requete), lireCompteId(reponse)));
     },
     async recherche(requete: Request, reponse: Response) {
       const client = exigerClient();
       const q = lireRecherche(requete);
-      await rendre(reponse, await client.chercher(q, lirePage(requete)));
+      await rendre(reponse, await client.chercher(q, lirePage(requete), lireCompteId(reponse)));
     },
   };
 }

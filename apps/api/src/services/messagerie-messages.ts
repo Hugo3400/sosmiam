@@ -83,7 +83,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
     if (m.type === "vote") return { contenu: QUESTION_SONDAGE };
     const deja = relireEnvoi(moi, await c.depot.lire.lireMessageParIdClient(conversationId, m.idClient));
     if (deja) return deja;
-    const gif = c.gif ? await c.gif.lire(m.gifId) : "indisponible";
+    const gif = c.gif ? await c.gif.lire(m.gifId, moi) : "indisponible";
     if (gif === "inconnu" || gif === "refuse" || gif === "indisponible") return { refus: `gif-${gif}` };
     return { contenu: ecrireGifMessage(gif) };
   }
