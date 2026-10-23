@@ -8,12 +8,13 @@ import { T_REPONSE_NOTIFICATION } from "~/contenus/textes-reponse-notification";
 import { calculerIdClientReponse } from "~/fonctions/chat/calculer-id-client-reponse";
 import { lireConversationNotification } from "~/fonctions/notifications/lire-conversation-notification";
 import { ADRESSE_API } from "~/services/adresse-api";
+import { VERSION_INSTALLEE } from "~/services/version-installee";
 import { lireJetonSession } from "~/stockage/session-compte";
 
 export const CATEGORIE_MESSAGE = "message";
 export const ACTION_REPONDRE = "repondre";
 
-const messagerie = creerMessagerieApi(creerClientHttp({ adresse: ADRESSE_API, lireJeton: lireJetonSession }));
+const messagerie = creerMessagerieApi(creerClientHttp({ adresse: ADRESSE_API, lireJeton: lireJetonSession, versionApp: VERSION_INSTALLEE ?? undefined }));
 const dejaEnvoyees = new Set<string>();
 
 export function preparerCategorieMessage(): void {

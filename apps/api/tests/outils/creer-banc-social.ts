@@ -28,6 +28,8 @@ export type PersonneDeTest = {
   idPublic: string | null;
   jeton: string;
   demander: (methode: string, chemin: string, corps?: unknown, ip?: string) => Promise<ReponseSociale>;
+  /** La même demande depuis une app d'avant la 1.0.2 (sans en-tête X-Version-App) */
+  demanderAncienne: (methode: string, chemin: string, corps?: unknown) => Promise<ReponseSociale>;
 };
 
 type OptionsPersonne = { pseudo?: string; prenom?: string; prive?: boolean; ville?: string; avatar?: string; sansPseudo?: boolean; sansProfil?: boolean };
@@ -64,12 +66,14 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
   const adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
 
   let visiteur = 0;
-  async function demander(methode: string, chemin: string, options: { jeton?: string; corps?: unknown; ip?: string } = {}): Promise<ReponseSociale> {
+  async function demander(methode: string, chemin: string, options: { jeton?: string; corps?: unknown; ip?: string; version?: string | null } = {}): Promise<ReponseSociale> {
+    const version = options.version === undefined ? "1.0.2" : options.version;
     const reponse = await fetch(`${adresse}${chemin}`, {
       method: methode,
       headers: {
         "X-IP-Visiteur": options.ip ?? `visiteur-social-${++visiteur}`, "Content-Type": "application/json",
         ...(options.jeton ? { Authorization: `Bearer ${options.jeton}` } : {}),
+        ...(version ? { "X-Version-App": version } : {}),
       },
       body: options.corps === undefined ? undefined : JSON.stringify(options.corps),
     });
@@ -93,6 +97,7 @@ export async function creerBancSocial(o: { sansCle?: boolean } & Pick<OptionsSoc
     const personne: PersonneDeTest = {
       compteId, idPublic: null, jeton,
       demander: (methode, chemin, corps, ip) => demander(methode, chemin, { jeton, corps, ip }),
+      demanderAncienne: (methode, chemin, corps) => demander(methode, chemin, { jeton, corps, version: null }),
     };
     if (!p.sansPseudo && !p.sansProfil) {
       const ouvert = await personne.demander("POST", "/app/social/moi");

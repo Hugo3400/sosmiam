@@ -6,6 +6,8 @@ import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.
 import { creerChiffrementSocial } from "../../src/services/chiffrement-social.ts";
 import { oublierClesApercuSansSession } from "../../src/services/menage-app.ts";
 import { creerApercusPush } from "../../src/services/notifications/apercus-push.ts";
+import { rechiffrerSocial } from "../../src/services/rechiffrement-social.ts";
+import { creerStockageMediasChatEnMemoire } from "../../src/services/stockage-medias-chat.ts";
 import { creerBaseEnMemoire } from "../socle/base-en-memoire.ts";
 import { insererLigne } from "../socle/inserer-ligne.ts";
 import { creerVerifications, terminerEssai } from "../socle/verifications.ts";
@@ -74,7 +76,8 @@ const lie = await essai.base.appareilPush.findUniqueOrThrow({ where: { jeton: JE
 egal([lie.compteId, lie.sessionId], [compteId, sessionId], "avec une session : lié au compte et à la session");
 egal(await lireAccord(JETON_COMPTE), [true, minute(10).toISOString()], "avec une session : l'accord est gardé pareil");
 
-const apercus = creerApercusPush(creerChiffrementSocial(creerChiffrementDonnees(randomBytes(32))))!;
+const cleDonnees = randomBytes(32);
+const apercus = creerApercusPush(creerChiffrementSocial(creerChiffrementDonnees(cleDonnees)))!;
 const cle = randomBytes(32);
 const lireCle = async (jeton: string) => (await essai.base.appareilPush.findUniqueOrThrow({ where: { jeton }, select: { cleApercuChiffree: true } })).cleApercuChiffree;
 await inscrireAppareil(telephone(JETON_COMPTE, true, { compteId, empreinteSession: "f".repeat(64), cleApercu: cle }), minute(11), apercus);
@@ -91,6 +94,16 @@ egal(await oublierClesApercuSansSession(), 0, "session ouverte : la clé reste")
 await essai.sql("DELETE FROM sessions_comptes WHERE id = $1", [sessionId]);
 egal(await oublierClesApercuSansSession(), 1, "session fermée : le ménage de nuit oublie la clé");
 egal(await lireCle(JETON_COMPTE), null, "et elle n'est plus en base");
+
+await inserer("sessions_comptes", { empreinte: "9".repeat(64), compte_id: compteId, support: "app" });
+await inscrireAppareil(telephone(JETON_COMPTE, true, { compteId, empreinteSession: "9".repeat(64), cleApercu: cle }), minute(15), apercus);
+const v2 = creerChiffrementDonnees(randomBytes(32), { version: 2, anciennes: [{ version: 1, cle: cleDonnees }] });
+const bilan = await rechiffrerSocial(v2, creerStockageMediasChatEnMemoire(), essai.baseDeDonnees);
+egal([bilan?.illisibles, bilan?.restants], [0, 0], "changement de clé : le rechiffrement de nuit reprend aussi la clé d'aperçu");
+const rechiffree = await lireCle(JETON_COMPTE);
+egal(rechiffree?.startsWith("v2:"), true, "écrite avec la nouvelle clé");
+const apercusV2 = creerApercusPush(creerChiffrementSocial(v2))!;
+egal(typeof apercusV2.chiffrerPour({ titre: "💬 Léa", texte: "Coucou" }, { jeton: JETON_COMPTE, cleApercuChiffree: rechiffree! }), "string", "et toujours relisible pour ce téléphone");
 
 const autres = await essai.sql("SELECT jeton, offres_acceptees FROM appareils_push WHERE jeton <> ALL($1) ORDER BY jeton", [[JETON_LEA, JETON_ANCIEN, JETON_ENTRE_DEUX, JETON_COMPTE]]);
 egal(autres, [{ jeton: JETON_MAX, offres_acceptees: "t" }], "chaque téléphone garde son propre accord");

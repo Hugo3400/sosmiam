@@ -135,6 +135,12 @@ test("client GIPHY : en panne, trop lent ou au plafond de l'heure → indisponib
   heure += 60 * 60_000 + 1;
   assert.deepEqual(await partage.chercher("d", 0, 7), [], "une heure après, il peut de nouveau");
   assert.equal(parCompte.appels.length, 4);
+  for (const [plafond, attendu] of [[100, 20], [50, 10], [10, 5], [3, 3]] as const) {
+    const essai = fauxGiphy(() => ({ corps: { data: [] } }));
+    const client = creerClientGiphy({ cle: CLE, fetch: essai.faux, appelsParHeure: plafond });
+    for (let i = 0; i < 30; i++) await client.chercher(`mot${i}`, 0, 9);
+    assert.equal(essai.appels.length, attendu, `plafond ${plafond} : ${attendu} par compte (un cinquième, 5 au moins, jamais plus que la clé)`);
+  }
   const ecrit = JSON.stringify(journal.mock.calls.map((c) => c.arguments));
   assert.ok(journal.mock.callCount() >= 3);
   assert.ok(!ecrit.includes(CLE) && !ecrit.includes("api_key"), "jamais la clé");

@@ -74,6 +74,23 @@ test("client HTTP : en-têtes en plus (Idempotency-Key), sans jamais remplacer l
   assert.deepEqual(appels[1].entetes, { Accept: "application/json", Authorization: "Bearer jeton-1" });
 });
 
+test("client HTTP : la version de l'app part à chaque demande, et un appelant ne peut pas la changer", async () => {
+  const { appels, faux } = fauxServeur(() => json(200, { ok: true }));
+  const client = creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "jeton-1", fetch: faux, versionApp: "1.0.2" });
+  await client.demander("GET", "/app/conversations");
+  await client.demander("POST", "/app/conversations/groupes", { corps: {}, entetes: { "X-Version-App": "9.9.9", "x-version-app": "0.0.1" } });
+  assert.deepEqual(appels.map((a) => a.entetes["X-Version-App"]), ["1.0.2", "1.0.2"]);
+  assert.ok(appels.every((a) => !("x-version-app" in a.entetes)));
+  const sansVersion = fauxServeur(() => json(200, { ok: true }));
+  await creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => null, fetch: sansVersion.faux }).demander("GET", "/x");
+  assert.equal("X-Version-App" in sansVersion.appels[0]!.entetes, false, "sans version donnée (le site) : rien");
+  const octets: Record<string, string>[] = [];
+  const fauxOctets = (async (_url: string, init: RequestInit) => (octets.push(init.headers as Record<string, string>), json(201, { ok: true }))) as unknown as typeof fetch;
+  await creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "jeton-1", fetch: fauxOctets, versionApp: "1.0.2" })
+    .envoyerOctets("/app/conversations/1/medias", new Uint8Array([1, 2, 3]), "image/jpeg");
+  assert.equal(octets[0]!["X-Version-App"], "1.0.2", "aussi pour une photo ou une note vocale");
+});
+
 test("services sociaux : les adresses et les corps des routes du profil social, des personnes, des masques et de la cloche", async () => {
   const { appels, faux } = fauxServeur(() => json(200, { ok: true }));
   const { social, cloche } = creerServicesSociauxApi(creerClientHttp({ adresse: "https://api.exemple.fr", lireJeton: () => "jeton-1", fetch: faux }));

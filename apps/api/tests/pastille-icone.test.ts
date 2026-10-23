@@ -13,7 +13,7 @@ const { brancherPastillePush, prevenirCompte, prevenirCompteEtCompter } = await 
 
 const MESSAGE: MessagePush = { titre: "💬 Léa", texte: "Nouveau message. Viens voir !", lien: "/potes/discussion/3", regroupement: "conversation:3" };
 
-function table(telephones: { id: number; jeton: string; plateforme: string }[]) {
+function table(telephones: { id: number; jeton: string; plateforme: string; cleApercuChiffree?: string | null }[]) {
   return {
     findMany: async () => telephones,
     update: async () => undefined,
@@ -33,7 +33,7 @@ test("pastille : aps.badge chez Apple, android.notification.notification_count c
 test("prevenirCompte : la pastille du compte lue une fois pour tous ses téléphones ; en panne ou pas branchée, la notification part sans elle", async (t) => {
   const envois: { jeton: string; badge?: number }[] = [];
   const envoyer = async (appareil: { jeton: string }, message: MessagePush) => (envois.push({ jeton: appareil.jeton, badge: message.badge }), "envoyee" as const);
-  const deux = table([{ id: 1, jeton: "iphone", plateforme: "ios" }, { id: 2, jeton: "android", plateforme: "android" }]);
+  const deux = table([{ id: 1, jeton: "iphone", plateforme: "ios", cleApercuChiffree: "v1:a" }, { id: 2, jeton: "android", plateforme: "android", cleApercuChiffree: "v1:b" }]);
   let lectures = 0;
   const lire = async (compteId: number) => (lectures += 1, compteId === 7 ? 12 : 0);
   assert.equal(await prevenirCompteEtCompter(7, MESSAGE, envoyer, deux, lire), 2);
@@ -59,6 +59,21 @@ test("prevenirCompte : la pastille du compte lue une fois pour tous ses téléph
   } finally {
     brancherPastillePush(null);
   }
+});
+
+test("prevenirCompte : jamais de pastille pour un téléphone sans clé d'aperçu (une app d'avant la 1.0.2 ne la remet pas à zéro)", async () => {
+  const envois: { jeton: string; badge?: number }[] = [];
+  const envoyer = async (appareil: { jeton: string }, message: MessagePush) => (envois.push({ jeton: appareil.jeton, badge: message.badge }), "envoyee" as const);
+  let lectures = 0;
+  const lire = async () => (lectures += 1, 6);
+  await prevenirCompte(7, MESSAGE, envoyer, table([{ id: 1, jeton: "ancien", plateforme: "ios", cleApercuChiffree: null }]), lire);
+  assert.deepEqual([envois, lectures], [[{ jeton: "ancien", badge: undefined }], 0], "aucun téléphone ne s'en servirait : la pastille n'est même pas lue");
+  envois.length = 0;
+  await prevenirCompte(7, { ...MESSAGE, badge: 3 }, envoyer, table([{ id: 1, jeton: "ancien", plateforme: "ios", cleApercuChiffree: null }, { id: 2, jeton: "neuf", plateforme: "ios", cleApercuChiffree: "v1:c" }]), lire);
+  assert.deepEqual(envois, [{ jeton: "ancien", badge: undefined }, { jeton: "neuf", badge: 3 }], "même posée par l'appelant");
+  envois.length = 0;
+  await prevenirCompte(7, MESSAGE, envoyer, table([{ id: 1, jeton: "ancien", plateforme: "android", cleApercuChiffree: null }, { id: 2, jeton: "neuf", plateforme: "ios", cleApercuChiffree: "v1:c" }]), lire);
+  assert.deepEqual([envois, lectures], [[{ jeton: "ancien", badge: undefined }, { jeton: "neuf", badge: 6 }], 1]);
 });
 
 let banc: Awaited<ReturnType<typeof creerBancSocial>>;

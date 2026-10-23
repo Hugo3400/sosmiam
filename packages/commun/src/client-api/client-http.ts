@@ -17,6 +17,8 @@ export type OptionsClientHttp = {
   surSessionExpiree?: () => void;
   /** Au-delà, la demande est abandonnée et répond « hors-ligne » */
   delaiMs?: number;
+  /** La version de l'app (« 1.0.2 »), envoyée dans X-Version-App : l'API garde sa forme d'avant pour une app qui ne la donne pas */
+  versionApp?: string;
   /** Pour les tests : un faux fetch */
   fetch?: typeof fetch;
 };
@@ -76,7 +78,7 @@ const EQUIVALENTS: Readonly<Record<string, ErreurService>> = {
  * Les en-têtes que le client pose lui-même, ou qui porteraient une autre session : ceux d'un appelant ne passent jamais (en
  * minuscules). L'API lit X-Session-Compte AVANT Authorization (proteger-comptes.ts) : il remplacerait la session sans bruit.
  */
-const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization", "x-session-compte", "cookie"]);
+const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization", "x-session-compte", "cookie", "x-version-app"]);
 
 /** Ce qui peut servir au texte de l'erreur (distance arrondie, nom du lieu…), rien d'autre */
 function lireDetails(corps: Record<string, unknown>): DetailsErreur | undefined {
@@ -104,6 +106,7 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
     const entetes: Record<string, string> = {};
     for (const [nom, valeur] of Object.entries(options.entetes ?? {})) if (!ENTETES_RESERVES.has(nom.toLowerCase())) entetes[nom] = valeur;
     entetes.Accept = "application/json";
+    if (o.versionApp) entetes["X-Version-App"] = o.versionApp;
     if (options.brut) entetes["Content-Type"] = options.brut.type;
     else if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
     if (options.session !== false) {
