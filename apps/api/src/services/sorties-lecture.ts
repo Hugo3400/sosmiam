@@ -6,6 +6,7 @@ import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { assemblerSortie, type DonneesSortie, type LignesSortie } from "../fonctions/social/assembler-sortie.ts";
 import { presenterInvitationSortie } from "../fonctions/social/presenter-invitation-sortie.ts";
 import { presenterSortie } from "../fonctions/social/presenter-sortie.ts";
+import { lireAppCliente } from "../middlewares/app-cliente.ts";
 import type { SortieApi } from "../../../../packages/commun/src/types/sorties.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import { MAX_COMPTEUR_POULS } from "./social-regles.ts";
@@ -30,9 +31,10 @@ export type SortieLue = { lignes: LignesSortie; donnees: DonneesSortie };
 /**
  * Non-lus de la discussion de chacune de ces conversations, pour `compteId` : la règle du pouls (social-pouls.ts) : les
  * messages d'un autre, plus récents que luJusqua et visibleApres, ni supprimés, ni masqués ou retirés par la modération,
- * ni d'une personne avec qui il y a un blocage ; 99 au plus.
+ * ni d'une personne avec qui il y a un blocage ; 99 au plus. sansSystemes : sans les messages de SOS Miam (une app d'avant
+ * la 1.0.2 ne les voit pas, elle ne pourrait jamais les lire)
  */
-export function construireRequeteNonLusSorties(compteId: number, conversationIds: readonly number[]): Prisma.Sql {
+export function construireRequeteNonLusSorties(compteId: number, conversationIds: readonly number[], sansSystemes = false): Prisma.Sql {
   return Prisma.sql`
     SELECT mc.conversation_id AS "conversationId", (
       SELECT COUNT(*) FROM (
@@ -43,7 +45,7 @@ export function construireRequeteNonLusSorties(compteId: number, conversationIds
           AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (
             SELECT bloque_id FROM blocages WHERE bloqueur_id = ${compteId}
             UNION SELECT bloqueur_id FROM blocages WHERE bloque_id = ${compteId}
-          ))
+          ))${sansSystemes ? Prisma.sql` AND m.systeme IS NULL` : Prisma.empty}
         LIMIT ${MAX_COMPTEUR_POULS}
       ) AS visibles
     )::int AS "nonLus"
@@ -72,7 +74,9 @@ export function creerLectureSorties(relations: RelationsSociales, base = baseDeD
   /** Les non-lus de chaque discussion (conversationId → nombre) */
   async function compterNonLus(compteId: number, conversationIds: readonly number[]): Promise<Map<number, number>> {
     if (conversationIds.length === 0) return new Map();
-    const lignes = await base.$queryRaw<{ conversationId: number; nonLus: number }[]>(construireRequeteNonLusSorties(compteId, conversationIds));
+    const lignes = await base.$queryRaw<{ conversationId: number; nonLus: number }[]>(
+      construireRequeteNonLusSorties(compteId, conversationIds, lireAppCliente().ancienneApp === true),
+    );
     return new Map(lignes.map((l) => [l.conversationId, l.nonLus]));
   }
   /** Toutes les personnes de ces sorties, en petit */

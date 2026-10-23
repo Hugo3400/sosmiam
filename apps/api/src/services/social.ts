@@ -335,7 +335,7 @@ export function creerSocial(o: { relations: RelationsSociales; tirer: (max: numb
       });
     },
 
-    lirePouls: (compteId, maintenant) => lirePoulsSocial(base, compteId, maintenant),
+    lirePouls: (compteId, maintenant, app) => lirePoulsSocial(base, compteId, maintenant, app),
   };
   return social;
 }

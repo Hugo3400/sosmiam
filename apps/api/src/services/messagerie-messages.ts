@@ -14,6 +14,7 @@ import { ecrireApercuMessage } from "../fonctions/social/ecrire-apercu-message.t
 import { ecrirePushMention } from "../fonctions/social/ecrire-push-mention.ts";
 import { ecrirePushMessage } from "../fonctions/social/ecrire-push-message.ts";
 import { trouverMentionnes } from "../fonctions/social/trouver-mentionnes.ts";
+import { lireAppCliente } from "../middlewares/app-cliente.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 import { exigerChiffrement, lireTitre, type AccesConversation, type LectureMessagerie } from "./messagerie-lecture.ts";
 import type {
@@ -208,7 +209,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
      * la position est gardée (les non-lus), jamais l'heure de lecture. Une app d'avant la 1.0.2 ne voit pas les messages de
      * SOS Miam : sa lecture couvre aussi ceux qui suivent tout de suite le dernier qu'elle a lu, et ne montre jamais de « Vu »
      */
-    async marquerLu(moi: number, conversationId: number, jusqua: number, maintenant: Date, app: AppCliente = {}): Promise<boolean> {
+    async marquerLu(moi: number, conversationId: number, jusqua: number, maintenant: Date, app: AppCliente = lireAppCliente()): Promise<boolean> {
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) return false;
       const { caches } = await c.relations.listerBlocages(moi);
@@ -244,7 +245,7 @@ export function creerMessagesMessagerie(c: ContexteMessagerie, lecture: LectureM
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) return false;
       const dernier = (await c.depot.lire.lireDerniersIds([conversationId])).get(conversationId) ?? 0;
-      if (dernier > 0) await c.depot.ecrire((t) => t.avancerMembre(conversationId, moi, { visibleApres: dernier, luJusqua: dernier }));
+      if (dernier > 0) await c.depot.ecrire((t) => t.avancerMembre(conversationId, moi, { visibleApres: dernier, luJusqua: dernier, luLe: null }));
       return true;
     },
 

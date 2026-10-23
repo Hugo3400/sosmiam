@@ -211,9 +211,10 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
         return ids.length > 0 ? [[id, Math.max(...ids)] as const] : [];
       }));
     },
-    async compterNonLus(compteId, conversations, caches, max) {
+    async compterNonLus(compteId, conversations, caches, max, sansSystemes = false) {
       return new Map(conversations.map(({ id, depuis }) => [id, Math.min(max, messagesDe(id).filter((m) =>
-        m.id > depuis && m.auteurId !== compteId && !m.supprimeLe && !m.suspenduLe && !m.retireLe && (m.auteurId === null || !caches.has(m.auteurId))).length)]));
+        m.id > depuis && m.auteurId !== compteId && !m.supprimeLe && !m.suspenduLe && !m.retireLe && (m.auteurId === null || !caches.has(m.auteurId))
+        && (!sansSystemes || m.systeme === null)).length)]));
     },
     async insererMessage(m) {
       if (messagesDe(m.conversationId).some((x) => x.idClient === m.idClient)) return null;

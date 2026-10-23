@@ -8,6 +8,7 @@ import { assemblerSortie, type DonneesSortie } from "../fonctions/social/assembl
 import { construireEffetsSortie } from "../fonctions/social/construire-effets-sortie.ts";
 import { presenterInvitationSortie } from "../fonctions/social/presenter-invitation-sortie.ts";
 import { presenterSortie } from "../fonctions/social/presenter-sortie.ts";
+import { lireAppCliente } from "../middlewares/app-cliente.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 import type { RelationsSociales } from "./relations-sociales-regles.ts";
 import { MAX_COMPTEUR_POULS } from "./social-regles.ts";
@@ -42,8 +43,9 @@ export function creerSortiesEnMemoire(tables: TablesSociales, relations: Relatio
     const membre = tables.membres.find((m) => m.conversationId === conversationId && m.compteId === moi);
     if (!membre) return 0;
     const depuis = Math.max(membre.luJusqua, membre.visibleApres);
+    const sansSystemes = lireAppCliente().ancienneApp === true;
     const n = [...tables.messages.values()].filter((m) => m.conversationId === conversationId && m.id > depuis && m.auteurId !== moi
-      && !m.supprimeLe && !m.suspenduLe && !m.retireLe && (m.auteurId === null || !caches.has(m.auteurId))).length;
+      && !m.supprimeLe && !m.suspenduLe && !m.retireLe && (m.auteurId === null || !caches.has(m.auteurId)) && (!sansSystemes || m.systeme === null)).length;
     return Math.min(MAX_COMPTEUR_POULS, n);
   }
 

@@ -15,6 +15,7 @@ import { calculerClePrive } from "../fonctions/social/calculer-cle-prive.ts";
 import { ecrirePushGroupe } from "../fonctions/social/ecrire-push-groupe.ts";
 import { ecrireCurseurDate } from "../fonctions/social/ecrire-curseur-date.ts";
 import { lireCurseurDate } from "../fonctions/social/lire-curseur-date.ts";
+import { lireAppCliente } from "../middlewares/app-cliente.ts";
 import type { EffetSocial } from "./effets-sociaux-regles.ts";
 import { creerLieuxEnvoyes, type AssurerPrive } from "./lieux-envoyes.ts";
 import { creerLectureMessagerie, exigerChiffrement, lireTitre, type AccesConversation } from "./messagerie-lecture.ts";
@@ -111,7 +112,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
   }
 
   const services: Omit<ServicesMessagerie, "envoyerLieu" | "listerLieuxRecus" | "listerLieuxEnvoyes" | "marquerLieuxVus"> = {
-    async listerConversations(moi, apres, maintenant, app = {}) {
+    async listerConversations(moi, apres, maintenant, app = lireAppCliente()) {
       const lignes = await lire.listerMesConversations(moi, lireCurseurDate(apres) ?? null, CONVERSATIONS_PAR_PAGE + 1);
       const page = lignes.slice(0, CONVERSATIONS_PAR_PAGE);
       const dernier = page.at(-1);
@@ -126,7 +127,7 @@ export function creerMessagerie(c: ContexteMessagerie): ServicesMessagerie {
       return { conversations, invitations, suite, epinglees };
     },
 
-    async lireFil(moi, conversationId, o, maintenant, app = {}) {
+    async lireFil(moi, conversationId, o, maintenant, app = lireAppCliente()) {
       const acces = await lecture.lireAcces(moi, conversationId);
       if (!acces) {
         const invitation = (await lire.lireInvitations([conversationId])).find((i) => i.compteId === moi && i.statut === "invite");

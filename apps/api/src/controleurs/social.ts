@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 
 import { CIBLES_MASQUE } from "../../../../packages/commun/src/regles/potes.ts";
 import type { CibleMasque, ReglagesMessagerie, ReglagesSociaux } from "../../../../packages/commun/src/types/social.ts";
+import { lireAppCliente } from "../middlewares/app-cliente.ts";
 import { lireProfilSocialPose } from "../middlewares/profil-social.ts";
 import { FORME_CIBLE_ID_MASQUE, FORME_DEBUT_PSEUDO } from "../services/social-regles.ts";
 import type { DependancesSocialApp } from "../routes/social-app.ts";
@@ -53,7 +54,7 @@ export function creerControleursSocial(d: DependancesSocialApp, horloge: () => n
 
     /** GET /app/social/pouls */
     async lirePouls(_requete: Request, reponse: Response) {
-      reponse.json({ ok: true, pouls: await d.social.lirePouls(moi(reponse), maintenant()) });
+      reponse.json({ ok: true, pouls: await d.social.lirePouls(moi(reponse), maintenant(), lireAppCliente()) });
     },
 
     /** POST /app/personnes/recherche { debut } : « @ » retiré, en minuscules, 2 à 20 caractères */

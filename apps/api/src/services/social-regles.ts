@@ -7,6 +7,7 @@ import type {
   CibleMasque, MoiSocial, PersonneResume, PoulsSocial, ProfilCommunautaireApi, ReglagesMessagerie, ReglagesSociaux, SuggestionPersonneApi,
 } from "../../../../packages/commun/src/types/social.ts";
 import type { PageLiensSuiviApi } from "../../../../packages/commun/src/types/suivis.ts";
+import type { AppCliente } from "./messagerie-regles.ts";
 
 export type ResultatRecherchePersonne = { personne: PersonneResume; pote: boolean; prive: boolean };
 
@@ -62,7 +63,8 @@ export interface ServicesSocial {
   /** 2 000 au plus par compte (MAX_MASQUES), comptés sous le verrou du compte ; masque faux : « Annuler » */
   masquer(compteId: number, cible: CibleMasque, cibleId: string, masque: boolean): Promise<{ ok: true } | { ok: false; erreur: "trop-de-masques" }>;
   /** C.2 ; sans profil social : tout à zéro et signatures vides, sauf la cloche */
-  lirePouls(compteId: number, maintenant: Date): Promise<PoulsSocial>;
+  /** app.ancienneApp : sans les messages de SOS Miam dans les non-lus (une app d'avant la 1.0.2 ne les voit pas) */
+  lirePouls(compteId: number, maintenant: Date, app?: AppCliente): Promise<PoulsSocial>;
 }
 
 /** Résultats de la recherche par pseudo */

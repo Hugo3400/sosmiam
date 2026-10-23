@@ -134,7 +134,7 @@ export interface TablesMessagerie {
   /** Le plus grand id de message de chaque conversation (tous les messages) */
   lireDerniersIds(conversationIds: readonly number[]): Promise<Map<number, number>>;
   /** Messages d'un autre que moi après `depuis`, ni supprimés, ni masqués, ni retirés, ni d'un compte caché ; `max` au plus */
-  compterNonLus(compteId: number, conversations: readonly { id: number; depuis: number }[], caches: ReadonlySet<number>, max: number): Promise<Map<number, number>>;
+  compterNonLus(compteId: number, conversations: readonly { id: number; depuis: number }[], caches: ReadonlySet<number>, max: number, sansSystemes?: boolean): Promise<Map<number, number>>;
   /** null : ce idClient est déjà pris dans cette conversation (envoi rejoué en même temps) */
   insererMessage(m: Omit<LigneMessage, "id">): Promise<LigneMessage | null>;
   modifierMessage(id: number, m: Partial<Pick<LigneMessage, "texteChiffre" | "fichier" | "supprimeLe" | "modifieLe">>): Promise<void>;

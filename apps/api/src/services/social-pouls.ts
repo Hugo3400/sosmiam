@@ -8,6 +8,7 @@
 // que par l'égalité : elle change quand il faut relire.
 import { Prisma } from "../base-de-donnees/client-genere/client.ts";
 import type { PoulsSocial } from "../../../../packages/commun/src/types/social.ts";
+import type { AppCliente } from "./messagerie-regles.ts";
 import { MAX_COMPTEUR_POULS } from "./social-regles.ts";
 
 /** Une ligne de la requête du pouls (les dates sont celles de PostgreSQL, null quand il n'y a rien) */
@@ -40,7 +41,7 @@ export type LignePouls = {
  * visibleApres, ni supprimés, ni masqués ou retirés par la modération, ni d'une personne avec qui il y a un blocage ; 99 au
  * plus par conversation. Privés et groupes dans « messages », discussions des sorties dans « sorties ».
  */
-export function construireRequetePouls(compteId: number, maintenant: Date): Prisma.Sql {
+export function construireRequetePouls(compteId: number, maintenant: Date, sansSystemes = false): Prisma.Sql {
   return Prisma.sql`
     WITH caches AS (
       SELECT bloque_id AS id FROM blocages WHERE bloqueur_id = ${compteId}
@@ -59,7 +60,7 @@ export function construireRequetePouls(compteId: number, maintenant: Date): Pris
           WHERE m.conversation_id = conv.id AND m.id > conv.depuis
             AND m.auteur_id IS DISTINCT FROM ${compteId}
             AND m.supprime_le IS NULL AND m.suspendu_le IS NULL AND m.retire_le IS NULL
-            AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (SELECT id FROM caches))
+            AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (SELECT id FROM caches))${sansSystemes ? Prisma.sql` AND m.systeme IS NULL` : Prisma.empty}
           LIMIT ${MAX_COMPTEUR_POULS}
         ) AS visibles
       ) AS n
@@ -141,8 +142,10 @@ export function presenterPouls(l: LignePouls): PoulsSocial {
 }
 
 /** Le pouls d'un compte, dans la base (`base` : baseDeDonnees, passée par social.ts) */
-export async function lirePoulsSocial(base: { $queryRaw: <T>(requete: Prisma.Sql) => Promise<T> }, compteId: number, maintenant: Date): Promise<PoulsSocial> {
-  const [ligne] = await base.$queryRaw<LignePouls[]>(construireRequetePouls(compteId, maintenant));
+export async function lirePoulsSocial(
+  base: { $queryRaw: <T>(requete: Prisma.Sql) => Promise<T> }, compteId: number, maintenant: Date, app: AppCliente = {},
+): Promise<PoulsSocial> {
+  const [ligne] = await base.$queryRaw<LignePouls[]>(construireRequetePouls(compteId, maintenant, app.ancienneApp === true));
   if (!ligne) throw new Error("Pouls illisible");
   return presenterPouls(ligne);
 }

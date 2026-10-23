@@ -19,6 +19,7 @@ import { lireComplementsMessages } from "./messagerie-complements.ts";
 import type {
   AppCliente, ContexteMessagerie, LigneConversation, LigneInvitationGroupe, LigneMembre, LigneMessage, LireMessageVisible, MessageVisible, TablesMessagerie,
 } from "./messagerie-regles.ts";
+import { lireAppCliente } from "../middlewares/app-cliente.ts";
 import { MAX_COMPTEUR_POULS } from "./social-regles.ts";
 
 /** Ce qu'il faut pour agir dans une conversation dont on est membre */
@@ -117,7 +118,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
    * une app d'avant la 1.0.2, un GIF ou un sondage devient un petit texte qui invite à mettre l'app à jour
    */
   async function presenterMessages(
-    moi: number, lignes: readonly LigneMessage[], caches: ReadonlySet<number>, maintenant: Date, exclus?: ReadonlySet<number>, app: AppCliente = {},
+    moi: number, lignes: readonly LigneMessage[], caches: ReadonlySet<number>, maintenant: Date, exclus?: ReadonlySet<number>, app: AppCliente = lireAppCliente(),
   ): Promise<MessageApi[]> {
     if (lignes.length === 0) return [];
     const chiffrement = exigerChiffrement(c);
@@ -165,6 +166,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
   ): Promise<ConversationApi[]> {
     if (conversations.length === 0) return [];
     const chiffrement = exigerChiffrement(c);
+    const ancienneApp = o.ancienneApp ?? lireAppCliente().ancienneApp === true;
     const ids = conversations.map((x) => x.id);
     const [membres, invitations, blocages, exclus] = await Promise.all([
       lire.lireMembres(ids),
@@ -193,10 +195,10 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
       });
     }
     const [derniers, nonLus] = await Promise.all([
-      lire.lireDerniersMessages(visibles.map((x) => ({ id: x.id, apres: mien.get(x.id)!.visibleApres })), caches, exclus, o.ancienneApp === true),
-      lire.compterNonLus(moi, visibles.map((x) => ({ id: x.id, depuis: Math.max(mien.get(x.id)!.luJusqua, mien.get(x.id)!.visibleApres) })), caches, MAX_COMPTEUR_POULS),
+      lire.lireDerniersMessages(visibles.map((x) => ({ id: x.id, apres: mien.get(x.id)!.visibleApres })), caches, exclus, ancienneApp),
+      lire.compterNonLus(moi, visibles.map((x) => ({ id: x.id, depuis: Math.max(mien.get(x.id)!.luJusqua, mien.get(x.id)!.visibleApres) })), caches, MAX_COMPTEUR_POULS, ancienneApp),
     ]);
-    const messages = new Map((await presenterMessages(moi, [...derniers.values()], caches, maintenant, exclus, o)).map((m) => [Number(m.id), m]));
+    const messages = new Map((await presenterMessages(moi, [...derniers.values()], caches, maintenant, exclus, { ancienneApp })).map((m) => [Number(m.id), m]));
     const autres = visibles.flatMap((x) => (x.type === "prive" ? (autreDe(x.id)?.compteId ?? []) : []));
     const [liens, personnes, accuses] = await Promise.all([
       c.relations.lireLiens(moi, autres),
@@ -235,7 +237,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
   }
 
   /** Une conversation dont je suis membre, présentée ; null sinon */
-  async function presenterUne(moi: number, conversationId: number, maintenant: Date, app: AppCliente = {}): Promise<ConversationApi | null> {
+  async function presenterUne(moi: number, conversationId: number, maintenant: Date, app: AppCliente = lireAppCliente()): Promise<ConversationApi | null> {
     const conversation = (await lire.lireConversations([conversationId])).get(conversationId);
     return conversation ? ((await presenterConversations(moi, [conversation], maintenant, app))[0] ?? null) : null;
   }

@@ -27,6 +27,7 @@ import { Router, type RequestHandler } from "express";
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerAppliquerEffetsSociaux } from "../controleurs/effets-sociaux.ts";
 import { gererRefusSociaux } from "../controleurs/social-champs.ts";
+import { poserAppCliente } from "../middlewares/app-cliente.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { creerProfilSocialMiddlewares, type ProfilSocialMiddlewares } from "../middlewares/profil-social.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
@@ -150,7 +151,7 @@ export function creerRoutesSocialesApp(d: DependancesSocialApp, protection: Prot
   const routes = Router();
   /** Session obligatoire, jamais en cache, puis les adresses du domaine et ses refus en JSON */
   const monter = (chemin: string, domaine: Router) =>
-    routes.use(chemin, limiteConnectee, protection.exigerCompte, sansCache, domaine, gererRefusSociaux, gererErreursComptes);
+    routes.use(chemin, poserAppCliente, limiteConnectee, protection.exigerCompte, sansCache, domaine, gererRefusSociaux, gererErreursComptes);
 
   const social = creerRoutesSocial(d, contexte);
   monter("/social", social.social);

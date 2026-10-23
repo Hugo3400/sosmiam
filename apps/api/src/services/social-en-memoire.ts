@@ -24,7 +24,7 @@ const plusRecentDAbord = <T extends { creeLe: Date }>(lignes: T[]) => [...lignes
 const auPlusTard = (dates: Date[]) => (dates.length === 0 ? null : new Date(Math.max(...dates.map((d) => d.getTime()))));
 
 /** La même ligne que la requête de social-pouls.ts, calculée sur les tables en mémoire */
-function calculerLignePouls(tables: TablesSociales, compteId: number, maintenant: Date): LignePouls {
+function calculerLignePouls(tables: TablesSociales, compteId: number, maintenant: Date, sansSystemes = false): LignePouls {
   const caches = listerCachesEnMemoire(tables, compteId);
   const profil = tables.profils.get(compteId);
   const conversations = tables.membres.flatMap((m) => {
@@ -35,7 +35,7 @@ function calculerLignePouls(tables: TablesSociales, compteId: number, maintenant
     .filter(({ c }) => (c.type === "sortie") === (type === "sorties"))
     .reduce((somme, { c, depuis }) => somme + Math.min(MAX_COMPTEUR_POULS, [...tables.messages.values()].filter((m) =>
       m.conversationId === c.id && m.id > depuis && m.auteurId !== compteId && !m.supprimeLe && !m.suspenduLe && !m.retireLe
-      && (m.auteurId === null || !caches.has(m.auteurId))).length), 0);
+      && (m.auteurId === null || !caches.has(m.auteurId)) && (!sansSystemes || m.systeme === null)).length), 0);
   const privesEtGroupes = conversations.filter(({ c }) => c.type !== "sortie");
   const invitationsGroupes = tables.invitationsGroupes.filter((i) => i.compteId === compteId && i.statut === "invite");
   const sorties = tables.invitationsSorties.flatMap((i) => {
@@ -287,7 +287,7 @@ export function creerSocialEnMemoire(tables: TablesSociales, relations: Relation
       return { ok: true };
     },
 
-    lirePouls: async (compteId, maintenant) => presenterPouls(calculerLignePouls(tables, compteId, maintenant)),
+    lirePouls: async (compteId, maintenant, app = {}) => presenterPouls(calculerLignePouls(tables, compteId, maintenant, app.ancienneApp === true)),
   };
   return social;
 }

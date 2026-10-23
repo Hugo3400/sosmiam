@@ -8,6 +8,7 @@ export const FICHIER_CLE_GIPHY_DEFAUT = "/root/sos-miam-secrets/giphy-cle.txt";
 const ADRESSE_GIPHY = "https://api.giphy.com/v1/gifs";
 export const DELAI_GIPHY_MS = 4_000;
 export const DUREE_CACHE_GIF_MS = 10 * 60_000;
+const BALAYAGE_CACHE_GIF_MS = 60_000;
 const MAX_PAGES_GARDEES = 200;
 const MAX_GIFS_GARDES = 1_000;
 const HEURE_MS = 60 * 60_000;
@@ -33,10 +34,24 @@ export function chargerCleGiphy(chemin: string = process.env.SOS_MIAM_GIPHY_CLE_
   }
 }
 
-function creerMemoire<T>(max: number, duree: number, horloge: () => number) {
+/**
+ * Une petite mémoire à durée de vie (les pages et les GIF lus chez GIPHY) : l'ordre d'écriture est aussi celui des
+ * expirations, les entrées périmées partent dès la lecture ou l'écriture suivante, et au plus tard au balayage de la minute
+ */
+export function creerMemoireLimitee<T>(max: number, duree: number, horloge: () => number) {
   const entrees = new Map<string, { valeur: T; expire: number }>();
+  const oublierPerimees = () => {
+    const maintenant = horloge();
+    for (const [cle, entree] of entrees) {
+      if (entree.expire > maintenant) break;
+      entrees.delete(cle);
+    }
+  };
   return {
+    oublierPerimees,
+    taille: () => entrees.size,
     lire(cle: string): T | undefined {
+      oublierPerimees();
       const entree = entrees.get(cle);
       if (!entree) return undefined;
       if (entree.expire <= horloge()) {
@@ -46,6 +61,7 @@ function creerMemoire<T>(max: number, duree: number, horloge: () => number) {
       return entree.valeur;
     },
     ecrire(cle: string, valeur: T) {
+      oublierPerimees();
       entrees.delete(cle);
       entrees.set(cle, { valeur, expire: horloge() + duree });
       for (const plusAncienne of entrees.keys()) {
@@ -67,8 +83,12 @@ export function creerClientGiphy(o: { cle: string; fetch?: typeof fetch; horloge
   const plafond = o.appelsParHeure ?? APPELS_GIPHY_PAR_HEURE;
   const plafondCompte = o.appelsParCompteParHeure ?? Math.max(5, Math.floor(plafond / 5));
   const parCompte = new Map<number, number[]>();
-  const pages = creerMemoire<GifApi[]>(MAX_PAGES_GARDEES, DUREE_CACHE_GIF_MS, horloge);
-  const gifs = creerMemoire<GifApi>(MAX_GIFS_GARDES, DUREE_CACHE_GIF_MS, horloge);
+  const pages = creerMemoireLimitee<GifApi[]>(MAX_PAGES_GARDEES, DUREE_CACHE_GIF_MS, horloge);
+  const gifs = creerMemoireLimitee<GifApi>(MAX_GIFS_GARDES, DUREE_CACHE_GIF_MS, horloge);
+  setInterval(() => {
+    pages.oublierPerimees();
+    gifs.oublierPerimees();
+  }, BALAYAGE_CACHE_GIF_MS).unref();
   const enCours = new Map<string, Promise<GifApi[] | "indisponible">>();
   const appels: number[] = [];
 

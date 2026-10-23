@@ -130,7 +130,7 @@ export function creerTablesMessages(base: Client): Messages {
       const groupes = await base.messageConversation.groupBy({ by: ["conversationId"], where: { conversationId: { in: [...conversationIds] } }, _max: { id: true } });
       return new Map(groupes.flatMap((g) => (g._max.id === null ? [] : [[g.conversationId, g._max.id] as const])));
     },
-    async compterNonLus(moi, conversations, caches, max) {
+    async compterNonLus(moi, conversations, caches, max, sansSystemes = false) {
       if (conversations.length === 0) return new Map();
       const valeurs = Prisma.join(conversations.map((c) => Prisma.sql`(${c.id}::int, ${c.depuis}::int)`));
       const lignes = await base.$queryRaw<{ id: number; n: number }[]>`
@@ -139,7 +139,7 @@ export function creerTablesMessages(base: Client): Messages {
             SELECT 1 FROM messages_conversations m
             WHERE m.conversation_id = v.cid AND m.id > v.depuis AND m.auteur_id IS DISTINCT FROM ${moi}
               AND m.supprime_le IS NULL AND m.suspendu_le IS NULL AND m.retire_le IS NULL
-              AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (${liste(caches)}))
+              AND (m.auteur_id IS NULL OR m.auteur_id NOT IN (${liste(caches)}))${sansSystemes ? Prisma.sql` AND m.systeme IS NULL` : Prisma.empty}
             LIMIT ${max}
           ) AS visibles
         )::int AS n
