@@ -11,7 +11,7 @@ export const documentMentionsLegales: DocumentLegal = {
   titre: "Mentions légales",
   description:
     "Qui édite SOS Miam, qui l'héberge, comment nous écrire ou signaler un contenu illicite : toutes les mentions légales du site sosmiam.fr.",
-  miseAJour: "14 octobre 2026",
+  miseAJour: "23 octobre 2026",
   introduction: [
     "Qui se cache derrière SOS Miam, qui héberge le site et comment nous joindre : c'est la page la plus sérieuse du site, mais on a fait en sorte qu'elle reste digeste.",
     `Ces mentions s'appliquent au site **${site.adresse}** et à ses sous-domaines.`,
