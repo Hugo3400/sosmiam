@@ -16,7 +16,7 @@ export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
   {
     version: "1.0.2",
     libelle: "1.0.2",
-    date: null,
+    date: "23 octobre 2026",
     titre: "Ta messagerie fait peau neuve",
     points: [
       { emoji: "💬", titre: "Les messages ont leur onglet", detail: "En premier dans Communauté, avec une pastille pour les non-lus." },

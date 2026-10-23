@@ -109,6 +109,7 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
       const membre = membreDe(conversationId, compteId);
       if (!membre) return;
       if (m.luJusqua !== undefined && m.luJusqua > membre.luJusqua) Object.assign(membre, { luJusqua: m.luJusqua }, m.luLe !== undefined ? { luLe: m.luLe } : {});
+      if (m.luLe === null) membre.luLe = null;
       if (m.visibleApres !== undefined) membre.visibleApres = Math.max(membre.visibleApres, m.visibleApres);
     },
     async retirerMembre(conversationId, compteId) {
@@ -205,9 +206,9 @@ export function creerTablesMessagerieEnMemoire(tables: TablesSociales, relations
         return dernier ? [[id, versMessage(dernier)] as const] : [];
       }));
     },
-    async lireDerniersIds(conversationIds) {
+    async lireDerniersIds(conversationIds, sansSystemes = false) {
       return new Map(conversationIds.flatMap((id) => {
-        const ids = messagesDe(id).map((m) => m.id);
+        const ids = messagesDe(id).filter((m) => !sansSystemes || m.systeme === null).map((m) => m.id);
         return ids.length > 0 ? [[id, Math.max(...ids)] as const] : [];
       }));
     },

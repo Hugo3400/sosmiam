@@ -184,7 +184,7 @@ export function creerLectureMessagerie(c: ContexteMessagerie) {
     });
     if (o.sansEffacees) {
       const [derniersIds, reperes] = await Promise.all([
-        lire.lireDerniersIds(visibles.map((x) => x.id)),
+        lire.lireDerniersIds(visibles.map((x) => x.id), ancienneApp),
         lire.lireMessages(visibles.map((x) => mien.get(x.id)!.visibleApres).filter((v) => v > 0)),
       ]);
       visibles = visibles.filter((x) => {

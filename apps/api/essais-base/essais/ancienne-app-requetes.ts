@@ -1,7 +1,9 @@
 import "../socle/garde-fou.ts";
 import { construireRequetePouls } from "../../src/services/social-pouls.ts";
 import { construireRequeteNonLusSorties } from "../../src/services/sorties-lecture.ts";
+import { creerTablesMessagerie } from "../../src/services/messagerie-tables.ts";
 import { creerTablesMessages } from "../../src/services/messagerie-tables-messages.ts";
+import { creerStockageMediasChatEnMemoire } from "../../src/services/stockage-medias-chat.ts";
 import { creerBaseEnMemoire } from "../socle/base-en-memoire.ts";
 import { creerVerifications, terminerEssai } from "../socle/verifications.ts";
 
@@ -50,5 +52,15 @@ const cloche = async (ancienneApp: boolean) => {
   return [Number(ligne!.clocheNonVues), Number(ligne!.clocheNombre)];
 };
 egal([await cloche(false), await cloche(true)], [[4, 4], [3, 3]], "cloche : sans la mention d'une discussion pour une ancienne app, les autres restent (cible vide comprise)");
+
+const derniersIds = async (sansSystemes: boolean) => [...(await t.lireDerniersIds([1, 2], sansSystemes))].sort();
+egal([await derniersIds(false), await derniersIds(true)], [[[1, 2], [2, 3]], [[1, 1]]], "derniers ids : sans les messages de SOS Miam pour une ancienne app");
+
+const tables = creerTablesMessagerie(essai.base as never, {} as never, creerStockageMediasChatEnMemoire());
+const luLe = async () => (await q(`SELECT lu_jusqua, lu_le FROM membres_conversations WHERE conversation_id = 1 AND compte_id = 10`))[0]!;
+await tables.avancerMembre(1, 10, { luJusqua: 1, luLe: new Date("2026-10-23T10:05:00Z") });
+egal([Number((await luLe()).lu_jusqua), (await luLe()).lu_le !== null], [1, true], "une lecture avec son heure");
+await tables.avancerMembre(1, 10, { visibleApres: 1, luJusqua: 1, luLe: null });
+egal([Number((await luLe()).lu_jusqua), (await luLe()).lu_le], [1, null], "effacer pour soi sans rien de neuf : l'heure est oubliée quand même");
 
 await terminerEssai(import.meta.url, essai, verifications.nombre);

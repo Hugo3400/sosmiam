@@ -125,9 +125,11 @@ export function creerTablesMessages(base: Client): Messages {
         ) m`;
       return new Map(lignes.map((l) => [l.conversationId, convertirLigneMessage(l)]));
     },
-    async lireDerniersIds(conversationIds) {
+    async lireDerniersIds(conversationIds, sansSystemes = false) {
       if (conversationIds.length === 0) return new Map();
-      const groupes = await base.messageConversation.groupBy({ by: ["conversationId"], where: { conversationId: { in: [...conversationIds] } }, _max: { id: true } });
+      const groupes = await base.messageConversation.groupBy({
+        by: ["conversationId"], where: { conversationId: { in: [...conversationIds] }, ...(sansSystemes ? { systeme: null } : {}) }, _max: { id: true },
+      });
       return new Map(groupes.flatMap((g) => (g._max.id === null ? [] : [[g.conversationId, g._max.id] as const])));
     },
     async compterNonLus(moi, conversations, caches, max, sansSystemes = false) {

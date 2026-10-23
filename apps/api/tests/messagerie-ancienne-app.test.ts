@@ -59,6 +59,8 @@ test("adapterMessageAncienneApp : un GIF ou un sondage devient un petit texte (r
   const vote = adapterMessageAncienneApp({ ...base, type: "vote", texte: "On mange où ?", vote: { finLe: base.date, closLe: null, gagnant: null, options: [], monVote: null, votants: 0 } });
   assert.deepEqual([vote.type, vote.texte, "vote" in vote], ["texte", "🍝 On mange où ? Mets l'app à jour pour voter.", false]);
   assert.equal(adapterMessageAncienneApp({ ...base, type: "gif", texte: null, etat: "supprime" }).texte, null);
+  const clos = adapterMessageAncienneApp({ ...base, type: "vote", texte: "On mange où ?", vote: { finLe: base.date, closLe: base.date, gagnant: 1, options: [], monVote: null, votants: 2 } });
+  assert.equal(clos.texte, "🍝 Le vote est fini : mets l'app à jour pour voir qui gagne.", "clos : comme la notification de fin");
 });
 
 test("app d'avant la 1.0.2 : ni message de SOS Miam, ni GIF, ni sondage tels quels ; la 1.0.2 voit tout", async () => {
@@ -176,6 +178,31 @@ test("app d'avant la 1.0.2 : les réponses des gestes sur une conversation (ouvr
   assert.deepEqual([ancienne.type, ancienne.texte, "gif" in ancienne], ["texte", "🎞️ Un GIF t'attend : mets l'app à jour pour le voir.", false]);
   const neuve = (await moi.demander("POST", "/app/conversations/prive", { personne: lea.idPublic })).corps.conversation.dernierMessage as MessageApi;
   assert.equal(neuve.type, "gif");
+});
+
+test("« Effacer pour moi » efface l'heure de lecture, même quand tout était déjà lu", async () => {
+  const { lea, moi, id } = await groupe();
+  const message = await ecrire(lea, id, "Coucou");
+  await moi.demander("PUT", `/app/conversations/${id}/lu`, { jusqua: message.id });
+  const avant = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === moi.idPublic);
+  assert.equal(avant.luJusqua, message.id);
+  assert.equal((await moi.demander("POST", `/app/conversations/${id}/effacer`)).statut, 200);
+  const apres = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === moi.idPublic);
+  assert.equal(apres.luJusqua, undefined);
+  assert.equal(banc.tables.membres.find((m) => m.conversationId === Number(id) && m.compteId === moi.compteId)!.luLe, null);
+});
+
+test("app d'avant la 1.0.2 : un groupe effacé pour soi ne revient pas, vide, pour un message de SOS Miam", async () => {
+  const { lea, moi, id } = await groupe();
+  banc.horloge.maintenant += 60_000;
+  await ecrire(lea, id, "Coucou");
+  assert.equal((await moi.demanderAncienne("POST", `/app/conversations/${id}/effacer`)).statut, 200);
+  const ids = async (ancienne: boolean) =>
+    ((ancienne ? await moi.demanderAncienne("GET", "/app/conversations") : await moi.demander("GET", "/app/conversations")).corps.conversations as { id: string }[]).map((c) => c.id);
+  assert.deepEqual([(await ids(true)).includes(id), (await ids(false)).includes(id)], [false, false], "effacé pour les deux");
+  await poserSysteme(id, "🏁 Le sondage est clos.");
+  assert.equal((await ids(true)).includes(id), false, "la 1.0.1 ne voit rien de neuf : le groupe reste effacé");
+  assert.equal((await ids(false)).includes(id), true, "la 1.0.2 voit le message de SOS Miam");
 });
 
 test("« Effacer pour moi » ne laisse jamais un « Vu » sur des messages qui n'ont pas été lus", async () => {

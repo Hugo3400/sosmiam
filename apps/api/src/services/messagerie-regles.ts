@@ -106,6 +106,7 @@ export interface TablesMessagerie {
   ajouterMembre(m: Omit<LigneMembre, "epingleeLe" | "luLe">): Promise<void>;
   modifierMembre(conversationId: number, compteId: number, m: Partial<Pick<LigneMembre, "role" | "coupee" | "epingleeLe">>): Promise<boolean>;
   /** luJusqua et visibleApres ne reculent jamais (deux téléphones du même compte en même temps) */
+  /** Ne recule jamais ; luLe suit une avancée de luJusqua, et luLe null oublie l'heure de lecture même sans avancée */
   avancerMembre(conversationId: number, compteId: number, m: { luJusqua?: number; visibleApres?: number; luLe?: Date | null }): Promise<void>;
   retirerMembre(conversationId: number, compteId: number): Promise<void>;
   listerMesEpinglees(compteId: number): Promise<LigneConversation[]>;
@@ -132,7 +133,7 @@ export interface TablesMessagerie {
   /** Le dernier message visible de chaque conversation (apres : celui de chacune) */
   lireDerniersMessages(conversations: readonly { id: number; apres: number }[], caches: ReadonlySet<number>, exclus: ReadonlySet<number>, sansSystemes?: boolean): Promise<Map<number, LigneMessage>>;
   /** Le plus grand id de message de chaque conversation (tous les messages) */
-  lireDerniersIds(conversationIds: readonly number[]): Promise<Map<number, number>>;
+  lireDerniersIds(conversationIds: readonly number[], sansSystemes?: boolean): Promise<Map<number, number>>;
   /** Messages d'un autre que moi après `depuis`, ni supprimés, ni masqués, ni retirés, ni d'un compte caché ; `max` au plus */
   compterNonLus(compteId: number, conversations: readonly { id: number; depuis: number }[], caches: ReadonlySet<number>, max: number, sansSystemes?: boolean): Promise<Map<number, number>>;
   /** null : ce idClient est déjà pris dans cette conversation (envoi rejoué en même temps) */
