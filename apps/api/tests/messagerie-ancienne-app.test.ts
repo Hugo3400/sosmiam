@@ -5,7 +5,7 @@ import { after, before, test } from "node:test";
 import type { MessageApi } from "../../../packages/commun/src/types/messagerie.ts";
 import { adapterMessageAncienneApp } from "../src/fonctions/social/adapter-message-ancienne-app.ts";
 import { estAncienneApp } from "../src/fonctions/social/est-ancienne-app.ts";
-import type { ClientGif } from "../src/services/giphy.ts";
+import { creerMemoireLimitee, type ClientGif } from "../src/services/giphy.ts";
 import { creerBancSocial, type PersonneDeTest } from "./outils/creer-banc-social.ts";
 
 const fauxGif: ClientGif = {
@@ -23,8 +23,8 @@ after(() => banc.fermer());
 const dans = (minutes: number) => new Date(banc.horloge.maintenant + minutes * 60_000).toISOString();
 const ecrire = async (p: PersonneDeTest, id: string, texte: string) =>
   (await p.demander("POST", `/app/conversations/${id}/messages`, { idClient: randomUUID(), type: "texte", texte })).corps.message as MessageApi;
-const poserSysteme = async (id: string, texte: string) => {
-  const pose = await banc.social.dependances.messagerie.poserMessageSysteme(Number(id), "sondage-clos", texte, new Date(banc.horloge.maintenant));
+const poserSysteme = async (id: string, texte: string, code = "sondage-clos") => {
+  const pose = await banc.social.dependances.messagerie.poserMessageSysteme(Number(id), code, texte, new Date(banc.horloge.maintenant));
   assert.ok(pose);
   return String(pose.messageId);
 };
@@ -90,7 +90,7 @@ test("app d'avant la 1.0.2 : lire jusqu'à son dernier message couvre les messag
   const { lea, moi, id } = await groupe();
   const premier = await ecrire(lea, id, "Tu viens ce soir ?");
   await poserSysteme(id, "🏁 Le sondage est clos.");
-  assert.equal((await lireConversation(moi, id, true)).nonLus, 2);
+  assert.deepEqual([(await lireConversation(moi, id, true)).nonLus, (await lireConversation(moi, id, false)).nonLus], [1, 2], "l'ancienne app ne compte que ce qu'elle voit");
   assert.equal((await moi.demanderAncienne("PUT", `/app/conversations/${id}/lu`, { jusqua: premier.id })).statut, 200);
   assert.equal((await lireConversation(moi, id, true)).nonLus, 0, "la pastille de la discussion s'efface");
   assert.equal((await lireConversation(moi, id, false)).nonLus, 0);
@@ -100,7 +100,7 @@ test("app d'avant la 1.0.2 : lire jusqu'à son dernier message couvre les messag
   const troisieme = await ecrire(lea, id, "Réponds 😄");
   await poserSysteme(id, "🏁 Et un dernier.");
   await moi.demanderAncienne("PUT", `/app/conversations/${id}/lu`, { jusqua: deuxieme.id });
-  assert.equal((await lireConversation(moi, id, true)).nonLus, 2, "s'arrête au message suivant d'un pote (et compte ce qui reste)");
+  assert.deepEqual([(await lireConversation(moi, id, true)).nonLus, (await lireConversation(moi, id, false)).nonLus], [1, 2], "s'arrête au message suivant d'un pote (et compte ce qui reste)");
   await moi.demanderAncienne("PUT", `/app/conversations/${id}/lu`, { jusqua: troisieme.id });
   assert.equal((await lireConversation(moi, id, true)).nonLus, 0);
 
@@ -132,4 +132,73 @@ test("cloche d'une app d'avant la 1.0.2 : sans les mentions d'une discussion (el
   const ancienne = (await moi.demanderAncienne("GET", "/app/cloche")).corps.cloche.notifications as { type: string; cible: { type: string } | null }[];
   assert.ok(!ancienne.some((n) => n.type === "mention" && n.cible?.type === "conversation"));
   assert.equal(ancienne.length, neuve.length - 1, "le reste de la cloche ne change pas");
+});
+
+test("app d'avant la 1.0.2 : une discussion qui n'a que des messages de SOS Miam ne compte aucun non-lu (liste, pouls) ; la 1.0.2 les compte", async () => {
+  const { moi, id } = await groupe();
+  await poserSysteme(id, "🏁 Le sondage est clos.");
+  const pouls = async (ancienne: boolean) => (ancienne ? await moi.demanderAncienne("GET", "/app/social/pouls") : await moi.demander("GET", "/app/social/pouls")).corps.pouls;
+  assert.deepEqual([(await lireConversation(moi, id, true)).nonLus, (await pouls(true)).messages.nonLus], [0, 0]);
+  assert.deepEqual([(await lireConversation(moi, id, false)).nonLus, (await pouls(false)).messages.nonLus], [1, 1]);
+});
+
+test("app d'avant la 1.0.2 : le rappel d'une sortie où personne n'a écrit ne laisse pas de pastille qui ne s'efface jamais", async () => {
+  const lea = await banc.creerPersonne({ prenom: "Léa" });
+  const moi = await banc.creerPersonne({ prenom: "Hugo" });
+  banc.rendrePotes(lea, moi);
+  banc.tables.lieux.set(7101, { statut: "publie", nom: "Chez Nonna Lia" });
+  const creee = await lea.demander("POST", "/app/sorties", {
+    titre: "Pizza du jeudi", emoji: "🍕", quand: dans(3 * 60), finVote: dans(60), invites: [moi.idPublic], lieux: [7101], idClient: randomUUID(),
+  });
+  assert.equal(creee.statut, 201, JSON.stringify(creee.corps));
+  const sortie = creee.corps.sortie as { id: string; conversationId: string };
+  assert.equal((await moi.demander("POST", `/app/sorties/${sortie.id}/reponse`, { vient: true })).statut, 200);
+  await poserSysteme(sortie.conversationId, "⏰ C'est dans 1 h !", "rappel-sortie");
+  const nonLus = async (ancienne: boolean) => {
+    const liste = ancienne ? await moi.demanderAncienne("GET", "/app/sorties") : await moi.demander("GET", "/app/sorties");
+    const une = ancienne ? await moi.demanderAncienne("GET", `/app/sorties/${sortie.id}`) : await moi.demander("GET", `/app/sorties/${sortie.id}`);
+    const pouls = ancienne ? await moi.demanderAncienne("GET", "/app/social/pouls") : await moi.demander("GET", "/app/social/pouls");
+    return [liste.corps.sorties.find((x: { id: string }) => x.id === sortie.id).nonLus, une.corps.sortie.nonLus, pouls.corps.pouls.sorties.nonLus];
+  };
+  assert.deepEqual(await nonLus(true), [0, 0, 0]);
+  assert.deepEqual(await nonLus(false), [1, 1, 1]);
+});
+
+test("app d'avant la 1.0.2 : les réponses des gestes sur une conversation (ouvrir un privé…) adaptent aussi leur dernier message", async () => {
+  const lea = await banc.creerPersonne({ prenom: "Léa" });
+  const moi = await banc.creerPersonne({ prenom: "Hugo" });
+  banc.rendrePotes(lea, moi);
+  const prive = (await lea.demander("POST", "/app/conversations/prive", { personne: moi.idPublic })).corps.conversation.id as string;
+  await lea.demander("POST", `/app/conversations/${prive}/messages`, { idClient: randomUUID(), type: "gif", gifId: "chatDrole2" });
+  const ancienne = (await moi.demanderAncienne("POST", "/app/conversations/prive", { personne: lea.idPublic })).corps.conversation.dernierMessage as MessageApi;
+  assert.deepEqual([ancienne.type, ancienne.texte, "gif" in ancienne], ["texte", "🎞️ Un GIF t'attend : mets l'app à jour pour le voir.", false]);
+  const neuve = (await moi.demander("POST", "/app/conversations/prive", { personne: lea.idPublic })).corps.conversation.dernierMessage as MessageApi;
+  assert.equal(neuve.type, "gif");
+});
+
+test("« Effacer pour moi » ne laisse jamais un « Vu » sur des messages qui n'ont pas été lus", async () => {
+  const { lea, moi, id } = await groupe();
+  const premier = await ecrire(lea, id, "Coucou");
+  await moi.demander("PUT", `/app/conversations/${id}/lu`, { jusqua: premier.id });
+  banc.horloge.maintenant += 60 * 60_000;
+  await ecrire(lea, id, "Tu es là ?");
+  assert.equal((await moi.demander("POST", `/app/conversations/${id}/effacer`)).statut, 200);
+  const vu = (await lea.demander("GET", `/app/conversations/${id}`)).corps.fil.conversation.membres.find((m: { personne: { id: string } }) => m.personne.id === moi.idPublic);
+  assert.equal(vu.luJusqua, undefined);
+  const ligne = banc.tables.membres.find((m) => m.conversationId === Number(id) && m.compteId === moi.compteId)!;
+  assert.equal(ligne.luLe, null);
+});
+
+test("mémoire GIPHY : une entrée ne survit pas à ses 10 minutes (oubliée à l'accès suivant ou au balayage)", () => {
+  let maintenant = 0;
+  const memoire = creerMemoireLimitee<string>(10, 10 * 60_000, () => maintenant);
+  memoire.ecrire("a", "1");
+  maintenant += 60_000;
+  memoire.ecrire("b", "2");
+  maintenant += 9 * 60_000;
+  memoire.oublierPerimees();
+  assert.equal(memoire.taille(), 1, "a, écrite il y a 10 min, est partie au balayage");
+  maintenant += 60_000;
+  assert.equal(memoire.lire("c"), undefined);
+  assert.equal(memoire.taille(), 0, "b part dès l'accès suivant");
 });
