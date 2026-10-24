@@ -7,7 +7,7 @@ import { creerApplication } from "./application.ts";
 import { listerAnnoncesAPublier, noterPublicationAnnonce } from "./services/annonces-discord.ts";
 import { baseDeDonnees } from "./base-de-donnees/connexion.ts";
 import {
-  ajouterPoints, ajouterPointsDans, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte,
+  ajouterPoints, ajouterPointsDans, changerLangueCompte, changerMotDePasse, creerCompte, donnerBadge, effacerCompte, lireCompte, lireIdentifiants, modifierCompte,
   nommerAmbassadeurVille, preparerReinitialisation, preparerVerificationEmail, reinitialiserMotDePasse, retirerAmbassadeurVille, trouverCompteParEmail,
   trouverCompteParJeton, verifierEmail,
 } from "./services/comptes.ts";
@@ -212,7 +212,7 @@ const serveur = creerApplication({
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
   comptes: {
     services: {
-      creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
+      creerCompte, trouverCompteParEmail, lireCompte, lireIdentifiants, modifierCompte, changerLangue: changerLangueCompte, changerMotDePasse, effacerCompte, trouverCompteParJeton,
       reinitialiserMotDePasse, preparerReinitialisation, preparerVerificationEmail, verifierEmail, lireCandidature, creerCandidature,
       changerCommuneCandidature, listerPropositions, creerProposition, lireCandidatureCertification, creerCandidatureCertification,
       lireFichePourSuggestion, creerSuggestionLieu,

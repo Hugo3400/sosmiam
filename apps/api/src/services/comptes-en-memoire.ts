@@ -1,6 +1,8 @@
 // Comptes en mémoire, pour les tests et l'API de démonstration (essais du site sans toucher à la vraie base) : mêmes
 // règles que les services Prisma (comptes.ts, comptes-espace.ts, certification.ts, suggestions-comptes.ts,
 // zones-fondateurs.ts) ; rien n'est écrit nulle part, tout s'efface à l'arrêt. Les mails ne partent pas : ils sont notés dans `envois` (lien compris, pour les essais).
+import type { Langue } from "../../../../packages/commun/src/regles/langues.ts";
+import { lireLangueDemande } from "../middlewares/poser-langue.ts";
 import type { CourrielsComptes } from "../controleurs/comptes-liens.ts";
 import type { ServicesComptes } from "../controleurs/comptes.ts";
 import { reculerDeMois } from "../fonctions/dates/reculer-de-mois.ts";
@@ -40,6 +42,7 @@ export type CompteEnMemoire = {
   reinitialisation: { empreinte: string; expireLe: number } | null;
   /** E-mail confirmé (moment), ou null */
   emailVerifieLe: number | null;
+  langue: Langue;
   /** Lien de confirmation de l'e-mail en attente (empreinte du jeton) */
   verification: { empreinte: string; expireLe: number } | null;
   /** Titre d'« ambassadeur certifié » (depuis quand, profil, structure), ou null */
@@ -123,7 +126,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
   const courriels: CourrielsComptes = { envoyerLienMotDePasse: noterEnvoi("mot-de-passe"), envoyerLienVerificationEmail: noterEnvoi("verification-email") };
 
   const services: ServicesComptes = {
-    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe }) {
+    async creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe, langue }) {
       if (trouverParEmail(email)) return null;
       if (externe && [...comptes.values()].some((compte) => compte[CHAMP_SUB[externe.fournisseur]] === externe.sub)) return null;
       if (profil?.pseudo && pseudoPris(profil.pseudo)) throw new PseudoDejaPris();
@@ -134,7 +137,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
         // Espace pro : pas de fiche d'ambassadeur, donc ni ville ni quartier
         statutAmbassadeur: espace === "ambassadeur" ? "en-attente" : null, ville: espace === "ambassadeur" ? ville : "",
         quartier: espace === "ambassadeur" ? quartier : null, decideLe: null, reinitialisation: null, emailVerifieLe: null, verification: null,
-        certification: null,
+        certification: null, langue: langue ?? lireLangueDemande(),
         ...(espace === "app" && profil
           ? { pseudo: profil.pseudo, nomChiffre: profil.nomChiffre, dateNaissanceChiffree: profil.dateNaissanceChiffree, villeApp: profil.ville,
               envies: structuredClone(profil.envies), avatar: null, prive: false }
@@ -152,7 +155,7 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
       if (!compte) return null;
       const vu: CompteLu = {
         prenom: compte.prenom, email: compte.email, points: compte.points, palier: compte.palier, badges: [...compte.badges], creeLe: iso(compte.creeLe),
-        emailVerifie: compte.emailVerifieLe !== null, dateNaissanceChiffree: compte.dateNaissanceChiffree,
+        emailVerifie: compte.emailVerifieLe !== null, langue: compte.langue, dateNaissanceChiffree: compte.dateNaissanceChiffree,
         ambassadeur: compte.statutAmbassadeur
           ? {
               statut: compte.statutAmbassadeur, ville: compte.ville, quartier: compte.quartier, decideLe: compte.decideLe === null ? null : iso(compte.decideLe),
@@ -168,6 +171,10 @@ export function creerComptesEnMemoire(horloge: () => number = Date.now) {
     async lireIdentifiants(id) {
       const compte = comptes.get(id);
       return compte ? { email: compte.email, motDePasse: compte.motDePasse } : null;
+    },
+    async changerLangue(id, langue) {
+      const compte = comptes.get(id);
+      if (compte) compte.langue = langue;
     },
     async modifierCompte(id, { prenom, ville, quartier }) {
       const compte = comptes.get(id);

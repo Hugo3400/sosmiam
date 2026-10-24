@@ -59,6 +59,7 @@ import { creerRoutesSocialesApp, type DependancesSocialApp } from "./routes/soci
 import { creerRoutesPhotosProfil } from "./routes/photos-profil.ts";
 import { creerRoutesCarriere } from "./routes/carriere.ts";
 import type { ServicesCarrierePublics } from "./services/carriere-regles.ts";
+import { poserLangue } from "./middlewares/poser-langue.ts";
 import { creerRoutesSecurite } from "./routes/securite.ts";
 import type { ServicesSecuritePublics } from "./services/securite-regles.ts";
 
@@ -151,6 +152,7 @@ export function creerApplication({
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
+  application.use(poserLangue);
   // Avant le lecteur JSON : la gestion lit le corps brut, sur lequel porte la signature
   if (gestion) application.use(PREFIXE_GESTION, creerRoutesGestion(gestion));
   // Les textes de l'espace ambassadeur sont plus longs (candidature, compte rendu de mission : jusqu'à 2 000 caractères,

@@ -27,6 +27,7 @@ model AppareilPush {
   /// notifications d'un compte (prevenirCompte) ne partent plus vers ce téléphone
   sessionId         Int?            @map("session_id")
   session           SessionCompte?  @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  langue            String          @default("fr") @db.VarChar(5)
 
   @@index([actif, plateforme])
   @@index([compteId, sessionId])

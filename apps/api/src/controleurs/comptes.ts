@@ -2,6 +2,7 @@
 // reçu par mail. « Mon compte » : comptes-moi.ts ; candidature et propositions : comptes-espace.ts ; candidature
 // « ambassadeur certifié » : comptes-certification.ts ; « Mot de passe oublié » et confirmation de l'e-mail : comptes-liens.ts.
 // Contrat des adresses : routes/comptes.ts. Jamais d'e-mail, de mot de passe, de jeton ni de date de naissance dans un journal.
+import type { Langue } from "../../../../packages/commun/src/regles/langues.ts";
 import type { Request, Response } from "express";
 
 import { AGE_MINIMUM_INSCRIPTION } from "../../../../packages/commun/src/regles/ages.ts";
@@ -51,6 +52,8 @@ export type ServicesComptes = {
   /** E-mail et empreinte du mot de passe, pour vérifier le mot de passe actuel */
   lireIdentifiants: (id: number) => Promise<{ email: string; motDePasse: string } | null>;
   modifierCompte: (id: number, modification: ModificationCompte) => Promise<void>;
+  /** La langue du compte, changée seulement par un choix explicite (PUT /comptes/moi/langue) */
+  changerLangue: (id: number, langue: Langue) => Promise<void>;
   changerMotDePasse: (id: number, empreinte: string) => Promise<void>;
   /** Efface le compte et tout ce qui lui est lié ; son pseudo reste réservé 30 jours pour personne (pseudos-reserves.ts) */
   effacerCompte: (id: number, maintenant?: Date) => Promise<void>;

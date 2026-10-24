@@ -16,6 +16,7 @@ model InscriptionNewsletter {
   source              String   @db.VarChar(40)
   premiereInscription DateTime @default(now()) @map("premiere_inscription") @db.Timestamptz(0)
   derniereInscription DateTime @default(now()) @map("derniere_inscription") @db.Timestamptz(0)
+  langue              String   @default("fr") @db.VarChar(5)
 
   @@map("inscriptions_newsletter")
 }
@@ -33,6 +34,7 @@ model ConfirmationNewsletter {
   envoyeLe       DateTime @map("envoye_le") @db.Timestamptz(0)
   envois         Int      @default(1)
   creeLe         DateTime @default(now()) @map("cree_le") @db.Timestamptz(0)
+  langue         String   @default("fr") @db.VarChar(5)
 
   @@index([expireLe])
   @@map("confirmations_newsletter")

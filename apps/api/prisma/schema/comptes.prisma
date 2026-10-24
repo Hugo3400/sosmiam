@@ -149,6 +149,7 @@ model Compte {
   votesIdeesCommunaute           VoteIdeeCommunaute[]
   commentairesIdeesCommunaute    CommentaireIdeeCommunaute[]
   jaimesCommentairesIdees        JaimeCommentaireIdee[]
+  langue                String    @default("fr") @db.VarChar(5)
   @@index([derniereConnexion])
   @@map("comptes")
 }

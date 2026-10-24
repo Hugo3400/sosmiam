@@ -1,5 +1,8 @@
 import type { Prisma } from "../base-de-donnees/client-genere/client.ts";
+import { lireLangue } from "../../../../packages/commun/src/fonctions/langue/lire-langue.ts";
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../packages/commun/src/regles/langues.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
+import { lireLangueDemande } from "../middlewares/poser-langue.ts";
 import { calculerPalierAuxPoints } from "../fonctions/ambassadeurs/calculer-palier-aux-points.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
@@ -108,6 +111,7 @@ export type CompteConnecte = {
   creeLe: string;
   /** Adresse confirmée par le lien reçu à l'inscription */
   emailVerifie: boolean;
+  langue: Langue;
   ambassadeur: {
     statut: StatutAmbassadeur; ville: string; quartier: string | null; decideLe: string | null;
     /** Titre d'« ambassadeur certifié » (à part du palier), ou null */
@@ -155,6 +159,7 @@ export type NouveauCompte = {
   cguVersion: string;
   /** Compte créé avec Apple ou Google (espace « app ») : l'identifiant (« sub ») à lier, et l'e-mail déjà vérifié par eux */
   externe?: { fournisseur: FournisseurExterne; sub: string; emailVerifieLe: Date };
+  langue?: Langue;
 };
 
 /** Ce que la personne change elle-même dans « Mon compte » (quartier null : effacé). L'e-mail ne se change pas en ligne. */
@@ -170,7 +175,7 @@ export const estDoublonPseudo = (erreur: unknown) =>
  * et pour l'app (avec son profil) ; null si l'e-mail est déjà pris (ou, avec Apple ou Google, l'identifiant : la route
  * relit alors qui l'a). Pseudo déjà pris : lève PseudoDejaPris.
  */
-export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe }: NouveauCompte): Promise<number | null> {
+export async function creerCompte({ email, motDePasse, prenom, ville, quartier, cguVersion, espace = "ambassadeur", profil, externe, langue }: NouveauCompte): Promise<number | null> {
   try {
     // Pseudo libéré depuis moins de 30 jours (pseudos-reserves.ts) : « pris », comme s'il était porté, sans rien dire de plus
     const pseudo = espace === "app" ? profil?.pseudo ?? null : null;
@@ -179,7 +184,7 @@ export async function creerCompte({ email, motDePasse, prenom, ville, quartier, 
     }
     const compte = await baseDeDonnees.compte.create({
       data: {
-        email, motDePasse, prenom, cguVersion,
+        email, motDePasse, prenom, cguVersion, langue: langue ?? lireLangueDemande(),
         ...(externe ? { [CHAMP_SUB[externe.fournisseur]]: externe.sub, emailVerifieLe: externe.emailVerifieLe } : {}),
         ...(espace === "ambassadeur" ? { ambassadeur: { create: { ville, quartier } } } : {}),
         ...(espace === "app" && profil
@@ -207,7 +212,7 @@ export async function lireCompte(id: number): Promise<CompteLu | null> {
   const compte = await baseDeDonnees.compte.findUnique({
     where: { id },
     select: {
-      prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true, dateNaissanceChiffree: true,
+      prenom: true, email: true, points: true, palier: true, creeLe: true, emailVerifieLe: true, dateNaissanceChiffree: true, langue: true,
       badges: { orderBy: { obtenuLe: "asc" }, select: { badge: true } },
       ambassadeur: { select: { statut: true, ville: true, quartier: true, decideLe: true, certifieLe: true, profilCertifie: true, structure: true } },
       rattachementsLieux: {
@@ -226,6 +231,7 @@ export async function lireCompte(id: number): Promise<CompteLu | null> {
     badges: compte.badges.map(({ badge }) => badge),
     creeLe: compte.creeLe.toISOString(),
     emailVerifie: compte.emailVerifieLe !== null,
+    langue: lireLangue(compte.langue) ?? LANGUE_PAR_DEFAUT,
     dateNaissanceChiffree: compte.dateNaissanceChiffree,
     ambassadeur: ambassadeur
       ? {
@@ -250,6 +256,10 @@ export async function lireIdentifiants(id: number): Promise<{ email: string; mot
 }
 
 /** Prénom, ville et quartier changés par la personne dans « Mon compte ». */
+export async function changerLangueCompte(id: number, langue: Langue): Promise<void> {
+  await baseDeDonnees.compte.updateMany({ where: { id }, data: { langue } });
+}
+
 export async function modifierCompte(id: number, { prenom, ville, quartier }: ModificationCompte): Promise<void> {
   await baseDeDonnees.$transaction([
     ...(prenom !== undefined ? [baseDeDonnees.compte.update({ where: { id }, data: { prenom } })] : []),
