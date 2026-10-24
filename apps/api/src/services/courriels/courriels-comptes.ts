@@ -143,6 +143,7 @@ export async function envoyerLienMotDePasse(compteId: number, lien: string, expi
       pied: "Tu reçois ce mail parce qu'une réinitialisation de mot de passe a été préparée pour ton compte SOS Miam.",
     }),
     secrets: [lien],
+    relancer: true,
   });
 }
 
@@ -167,5 +168,6 @@ export async function envoyerLienVerificationEmail(compteId: number, lien: strin
       pied: "Tu reçois ce mail parce que quelqu'un (toi, on espère !) vient de créer un compte SOS Miam avec cette adresse.",
     }),
     secrets: [lien],
+    relancer: true,
   });
 }

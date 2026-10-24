@@ -9,6 +9,7 @@ import { lireListeInscrits } from "../gestion/boite-mail.ts";
 import { creerAdresseDesinscriptionUnClic, creerLienDesinscription } from "../liens-desinscription.ts";
 import { expedierCourriel, type ExpedierCourriel, type MessageCourriel } from "./expedier-courriel.ts";
 import { lireReglagesEnvoi, type EtatReglagesEnvoi } from "./reglages-envoi.ts";
+import { annoncerRelance, creerRelancesEnvois, prochaineRelance } from "./relances-envois.ts";
 
 const UNE_HEURE = 3600_000;
 /** Au plus tant de mails par passage (toutes les 20 s), même si la limite horaire le permettrait */
@@ -27,6 +28,14 @@ function decrireErreur(erreur: unknown): string {
   const { response, code, message } = (erreur ?? {}) as { response?: string; code?: string; message?: string };
   return String(response || `${code ?? "erreur"} ${message ?? ""}`).replace(/\s+/g, " ").trim().slice(0, 300);
 }
+
+const relances = creerRelancesEnvois({
+  decrire: decrireErreur,
+  noter: async (id, { envoye, essais, erreur }) => {
+    await baseDeDonnees.envoiCourriel.update({ where: { id }, data: envoye ? { statut: "envoye", envoyeLe: new Date(), essais, erreur: null } : { essais, erreur } });
+    if (envoye) problemeReglages = null;
+  },
+});
 
 /** Met un mail dans la file : il part au prochain passage (dans 20 secondes au plus, selon la limite horaire). */
 export async function mettreEnFile(type: string, destinataire: string, contenu: ContenuEnvoi) {
@@ -120,20 +129,39 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
 export async function envoyerToutDeSuite(
   type: string,
   destinataire: string,
-  contenu: ContenuEnvoi & Pick<MessageCourriel, "ecritALaMain" | "enReponseA" | "secrets">,
+  contenu: ContenuEnvoi & Pick<MessageCourriel, "ecritALaMain" | "enReponseA" | "secrets"> & { relancer?: boolean },
   expedier: ExpedierCourriel = expedierCourriel,
 ) {
+  const { relancer, ...message } = contenu;
+  const adresse = destinataire.trim().toLowerCase();
+  const cle = `${type}|${adresse}`;
+  relances.annuler(cle);
   const { etat, reglages } = await lireReglagesEnvoi();
   if (!reglages) return { ok: false as const, erreur: `envoi-${etat}` };
   try {
-    await expedier(reglages, { a: destinataire, ...contenu });
+    await expedier(reglages, { a: destinataire, ...message });
   } catch (erreur) {
-    const message = decrireErreur(erreur);
-    if (classerErreurEnvoi(erreur as { code?: string }) === "configuration") problemeReglages = { message, moment: new Date() };
-    return { ok: false as const, erreur: "envoi-refuse", message };
+    const texte = decrireErreur(erreur);
+    const suite = classerErreurEnvoi(erreur as { code?: string; responseCode?: number; command?: string });
+    if (suite === "configuration") problemeReglages = { message: texte, moment: new Date() };
+    const prochainLe = relancer && suite === "reessayer" ? prochaineRelance(1, Date.now()) : null;
+    const ligne = await baseDeDonnees.envoiCourriel
+      .create({ data: { type, destinataire: adresse, objet: message.objet, statut: "echec", essais: 1, erreur: annoncerRelance(texte, prochainLe) } })
+      .catch(() => null);
+    if (prochainLe !== null) {
+      relances.programmer({
+        cle, id: ligne?.id ?? null, essai: 1,
+        tenter: async () => {
+          const actuels = await lireReglagesEnvoi();
+          if (!actuels.reglages) throw Object.assign(new Error(`envoi-${actuels.etat}`), { code: "ESANSREGLAGES" });
+          await expedier(actuels.reglages, { a: destinataire, ...message });
+        },
+      });
+    }
+    return { ok: false as const, erreur: "envoi-refuse", message: texte };
   }
   problemeReglages = null;
-  await baseDeDonnees.envoiCourriel.create({ data: { type, destinataire: destinataire.trim().toLowerCase(), objet: contenu.objet, statut: "envoye", essais: 1, envoyeLe: new Date() } });
+  await baseDeDonnees.envoiCourriel.create({ data: { type, destinataire: adresse, objet: message.objet, statut: "envoye", essais: 1, envoyeLe: new Date() } });
   return { ok: true as const };
 }
 

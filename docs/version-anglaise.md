@@ -79,6 +79,10 @@ Aujourd'hui, rien n'est prêt : pas de détection de langue, pas de colonne `lan
 - **Les notifications** sont rédigées dans la langue de chaque téléphone qui reçoit. `prevenirCompte` accepte un
   rédacteur `(langue) => MessagePush`. Jamais la langue de l'expéditeur.
 - **Les e-mails** suivent `comptes.langue`, ou la langue de l'inscription à la newsletter.
+  - Leurs liens (confirmation de la newsletter, désinscription, vérification de l'e-mail, mot de passe) portent
+    `?langue=xx`, celle de l'e-mail : la page s'ouvre dans la langue du message, quel que soit le navigateur.
+  - La newsletter elle-même est écrite à la main : deux versions, ou le français pour tous ? C'est une décision de
+    Hugo, à prendre à l'étape 7. La confirmation et le mot de désinscription suivent toujours la langue.
 - **Les réponses restent des codes** : le texte des erreurs vient de `MESSAGES_SERVICE_PAR_LANGUE` côté client.
 - **Les anciennes apps (1.0.0 à 1.0.2) reçoivent exactement la même chose qu'aujourd'hui.** Aucune réponse en cache
   public ne varie selon la langue : Cloudflare ne tient pas compte de `Vary`.
@@ -93,25 +97,38 @@ Aujourd'hui, rien n'est prêt : pas de détection de langue, pas de colonne `lan
 - **`/en` seulement pour les pages faites pour les moteurs de recherche** : l'accueil, la FAQ, les pages légales,
   carrière, sécurité et inscrire-mon-lieu, si elles sont traduites. Les adresses gardent leurs noms français :
   `/en/confidentialite`, `/en/cgu`, `/en/faq`.
+- **Les deux pages publiques des espaces** suivent la même règle sur leur sous-domaine, avec hreflang :
+  ambassadeur.sosmiam.fr/en/programme et pro.sosmiam.fr/en/bienvenue. Le reste des espaces garde une adresse unique.
 - **Une seule adresse pour tout le reste** : les fiches des lieux (`/lieux/:id`, dont le texte reste en français), les
   espaces, « Mon compte », `/l`, `/q`, `/invitation`, `/connexion/*`.
   - Leur langue vient, dans l'ordre, de `?langue=en`, du cookie `sosmiam-langue`, de la langue du compte, de
     Accept-Language, sinon `fr`.
   - Ces adresses ne portent pas de hreflang.
-  - Une fiche de lieu dont la langue dépend de la personne passe en `Cache-Control: private`.
+  - Une fiche de lieu dont la langue dépend de la personne passe en `Cache-Control: private`. Sa canonique reste
+    `/lieux/:id`, sans `?langue`, et elle reste en noindex tant que la règle du 23/10 s'applique (fiche importée et non
+    vérifiée).
+- **Le cookie `sosmiam-langue`** vaut pour sosmiam.fr, ambassadeur. et pro. :
+  - `Domain=.sosmiam.fr`, sans préfixe `__Host-` ;
+  - `SameSite=Lax`, durée d'un an ;
+  - choisi par la personne, c'est une préférence d'interface exemptée de consentement, déclarée sur /cookies.
 - **Les routes.** Dans `routes.ts`, les routes publiques et légales servent deux fois, à la racine et sous
   `prefix("en", …)`, avec des id explicites `"en/…"`. Une 404 `en/*` passe juste avant le `*` final.
 - **Le garde.** `/en` répond 404 sur sosmiam.fr tant que `LANGUES_OUVERTES_SITE` ne contient pas `en`. Il est servi sur
   apercu.sosmiam.fr, qui est déjà en noindex. L'aperçu et sosmiam.fr sont le MÊME processus (127.0.0.1:5191).
 - **À l'ouverture** :
   - hreflang fr, en et x-default, dans le head et dans `sitemap.xml` ;
+  - `<html lang>` suit la langue de la page, les données structurées (JSON-LD) ont leur `inLanguage`, et la 404 est
+    traduite sous `/en` ;
+  - les erreurs des formulaires (carrière, chasse aux bugs, newsletter, comptes) passent par
+    `MESSAGES_SERVICE_PAR_LANGUE` ;
   - un canonical par langue, `og:locale` en_GB, une image de partage anglaise ;
   - un bandeau discret « This page is also in English », avec un choix mémorisé par cookie (déclaré sur /cookies) ;
   - jamais de redirection automatique selon la langue du navigateur.
 - **Le poids des pages.** Le légal, la FAQ et les longs textes sont choisis par le loader, depuis un module `.server` :
   ils ne doublent pas le JavaScript du client.
-- **Nginx.** Pour `/en/carriere` et `/en/securite`, des blocs de taille d'envoi en `^/(en/)?…`, que Hugo lance. Les
-  masques des journaux et des statistiques acceptent un `/en` en filet.
+- **Nginx.** Il faut des blocs de taille d'envoi pour `^/(en/)?securite(\.data)?$` et `^/(en/)?carriere/[^/]+(\.data)?$`.
+  Site les prépare et les essaie avec `nginx -t`. Les changements dans `/etc` restent lancés par Hugo. Les masques des
+  journaux et des statistiques acceptent un `/en` en filet.
 
 ### 3.5 Formats, grammaire, typographie
 
@@ -166,7 +183,8 @@ Aujourd'hui, rien n'est prêt : pas de détection de langue, pas de colonne `lan
   il bouge.
 - **Légal.**
   - Une traduction de courtoisie, avec le bandeau « Only the French version is legally binding ».
-  - Les mêmes id de section (ancres publiques) et la même date que le français, vérifiés par un essai.
+  - Les mêmes id de section (ancres publiques) et la même date que le français. Un essai de Site compare aussi la liste
+    des sections et le nombre de puces de chaque liste, pour attraper une retouche oubliée.
   - Confidentialité et CGU d'abord, puisque l'app les ouvre ; le reste avant l'ouverture du site.
   - Chaque retouche du français est reportée en anglais le jour même.
   - La politique de confidentialité dit que la langue est gardée (compte, téléphone, newsletter).
