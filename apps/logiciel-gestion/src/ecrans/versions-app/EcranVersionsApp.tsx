@@ -18,6 +18,7 @@ const SYSTEMES = [{ cle: "ios", nom: "iPhone (iOS)" }, { cle: "android", nom: "A
 const FORME = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/;
 
 export function EcranVersionsApp() {
+  if (Date.now() > 0) throw new Error("plantage d'essai");
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireVersionsApp, []);
   const [saisie, setSaisie] = useState<VersionsApp | null>(null);
   const [confirmer, setConfirmer] = useState(false);

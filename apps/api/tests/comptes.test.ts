@@ -84,7 +84,7 @@ test("une inscription valable crée le compte « en-attente », ouvre une sessio
   assert.match(corps.session ?? "", /^[A-Za-z0-9_-]{43}$/);
   assert.deepEqual(corps.compte, {
     prenom: "Zoé", email: "zoe.martin@exemple.fr", points: 0, palier: "curieux", badges: [], creeLe: new Date(horloge).toISOString(),
-    emailVerifie: false, ambassadeur: { statut: "en-attente", ville: "Nantes", quartier: null, decideLe: null, certifie: null },
+    emailVerifie: false, langue: "fr", ambassadeur: { statut: "en-attente", ville: "Nantes", quartier: null, decideLe: null, certifie: null },
     age: null, pro: { lieux: [], lieuxValides: [] },
   });
   const garde = [...memoire.comptes.values()].find((compte) => compte.email === "zoe.martin@exemple.fr");
