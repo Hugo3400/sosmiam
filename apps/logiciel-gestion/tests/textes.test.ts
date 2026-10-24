@@ -5,6 +5,7 @@ import { test } from "node:test";
 import { calculerGraduations } from "../src/fonctions/graphiques/calculer-graduations.ts";
 import { convertirMarkdown } from "../src/fonctions/newsletter/convertir-markdown.ts";
 import { creerHtmlNewsletter } from "../src/fonctions/newsletter/creer-html-newsletter.ts";
+import { estEnRelance } from "../src/fonctions/newsletter/est-en-relance.ts";
 import { formaterOctets } from "../src/fonctions/texte/formater-octets.ts";
 import { nommerPeriode } from "../src/fonctions/texte/nommer-periode.ts";
 
@@ -128,4 +129,14 @@ test("défis : la règle en une ligne", async () => {
   const { decrireRegleDefi } = await import("../src/fonctions/defis/decrire-regle-defi.ts");
   assert.equal(decrireRegleDefi({ mesure: "visites", objectif: 3, filtres: { typesLieu: ["patisserie", "sortie"], apresHeure: 22, pendantSos: true } }), "3 visites validées · pâtisseries ou sorties · après 22 h · pendant un SOS");
   assert.equal(decrireRegleDefi({ mesure: "avis", objectif: 1, filtres: null }), "1 avis publié");
+});
+
+test("derniers mails : « On réessaie » seulement pendant les 50 minutes des nouveaux essais", () => {
+  const debut = Date.parse("2026-10-24T19:00:00Z");
+  const envoi = { statut: "echec" as const, erreur: "421 occupé · nouvel essai à 21:01", creeLe: "2026-10-24T19:00:00Z" };
+  assert.equal(estEnRelance(envoi, debut + 60_000), true);
+  assert.equal(estEnRelance(envoi, debut + 51 * 60_000), false, "API redémarrée entre-temps : refusé");
+  assert.equal(estEnRelance({ ...envoi, erreur: "421 occupé" }, debut), false, "dernier essai raté");
+  assert.equal(estEnRelance({ ...envoi, statut: "envoye" as const }, debut), false);
+  assert.equal(estEnRelance({ ...envoi, erreur: null }, debut), false);
 });

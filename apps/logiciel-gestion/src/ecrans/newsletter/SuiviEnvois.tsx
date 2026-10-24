@@ -3,12 +3,12 @@ import { useEffect } from "react";
 import { Chargement } from "~/composants/interface/Chargement.tsx";
 import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
+import { estEnRelance } from "~/fonctions/newsletter/est-en-relance.ts";
 import { lireEtatEnvois, listerCampagnes, listerDerniersEnvois } from "~/services/courriels.ts";
 import { CarteEtatEnvoi } from "./CarteEtatEnvoi.tsx";
 import { ListeCampagnes } from "./ListeCampagnes.tsx";
 import { ListeDerniersMails } from "./ListeDerniersMails.tsx";
 
-/** L'onglet « Envois » : l'état de la boîte d'envoi, les envois groupés en cours ou finis, et les derniers mails seuls. */
 export function SuiviEnvois() {
   const etat = utiliserChargement(lireEtatEnvois, []);
   const campagnes = utiliserChargement(listerCampagnes, []);
@@ -18,13 +18,12 @@ export function SuiviEnvois() {
     campagnes.recharger();
     derniers.recharger();
   };
-  // Des mails en attente : on suit leur départ toutes les 15 secondes
-  const enAttente = etat.donnees?.enAttente ?? 0;
+  const aSuivre = (etat.donnees?.enAttente ?? 0) > 0 || (derniers.donnees ?? []).some((envoi) => estEnRelance(envoi));
   useEffect(() => {
-    if (enAttente === 0) return;
+    if (!aSuivre) return;
     const minuteur = setInterval(actualiser, 15_000);
     return () => clearInterval(minuteur);
-  }, [enAttente]);
+  }, [aSuivre]);
 
   return (
     <div className="grid gap-5">

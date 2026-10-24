@@ -3,6 +3,7 @@
 // Aucun secret ici : l'adresse et le jeton sont donnés par l'appelant (l'app les garde dans son coffre-fort).
 
 import { MESSAGES_SERVICE } from "../contenus/messages-services.ts";
+import { ENTETE_LANGUE, type Langue } from "../regles/langues.ts";
 import type { ErreurService } from "../types/erreurs-service.ts";
 import type { DetailsErreur, ReponseApi } from "./reponse-api.ts";
 
@@ -19,6 +20,7 @@ export type OptionsClientHttp = {
   delaiMs?: number;
   /** La version de l'app (« 1.0.2 »), envoyée dans X-Version-App : l'API garde sa forme d'avant pour une app qui ne la donne pas */
   versionApp?: string;
+  lireLangue?: () => Langue | null;
   /** Pour les tests : un faux fetch */
   fetch?: typeof fetch;
 };
@@ -78,7 +80,7 @@ const EQUIVALENTS: Readonly<Record<string, ErreurService>> = {
  * Les en-têtes que le client pose lui-même, ou qui porteraient une autre session : ceux d'un appelant ne passent jamais (en
  * minuscules). L'API lit X-Session-Compte AVANT Authorization (proteger-comptes.ts) : il remplacerait la session sans bruit.
  */
-const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization", "x-session-compte", "cookie", "x-version-app"]);
+const ENTETES_RESERVES = new Set(["accept", "content-type", "authorization", "x-session-compte", "cookie", "x-version-app", ENTETE_LANGUE.toLowerCase()]);
 
 /** Ce qui peut servir au texte de l'erreur (distance arrondie, nom du lieu…), rien d'autre */
 function lireDetails(corps: Record<string, unknown>): DetailsErreur | undefined {
@@ -107,6 +109,8 @@ export function creerClientHttp(o: OptionsClientHttp): ClientHttp {
     for (const [nom, valeur] of Object.entries(options.entetes ?? {})) if (!ENTETES_RESERVES.has(nom.toLowerCase())) entetes[nom] = valeur;
     entetes.Accept = "application/json";
     if (o.versionApp) entetes["X-Version-App"] = o.versionApp;
+    const langue = o.lireLangue?.();
+    if (langue) entetes[ENTETE_LANGUE] = langue;
     if (options.brut) entetes["Content-Type"] = options.brut.type;
     else if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
     if (options.session !== false) {
