@@ -13,20 +13,21 @@ Ces règles valent pour tout le monde (Hugo et les sessions Claude). Les respect
 - **Fonctions** : verbe à l'infinitif + ce qu'elle fait, en camelCase : `formaterPrix`, `calculerDistance`, `lancerSos`.
   Dans les dossiers `fonctions/`, **une fonction exportée par fichier**, et le fichier porte son nom : `fonctions/prix/formater-prix.ts` → `formaterPrix`.
 - **Interdits** : les noms fourre-tout (`utils`, `helpers`, `divers`, `misc`, `common2`, `temp`, `nouveau`…).
+- **Aucun texte affiché écrit en dur** dans un composant ou une fonction : le français va dans `contenus/`, l'anglais dans `contenus/anglais/` (même nom de fichier).
 
 ## 3. Le site web et l'app sont séparés
 - `apps/site-web` (le site), `apps/app-mobile` (l'app iOS/Android), `apps/logiciel-gestion` (le logiciel ordinateur d'administration), `apps/api` (le serveur) et `apps/bot-discord` (le bot du serveur Discord) **ne s'importent jamais entre eux**.
 - L'administration (modération, notifications, validation des BIG SOS, maintenance) se fait dans le logiciel de gestion, pas sur le site.
-- Ce qui sert à plusieurs (types, règles métier, couleurs, validation, client de l'API) va dans `packages/commun`.
+- Ce qui sert à plusieurs (types, règles métier, couleurs, validation, client de l'API) va dans `packages/commun`, la langue et les formats partagés compris (`regles/langues.ts`, `fonctions/langue/`).
 - Le site, l'app et le bot ne parlent aux données qu'à travers l'API.
 
 ## 4. Où ranger quoi
 Voir `docs/arborescence.md` : chaque dossier y est décrit. Un nouveau dossier = une ligne de plus dans ce fichier.
 
 ## 5. Ton et contenus
-- Tous les textes sont en français, au tutoiement, drôles et bienveillants.
+- Le français est la langue de référence. Chaque texte d'interface existe aussi en anglais britannique (voir `docs/version-anglaise.md` et `docs/glossaire-anglais.md`). Français au tutoiement ; anglais au « you » chaleureux. Partout : drôles et bienveillants, et jamais de blague sur Miam Safe, les urgences ni le BIG SOS.
 - SOS Miam aide aussi des lieux réellement en difficulté (BIG SOS) : on en parle avec dignité, jamais avec misérabilisme.
-- **Âge** : l'app est réservée aux personnes majeures, 18 ans en France (la majorité du pays ailleurs ; seule la France est ouverte, voir `packages/commun/src/regles/ages.ts`). Aucune règle « 15-17 ans » ou « mineur » pour un compte : ne jamais en recréer. Seule la visite sans compte (âge inconnu) reste tout public, sans bar ni alcool.
+- **Âge** : l'app est réservée aux personnes majeures, 18 ans en France (la majorité du pays ailleurs ; seule la France est ouverte, voir `packages/commun/src/regles/ages.ts`). Aucune règle « 15-17 ans » ou « mineur » pour un compte : ne jamais en recréer. Seule la visite sans compte (âge inconnu) reste tout public, sans bar ni alcool. En anglais aussi : « 18+ », jamais « teen » ni « minor » pour un compte.
 - Décisions produit et prix : voir `docs/decisions.md` (ne pas inventer de prix ou d'engagements). Idées validées pour plus tard : `docs/idees.md`.
 - **Kit de marque** : `kits/SOS_Miam_kit_de_marque/` (logos, mascotte Capitaine Bouiboui, pictos et épingles, bannières, couleurs et typos). Lire son `LISEZMOI.txt` (vocabulaire : les Miamis, la Brigade) avant tout visuel ou texte de marque, et le donner aux agents qui en ont besoin.
 

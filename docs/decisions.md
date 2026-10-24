@@ -620,3 +620,34 @@
   - **Pastille de l'icône :** envoyée seulement aux téléphones qui ont donné leur clé d'aperçu, c'est-à-dire en 1.0.2 ou plus.
 - **« Vu » sans effet rétroactif (23 octobre 2026)** : une lecture n'est montrée que si son heure a été gardée, donc seulement les lectures faites depuis la mise en ligne de la 1.0.2, jamais les positions de lecture d'avant. « Effacer pour moi » efface aussi l'heure, donc jamais de « Vu » sur des messages non lus.
 - **Fiches importées dans l'app (décision de Hugo du 23 octobre 2026, avec Site)** : la source est citée à la fin du texte de la fiche, pour toutes les versions, par exemple « 📚 Texte et infos : l'office de tourisme de Marseille (marseille-tourisme.com). », avec la licence pour DATAtourisme. Dans la 1.0.2, la carte « non vérifié » dit « Ses infos viennent de… ». La note interne ne quitte jamais l'API.
+
+## Version anglaise (décidé le 24 octobre 2026)
+Plan de référence : [version-anglaise.md](version-anglaise.md). Glossaire : [glossaire-anglais.md](glossaire-anglais.md).
+- **Pour qui :** les visiteurs et les expats EN FRANCE. L'app reste ouverte en France seulement (lieux, 18 ans, euros, droit français).
+- **Quel anglais :** britannique (« favourite », « 1 March », « €4.50 »), avec les heures en 24 h (« 21:30 »). Les distances restent en km.
+- **Choix de la langue dans l'app :**
+  - celle du téléphone : la première langue française ou anglaise de sa liste, sinon le français ;
+  - un réglage Automatique, Français, English dans les Paramètres, sans redémarrer.
+- **Le site :** sosmiam.fr/en pour les pages publiques et légales, sous leurs noms français (/en/confidentialite). Les fiches des lieux, les espaces et « Mon compte » gardent une seule adresse.
+- **Traduction :** par Claude, relue par Hugo pour le ton, et par une personne anglophone pour l'accueil, Miam Safe et le BIG SOS.
+  - Les noms de marque sont gardés : SOS Miam, les Miamis (the Miamis), la Brigade (the Brigade), BIG SOS, Capitaine Bouiboui, Miam Safe.
+  - On écrit « the Captain », « a fellow Miami », « friends ».
+  - Les badges sont traduits avec des jeux de mots refaits. Les avatars sont gardés, sauf les faux amis.
+- **Ce qui reste en français :**
+  - ce qu'écrivent les gens et les lieux (fiches, avis, messages, offres) ;
+  - les contenus du mode démo (seule l'interface est traduite) ;
+  - le logiciel de gestion, où la Brigade écrit en français pour tous au début ;
+  - le bot Discord, la presse et le kit de marque.
+- **Serveur :** notifications, e-mails et messages d'erreur dans la langue de chacun. La langue est retenue par compte et par téléphone.
+- **Périmètre :** l'app (perso), le site public, les modes pro et ambassadeur. Les fiches des stores viendront plus tard.
+- **Miam Safe :** la phrase « Le Capitaine est là ? » et la consigne pour l'équipe restent en français, avec la traduction et une aide de prononciation. Le 112 passe en premier dans l'app anglaise.
+- **Loi Évin :** la formule française mot pour mot, avec la traduction dessous.
+- **Légal :** une traduction de courtoisie, où seule la version française fait foi. Confidentialité et CGU d'abord, le reste avant l'ouverture du site.
+- **Inscription d'un touriste :** la ville reste obligatoire, formulée « Où es-tu en France ? » (« Where are you staying in France? »).
+- **Pays de distribution des stores :** l'Union européenne et la Suisse d'abord. Le Royaume-Uni et les États-Unis seulement après un avis juridique.
+- **Ouverture :** tout est construit caché derrière un interrupteur, puis ouvert d'un coup, l'app d'abord, puis le site. L'ordre de travail :
+  - le socle (packages/commun, l'app, le serveur) ;
+  - l'app ;
+  - le site et le légal ;
+  - les stores.
+
