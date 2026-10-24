@@ -1,5 +1,6 @@
 import { Router, type RequestHandler } from "express";
 
+import { creerControleurLangueCompte } from "../controleurs/comptes-langue.ts";
 import { creerAttenteParCompte } from "../controleurs/comptes-attente.ts";
 import { creerControleursCertification } from "../controleurs/comptes-certification.ts";
 import { creerControleursEspaceComptes } from "../controleurs/comptes-espace.ts";
@@ -443,6 +444,7 @@ export function creerRoutesComptes(dependances: DependancesComptes, protection: 
   routes.use(limiteConnectee);
   routes.get("/session", protection.exigerCompte, c.lireSession);
   routes.patch("/moi", protection.exigerCompte, moi.modifier);
+  routes.put("/moi/langue", protection.exigerCompte, creerControleurLangueCompte(services));
   routes.post("/moi/mot-de-passe", protection.exigerCompte, moi.changerMotDePasse);
   routes.delete("/moi", protection.exigerCompte, moi.supprimer);
   routes.post("/moi/renvoyer-verification", protection.exigerCompte, liens.renvoyerVerification);
