@@ -42,8 +42,8 @@ export function creerConfirmationsNewsletterEnMemoire() {
       const attente = [...attentes.values()].find((ligne) => ligne.jetonEmpreinte === jetonEmpreinte);
       if (!attente || attente.expireLe.getTime() <= maintenant.getTime()) return false;
       attentes.delete(attente.email);
-      const { email, ville, ambassadeur, telephone, beta, source } = attente;
-      inscrire({ email, ville, ambassadeur, telephone, beta, source }, maintenant);
+      const { email, ville, ambassadeur, telephone, beta, source, langue } = attente;
+      inscrire({ email, ville, ambassadeur, telephone, beta, source, langue }, maintenant);
       return true;
     },
   };

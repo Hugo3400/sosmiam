@@ -1,4 +1,5 @@
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
+import { lireLangueDemande } from "../middlewares/poser-langue.ts";
 import { choisirEnvoiConfirmation } from "../fonctions/newsletter/choisir-envoi-confirmation.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import { creerJeton } from "../fonctions/securite/creer-jeton.ts";
@@ -23,7 +24,7 @@ function noterEchec(erreur: unknown) {
 }
 
 export function creerDemandesNewsletter({ depot, envoyerLien, estDesinscrit, horloge = Date.now }: DependancesDemandesNewsletter) {
-  async function demander({ email: saisi, ville, ambassadeur, telephone, beta, source }: NouvelleInscription): Promise<void> {
+  async function demander({ email: saisi, ville, ambassadeur, telephone, beta, source, langue }: NouvelleInscription): Promise<void> {
     const email = saisi.trim().toLowerCase();
     if (source !== "site" && (await estDesinscrit(email))) return;
     const maintenant = new Date(horloge());
@@ -32,7 +33,7 @@ export function creerDemandesNewsletter({ depot, envoyerLien, estDesinscrit, hor
     if (choix === "attendre") return;
     const jeton = creerJeton();
     const nouvelle: NouvelleAttenteConfirmation = {
-      email, ville: ville || null, ambassadeur, telephone, beta, source,
+      email, ville: ville || null, ambassadeur, telephone, beta, source, langue: langue ?? lireLangueDemande(),
       jetonEmpreinte: calculerEmpreinteJeton(jeton),
       envoyeLe: maintenant,
       expireLe: new Date(maintenant.getTime() + DUREE_LIEN_CONFIRMATION_NEWSLETTER),

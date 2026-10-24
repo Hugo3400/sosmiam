@@ -1,3 +1,5 @@
+import { lireLangue } from "../../../../packages/commun/src/fonctions/langue/lire-langue.ts";
+import { LANGUE_PAR_DEFAUT } from "../../../../packages/commun/src/regles/langues.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import type { DepotConfirmationsNewsletter } from "./confirmations-newsletter-regles.ts";
 import { enregistrerInscription, type Telephone } from "./inscriptions.ts";
@@ -31,8 +33,8 @@ export function creerDepotConfirmationsNewsletter(): DepotConfirmationsNewslette
         if (!attente || attente.expireLe.getTime() <= maintenant.getTime()) return false;
         const { count } = await transaction.confirmationNewsletter.deleteMany({ where: { id: attente.id, jetonEmpreinte } });
         if (count !== 1) return false;
-        const { email, ville, ambassadeur, telephone, beta, source } = attente;
-        await enregistrerInscription({ email, ville, ambassadeur, telephone: lireTelephone(telephone), beta, source }, transaction, maintenant);
+        const { email, ville, ambassadeur, telephone, beta, source, langue } = attente;
+        await enregistrerInscription({ email, ville, ambassadeur, telephone: lireTelephone(telephone), beta, source, langue: lireLangue(langue) ?? LANGUE_PAR_DEFAUT }, transaction, maintenant);
         return true;
       }),
   };

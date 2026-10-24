@@ -20,6 +20,8 @@ test("base en panne, lente, disque presque plein, sauvegarde absente ou trop vie
   const cas: [Partial<DependancesSante>, string][] = [
     [{ verifierBase: async () => { throw new Error("connexion refusée"); } }, "base"],
     [{ verifierBase: () => new Promise(() => {}) }, "base"],
+    [{ verifierBase: () => { throw new Error("lancée tout de suite"); } }, "base"],
+    [{ lireDerniereSauvegarde: () => { throw new Error("lancée tout de suite"); } }, "sauvegarde"],
     [{ lireDisqueLibre: async () => 0.03 }, "disque"],
     [{ lireDisqueLibre: async () => { throw new Error("statfs"); } }, "disque"],
     [{ lireDerniereSauvegarde: async () => null }, "sauvegarde"],

@@ -111,7 +111,7 @@ export type DependancesComptes = {
  *
  * `compte` (rendu par l'inscription, la connexion, GET /comptes/session et PATCH /comptes/moi) : la forme de
  * apps/site-web/src/types/compte.ts, plus :
- *   - `emailVerifie` (booléen : e-mail confirmé par le lien reçu) ;
+ *   - `emailVerifie` (booléen : e-mail confirmé par le lien reçu) ; `langue` (« fr » ou « en ») ;
  *   - `age` : âge en années pleines au jour de Paris si la date de naissance est gardée (comptes de l'app), sinon null ;
  *   - `pro.lieux[].emoji` (l'emoji du lieu) et `pro.lieuxValides` : les mêmes lieux, seulement ceux au statut « valide » ;
  *   - si l'âge connu est sous 18 ans, AUCUN rôle : `ambassadeur` null, `pro` { lieux: [], lieuxValides: [] } (de même si
@@ -165,6 +165,8 @@ export type DependancesComptes = {
  * GET    /comptes/session               → 200 { ok, compte } · 401 session-expiree
  * DELETE /comptes/session               → 200 { ok } (déconnexion)
  * PATCH  /comptes/moi                   { prenom?, ville?, quartier? } (quartier "" : effacé) → 200 { ok, compte } · 400 · 401
+ * PUT    /comptes/moi/langue            { langue } → 200 { ok, langue } · 400 champ-invalide { champ: "langue" } · 401 : seul geste
+ *                                        qui change la langue du compte (posée à l'inscription par X-Langue)
  *                                        (sans fiche d'ambassadeur, ville et quartier sont vérifiés mais sans effet)
  * POST   /comptes/moi/mot-de-passe      { actuel, nouveau } → 200 { ok, session } (toutes les sessions fermées, un nouveau
  *                                        jeton remplace celui en cours) · 400 champ-invalide (nouveau) · 403 mot-de-passe-incorrect
