@@ -1,4 +1,4 @@
-import { appeler } from "./client-gestion.ts";
+import { appeler, DELAI_ACTION_LONGUE_MS } from "./client-gestion.ts";
 
 export type ActionServeur = "allumer" | "eteindre" | "redemarrer";
 
@@ -26,4 +26,4 @@ export type EtatServeurs = {
 export const lireServeurs = () => appeler<EtatServeurs>("GET", "/serveurs");
 
 export const agirSurServeur = (id: string, action: ActionServeur) =>
-  appeler<{ ok: true; serveur: ServeurSuivi | null }>("POST", `/serveurs/${encodeURIComponent(id)}/action`, { corps: { action } });
+  appeler<{ ok: true; serveur: ServeurSuivi | null }>("POST", `/serveurs/${encodeURIComponent(id)}/action`, { corps: { action }, delai: DELAI_ACTION_LONGUE_MS });

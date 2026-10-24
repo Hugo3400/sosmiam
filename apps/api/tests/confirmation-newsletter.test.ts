@@ -246,3 +246,18 @@ test("confirmation non branchée : 503 indisponible", async () => {
     await new Promise<void>((fini) => sans.close(() => fini()));
   }
 });
+
+test("langue : celle de la demande est gardée avec l'attente, puis recopiée à la confirmation, quelle que soit la langue du clic", async () => {
+  const demande = await fetch(`${adresse}/inscriptions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-IP-Visiteur": `198.51.100.${++visiteur % 250}`, "X-Langue": "en" },
+    body: JSON.stringify({ email: "sam@exemple.fr", ville: "Nice" }),
+  });
+  assert.equal(demande.status, 201);
+  await laisserPasser();
+  assert.equal(memoire.attentes.get("sam@exemple.fr")?.langue, "en");
+  assert.equal((await confirmer(jetonDu(envois[0]!.lien))).statut, 200);
+  assert.equal(memoire.inscrits.get("sam@exemple.fr")?.langue, "en");
+  await inscrire({ email: "lou@exemple.fr", ville: "Nice" });
+  assert.equal(memoire.attentes.get("lou@exemple.fr")?.langue, "fr");
+});

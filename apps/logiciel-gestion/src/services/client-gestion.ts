@@ -42,6 +42,12 @@ export function surSessionPerdue(rappel: (() => void) | null) {
   quandSessionPerdue = rappel;
 }
 
+export const DELAI_APPEL_MS = 90_000;
+export const DELAI_ENVOI_FICHIER_MS = 15 * 60_000;
+export const DELAI_ACTION_LONGUE_MS = 10 * 60_000;
+
+const estDelaiDepasse = (erreur: unknown) => erreur instanceof DOMException && (erreur.name === "TimeoutError" || erreur.name === "AbortError");
+
 type Options = {
   /** Corps JSON */
   corps?: unknown;
@@ -50,6 +56,7 @@ type Options = {
   reponse?: "json" | "texte" | "blob";
   /** Session à utiliser à la place de la session en cours (fermeture d'une session déjà oubliée) */
   session?: string | null;
+  delai?: number;
 };
 
 export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", chemin: string, options: Options = {}): Promise<T> {
@@ -75,11 +82,12 @@ export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", che
   if (options.fichier) entetes["Content-Type"] = options.fichier.type || "application/octet-stream";
   else if (options.corps !== undefined) entetes["Content-Type"] = "application/json";
 
+  const signal = AbortSignal.timeout(options.delai ?? (options.fichier || options.reponse === "blob" ? DELAI_ENVOI_FICHIER_MS : DELAI_APPEL_MS));
   let reponse: Response;
   try {
-    reponse = await fetch(`${ADRESSE_API}${chemin}`, { method: methode, headers: entetes, ...(octets.length > 0 ? { body: octets } : {}) });
-  } catch {
-    throw new ErreurApi("reseau", 0);
+    reponse = await fetch(`${ADRESSE_API}${chemin}`, { method: methode, headers: entetes, signal, ...(octets.length > 0 ? { body: octets } : {}) });
+  } catch (erreur) {
+    throw new ErreurApi(estDelaiDepasse(erreur) ? "delai-depasse" : "reseau", 0);
   }
   if (!reponse.ok) {
     const corps = (await reponse.json().catch(() => null)) as { erreur?: string; champ?: string; message?: string } | null;
@@ -91,9 +99,13 @@ export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", che
     }
     throw erreur;
   }
-  if (options.reponse === "texte") return (await reponse.text()) as T;
-  if (options.reponse === "blob") return (await reponse.blob()) as T;
-  return (await reponse.json()) as T;
+  try {
+    if (options.reponse === "texte") return (await reponse.text()) as T;
+    if (options.reponse === "blob") return (await reponse.blob()) as T;
+    return (await reponse.json()) as T;
+  } catch (erreur) {
+    throw new ErreurApi(estDelaiDepasse(erreur) ? "delai-depasse" : "reponse-illisible", reponse.status);
+  }
 }
 
 /** Paramètres d'adresse (« ?page=2&recherche=… »), en ignorant les valeurs vides. */

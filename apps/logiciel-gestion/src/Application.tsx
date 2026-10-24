@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { BandeauMiseAJour } from "~/composants/mise-en-page/BandeauMiseAJour.tsx";
 import { BandeauNouveautes } from "~/composants/mise-en-page/BandeauNouveautes.tsx";
+import { FiletDeSecurite } from "~/composants/interface/FiletDeSecurite.tsx";
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
 import { EcranAmbassadeurs } from "~/ecrans/ambassadeurs/EcranAmbassadeurs.tsx";
@@ -164,53 +165,55 @@ export function Application() {
         <BandeauNouveautes />
         {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
         <div className="mx-auto max-w-[1280px] px-8 py-7">
-          {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={(vers) => allerA(vers)} problemesServeur={alertesServeur.problemes} reverifierServeur={alertesServeur.verifier} />}
-          {ecran === "statistiques" && <EcranStatistiques />}
-          {ecran === "calendrier" && <EcranCalendrier allerA={allerA} />}
-          {ecran === "newsletter" && <EcranNewsletter />}
-          {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} allerA={allerA} />}
-          {ecran === "villes" && <EcranVilles allerA={allerA} />}
-          {ecran === "boite" && <EcranBoite allerA={allerA} onLu={actualiserAlertes} />}
-          {ecran === "demandes" && <EcranDemandes onDecision={actualiserAlertes} />}
-          {ecran === "annonces" && <EcranAnnonces />}
-          {ecran === "defis" && <EcranDefis />}
-          {ecran === "presse" && <EcranPresse />}
-          {ecran === "evenements" && <EcranEvenements />}
-          {ecran === "reservations" && <EcranReservations ouvrirLieu={(id) => allerA("lieux", id)} />}
-          {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
-          {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
-          {ecran === "moderation" && <EcranModeration />}
-          {ecran === "avis" && <EcranAvis ouvrirCompte={(id) => allerA("utilisateurs", id)} onDecision={actualiserAlertes} />}
-          {ecran === "miam-safe" && <EcranMiamSafe onDecision={actualiserAlertes} />}
-          {ecran === "utilisateurs" && <EcranComptes ouvrir={ouvrirDans("utilisateurs")} surveillance={alertes?.surveillance} limitations={alertes?.limitations} onDecision={actualiserAlertes} />}
-          {ecran === "big-sos" && <EcranBigSos ouvrir={ouvrirDans("big-sos")} />}
-          {ecran === "notifications" && <EcranNotifications />}
-          {ecran === "pop-ups" && <EcranPopUps />}
-          {ecran === "communaute" && <EcranCommunaute />}
-          {ecran === "carriere" && <EcranCarriere onDecision={actualiserAlertes} />}
-          {ecran === "chasse-aux-bugs" && <EcranChasseAuxBugs onDecision={actualiserAlertes} />}
-          {ecran === "versions-app" && <EcranVersionsApp />}
-          {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
-          {ecran === "reglages" && (
-            <EcranReglages
-              theme={theme}
-              onTheme={changerTheme}
-              onRaccourcis={() => setAideClavier(true)}
-              coffre={coffre}
-              onCoffreChange={setCoffre}
-              minutesVerrou={minutesVerrou}
-              onMinutesVerrou={(minutes) => {
-                ecrireMinutesVerrou(minutes);
-                setMinutesVerrou(minutes);
-              }}
-              onOublierPoste={() => {
-                verrouiller(true);
-                oublierCoffre();
-                setCoffre(null);
-                setPhase("premier-lancement");
-              }}
-            />
-          )}
+          <FiletDeSecurite key={ecran} retour={ecran === "tableau-de-bord" ? undefined : () => allerA("tableau-de-bord")}>
+            {ecran === "tableau-de-bord" && <EcranTableauDeBord allerA={(vers) => allerA(vers)} problemesServeur={alertesServeur.problemes} reverifierServeur={alertesServeur.verifier} />}
+            {ecran === "statistiques" && <EcranStatistiques />}
+            {ecran === "calendrier" && <EcranCalendrier allerA={allerA} />}
+            {ecran === "newsletter" && <EcranNewsletter />}
+            {ecran === "lieux" && <EcranLieux ouvrir={ouvrirDans("lieux")} allerA={allerA} />}
+            {ecran === "villes" && <EcranVilles allerA={allerA} />}
+            {ecran === "boite" && <EcranBoite allerA={allerA} onLu={actualiserAlertes} />}
+            {ecran === "demandes" && <EcranDemandes onDecision={actualiserAlertes} />}
+            {ecran === "annonces" && <EcranAnnonces />}
+            {ecran === "defis" && <EcranDefis />}
+            {ecran === "presse" && <EcranPresse />}
+            {ecran === "evenements" && <EcranEvenements />}
+            {ecran === "reservations" && <EcranReservations ouvrirLieu={(id) => allerA("lieux", id)} />}
+            {ecran === "ambassadeurs" && <EcranAmbassadeurs onDecision={actualiserAlertes} cible={ouvrirDans("ambassadeurs")} />}
+            {ecran === "publications" && <EcranPublications ouvrir={ouvrirDans("publications")} />}
+            {ecran === "moderation" && <EcranModeration />}
+            {ecran === "avis" && <EcranAvis ouvrirCompte={(id) => allerA("utilisateurs", id)} onDecision={actualiserAlertes} />}
+            {ecran === "miam-safe" && <EcranMiamSafe onDecision={actualiserAlertes} />}
+            {ecran === "utilisateurs" && <EcranComptes ouvrir={ouvrirDans("utilisateurs")} surveillance={alertes?.surveillance} limitations={alertes?.limitations} onDecision={actualiserAlertes} />}
+            {ecran === "big-sos" && <EcranBigSos ouvrir={ouvrirDans("big-sos")} />}
+            {ecran === "notifications" && <EcranNotifications />}
+            {ecran === "pop-ups" && <EcranPopUps />}
+            {ecran === "communaute" && <EcranCommunaute />}
+            {ecran === "carriere" && <EcranCarriere onDecision={actualiserAlertes} />}
+            {ecran === "chasse-aux-bugs" && <EcranChasseAuxBugs onDecision={actualiserAlertes} />}
+            {ecran === "versions-app" && <EcranVersionsApp />}
+            {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
+            {ecran === "reglages" && (
+              <EcranReglages
+                theme={theme}
+                onTheme={changerTheme}
+                onRaccourcis={() => setAideClavier(true)}
+                coffre={coffre}
+                onCoffreChange={setCoffre}
+                minutesVerrou={minutesVerrou}
+                onMinutesVerrou={(minutes) => {
+                  ecrireMinutesVerrou(minutes);
+                  setMinutesVerrou(minutes);
+                }}
+                onOublierPoste={() => {
+                  verrouiller(true);
+                  oublierCoffre();
+                  setCoffre(null);
+                  setPhase("premier-lancement");
+                }}
+              />
+            )}
+          </FiletDeSecurite>
         </div>
       </main>
     </div>

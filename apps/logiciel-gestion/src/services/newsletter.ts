@@ -1,6 +1,6 @@
 import type { JSONContent } from "@tiptap/react";
 
-import { appeler, parametres } from "./client-gestion.ts";
+import { appeler, DELAI_ACTION_LONGUE_MS, parametres } from "./client-gestion.ts";
 
 export type Inscrit = {
   id: number;
@@ -44,7 +44,7 @@ export type EtatBoite = {
   parMailSeulement: { adresse: string; ville: string; inscritLe: string }[];
 };
 export const lireBoite = () => appeler<EtatBoite>("GET", "/newsletter/boite");
-export const synchroniserBoite = () => appeler<{ ok: boolean; message: string }>("POST", "/newsletter/boite/synchroniser");
+export const synchroniserBoite = () => appeler<{ ok: boolean; message: string }>("POST", "/newsletter/boite/synchroniser", { delai: DELAI_ACTION_LONGUE_MS });
 
 export type ResumeBrouillon = { id: number; objet: string; creeLe: string; modifieLe: string };
 /** contenu : document de l'éditeur visuel ; null pour un ancien brouillon écrit en Markdown (dans texte) */

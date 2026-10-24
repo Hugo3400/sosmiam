@@ -1,4 +1,4 @@
-import { appeler, parametres } from "./client-gestion.ts";
+import { appeler, DELAI_ACTION_LONGUE_MS, parametres } from "./client-gestion.ts";
 
 // Mêmes valeurs que packages/commun/src/types/lieu.ts
 export type TypeLieu = "resto" | "patisserie" | "bar" | "sortie";
@@ -97,6 +97,6 @@ export const chercherLieuxSemblables = (fiche: { nom: string; ville: string; adr
 
 /** Aperçu d'un import : chaque ligne valable (ou le champ qui ne va pas), et ses doublons (en base, ou lignes du fichier) */
 export type LigneImportVerifiee = { ok: boolean; champ?: string; semblables: { id: number; nom: string; ville: string }[]; dansLeFichier: number[] };
-export const verifierImportLieux = (lieux: Record<string, unknown>[]) => appeler<LigneImportVerifiee[]>("POST", "/lieux/import/verifier", { corps: { lieux } });
+export const verifierImportLieux = (lieux: Record<string, unknown>[]) => appeler<LigneImportVerifiee[]>("POST", "/lieux/import/verifier", { corps: { lieux }, delai: DELAI_ACTION_LONGUE_MS });
 /** 50 lignes au plus par appel ; les fiches arrivent en brouillon, placées par leur adresse quand c'est sûr */
-export const importerLieux = (lieux: Record<string, unknown>[]) => appeler<{ ok: true; crees: number; placees: number }>("POST", "/lieux/import", { corps: { lieux } });
+export const importerLieux = (lieux: Record<string, unknown>[]) => appeler<{ ok: true; crees: number; placees: number }>("POST", "/lieux/import", { corps: { lieux }, delai: DELAI_ACTION_LONGUE_MS });

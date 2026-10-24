@@ -1,3 +1,4 @@
+import { lireLangueDemande } from "../middlewares/poser-langue.ts";
 import type { DepotConfirmationsNewsletter, NouvelleAttenteConfirmation } from "./confirmations-newsletter-regles.ts";
 import type { NouvelleInscription } from "./inscriptions.ts";
 
@@ -10,12 +11,13 @@ export function creerConfirmationsNewsletterEnMemoire() {
   function inscrire(nouvelle: NouvelleInscription, maintenant: Date) {
     const ancien = inscrits.get(nouvelle.email);
     if (!ancien) {
-      inscrits.set(nouvelle.email, { ...nouvelle, premiereInscription: maintenant, derniereInscription: maintenant });
+      inscrits.set(nouvelle.email, { ...nouvelle, langue: nouvelle.langue ?? lireLangueDemande(), premiereInscription: maintenant, derniereInscription: maintenant });
       return;
     }
     inscrits.set(nouvelle.email, {
       ...ancien,
       derniereInscription: maintenant,
+      langue: nouvelle.langue ?? lireLangueDemande(),
       ville: nouvelle.ville || ancien.ville,
       telephone: nouvelle.telephone ?? ancien.telephone,
       ambassadeur: ancien.ambassadeur || nouvelle.ambassadeur,

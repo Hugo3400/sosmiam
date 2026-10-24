@@ -96,6 +96,7 @@ import { creerDepotPhotosProfil } from "./services/photos-profil-base.ts";
 import { creerStockagePhotosProfil } from "./services/stockage-photos-profil.ts";
 import { brancherCarriere } from "./services/carriere.ts";
 import { brancherSecurite } from "./services/securite.ts";
+import { lireSanteComplete } from "./services/gestion/sante-complete-en-ligne.ts";
 import { arreterNettoyeurJpeg } from "./services/nettoyeur-jpeg.ts";
 
 const hote = process.env.HOST || "127.0.0.1";
@@ -297,6 +298,7 @@ const serveur = creerApplication({
   socialApp,
   carriere,
   securite,
+  lireSanteComplete,
 }).listen(port, hote, () => {
   console.log(`API SOS Miam prête sur http://${hote}:${port}`);
 });

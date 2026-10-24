@@ -2,6 +2,8 @@ import type { ErreurApi } from "~/services/client-gestion.ts";
 
 const MESSAGES: Record<string, string> = {
   reseau: "Le serveur ne répond pas. Vérifie ta connexion, ou l'état du serveur.",
+  "delai-depasse": "Le serveur met trop longtemps à répondre, alors on a arrêté d'attendre. L'action a peut-être été faite quand même : actualise avant de réessayer. Si ça recommence, regarde Maintenance.",
+  "reponse-illisible": "La réponse du serveur est arrivée abîmée. Actualise ; si ça recommence, regarde Maintenance.",
   "non-autorise": "Le serveur ne reconnaît pas ce poste. A-t-il bien été autorisé ?",
   "horloge-decalee": "L'heure de ton PC est décalée de plus d'une minute : resynchronise-la dans les réglages de Windows.",
   "gestion-fermee": "La gestion est fermée sur le serveur (fichier d'accès absent ou mal protégé).",

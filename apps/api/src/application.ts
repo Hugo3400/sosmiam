@@ -128,6 +128,7 @@ type Dependances = {
   socialApp?: DependancesSocialApp;
   carriere?: ServicesCarrierePublics;
   securite?: ServicesSecuritePublics;
+  lireSanteComplete?: () => Promise<{ ok: boolean }>;
 };
 
 /** Espace ambassadeur : données personnelles, jamais gardées dans un cache */
@@ -149,6 +150,7 @@ export function creerApplication({
   socialApp,
   carriere,
   securite,
+  lireSanteComplete,
 }: Dependances) {
   const application = express();
   application.disable("x-powered-by");
@@ -169,6 +171,12 @@ export function creerApplication({
   application.get("/sante", (_requete, reponse) => {
     reponse.json({ ok: true });
   });
+  if (lireSanteComplete) {
+    application.get("/sante/complet", async (_requete, reponse) => {
+      const etat = await lireSanteComplete();
+      reponse.status(etat.ok ? 200 : 503).set("Cache-Control", "no-store").json(etat);
+    });
+  }
   application.use("/inscriptions", creerRoutesInscriptions(enregistrerInscription));
   if (trouverCommune) application.use("/localisation", creerRoutesLocalisation(trouverCommune));
   if (listerLieuxPublics || lireFichePublique) application.use("/lieux", creerRoutesLieuxPublics(listerLieuxPublics, lireFichePublique));

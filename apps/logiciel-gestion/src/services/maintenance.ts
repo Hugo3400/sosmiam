@@ -1,4 +1,4 @@
-import { appeler } from "./client-gestion.ts";
+import { appeler, DELAI_ACTION_LONGUE_MS } from "./client-gestion.ts";
 
 export type ProcessusServeur = {
   nom: string;
@@ -23,4 +23,4 @@ export type EtatServeur = {
 export const lireEtatServeur = () => appeler<EtatServeur>("GET", "/maintenance");
 /** Le ménage que le serveur ne fait pas tout seul (mailsAnciens null : la boîte ne répond pas) */
 export const lireMenageManuel = () => appeler<{ mailsAnciens: number | null; candidaturesMail?: number | null; aRelancer: number; desinscritsSansDate: number }>("GET", "/maintenance/menage-manuel");
-export const relancerProcessus = (processus: string) => appeler<{ ok: true }>("POST", "/maintenance/relancer", { corps: { processus } });
+export const relancerProcessus = (processus: string) => appeler<{ ok: true }>("POST", "/maintenance/relancer", { corps: { processus }, delai: DELAI_ACTION_LONGUE_MS });
