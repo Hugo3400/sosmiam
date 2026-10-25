@@ -38,6 +38,12 @@ const MESSAGES: Record<string, string> = {
   "date-invalide": "Cette date n'existe pas, ou elle est dans le futur.",
   "minimale-trop-haute": "La version minimale ne peut pas dépasser la dernière version.",
   "aucun-destinataire": "Personne à qui envoyer : aucun destinataire coché ne fait partie de ce public.",
+  "acces-distance-refuse": "Mot de passe de gestion ou code à 6 chiffres faux (ou code déjà servi : attends le suivant).",
+  "distance-fermee": "L'ajout de PC à distance n'est pas ouvert sur le serveur : lance « npm run gestion:autoriser -- --distance » sur le serveur, ou autorise ce PC par le serveur.",
+  "trop-de-postes": "Déjà 5 PC ajoutés à distance : coupe-en un dans Sécurité → PC autorisés (depuis un autre PC), ou attends qu'un PC de passage se coupe.",
+  "poste-coupe": "Ce PC a été coupé : efface-le, recrée une clé, puis autorise-le à nouveau.",
+  "ce-poste": "Tu ne peux pas couper le PC sur lequel tu es : fais-le depuis un autre PC, ou depuis le serveur.",
+  occupe: "Le serveur est très occupé : réessaie dans quelques secondes.",
 };
 
 /** Texte lisible pour une erreur de l'API. */

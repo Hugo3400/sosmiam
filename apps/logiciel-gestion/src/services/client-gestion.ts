@@ -27,6 +27,7 @@ export class ErreurApi extends Error {
 
 const etat: { cleSecrete: CryptoKey | null; idPoste: string | null; session: string | null } = { cleSecrete: null, idPoste: null, session: null };
 let quandSessionPerdue: (() => void) | null = null;
+let quandPosteRefuse: (() => void) | null = null;
 
 export function configurerClient(cleSecrete: CryptoKey | null, idPoste: string | null) {
   etat.cleSecrete = cleSecrete;
@@ -40,6 +41,10 @@ export const lireSession = () => etat.session;
 /** Appelée quand l'API dit que la session est finie (inactivité, redémarrage du serveur) : il faut retaper le code. */
 export function surSessionPerdue(rappel: (() => void) | null) {
   quandSessionPerdue = rappel;
+}
+
+export function surPosteRefuse(rappel: (() => void) | null) {
+  quandPosteRefuse = rappel;
 }
 
 export const DELAI_APPEL_MS = 90_000;
@@ -96,6 +101,11 @@ export async function appeler<T>(methode: "GET" | "POST" | "PUT" | "DELETE", che
       etat.session = null;
       oublierSessionLocale();
       quandSessionPerdue?.();
+    }
+    if (erreur.code === "non-autorise" && session && etat.session === session) {
+      etat.session = null;
+      oublierSessionLocale();
+      quandPosteRefuse?.();
     }
     throw erreur;
   }

@@ -6,6 +6,8 @@ import type { EnvoiRecent } from "~/services/courriels.ts";
 
 const TYPES: Record<string, string> = {
   essai: "Essai",
+  "acces-distance-poste": "Nouveau PC autorisé",
+  "acces-distance-bloque": "Ajout de PC bloqué",
   "ambassadeur-valide": "Bienvenue ambassadeur",
   "alerte-retrait": "Alerte avant retrait du rôle",
   "alerte-effacement": "Alerte avant effacement",

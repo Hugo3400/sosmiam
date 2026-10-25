@@ -3,9 +3,11 @@
 import { chiffrerTexte } from "~/fonctions/securite/chiffrer-texte.ts";
 import { dechiffrerTexte } from "~/fonctions/securite/dechiffrer-texte.ts";
 import { ecrireSessionLocale, lireSessionLocale, oublierSessionLocale } from "~/stockage/session-locale.ts";
+import type { DureePoste } from "~/contenus/postes.ts";
 import { appeler, definirSession, lireSession } from "./client-gestion.ts";
 
-export type SessionOuverte = { session: string; poste: string; inactiviteMax: number };
+export type SessionOuverte = { session: string; poste: string; expireLe: string | null; inactiviteMax: number };
+export type DemandeDistance = { clePublique: string; nom: string; duree: DureePoste; motDePasse: string; code: string };
 
 /** Clé tirée du mot de passe, en mémoire seulement pendant que le logiciel est déverrouillé */
 let cleCoffre: CryptoKey | null = null;
@@ -27,6 +29,13 @@ export const aUneSessionGardee = () => lireSessionLocale() !== null;
 /** Ouvre une session avec le code à 6 chiffres de l'application d'authentification, et la garde sur ce PC. */
 export async function ouvrirSession(code: string): Promise<SessionOuverte> {
   const ouverte = await appeler<SessionOuverte>("POST", "/session", { corps: { code } });
+  definirSession(ouverte.session);
+  await garderSurLePoste(ouverte.session);
+  return ouverte;
+}
+
+export async function autoriserADistance(demande: DemandeDistance): Promise<SessionOuverte> {
+  const ouverte = await appeler<SessionOuverte>("POST", "/postes/distance", { corps: demande, session: null });
   definirSession(ouverte.session);
   await garderSurLePoste(ouverte.session);
   return ouverte;

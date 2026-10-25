@@ -14,6 +14,7 @@ export type CoffreCle = {
   sel: string;
   iv: string;
   chiffre: string;
+  expireLe?: string | null;
 };
 
 const CLE_STOCKAGE = "sosmiam-gestion:coffre";
@@ -34,3 +35,7 @@ export function ecrireCoffre(coffre: CoffreCle): void {
 export function oublierCoffre(): void {
   localStorage.removeItem(CLE_STOCKAGE);
 }
+
+export const estPosteDePassage = (coffre: CoffreCle) => typeof coffre.expireLe === "string";
+
+export const estPassageFini = (coffre: CoffreCle, maintenant = Date.now()) => typeof coffre.expireLe === "string" && Date.parse(coffre.expireLe) <= maintenant;
