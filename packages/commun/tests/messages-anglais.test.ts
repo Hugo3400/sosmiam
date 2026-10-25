@@ -5,12 +5,14 @@ import { MESSAGES_CONNEXION_QR_ANGLAIS } from "../src/contenus/anglais/messages-
 import { MESSAGES_RESERVATIONS_ANGLAIS } from "../src/contenus/anglais/messages-reservations.ts";
 import { MESSAGES_SECURITE_ANGLAIS } from "../src/contenus/anglais/messages-securite.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS } from "../src/contenus/anglais/messages-services-communaute.ts";
+import { MESSAGES_SERVICES_SOCIAUX_ANGLAIS } from "../src/contenus/anglais/messages-services-sociaux.ts";
 import { MESSAGES_CARRIERE } from "../src/contenus/messages-carriere.ts";
 import { MESSAGES_CONNEXION_QR } from "../src/contenus/messages-connexion-qr.ts";
 import { MESSAGES_RESERVATIONS } from "../src/contenus/messages-reservations.ts";
 import { MESSAGES_SECURITE } from "../src/contenus/messages-securite.ts";
 import type { MessageService } from "../src/contenus/messages-services.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE } from "../src/contenus/messages-services-communaute.ts";
+import { MESSAGES_SERVICES_SOCIAUX } from "../src/contenus/messages-services-sociaux.ts";
 
 const PAIRES: [string, Readonly<Record<string, MessageService>>, Readonly<Record<string, MessageService>>][] = [
   ["sécurité", MESSAGES_SECURITE, MESSAGES_SECURITE_ANGLAIS],
@@ -18,6 +20,7 @@ const PAIRES: [string, Readonly<Record<string, MessageService>>, Readonly<Record
   ["connexion par QR", MESSAGES_CONNEXION_QR, MESSAGES_CONNEXION_QR_ANGLAIS],
   ["communauté", MESSAGES_SERVICES_COMMUNAUTE, MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS],
   ["réservations", MESSAGES_RESERVATIONS, MESSAGES_RESERVATIONS_ANGLAIS],
+  ["partie sociale", MESSAGES_SERVICES_SOCIAUX, MESSAGES_SERVICES_SOCIAUX_ANGLAIS],
 ];
 
 const accolades = (texte: string) => [...texte.matchAll(/\{[a-zA-Z]+\}/g)].map((m) => m[0]).sort();
