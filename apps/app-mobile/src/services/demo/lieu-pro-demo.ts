@@ -8,7 +8,6 @@ import { estEvenementAlcool } from "@sos-miam/commun/fonctions/evenements/est-ev
 import { calculerDecalageParis } from "@sos-miam/commun/fonctions/temps/calculer-decalage-paris";
 import { calculerInstantParis } from "@sos-miam/commun/fonctions/temps/calculer-instant-paris";
 import { EVENEMENTS_A_VENIR_MAX } from "@sos-miam/commun/regles/evenements";
-import { REGLES_IMAGES_LIEU } from "@sos-miam/commun/regles/images-lieu";
 import { MESSAGE_MOMENT_MAX, SOS_OFFRE_MAX, SOS_PLACES_MAX, SOS_PLACES_MIN } from "@sos-miam/commun/regles/sos-lieu";
 import type { EvenementLieuPro, EvenementLieuPublic, ReglageEvenement } from "@sos-miam/commun/types/evenement";
 import type { MomentLieu, SosDuJour } from "@sos-miam/commun/types/moment-lieu";
@@ -17,8 +16,6 @@ import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-in
 import { validerEvenement } from "@sos-miam/commun/validation/valider-evenement";
 
 import { lieuxExemples } from "~/contenus/lieux-exemples";
-import { encoderBase64 } from "~/fonctions/texte/encoder-base64";
-import { poserImageLieuDemo } from "./images-lieux-posees-demo";
 import type { ContexteDemo } from "./types-demo";
 
 type EtatLieuDemo = { sos: (SosDuJour & { jour: string }) | null; message: { texte: string; jusqua: string } | null; evenements: EvenementLieuPro[] };
@@ -225,18 +222,6 @@ export function creerLieuProDemo(ctx: ContexteDemo): ServiceLieuPro {
       const annule = presenterEvenement({ ...existant, annuleLe: new Date(maintenant()).toISOString() }, maintenant());
       etatDe(lieuId).evenements = etatDe(lieuId).evenements.map((e) => (e.id === id ? annule : e));
       return { ok: true, evenement: annule };
-    },
-    async envoyerImage(lieuId, quelle, octets) {
-      const regle = REGLES_IMAGES_LIEU[quelle];
-      const tableau = octets instanceof Uint8Array ? octets : new Uint8Array(octets instanceof ArrayBuffer ? octets : await octets.arrayBuffer());
-      if (tableau.length > regle.poidsMax) return { ok: false, erreur: "image-lieu-trop-lourde" };
-      const adresse = `data:${regle.type};base64,${encoderBase64(tableau)}`;
-      poserImageLieuDemo(lieuId, quelle, adresse);
-      return { ok: true, adresse };
-    },
-    async retirerImage(lieuId, quelle) {
-      poserImageLieuDemo(lieuId, quelle, null);
-      return { ok: true };
     },
   };
 }

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-// @ts-ignore : Node a besoin de l'extension « .ts », que la configuration TypeScript du site n'autorise pas dans un import
 import { decrireOuverture } from "../src/fonctions/lieux/decrire-ouverture.ts";
 
 const MIDI_ET_SOIR = [
