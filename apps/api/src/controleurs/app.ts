@@ -3,6 +3,11 @@
 import type { Request, Response } from "express";
 
 import { calculerClesPeriodes } from "../fonctions/dates/calculer-cles-periodes.ts";
+import { lireLangueDemande } from "../middlewares/poser-langue.ts";
+import { calculerJourParis } from "../../../../packages/commun/src/fonctions/temps/calculer-jour-paris.ts";
+import { listerThemesDuJour } from "../../../../packages/commun/src/fonctions/themes-saison/lister-themes-du-jour.ts";
+import { preparerThemeSaisonApi } from "../../../../packages/commun/src/fonctions/themes-saison/preparer-theme-saison-api.ts";
+import { ENTETE_LANGUE } from "../../../../packages/commun/src/regles/langues.ts";
 
 /** Versions minimales de l'app par système (« 0.0.0 » : aucune mise à jour demandée) */
 export type VersionMinimaleApp = { ios: string; android: string };
@@ -32,6 +37,14 @@ export function creerControleursApp({ versionMinimale = SANS_VERSION, versionDer
       reponse
         .set("Cache-Control", "no-cache")
         .json({ ok: true, minimale: { ios: minimale.ios, android: minimale.android }, derniere: { ios: derniere.ios, android: derniere.android } });
+    },
+
+    themes(requete: Request, reponse: Response) {
+      const ville = typeof requete.query.ville === "string" && requete.query.ville.length <= 80 ? requete.query.ville : null;
+      const jour = calculerJourParis(horloge());
+      const langue = lireLangueDemande();
+      const themes = listerThemesDuJour(jour, ville).map((theme) => preparerThemeSaisonApi(theme, langue));
+      reponse.set("Cache-Control", "private, max-age=300").set("Vary", ENTETE_LANGUE).json({ ok: true, jour, themes });
     },
   };
 }

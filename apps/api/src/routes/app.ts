@@ -19,6 +19,10 @@ export const LIMITE_APP = { fenetre: 10 * 60_000, maximum: 120 };
  *                     écrit par le logiciel de gestion, relu dès qu'il change), sinon dans SOS_MIAM_VERSION_MIN_IOS,
  *                     SOS_MIAM_VERSION_MIN_ANDROID, SOS_MIAM_VERSION_DERNIERE_IOS et SOS_MIAM_VERSION_DERNIERE_ANDROID ; une
  *                     valeur mal écrite compte comme « 0.0.0 ». L'app compare elle-même, nombre par nombre.
+ * GET /app/themes[?ville=Paris]
+ *                   → 200 { ok, jour: "2026-12-10" (jour de Paris), themes: ThemeSaisonApi[] } (packages/commun/src/types/
+ *                     theme-saison.ts) : les thèmes de saison du jour, le premier pour la bannière, dans la langue de
+ *                     X-Langue ; un thème réservé à une ville (pasta-party : Paris) seulement avec ?ville. Cache privé 5 min
  */
 export function creerRoutesApp(dependances: DependancesApp) {
   const c = creerControleursApp(dependances);
@@ -26,5 +30,6 @@ export function creerRoutesApp(dependances: DependancesApp) {
   routes.use(limiterRequetes(LIMITE_APP));
   routes.get("/temps", c.temps);
   routes.get("/version", c.version);
+  routes.get("/themes", c.themes);
   return routes;
 }

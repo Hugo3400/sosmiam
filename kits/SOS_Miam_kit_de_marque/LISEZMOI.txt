@@ -42,6 +42,14 @@ Fiesta, Bob, Raclette, Moustache, Chantilly, Binocles, Marmotte, Tuba.
 - SOSMiam_Miamis_planche : les seize avec leur nom, en 1080 × 1350 (format Instagram).
 Refaits par scripts/avatars-miamis/generer-avatars-miamis.ts (dans le dépôt).
 
+07_Tenues_du_Capitaine
+Le Capitaine Bouiboui habillé pour les thèmes de saison de l'app et du site : il garde toujours sa casquette,
+on ajoute seulement des accessoires. Dix-neuf tenues en SVG et en PNG 1024 px de large (fond transparent) :
+noel, nouvel-an, galette, janvier, chandeleur, saint-valentin, paques, poisson-d-avril, musique,
+quatorze-juillet, ete, halloween, movember, octobre-rose, supporter, rugby, et miam, clin-d-oeil et fete
+(les expressions du kit, au même cadre). Octobre rose et Movember : ton sobre, jamais de blague.
+Refaites par scripts/tenues-capitaine/generer-tenues-capitaine.ts (dans le dépôt).
+
 Vocabulaire
 - Les Miamis : la communauté SOS Miam, au quotidien (« Salut les Miamis ! »).
 - La Brigade : les Miamis quand un lieu lance un SOS ou pour fêter les rescousses (« Merci la Brigade ! »).
