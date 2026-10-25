@@ -154,7 +154,8 @@
       ],
       "expo-sharing",
       "expo-asset",
-      "@bacons/apple-targets"
+      "@bacons/apple-targets",
+      "expo-localization"
     ],
     "runtimeVersion": {
       "policy": "appVersion"

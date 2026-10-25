@@ -4,7 +4,7 @@
 // (vérifiée par le logiciel lui-même) : un fichier modifié serait refusé.
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 export const DOSSIER_MAJ = process.env.DOSSIER_MAJ || "/var/lib/sos-miam/mises-a-jour";
 const DUREE_JETON = 15 * 60_000;
@@ -37,4 +37,15 @@ export async function trouverInstallateur(nom: string): Promise<string | null> {
   if (!NOM_INSTALLATEUR.test(nom)) return null;
   const chemin = join(DOSSIER_MAJ, nom);
   return stat(chemin).then(() => chemin, () => null);
+}
+
+export async function trouverDernierInstallateur(): Promise<string | null> {
+  const manifeste = await lireManifesteMaj();
+  if (!manifeste) return null;
+  try {
+    const adresse = (JSON.parse(manifeste) as { platforms?: Record<string, { url?: unknown }> }).platforms?.["windows-x86_64"]?.url;
+    return typeof adresse === "string" ? await trouverInstallateur(basename(new URL(adresse).pathname)) : null;
+  } catch {
+    return null;
+  }
 }

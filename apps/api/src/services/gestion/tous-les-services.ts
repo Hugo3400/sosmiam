@@ -30,6 +30,7 @@ import { changerCodePublic, lireValidationLieu, reglerValidationLieu } from "./v
 import { creerLienPresse, lireLienPresse, listerPresse, trouverFichierPresse } from "./presse.ts";
 import { listerEvenementsGestion, suspendreEvenement } from "./evenements-gestion.ts";
 import { envoyerCourrielEcrit } from "../courriels/courriel-ecrit.ts";
+import { prevenirAccesDistance } from "../courriels/courriels-acces-distance.ts";
 import { lireEtatEnvois, listerDerniersEnvois } from "../courriels/file-courriels.ts";
 import { annulerCampagne, envoyerEssaiNewsletter, lancerCampagne, listerCampagnes, listerDestinataires } from "./envois-newsletter.ts";
 import { lireEtatBoite, synchroniserBoite } from "./boite-mail.ts";
@@ -125,6 +126,7 @@ export const servicesGestion = {
   listerBigSos, lireBigSos, creerBigSos, modifierBigSos, envoyerVerification, deciderBigSos, supprimerBigSos,
   lireEtatPush, estimerPush, listerNotifications, creerNotification, annulerNotification,
   listerReponsesTypes, creerReponseType, modifierReponseType, supprimerReponseType,
+  prevenirAccesDistance,
 };
 
 export type ServicesGestion = typeof servicesGestion;

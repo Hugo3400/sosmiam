@@ -33,12 +33,16 @@ import { creerControleursSuggestions } from "../controleurs/gestion/controleurs-
 import { creerControleursSurveillance, type VisitesGestion } from "../controleurs/gestion/controleurs-surveillance.ts";
 import { creerControleursValidationLieu } from "../controleurs/gestion/controleurs-validation-lieu.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
+import { creerControleursPostes } from "../controleurs/gestion/controleurs-postes.ts";
+import { fusionnerAccesGestion } from "../fonctions/securite/fusionner-acces-gestion.ts";
+import { creerAutorisationDistance } from "../middlewares/autoriser-poste-distance.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
-import { creerProtectionGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
+import { creerProtectionGestion, PREFIXE_GESTION, type ContexteGestion, type StockageSessions } from "../middlewares/proteger-gestion.ts";
 import type { ChiffrementDonnees } from "../services/chiffrement-donnees.ts";
 import type { AccesGestion } from "../services/gestion/acces.ts";
 import { TAILLE_MAX_VIDEO } from "../services/gestion/formats-medias.ts";
-import { creerJetonMaj, lireManifesteMaj, trouverInstallateur, verifierJetonMaj } from "../services/gestion/mises-a-jour.ts";
+import { creerJetonMaj, lireManifesteMaj, trouverDernierInstallateur, trouverInstallateur, verifierJetonMaj } from "../services/gestion/mises-a-jour.ts";
+import { creerRegistrePostesDistanceEnMemoire, type RegistrePostesDistance } from "../services/gestion/postes-distance.ts";
 import type { ServicesGestion } from "../services/gestion/tous-les-services.ts";
 
 export type DependancesGestion = {
@@ -64,11 +68,21 @@ export type DependancesGestion = {
   limitations?: ServicesLimitations;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
   lireDirect?: (source: "site" | "app") => { visites: number; pages: { valeur: string; nombre: number }[] };
+  postesDistance?: RegistrePostesDistance;
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale, avis: avisGestion, limitations }: DependancesGestion) {
-  const protection = creerProtectionGestion(lireAcces, horloge, sessions);
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale, avis: avisGestion, limitations, postesDistance }: DependancesGestion) {
+  const registre = postesDistance ?? creerRegistrePostesDistanceEnMemoire();
+  const lireHeure = horloge ?? Date.now;
+  const lireTout = () => fusionnerAccesGestion(lireAcces(), registre.lire(), lireHeure());
+  const protection = creerProtectionGestion(lireTout, horloge, sessions);
+  const distance = creerAutorisationDistance({
+    lireAcces: lireTout, registre, horloge: lireHeure, prefixe: PREFIXE_GESTION,
+    verifierCode: protection.verifierCode, ouvrirSessionPour: protection.ouvrirSessionPour,
+    prevenir: (courriel, alerte) => services.prevenirAccesDistance(courriel, alerte),
+  });
+  const postes = creerControleursPostes({ lireAcces: lireTout, registre, oublierSessionsDuPoste: protection.oublierSessionsDuPoste, noterAction: services.noterAction });
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
   const f = creerControleursFondateurs(services, comptes);
@@ -124,6 +138,12 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   // Espace presse : téléchargement d'un gros fichier par un lien de 10 minutes, ouvert dans le navigateur (sans signature,
   // seulement avec un jeton donné par une demande signée) ; avant les contrôles des demandes du logiciel
   routes.get("/presse/telecharger/:jeton", presse.telecharger);
+  routes.get("/telecharger", async (_requete, reponse) => {
+    const chemin = await trouverDernierInstallateur();
+    if (!chemin) return void reponse.status(404).json({ ok: false, erreur: "introuvable" });
+    reponse.download(chemin);
+  });
+  routes.post("/postes/distance", express.raw({ type: () => true, limit: "8kb" }), distance);
   routes.use(protection.controlerEnTetes);
   // Corps lu tel quel (la signature porte sur ses octets exacts), seulement une fois les en-têtes contrôlés
   routes.use(express.raw({ type: () => true, limit: TAILLE_MAX_VIDEO + 1024 }));
@@ -133,8 +153,11 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.delete("/session", protection.fermerSession);
   // Le logiciel vérifie qu'une session gardée sur le PC est encore valable (sinon il redemande le code)
   routes.get("/session", (_requete, reponse) => {
-    reponse.json({ ok: true, poste: (reponse.locals.gestion as { poste: { nom: string } }).poste.nom });
+    const { poste } = reponse.locals.gestion as ContexteGestion;
+    reponse.json({ ok: true, poste: poste.nom, expireLe: typeof poste.expireLe === "number" ? new Date(poste.expireLe).toISOString() : null });
   });
+  routes.get("/postes", postes.lister);
+  routes.delete("/postes/:id", postes.couper);
 
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/alertes", c.alertes);

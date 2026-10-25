@@ -22,6 +22,7 @@ import { servicesMiamSafe } from "./services/miam-safe.ts";
 import { creerPartagesMiamSafe } from "./services/partages-miam-safe.ts";
 import { enregistrerDemandeLieu } from "./services/demandes-lieux.ts";
 import { creerLecteurAcces } from "./services/gestion/acces.ts";
+import { creerRegistrePostesDistance } from "./services/gestion/postes-distance.ts";
 import { marquerMessageLu, messagesDuCompte, missionsDuCompte, noterPresence, terminerMission } from "./services/gestion/missions-messages.ts";
 import { enregistrerSignalement } from "./services/gestion/moderation.ts";
 import { stockageSessions } from "./services/gestion/stockage-sessions.ts";
@@ -199,7 +200,7 @@ const serveur = creerApplication({
   listerLieuxDuPlan,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
-  gestion: { lireAcces: creerLecteurAcces(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source), chiffrement,
+  gestion: { lireAcces: creerLecteurAcces(), postesDistance: creerRegistrePostesDistance(), services: servicesGestion, sessions: stockageSessions, lireDirect: (source) => compteur.lireDirect(source), chiffrement,
     comptes: { ajouterPoints: ajouterPointsEtDefis, donnerBadge, preparerReinitialisation, preparerVerificationEmail, nommerAmbassadeurVille, retirerAmbassadeurVille },
     // « Donner raison au client » sur une contestation de refus (logique des visites de la session App)
     defis,
