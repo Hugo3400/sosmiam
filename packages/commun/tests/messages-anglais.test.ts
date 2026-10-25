@@ -10,7 +10,7 @@ import { MESSAGES_CARRIERE } from "../src/contenus/messages-carriere.ts";
 import { MESSAGES_CONNEXION_QR } from "../src/contenus/messages-connexion-qr.ts";
 import { MESSAGES_RESERVATIONS } from "../src/contenus/messages-reservations.ts";
 import { MESSAGES_SECURITE } from "../src/contenus/messages-securite.ts";
-import type { MessageService } from "../src/contenus/messages-services.ts";
+import { MESSAGES_SERVICE, MESSAGES_SERVICE_PAR_LANGUE, type MessageService } from "../src/contenus/messages-services.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE } from "../src/contenus/messages-services-communaute.ts";
 import { MESSAGES_SERVICES_SOCIAUX } from "../src/contenus/messages-services-sociaux.ts";
 
@@ -21,6 +21,7 @@ const PAIRES: [string, Readonly<Record<string, MessageService>>, Readonly<Record
   ["communauté", MESSAGES_SERVICES_COMMUNAUTE, MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS],
   ["réservations", MESSAGES_RESERVATIONS, MESSAGES_RESERVATIONS_ANGLAIS],
   ["partie sociale", MESSAGES_SERVICES_SOCIAUX, MESSAGES_SERVICES_SOCIAUX_ANGLAIS],
+  ["tous les services", MESSAGES_SERVICE, MESSAGES_SERVICE_PAR_LANGUE.en],
 ];
 
 const accolades = (texte: string) => [...texte.matchAll(/\{[a-zA-Z]+\}/g)].map((m) => m[0]).sort();
@@ -50,4 +51,10 @@ test("messages anglais : aucun mot ni signe français oublié, rien de vide, pas
         assert.equal(FRANCAIS_OUBLIE.test(texte), false, `${nom} : ${code} (${champ}) : « ${texte} »`);
         assert.equal(texte, texte.trim(), `${nom} : ${code} (${champ}) : espaces en trop`);
       }
+});
+
+test("MESSAGES_SERVICE_PAR_LANGUE : le français est MESSAGES_SERVICE tel quel, l'anglais couvre les 184 codes", () => {
+  assert.equal(MESSAGES_SERVICE_PAR_LANGUE.fr, MESSAGES_SERVICE);
+  assert.equal(Object.keys(MESSAGES_SERVICE_PAR_LANGUE.en).length, Object.keys(MESSAGES_SERVICE).length);
+  assert.ok(Object.keys(MESSAGES_SERVICE).length >= 184);
 });

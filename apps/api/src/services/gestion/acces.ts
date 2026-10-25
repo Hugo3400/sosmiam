@@ -5,8 +5,9 @@ import { readFileSync, statSync } from "node:fs";
 
 import { decoderBase32 } from "../../fonctions/securite/decoder-base32.ts";
 
-export type PosteAutorise = { id: string; nom: string; clePublique: Uint8Array };
-export type AccesGestion = { postes: PosteAutorise[]; secretTotp: Uint8Array };
+export type PosteAutorise = { id: string; nom: string; clePublique: Uint8Array; origine?: "serveur" | "distance"; ajouteLe?: string; expireLe?: number | null };
+export type AccesDistance = { empreinteMotDePasse: string; courriel: string | null };
+export type AccesGestion = { postes: PosteAutorise[]; secretTotp: Uint8Array; distance?: AccesDistance | null };
 
 export const FICHIER_ACCES_PAR_DEFAUT = "/root/sos-miam-secrets/gestion.json";
 
@@ -32,8 +33,15 @@ export function creerLecteurAcces(chemin = process.env.FICHIER_GESTION || FICHIE
           id: String(poste.id),
           nom: String(poste.nom).slice(0, 40),
           clePublique: new Uint8Array(Buffer.from(String(poste.clePublique), "base64url")),
+          origine: "serveur" as const,
+          ajouteLe: typeof poste.ajouteLe === "string" ? poste.ajouteLe : undefined,
+          expireLe: null,
         }));
-        if (secretTotp && secretTotp.length >= 16) acces = { postes, secretTotp };
+        const empreinte = typeof brut?.distance?.motDePasse === "string" ? brut.distance.motDePasse : "";
+        const distance = empreinte.startsWith("scrypt$")
+          ? { empreinteMotDePasse: empreinte, courriel: typeof brut.distance.courriel === "string" && brut.distance.courriel.includes("@") ? brut.distance.courriel : null }
+          : null;
+        if (secretTotp && secretTotp.length >= 16) acces = { postes, secretTotp, distance };
       } catch {
         console.error(`${chemin} est illisible : logiciel de gestion fermé.`);
       }

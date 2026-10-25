@@ -4,6 +4,8 @@
 // Les textes de la partie sociale sont dans messages-services-sociaux.ts, repris à la fin de MESSAGES_SERVICE.
 
 import type { ErreurService } from "../types/erreurs-service.ts";
+import type { ParLangue } from "../types/traduction.ts";
+import { MESSAGES_SERVICE_ANGLAIS } from "./anglais/messages-services.ts";
 import { MESSAGES_SERVICES_SOCIAUX } from "./messages-services-sociaux.ts";
 import { MESSAGES_CONNEXION_QR } from "./messages-connexion-qr.ts";
 import { MESSAGES_RESERVATIONS } from "./messages-reservations.ts";
@@ -475,3 +477,5 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   ...MESSAGES_CARRIERE,
   ...MESSAGES_SECURITE,
 };
+
+export const MESSAGES_SERVICE_PAR_LANGUE: ParLangue<Readonly<Record<ErreurService, MessageService>>> = { fr: MESSAGES_SERVICE, en: MESSAGES_SERVICE_ANGLAIS };
