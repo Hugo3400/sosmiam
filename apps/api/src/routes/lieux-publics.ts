@@ -9,7 +9,7 @@ import type { FichePublique, LieuDuPlan, LieuPublic } from "../services/lieux-pu
 export const LIMITE_LIEUX_PUBLICS = { fenetre: 60_000, maximum: 120 };
 export const LIMITE_PLAN_LIEUX = { fenetre: 10 * 60_000, maximum: 30 };
 
-function limiterVisiteursTransmis(reglages: { fenetre: number; maximum: number }): RequestHandler {
+export function limiterVisiteursTransmis(reglages: { fenetre: number; maximum: number }): RequestHandler {
   const limiter = limiterRequetes(reglages);
   return (requete, reponse, suite) => (requete.get("x-ip-visiteur") ? limiter(requete, reponse, suite) : suite());
 }

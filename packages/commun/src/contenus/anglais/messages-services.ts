@@ -3,6 +3,7 @@ import type { MessageService } from "../messages-services.ts";
 import { MESSAGES_CARRIERE_ANGLAIS } from "./messages-carriere.ts";
 import { MESSAGES_CONNEXION_QR_ANGLAIS } from "./messages-connexion-qr.ts";
 import { MESSAGES_RESERVATIONS_ANGLAIS } from "./messages-reservations.ts";
+import { MESSAGES_IMAGES_LIEU_ANGLAIS } from "./messages-images-lieu.ts";
 import { MESSAGES_SECURITE_ANGLAIS } from "./messages-securite.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS } from "./messages-services-communaute.ts";
 import { MESSAGES_SERVICES_SOCIAUX_ANGLAIS } from "./messages-services-sociaux.ts";
@@ -464,4 +465,5 @@ export const MESSAGES_SERVICE_ANGLAIS: Readonly<Record<ErreurService, MessageSer
   ...MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS,
   ...MESSAGES_CARRIERE_ANGLAIS,
   ...MESSAGES_SECURITE_ANGLAIS,
+  ...MESSAGES_IMAGES_LIEU_ANGLAIS,
 };

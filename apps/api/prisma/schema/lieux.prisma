@@ -51,6 +51,9 @@ model Lieu {
   carte        Json?
   /// Dernière mise à jour de la carte, posée par l'API
   carteMajLe   DateTime?            @map("carte_maj_le") @db.Timestamptz(0)
+  banniere     String?              @db.VarChar(64)
+  logo         String?              @db.VarChar(64)
+  imagesMajLe  DateTime?            @map("images_maj_le") @db.Timestamptz(0)
   /// Prénom de la personne qui l'a fait découvrir
   decouvertPar String?              @map("decouvert_par") @db.VarChar(40)
   /// « brouillon », « publie » ou « masque »

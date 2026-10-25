@@ -2,12 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MESSAGES_CARRIERE_ANGLAIS } from "../src/contenus/anglais/messages-carriere.ts";
 import { MESSAGES_CONNEXION_QR_ANGLAIS } from "../src/contenus/anglais/messages-connexion-qr.ts";
+import { MESSAGES_IMAGES_LIEU_ANGLAIS } from "../src/contenus/anglais/messages-images-lieu.ts";
 import { MESSAGES_RESERVATIONS_ANGLAIS } from "../src/contenus/anglais/messages-reservations.ts";
 import { MESSAGES_SECURITE_ANGLAIS } from "../src/contenus/anglais/messages-securite.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS } from "../src/contenus/anglais/messages-services-communaute.ts";
 import { MESSAGES_SERVICES_SOCIAUX_ANGLAIS } from "../src/contenus/anglais/messages-services-sociaux.ts";
 import { MESSAGES_CARRIERE } from "../src/contenus/messages-carriere.ts";
 import { MESSAGES_CONNEXION_QR } from "../src/contenus/messages-connexion-qr.ts";
+import { MESSAGES_IMAGES_LIEU } from "../src/contenus/messages-images-lieu.ts";
 import { MESSAGES_RESERVATIONS } from "../src/contenus/messages-reservations.ts";
 import { MESSAGES_SECURITE } from "../src/contenus/messages-securite.ts";
 import { MESSAGES_SERVICE, MESSAGES_SERVICE_PAR_LANGUE, type MessageService } from "../src/contenus/messages-services.ts";
@@ -21,6 +23,7 @@ const PAIRES: [string, Readonly<Record<string, MessageService>>, Readonly<Record
   ["communauté", MESSAGES_SERVICES_COMMUNAUTE, MESSAGES_SERVICES_COMMUNAUTE_ANGLAIS],
   ["réservations", MESSAGES_RESERVATIONS, MESSAGES_RESERVATIONS_ANGLAIS],
   ["partie sociale", MESSAGES_SERVICES_SOCIAUX, MESSAGES_SERVICES_SOCIAUX_ANGLAIS],
+  ["images des lieux", MESSAGES_IMAGES_LIEU, MESSAGES_IMAGES_LIEU_ANGLAIS],
   ["tous les services", MESSAGES_SERVICE, MESSAGES_SERVICE_PAR_LANGUE.en],
 ];
 

@@ -2,6 +2,7 @@
 // « place ce soir » et le message du moment, les statistiques de la semaine, et les événements du lieu. Gérant ET équipe ;
 // le rôle est toujours relu par le serveur (mêmes routes que l'API : /pro/comptoir/lieux/:id/…).
 
+import type { ImageLieu } from "../regles/images-lieu.ts";
 import type { ReglageEvenement, EvenementLieuPro } from "../types/evenement.ts";
 import type { MomentLieu } from "../types/moment-lieu.ts";
 import type { StatistiquesSemaine } from "../types/statistiques-lieu.ts";
@@ -34,4 +35,6 @@ export interface ServiceLieuPro {
   modifierEvenement(lieuId: number, evenementId: number, reglage: ReglageEvenement): Promise<ReponseEvenementPro>;
   /** Annule toutes ses dates restantes. Erreurs : « evenement-inconnu », « evenement-passe » */
   annulerEvenement(lieuId: number, evenementId: number): Promise<ReponseEvenementPro>;
+  envoyerImage(lieuId: number, quelle: ImageLieu, octets: Blob | ArrayBuffer | Uint8Array): Promise<ReponseApi<{ adresse: string }>>;
+  retirerImage(lieuId: number, quelle: ImageLieu): Promise<ReponseApi>;
 }

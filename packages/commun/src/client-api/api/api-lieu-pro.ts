@@ -1,5 +1,6 @@
 // Le SOS du soir, le message du moment, les statistiques et les événements d'un lieu, version API (routes /pro/comptoir).
 
+import { REGLES_IMAGES_LIEU } from "../../regles/images-lieu.ts";
 import type { EvenementLieuPro } from "../../types/evenement.ts";
 import type { MomentLieu } from "../../types/moment-lieu.ts";
 import type { StatistiquesSemaine } from "../../types/statistiques-lieu.ts";
@@ -25,5 +26,7 @@ export function creerLieuProApi(client: ClientHttp): ServiceLieuPro {
     modifierEvenement: (id, evenementId, reglage) =>
       client.demander<{ evenement: EvenementLieuPro }>("PUT", `${lieu(id)}/evenements/${evenementId}`, { corps: reglage }),
     annulerEvenement: (id, evenementId) => client.demander<{ evenement: EvenementLieuPro }>("DELETE", `${lieu(id)}/evenements/${evenementId}`),
+    envoyerImage: (id, quelle, octets) => client.envoyerOctets<{ adresse: string }>(`${lieu(id)}/${quelle}`, octets, REGLES_IMAGES_LIEU[quelle].type, undefined, "PUT"),
+    retirerImage: (id, quelle) => client.demander("DELETE", `${lieu(id)}/${quelle}`),
   };
 }

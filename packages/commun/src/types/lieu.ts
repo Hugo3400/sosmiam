@@ -58,6 +58,8 @@ export type Lieu = {
   pratique?: InfosPratiques;
   /** Fiche importée : d'où viennent son texte et ses infos (aussi citée à la fin de son texte, pour les anciennes versions) */
   source?: SourceLieu;
+  banniere?: string;
+  logo?: string;
 };
 
 /**
