@@ -4,6 +4,9 @@ import { join } from "node:path";
 
 export const DOSSIER_PHOTOS_AVIS = process.env.DOSSIER_PHOTOS_AVIS || "/var/lib/sos-miam/photos-avis";
 export const FORME_PHOTO_AVIS = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.jpg$/;
+const FORME_PHOTO_PNG = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.png$/;
+
+export type ExtensionPhoto = "jpg" | "png";
 
 export type FichePhotoAvis = { compteId: number; deposeLe: Date };
 export type PhotoAvisRangee = { photo: string; deposeLe: Date };
@@ -32,13 +35,27 @@ export type DisquePhotosAvis = {
 const DISQUE: DisquePhotosAvis = { chmod, mkdir, open, readdir, readFile, stat, statfs, unlink };
 const SYNC_DOSSIER_IMPOSSIBLE = new Set(["EINVAL", "ENOTSUP", "EOPNOTSUPP"]);
 
-const tirerNom = () => `${randomUUID()}.jpg`;
-const estNomValide = (photo: unknown): photo is string => typeof photo === "string" && FORME_PHOTO_AVIS.test(photo);
-const nomFiche = (photo: string) => photo.replace(/\.jpg$/, ".json");
-const exigerNom = (photo: string) => {
-  if (!estNomValide(photo)) throw new Error("Nom de photo d'avis refusé (seuls les noms tirés par l'API passent)");
-  return photo;
-};
+function creerNoms(extension: ExtensionPhoto) {
+  const forme = extension === "png" ? FORME_PHOTO_PNG : FORME_PHOTO_AVIS;
+  const estNomValide = (photo: unknown): photo is string => typeof photo === "string" && forme.test(photo);
+  return {
+    tirerNom: () => `${randomUUID()}.${extension}`,
+    estNomValide,
+    nomFiche: (photo: string) => photo.replace(/\.(?:jpg|png)$/, ".json"),
+    exigerNom: (photo: string) => {
+      if (!estNomValide(photo)) throw new Error("Nom de photo refusé (seuls les noms tirés par l'API passent)");
+      return photo;
+    },
+    ordonner: (noms: readonly string[], apres: string | null, nombre: number) => {
+      const photos = new Set<string>();
+      for (const nom of noms) {
+        const photo = nom.replace(/\.json$/, `.${extension}`);
+        if (estNomValide(photo) && (apres === null || photo > apres)) photos.add(photo);
+      }
+      return [...photos].sort().slice(0, Math.max(0, Math.floor(nombre)));
+    },
+  };
+}
 const codeErreur = (erreur: unknown) => (erreur as NodeJS.ErrnoException | null)?.code;
 const ignorerAbsent = (erreur: unknown) => {
   if (codeErreur(erreur) !== "ENOENT") throw erreur;
@@ -79,17 +96,9 @@ async function ecrireForce(chemin: string, octets: Uint8Array | string, ouvrir: 
   }
 }
 
-function ordonnerPhotos(noms: readonly string[], apres: string | null, nombre: number): string[] {
-  const photos = new Set<string>();
-  for (const nom of noms) {
-    const photo = nom.replace(/\.json$/, ".jpg");
-    if (estNomValide(photo) && (apres === null || photo > apres)) photos.add(photo);
-  }
-  return [...photos].sort().slice(0, Math.max(0, Math.floor(nombre)));
-}
-
-export function creerStockagePhotosAvis(dossier = DOSSIER_PHOTOS_AVIS, o: { disque?: Partial<DisquePhotosAvis> } = {}): StockagePhotosAvis {
+export function creerStockagePhotosAvis(dossier = DOSSIER_PHOTOS_AVIS, o: { disque?: Partial<DisquePhotosAvis>; extension?: ExtensionPhoto } = {}): StockagePhotosAvis {
   const fs: DisquePhotosAvis = { ...DISQUE, ...o.disque };
+  const { tirerNom, estNomValide, nomFiche, exigerNom, ordonner: ordonnerPhotos } = creerNoms(o.extension ?? "jpg");
   let preparation: Promise<void> | null = null;
   const preparer = () => {
     preparation ??= (async () => {
@@ -167,8 +176,9 @@ export type StockagePhotosAvisEnMemoire = StockagePhotosAvis & {
   reglerPartLibre: (part: number) => void;
 };
 
-export function creerStockagePhotosAvisEnMemoire(o: { partLibre?: number; horloge?: () => number } = {}): StockagePhotosAvisEnMemoire {
+export function creerStockagePhotosAvisEnMemoire(o: { partLibre?: number; horloge?: () => number; extension?: ExtensionPhoto } = {}): StockagePhotosAvisEnMemoire {
   const horloge = o.horloge ?? Date.now;
+  const { tirerNom, estNomValide, exigerNom, ordonner: ordonnerPhotos } = creerNoms(o.extension ?? "jpg");
   const fichiers: StockagePhotosAvisEnMemoire["fichiers"] = new Map();
   let partLibre = o.partLibre ?? 1;
   return {
