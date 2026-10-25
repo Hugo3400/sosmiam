@@ -20,6 +20,7 @@ const FENETRE_ECHECS = 3600_000;
 const ECHECS_MAX = 10;
 const POSTES_DISTANCE_MAX = 5;
 const ECART_HORLOGE = 60_000;
+const VERIFICATIONS_SIMULTANEES = 2;
 
 type Dependances = {
   lireAcces: () => AccesGestion | null;
@@ -74,6 +75,7 @@ const lirePays = (requete: Request) => {
 export function creerAutorisationDistance(d: Dependances) {
   let echecs: number[] = [];
   let prevenuLe = 0;
+  let verifications = 0;
   const refuser = (reponse: Response, statut: number, erreur: string) => void reponse.status(statut).json({ ok: false, erreur });
 
   function noterEchec(acces: AccesGestion, maintenant: number) {
@@ -95,11 +97,15 @@ export function creerAutorisationDistance(d: Dependances) {
     if (!demande) return refuser(reponse, 400, "requete-invalide");
     if (!estSigneeParLaCle(requete, demande.clePublique, maintenant, d.prefixe)) return refuser(reponse, 401, "non-autorise");
 
+    if (verifications >= VERIFICATIONS_SIMULTANEES) return refuser(reponse, 503, "occupe");
     let bon: boolean;
+    verifications++;
     try {
       bon = await verifierMotDePasse(demande.motDePasse, acces.distance.empreinteMotDePasse);
     } catch {
       return refuser(reponse, 503, "occupe");
+    } finally {
+      verifications--;
     }
     const code = bon ? d.verifierCode(demande.code) : "code-invalide";
     if (code === "trop-d-essais") return refuser(reponse, 429, "trop-d-essais");

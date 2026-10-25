@@ -76,6 +76,7 @@ type Dependances = {
   listerLieuxPublics?: () => Promise<LieuPublic[]>;
   /** Fiche publique d'un lieu publié, pour sa page sur le site (GET /lieux/publics/:id ; absente si non fournie) */
   lireFichePublique?: (id: number) => Promise<FichePublique | null>;
+  lieuxSite?: ServicesLieuxSite;
   /** Tous les lieux publiés (id et date de modification), pour le plan du site (GET /lieux/plan ; absente si non fournie) */
   listerLieuxDuPlan?: () => Promise<LieuDuPlan[]>;
   /** Un lieu qui demande à être sur SOS Miam, depuis le site (route absente si non fournie) */

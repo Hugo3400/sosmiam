@@ -156,6 +156,14 @@ test("un PC de passage peut partir tout seul ; 5 PC à distance au plus", async 
   assert.equal((await autoriser(await creerPoste())).corps.erreur, "trop-de-postes");
 });
 
+test("pas plus de 2 vérifications de mot de passe à la fois : les suivantes attendent leur tour ailleurs", async () => {
+  horloge += 3600_000;
+  const intrus = await creerPoste();
+  const statuts = await Promise.all(Array.from({ length: 6 }, (_, i) => autoriser(intrus, { motDePasse: `simultane ${i}` }).then((r) => r.statut)));
+  assert.deepEqual(statuts.filter((statut) => statut === 401).length, 2);
+  assert.deepEqual(statuts.filter((statut) => statut === 503).length, 4);
+});
+
 test("10 essais ratés en une heure : ajout bloqué une heure, et un seul mail", async () => {
   horloge += 3600_000;
   const intrus = await creerPoste();
