@@ -140,7 +140,7 @@ test("fiche enrichie (GET /lieux/site/:id) : bannière, logo, SOS, étiquettes, 
   assert.match(html, /<h1[^>]*>Restaurant du Capitaine Bouiboui<\/h1>/);
   assert.match(html, /✓ Vérifié/);
   assert.match(html, /Bistrot de la mer · Restos · €€ · Le Port, Montpellier/);
-  assert.match(html, /Ouvert · ferme à 0h/);
+  assert.match(html, /Ouvert 24 h\/24/);
   assert.match(html, /Déniché par Zoé/);
   assert.match(html, /SOS ce soir/);
   assert.match(html, /6 places libres jusqu'à 21h30/);

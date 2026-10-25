@@ -3,12 +3,13 @@ import { calculerInstantParis } from "../../../../../packages/commun/src/fonctio
 import type { CreneauOuverture } from "../../../../../packages/commun/src/types/lieu.ts";
 
 export type EtatOuverture =
-  | { ouvert: true; heure: string }
+  | { ouvert: true; heure: string | null }
   | { ouvert: false; heure: string; quand: "aujourdhui" | "demain" | "plus-tard"; jourSemaine: number };
 
 type Intervalle = { debut: number; fin: number };
 
 const JOURS_REGARDES = 7;
+const JOUR_MS = 24 * 60 * 60_000;
 
 function lireMinutes(heure: string): number | null {
   const morceaux = /^(\d{2}):(\d{2})$/.exec(heure);
@@ -66,7 +67,10 @@ export function decrireOuverture(ouverture: readonly CreneauOuverture[] | undefi
   const aujourdhui = lireParis(maintenantMs).jour;
   const intervalles = listerIntervalles(ouverture, aujourdhui);
   const enCours = intervalles.filter((i) => i.debut <= maintenantMs && i.fin > maintenantMs).sort((x, y) => y.fin - x.fin)[0];
-  if (enCours) return { ouvert: true, heure: lireParis(prolongerFermeture(intervalles, enCours.fin)).heure };
+  if (enCours) {
+    const fermeture = prolongerFermeture(intervalles, enCours.fin);
+    return { ouvert: true, heure: fermeture - maintenantMs >= JOUR_MS ? null : lireParis(fermeture).heure };
+  }
   const prochain = intervalles.find((i) => i.debut > maintenantMs);
   if (!prochain) return null;
   const ouverturePrevue = lireParis(prochain.debut);

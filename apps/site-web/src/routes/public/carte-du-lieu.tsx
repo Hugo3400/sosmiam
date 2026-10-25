@@ -78,9 +78,9 @@ export default function PageCarteDuLieu({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div data-impression="carte-du-lieu" className="bg-creme py-9 md:pb-14">
+    <div data-impression="carte-du-lieu" className="bg-creme py-9 md:pb-14 print:bg-white print:py-0">
       <DonneesStructurees donnees={filAriane} />
-      <div className="mx-auto flex w-[min(1312px,100%-32px)] flex-col gap-6">
+      <div className="mx-auto flex w-[min(1120px,100%-32px)] flex-col gap-6">
         <EnTeteCarteEnGrand lieuId={lieu.id} nom={lieu.nom} logo={lieu.logo} titre={lieu.type === "sortie" ? T.titre.formules : T.titre.carte} date={date} />
         <NavRubriquesCarte rubriques={visibles} />
         {javascriptActif && (

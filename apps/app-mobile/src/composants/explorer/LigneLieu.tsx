@@ -87,7 +87,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
       className={`min-h-16 flex-row items-center gap-3 border-b border-ligne px-4 py-2.5 active:opacity-70 ${selectionne ? "bg-jaune-clair" : ""}`}
     >
       <View className={`rounded-2xl border-2 ${selectionne ? "border-encre" : "border-transparent"}`}>
-        <VignetteLieu lieu={lieu} image={image} hauteur={56} />
+        <VignetteLieu lieu={lieu} image={image} hauteur={56} avecLogo />
       </View>
 
       <View className="flex-1 gap-0.5">

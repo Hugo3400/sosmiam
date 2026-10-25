@@ -34,6 +34,13 @@ test("decrireOuverture : un créneau qui passe minuit compte encore le lendemain
   assert.deepEqual(decrireOuverture(colles, new Date("2026-10-23T11:00:00Z")), { ouvert: true, heure: "22:00" });
 });
 
+test("decrireOuverture : ouvert jour et nuit, pas d'heure de fermeture", () => {
+  const toujours = [{ jours: [0, 1, 2, 3, 4, 5, 6], de: "00:00", a: "24:00" }];
+  assert.deepEqual(decrireOuverture(toujours, new Date("2026-10-23T11:00:00Z")), { ouvert: true, heure: null });
+  const jusquAMinuit = [{ jours: [5, 6], de: "00:00", a: "24:00" }];
+  assert.deepEqual(decrireOuverture(jusquAMinuit, new Date("2026-10-24T11:00:00Z")), { ouvert: true, heure: "00:00" });
+});
+
 test("decrireOuverture : le jour du passage à l'heure d'hiver (25 heures) ne décale pas les jours", () => {
   const dimanche = [{ jours: [0], de: "10:00", a: "18:00" }, { jours: [1], de: "09:00", a: "12:00" }];
   assert.deepEqual(decrireOuverture(dimanche, new Date("2026-10-24T22:30:00Z")), { ouvert: false, heure: "10:00", quand: "aujourdhui", jourSemaine: 0 });

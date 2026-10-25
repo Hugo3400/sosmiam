@@ -10,7 +10,7 @@ export function ActionsFicheLieu({ lieu, adresseFiche }: { lieu: FichePublique; 
   const T = TEXTES_FICHE_LIEU.actions;
   return (
     <ul aria-label={T.etiquette} className="flex flex-wrap gap-2.5">
-      <li>
+      <li className="hidden md:block">
         <a href={creerLienItineraire(lieu)} rel="noopener nofollow" className={CLASSE_ACTION_PRINCIPALE}>
           <IconeFiche nom="itineraire" />
           {T.itineraire}
@@ -18,7 +18,7 @@ export function ActionsFicheLieu({ lieu, adresseFiche }: { lieu: FichePublique; 
         </a>
       </li>
       {lieu.telephone && (
-        <li>
+        <li className="hidden md:block">
           <a href={creerLienTelephone(lieu.telephone)} className={CLASSE_ACTION}>
             <IconeFiche nom="appeler" />
             {T.appeler}
@@ -50,7 +50,7 @@ export function ActionsFicheLieu({ lieu, adresseFiche }: { lieu: FichePublique; 
           </a>
         </li>
       )}
-      <li className="empty:hidden">
+      <li className={lieu.telephone ? "empty:hidden" : "hidden md:block md:empty:hidden"}>
         <BoutonPartager titre={lieu.nom} adresse={adresseFiche} className={CLASSE_ACTION} />
       </li>
     </ul>

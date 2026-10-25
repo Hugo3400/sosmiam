@@ -340,7 +340,7 @@ export function FeuilleLieux(props: Props) {
                   }}
                   className="min-h-16 flex-1 flex-row items-center gap-3 py-2.5 pl-2.5 active:opacity-70"
                 >
-                  <VignetteLieu lieu={lieuSelectionne.lieu} image={vignettes.get(lieuSelectionne.lieu.id) ?? null} hauteur={52} arrondi={12} />
+                  <VignetteLieu lieu={lieuSelectionne.lieu} image={vignettes.get(lieuSelectionne.lieu.id) ?? null} hauteur={52} arrondi={12} avecLogo />
                   <View className="flex-1">
                     <Text className="font-texte-semi text-xs text-gris">📍 Sélection{distanceSelection ? ` · ${distanceSelection}` : ""}</Text>
                     <Text numberOfLines={1} className="font-texte-gras text-base text-encre">{lieuSelectionne.lieu.nom}</Text>

@@ -22,6 +22,8 @@ export const TEXTES_FICHE_LIEU = {
   denichePar: (prenom: string) => `Déniché par ${prenom}`,
   ouverture: {
     ouvert: (heure: string) => `Ouvert · ferme à ${heure}`,
+    ouvertSansArret: "Ouvert 24 h/24",
+    minuit: "minuit",
     fermeAujourdhui: (heure: string) => `Fermé · ouvre à ${heure}`,
     fermeDemain: (heure: string) => `Fermé · ouvre demain à ${heure}`,
     fermeJour: (jour: string, heure: string) => `Fermé · ouvre ${jour} à ${heure}`,
