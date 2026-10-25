@@ -10,6 +10,7 @@ import { calculerCodeTotp } from "../fonctions/securite/calculer-code-totp.ts";
 import { construireMessageGestion } from "../fonctions/securite/construire-message-gestion.ts";
 import { verifierSignatureEd25519 } from "../fonctions/securite/verifier-signature-ed25519.ts";
 import type { AccesGestion, PosteAutorise } from "../services/gestion/acces.ts";
+import type { ResultatCode, SessionOuverteGestion } from "./autoriser-poste-distance.ts";
 
 export const PREFIXE_GESTION = "/api-gestion";
 const ECART_HORLOGE = 60_000;
@@ -149,12 +150,11 @@ export function creerProtectionGestion(
     suite();
   }
 
-  /** POST /session : ouvre une session avec le code à 6 chiffres (accepté 30 secondes avant ou après, une seule fois). */
-  async function ouvrirSession(requete: Request, reponse: Response) {
+  function verifierCode(saisi: string): ResultatCode {
     echecsCode = recents(echecsCode, 15 * 60_000);
-    if (echecsCode.length >= ECHECS_CODE_MAX) return refuser(reponse, "trop-d-essais", 429);
+    if (echecsCode.length >= ECHECS_CODE_MAX) return "trop-d-essais";
     const acces = lireAcces();
-    const code = typeof requete.body?.code === "string" ? requete.body.code.replace(/\s/g, "") : "";
+    const code = saisi.replace(/\s/g, "");
     const pasActuel = Math.floor(horloge() / 30_000);
     const pasValide = acces && /^\d{6}$/.test(code)
       ? [pasActuel - 1, pasActuel, pasActuel + 1].find(
@@ -163,17 +163,34 @@ export function creerProtectionGestion(
       : undefined;
     if (pasValide === undefined) {
       noterEchec(echecsCode);
-      return refuser(reponse, "code-invalide");
+      return "code-invalide";
     }
     dernierPasUtilise = pasValide;
-    const { poste } = reponse.locals.gestion as ContexteGestion;
-    for (const [empreinte, session] of enMemoire) if (session.posteId === poste.id) enMemoire.delete(empreinte);
-    await stockage.faireLeMenage(poste.id, { creeLe: horloge() - DUREE_MAX, activite: horloge() - INACTIVITE_MAX });
+    return "ok";
+  }
+
+  async function oublierSessionsDuPoste(posteId: string) {
+    for (const [empreinte, session] of enMemoire) if (session.posteId === posteId) enMemoire.delete(empreinte);
+    await stockage.faireLeMenage(posteId, { creeLe: horloge() - DUREE_MAX, activite: horloge() - INACTIVITE_MAX });
+  }
+
+  async function ouvrirSessionPour(poste: PosteAutorise): Promise<SessionOuverteGestion> {
+    await oublierSessionsDuPoste(poste.id);
     const id = randomBytes(32).toString("base64url");
     const session = { posteId: poste.id, creeLe: horloge(), activite: horloge() };
     await stockage.creer(empreinteDe(id), session);
     enMemoire.set(empreinteDe(id), { ...session, ecrite: session.activite });
-    reponse.status(201).json({ ok: true, session: id, poste: poste.nom, inactiviteMax: INACTIVITE_MAX });
+    const expireLe = typeof poste.expireLe === "number" ? new Date(poste.expireLe).toISOString() : null;
+    return { session: id, poste: poste.nom, expireLe, inactiviteMax: INACTIVITE_MAX };
+  }
+
+  /** POST /session : ouvre une session avec le code à 6 chiffres (accepté 30 secondes avant ou après, une seule fois). */
+  async function ouvrirSession(requete: Request, reponse: Response) {
+    const resultat = verifierCode(typeof requete.body?.code === "string" ? requete.body.code : "");
+    if (resultat === "trop-d-essais") return refuser(reponse, "trop-d-essais", 429);
+    if (resultat !== "ok") return refuser(reponse, "code-invalide");
+    const { poste } = reponse.locals.gestion as ContexteGestion;
+    reponse.status(201).json({ ok: true, ...(await ouvrirSessionPour(poste)) });
   }
 
   /** DELETE /session : ferme la session en cours. */
@@ -186,5 +203,5 @@ export function creerProtectionGestion(
     reponse.json({ ok: true });
   }
 
-  return { controlerEnTetes, verifierSignature, verifierSession, ouvrirSession, fermerSession };
+  return { controlerEnTetes, verifierSignature, verifierSession, ouvrirSession, fermerSession, verifierCode, ouvrirSessionPour, oublierSessionsDuPoste };
 }
