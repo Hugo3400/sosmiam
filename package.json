@@ -31,6 +31,7 @@
     "gestion:verifier": "npm run typecheck --prefix apps/logiciel-gestion && npm test --prefix apps/logiciel-gestion && npm run verifier:lignes",
     "gestion:installateur": "bash apps/logiciel-gestion/scripts/construire-installateur.sh",
     "gestion:autoriser": "node scripts/autoriser-poste-gestion.ts",
+    "gestion:essai-ecrans": "bash scripts/essai-ecrans-gestion/lancer.sh",
     "sauvegardes:cle": "node scripts/afficher-cle-sauvegardes.ts",
     "boite:regler": "node --env-file=apps/api/.env scripts/regler-boite-mail.ts",
     "sauvegardes:dechiffrer": "node scripts/dechiffrer-sauvegarde.ts"

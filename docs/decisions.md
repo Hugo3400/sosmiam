@@ -643,7 +643,14 @@ Plan de référence : [version-anglaise.md](version-anglaise.md). Glossaire : [g
 - **Miam Safe :** la phrase « Le Capitaine est là ? » et la consigne pour l'équipe restent en français, avec la traduction et une aide de prononciation. Le 112 passe en premier dans l'app anglaise.
 - **Loi Évin :** la formule française mot pour mot, avec la traduction dessous.
 - **Légal :** une traduction de courtoisie, où seule la version française fait foi. Confidentialité et CGU d'abord, le reste avant l'ouverture du site.
-- **Inscription d'un touriste :** la ville reste obligatoire, formulée « Où es-tu en France ? » (« Where are you staying in France? »).
+- **Inscription d'un touriste :** la ville reste obligatoire, formulée « Où es-tu en France ? » (« Where in France are you? », aide : « Living here or just visiting? Pick the city you're in. » ; changé le 25/10, « staying » ne collait pas aux expats).
+- **Glossaire (validé le 25 octobre 2026) :**
+  - slogan : « Rescue a table, treat yourself. » ;
+  - « ma bande » : « my crew » (badge « The Whole Crew », « Crew news ») ; Miam Safe dit toujours « your friends » ;
+  - « Collaboration commerciale » reste en français, en premier, avec la glose « · paid or gifted partnership » (à confirmer par le juriste prévu pour les offres d'alcool) ;
+  - Miam Safe : traduction et prononciation écrites sur la feuille qui précède l'écran, sans bouton audio pour l'instant ;
+  - les titres des défis (écrits dans le logiciel) restent en français au début ;
+  - avatar « Paille » gardé tel quel.
 - **Pays de distribution des stores :** l'Union européenne et la Suisse d'abord. Le Royaume-Uni et les États-Unis seulement après un avis juridique.
 - **Ouverture :** tout est construit caché derrière un interrupteur, puis ouvert d'un coup, l'app d'abord, puis le site. L'ordre de travail :
   - le socle (packages/commun, l'app, le serveur) ;

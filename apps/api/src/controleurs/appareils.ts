@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
 import type { InscriptionAppareil } from "../services/appareils-push.ts";
 import { lireJetonSession, type CompteSession } from "../middlewares/proteger-comptes.ts";
+import { lireLangueDemande } from "../middlewares/poser-langue.ts";
 
 /** Ce que les routes /app/appareils utilisent : le service des téléphones (services/appareils-push.ts) */
 export type DependancesAppareils = {
@@ -43,7 +44,7 @@ export function creerControleursAppareils(d: DependancesAppareils) {
       const jetonSession = compte ? lireJetonSession(requete) : null;
       await d.inscrire({
         jeton, plateforme: corps.plateforme, ville: ville || null, offres: corps.offres === true, compteId: compte?.id ?? null,
-        empreinteSession: jetonSession ? calculerEmpreinteJeton(jetonSession) : null, cleApercu,
+        empreinteSession: jetonSession ? calculerEmpreinteJeton(jetonSession) : null, cleApercu, langue: lireLangueDemande(),
       });
       reponse.json({ ok: true });
     },

@@ -26,7 +26,7 @@ const JETON_ENTRE_DEUX = "d".repeat(64);
 const JETON_COMPTE = "e".repeat(64);
 
 const telephone = (jeton: string, offres: boolean, autres: Partial<InscriptionAppareil> = {}): InscriptionAppareil => ({
-  jeton, plateforme: "ios", ville: "Montpellier", offres, compteId: null, empreinteSession: null, cleApercu: null, ...autres,
+  jeton, plateforme: "ios", ville: "Montpellier", offres, compteId: null, empreinteSession: null, cleApercu: null, langue: "fr", ...autres,
 });
 
 const lireAccord = async (jeton: string) => {

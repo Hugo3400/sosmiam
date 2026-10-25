@@ -1,0 +1,869 @@
+# Glossaire anglais de SOS Miam
+
+La référence de chaque texte anglais de l'app, du site et du serveur (CLAUDE.md §5, plan dans `docs/version-anglaise.md`).
+Anglais britannique, « you » chaleureux, mêmes règles de ton que le français.
+
+- **Statut** : validé par Hugo le 25 octobre 2026.
+- **Comment s'en servir** : chercher le mot français ici avant d'écrire l'anglais ; un mot qui manque s'ajoute ici d'abord.
+- **Statuts** : « gardé » (on ne traduit pas), « adapté » (on refait l'idée, jeu de mots compris), « traduit » (mot pour mot).
+
+## Décisions de Hugo (25 octobre 2026)
+
+- Slogan : « Rescue a table, treat yourself. »
+- « Ma bande » : « My crew » (badge « The Whole Crew », « Crew news ») ; Miam Safe dit toujours « your friends ».
+- Inscription : « Where in France are you? », avec l'aide « Living here or just visiting? Pick the city you're in. » (decisions.md mis à jour).
+- « Collaboration commerciale » reste en français, en premier, avec la glose « · paid or gifted partnership », à confirmer par le juriste déjà prévu pour les offres d'alcool.
+- Miam Safe : l'écran montré à l'équipe reste 100 % en français ; traduction et prononciation sur la feuille qui précède ; pas de bouton audio pour l'instant.
+- Les titres des défis, écrits dans le logiciel de gestion, restent en français au début.
+- Avatar « Paille » gardé tel quel.
+
+## Guide de style
+
+- 1. Anglais britannique, orthographe : favourite, colour, centre, neighbourhood, kilometre, cancelled, travelled, enrol, catalogue, jumper, programme (mais program pour un logiciel), dialogue (mais dialog pour une boîte de dialogue), practice (nom) / practise (verbe), licence (nom) / license (verbe). Terminaisons en -ise (organise, recognise), mais analyse et paralyse. « email » sans trait d'union, « any more » en deux mots, « towards ». Avant : « Organiser une sortie » → Après : « Organise a get-together » (pas Organize).
+- 2. Vocabulaire britannique du quotidien : the bill (jamais check), book a table et booking (plutôt que reservation), starter et main (jamais entrée, faux ami américain), toilets (« loo » seulement sur un écran léger, jamais dans Miam Safe), mobile, queue, takeaway (jamais takeout), chips et crisps, sweets, biscuit, fizzy drink, car park, high street, holiday, flat, postcode, autumn, film, waiting list (pas waitlist), surname (pas last name), start again (pas start over). Avant : « Demander l'addition ici » → Après : « Ask for the bill here ».
+- 3. Grammaire britannique : le present perfect pour une nouvelle qui vaut maintenant, jamais « gotten ». « Forgotten your password? » (pas Forgot). « the staff » prend le pluriel (« the staff are on their way ») ; « the Brigade » reste au singulier, comme un nom de marque (« the Brigade's waiting for you »). Avant : « Ta messagerie fait peau neuve » → Après : « Your messages have had a makeover » (pas got a makeover).
+- 4. Ton : le tutoiement devient un « you » chaleureux, avec des contractions (you're, it's, we'll), des phrases courtes, des verbes vivants et pas de « please » à chaque phrase. L'enthousiasme britannique passe par la litote : un seul point d'exclamation par texte au plus, et beaucoup de « ! » français deviennent des points. Américanismes interdits : awesome, amazing, super, reach out, touch base, folks, buddy, Hey there, Yay, Woohoo. Mots préférés : lovely, brilliant (avec mesure), cheers, fancy (pour une chose ou une activité, jamais pour une personne). Avant : « Tes badges arrivent dès que le réseau revient. Ils t'attendent bien au chaud ! » → Après : « Your badges will land as soon as you're back online. We're keeping them warm for you! »
+- 5. Les jeux de mots se refont, ils ne se traduisent pas. On garde l'intention (gourmandise, clin d'œil marin, tendresse) et on cherche un vrai jeu de mots anglais, compris aussi par une personne non native. Jamais la marque d'un tiers dans un nom de badge, d'avatar ou dans un jeu de mots (Oyster card, Ticket Restaurant, Beats). Jamais d'allusion à l'alcool dans un badge (décision du 14/10). Un idiome figé ne passe pas au système métrique : on ne change pas « clocking up the miles » en « kilometres », on change d'image. Avant : « seuls tes petits creux nous intéressent » → Après : « we're only interested in your snack attacks ». Avant : badge « Mordu de miam : tu as mordu à l'hameçon » → Après : « Hooked on Yum – you've fallen for it hook, line and sinker ».
+- 6. Les noms de marque ne se traduisent pas et ne bougent pas. SOS Miam s'écrit sans article devant le nom seul (« on SOS Miam »). the Miamis : « the » en minuscule dans la phrase. the Brigade : B majuscule, et pas d'article au vocatif (« Thanks, Brigade! »). BIG SOS : toujours en capitales. Capitaine Bouiboui : jamais « Captain Bouiboui ». the Captain quand il est seul : majuscule pour la mascotte, minuscule pour un gérant (« You're the captain here! »). Miam Safe : sans trait d'union. L'article devant SOS suit la prononciation (« ess ») : « an SOS », « an SOS Miam account », mais « a BIG SOS ». Avant : « Le Capitaine a briqué le pont » → Après : « The Captain's swabbed the decks ».
+- 7. Au singulier, jamais « a Miami » ni « one Miami » seul : on pense à la Floride. On écrit « a fellow Miami », mais avec mesure, car l'adjectif devient guindé s'il revient à chaque écran. On préfère le pluriel (« Miamis nearby »), une tournure sans le mot (« Someone's around – come and say hi! ») ou un déterminant fort (« the first Miami to drop by », « every Miami »). Le possessif pluriel s'écrit « the Miamis' reviews ». Jamais de vocatif au singulier : « Welcome back! », pas « Welcome back, Miami! ». Avant : « 1 Miami en liste d'attente » → Après : « 1 fellow Miami on the waiting list ».
+- 8. « Miam » et « Bouiboui » s'expliquent une seule fois, dans le carrousel de bienvenue et sur l'accueil /en, puis plus jamais : « Miam (say “mee-yam”) is French for yum! » et « Bouiboui is French slang for a cheap and cheerful little eatery. » On écarte « hole in the wall », qui désigne d'abord le distributeur de billets au Royaume-Uni. Ensuite, « miam » devient « yum » dans les textes (« say yum », « Yum Legend »).
+- 9. Deux emojis au plus par texte, à la même place qu'en français (souvent en tête d'une annonce). On n'en ajoute jamais là où le français n'en a pas, et on ne retire pas ceux qui servent d'icônes. Avant : « 🎉 @lea fait partie de ta bande ! » → Après : « 🎉 @lea is in your crew! ». Avant : « touche deux fois un message pour dire miam » → Après : « double-tap a message to say yum » (le 😋 est déjà dans le champ emoji du point).
+- 10. Écrans sérieux (Miam Safe, numéros d'urgence, BIG SOS, signalements, limitation, suppression du compte). Aucune blague, aucun jeu de mots, aucun emoji ajouté. Les icônes du français restent à leur place : 👋 🛎 🤫 ✏️ des choix Miam Safe, ⚠️, 🛡. Pas de point d'exclamation sur Miam Safe, les urgences et le BIG SOS. Pour la limitation et la suppression du compte, le ton est sobre mais jamais plus froid que le français : « Bon retour parmi les Miamis ! » → « Welcome back to the Miamis! », « On sera tristes de te voir partir » → « We'll be sad to see you go ». Des mots simples, car la personne peut être stressée et non native. Aucun mot de marque sauf le nom Miam Safe : « ta bande » → « your friends », jamais « crew », « the Brigade » ni « fellow Miami ». « One moment… », pas « Just a sec… ». « Alert a friend », jamais « Tell a friend » (c'est la formule du parrainage). Avant : « Danger réel ? Appelle tout de suite. » → Après : « In real danger? Call now. »
+- 11. « Miam Safe » est un nom, jamais un adjectif ni une promesse. Jamais « safe venue », « safe space », « certified safe » ni « We're Miam Safe here ». On dit l'engagement : « This venue has signed the Miam Safe charter: its staff know what to do if you don't feel safe. » « se sentir bien » → « feel at ease » ou « comfortable », jamais « feel well » ou « unwell », qui parlent de santé. Dans un lieu qui n'a pas signé la charte, on ne promet jamais que l'équipe comprendra la phrase. « Ask for Angela » ne se cite que sur les pages d'explication (charte, FAQ, site), toujours suivi de « but in France, say the French phrase ». Jamais sur une feuille lue sous stress.
+- 12. Deux équipes, deux mots. « the staff » désigne l'équipe du lieu, avec le verbe au pluriel (« the staff are on their way »). « the SOS Miam team » désigne la nôtre. Sur Miam Safe et au comptoir, jamais « the team » seul : une personne stressée doit savoir qui arrive. Avant : « Elle a répondu « On arrive » à 21h42 » → Après : « The staff replied “On our way” at 21:42 ».
+- 13. BIG SOS : de la dignité, jamais de misérabilisme. La phrase de référence de la marque : « Un vrai coup de main, jamais de la pitié » → « Real help, never pity ». Mots interdits : struggling, desperate, dying, charity, save them, help the poor, victims, hardship, in need, plight, on the brink, lifeline, going under, survive, poor things, that need customers. Mots à préférer : going through a tough time, a rough patch, had the courage to say so, come together, fill the room, fill every table, would love a few more faces. Une seule tournure : « a place with a BIG SOS ». Avant : « Quand un lieu traverse un vrai coup dur, tout le quartier vient à la rescousse pendant 7 jours. Ensemble, on remplit la salle. » → Après : « When a place is going through a really tough time, the whole neighbourhood comes to the rescue for 7 days. Together, we fill the room. »
+- 14. L'app est réservée aux majeurs. On écrit « 18+ », « for over-18s » ou « You need to be 18 or over to create an account ». Pour un compte, jamais teen, minor, kids ni underage. Jamais non plus « adults only » ni « adult » accolé à un service : en anglais, ça évoque d'abord la pornographie. On écrit « 18+ in France », jamais « the age of majority in your country », car le pays ne se déduit pas de la langue. Anti-contournement (décision du 8/10) : en anglais non plus, aucune mention de l'âge minimum à côté du champ de la date de naissance. Le « 18+ » va dans le message qui suit, sur /age et dans les stores. Exceptions permises, parce qu'elles ne visent pas un compte : « Alcohol offered to minors » (signalement, modération), « Kids' menu », « With the kids » (envie), l'étiquette « Parents ». Avant : « Un compte dès 18 ans, et les repères pour les parents. » → Après : « Accounts are 18+, plus some pointers for parents. »
+- 15. Les doubles sens britanniques sont à proscrire dans nos textes (les fiches et les menus des lieux restent en français). Pour une personne : « fancy », « pull », « tart », « crumpet », « bap ». Pour une sortie entre Miamis : « hook up », « date », « pick up », et « go out » sans complément. Partout : « outing » (une sortie scolaire, ou révéler l'homosexualité de quelqu'un), « toss », « fanny », « shag », « bonk », « pissed », « pants », « knob », « stuffed » (« get stuffed »), « salty » (vexé), « adult » pour un service. Seuls en tête de libellé et avec leur majuscule, « Nice », « Orange » et « Tours » se lisent comme la ville ou l'opérateur. Les noms de villes restent en français : Marseille et Lyon, jamais Marseilles ni Lyons. Avant : « Hook up with fellow Miamis » → Après : « Meet fellow Miamis ».
+- 16. Ponctuation. En anglais, pas d'espace avant ? ! : ;. Les deux-points français ne passent pas tels quels : on les garde avant une liste, un détail ou une explication. Pour une chute ou une incise, on met un tiret demi-cadratin espacé « – ». Entre deux phrases indépendantes, on met un point. Jamais de virgule entre deux phrases complètes, jamais de tiret cadratin « — ». Dans ce glossaire, « Nom — texte » sert seulement à séparer le nom d'un badge de son texte. Les intervalles s'écrivent sans espace : « 18–25 », « 21:30–23:00 ». Pas de virgule d'Oxford (« restaurants, patisseries, bars and things to do »), sauf si la phrase devient ambiguë. Guillemets courbes “ ” via citer(), apostrophe droite comme dans les sources, points de suspension « … », « n° 3 » → « #3 », chemins d'écran avec « › ». lierPonctuation reste appliqué partout : il protège les textes restés en français dans l'interface anglaise (« Le Capitaine est là ? », la formule Évin), dont le « ? » ne doit pas passer seul à la ligne. Avant : « Partage-lui le lien d'inscription, c'est gratuit » → Après : « Send them the sign-up link – it's free. »
+- 17. Casse de phrase (sentence case) pour les boutons, les titres, les onglets et les menus. Le Title Case est réservé aux noms propres : marques, noms de badges, paliers et avatars. Avant : « Voir tous tes badges » → Après : « See all your badges ». Avant : badge « Fourchette d'or » → Après : « Golden Fork ». Onglet « Pour toi » → « For you » (pas For You).
+- 18. Boutons : un verbe d'abord, court, 20 caractères au plus, car l'anglais est souvent plus long. On préfère les verbes à particule courts (« Sign up », « Back out », « Undo »). Le « je » des boutons français passe à la première personne quand c'est naturel, sinon on garde le verbe seul. Les verbes standard sont fixés : Back, Close, Cancel, Done, Edit, Save, Save changes, Delete, Remove, Accept, Decline, Report, Block, Hide. Sur un bouton courant, jamais Modify, Refuse, Finish ni Erase. Avant : « Je viens » → Après : « I'm in ». « Je m'inscris » → « Sign me up ». « Publier mon avis » → « Post my review ». « Reprendre ma rescousse » → « Take back my rescue » (« Undo my rescue » si la place manque).
+- 19. Genre : l'écriture inclusive disparaît d'elle-même. Pour une personne inconnue, on emploie « they » au singulier. Pour une personne nommée, on répète son prénom au lieu de deviner he ou she. Avant : « Tu seras prévenu·e dans la cloche. » → Après : « You'll get a notification. » Avant : « Léa ne se sent pas en sécurité à « Chez Nonna ». Sa position est partagée avec toi pendant 1 h. » → Après : « Léa doesn't feel safe at “Chez Nonna”. Léa's location is shared with you for 1 hour. »
+- 20. Pluriels : une phrase entière par cas, avec accorder(n, en, …). En anglais, seul 1 est au singulier, et 0 prend le pluriel. Avant : « 0 rescousse » → Après : « 0 rescues ». Avant : « 1 non lu » / « 3 non lus » → Après : « 1 unread » / « 3 unread ». Avant : « Revient chaque semaine · 2 habitués » → Après : « Every week · 2 regulars ».
+- 21. Formats. Dates : « 23 October 2026 », « Monday 3 November » (le jour avant le mois, jamais 1st), « 03/11/2026 ». Heures en 24 h dans les données (« 21:30 »), mais « midnight » et « midday » dans une phrase (« until midnight », pas « until 00:00 »). Prix : « €4.50 », « €1,200 », et un argument commercial s'écrit « Zero commission », pas « €0 commission ». Distances en km (« 1.2 km »), jamais en miles. Nombres : « 90% », « 5 MB », « 1,234 », « 1.2k ». Avant : « En SOS ce soir : 3 places jusqu'à 22 h » → Après : « SOS tonight: 3 seats until 22:00 ».
+- 22. Ce qui reste en français : ce qu'écrivent les gens et les lieux (fiches, avis, messages, offres) ; les contenus du mode démo ; la phrase Miam Safe et les consignes pour l'équipe ; la formule de la loi Évin ; la mention « Collaboration commerciale » ; les noms de villes ; les institutions (SAMU, CNIL, Alcool Info Service), avec une glose anglaise à la première mention. Ces textes viennent de leur constante (PHRASE_MIAM_SAFE, MESSAGE_SANITAIRE_ALCOOL, les consignes) et ne sont jamais recopiés dans un dictionnaire anglais. Ils gardent leur typographie française, avec lang=fr sur le site et accessibilityLanguage fr-FR dans l'app. Loi Toubon : le français vient en premier, la traduction n'est jamais plus grande ni plus visible que lui, et il ne disparaît jamais derrière elle.
+- 23. Les libellés pour le lecteur d'écran (accessibilityLabel, accessibilityHint) se traduisent en phrases complètes, faites pour l'oreille. Les textes des badges n'ont pas de ponctuation finale : CaseBadge ajoute lui-même le point du libellé lu. Avant : « Appeler le 17, la police » → Après : « Call 17 for the police ». Avant : « 3 sur 10 » → Après : « 3 of 10 ». Avant : « Note de 4,5 sur 5, sur 12 avis » → Après : « Rated 4.5 out of 5, from 12 reviews ».
+- 24. L'anglais ne promet jamais plus que le français. Pas de « free » si le français dit « non surtaxé ». Pas de « they speak English » pour un service français. Pas de « safe » si le français dit « se sentir bien ». Pas de « erase » (qui évoque le droit à l'effacement) pour un bouton qui vide le téléphone. Pas de « We're hiring » pour du bénévolat. Avant : « appel anonyme et non surtaxé » → Après : « anonymous, no premium charge (the service is in French) ». Avant : « Les Miamis s'y sentent bien » → Après : « Miamis feel at ease here ».
+- 25. Libellés cités : quand une phrase cite un bouton ou un écran (« On arrive », « Mettre à jour », Paramètres › …), l'anglais reprend le libellé anglais du même dictionnaire, jamais une traduction refaite à la main. Un libellé n'est jamais une clé : là où le code compare un texte affiché (EtiquettesReglement.tsx compare « Collaboration commerciale »), on passe à la clé du dictionnaire (partenariat) avant de traduire. Avant : « Tu les retrouves quand tu veux dans Paramètres › Les nouveautés. » → Après : « You'll find them any time in Settings › What's new. »
+- 26. Réglages du système : on emploie le nom officiel anglais d'Apple et de Google (Settings app, Precise Location, Maps, Focus, Hide My Email, Apple Account). Les Paramètres de l'app deviennent « Settings ». L'appli Réglages du téléphone devient « your phone's Settings app », jamais « Settings » seul. Avant : « Tu les trouveras dans l'appli Réglages de ton téléphone » → Après : « You'll find them in your phone's Settings app ».
+- 27. Légal : une traduction de courtoisie, fidèle et précise, qui garde le « you » sans familiarité, avec les mêmes ancres et la même date que le français. On reprend le vocabulaire officiel des versions anglaises du RGPD et du DSA : data controller, processor, notice, complaint, statement of reasons, hosting service provider. À la première mention, le terme français est en italique avec une glose : « conciliateur de justice (a free, court-appointed conciliator) ». En tête de chaque page : « This is a courtesy translation. If it differs from the French version, the French version prevails. » Les CGU et la charte Miam Safe, qui sont des engagements, ajoutent : « Only the French version is legally binding. »
+
+## Entrées
+
+### Noms de marque (10)
+
+- **SOS Miam** → **SOS Miam** · gardé
+  - Où : Partout (759 lignes, 353 fichiers) : nom de l'app, du site et du compte officiel
+  - Décision du 24/10. Jamais traduit, et jamais d'article devant le nom seul (« on SOS Miam », pas « on the SOS Miam »). Devant un nom, l'article suit la prononciation : « an SOS Miam account ». Pas de possessif « SOS Miam's » : écrire « the SOS Miam team ». Glose unique : voir l'entrée « Miam ».
+- **Miam (glose et prononciation, une seule fois)** → **Miam (say “mee-yam”) is French for yum!** · adapté
+  - Où : Carrousel de bienvenue de l'app et accueil /en du site, nulle part ailleurs
+  - Sans aide, un anglophone lit « my-am », ou « Miami » sans le i. Ensuite, « miam » devient « yum » dans les textes (« say yum », « Hooked on Yum ») et ne s'explique plus.
+- **les Miamis** → **the Miamis** · gardé
+  - Où : Communauté › Les Miamis, textes-miamis.ts, textes-avis-lieu.ts (« Les avis des Miamis »), notifications
+  - Décision du 24/10. « the » en minuscule dans la phrase. « Salut les Miamis ! » → « Hi Miamis! » ; « Les avis des Miamis » → « What the Miamis say » ; « Ça bouge chez les Miamis » → « What the Miamis are up to ». Possessif : « the Miamis' reviews ».
+- **un Miami (au singulier)** → **a fellow Miami** · adapté
+  - Où : textes-miamis.ts presentsTitre, textes-qui-est-la.ts enCeMoment, textes-sorties-miamis.ts enAttente, textes-avis-lieu.ts videTexte (155 lignes)
+  - Décision du 24/10 : « a Miami » seul fait penser à la Floride. À employer avec mesure (règle 7) : le pluriel ou une tournure sans le mot passent souvent mieux. « Un Miami traîne dans le coin. Viens dire bonjour ! » → « A fellow Miami is hanging around nearby. Come and say hi! » ; « 1 Miami se montre en ce moment » → « 1 fellow Miami around right now ». Avec un déterminant fort (« the first Miami to drop by », « every Miami »), le mot seul reste lisible. Jamais de vocatif au singulier.
+- **la Brigade** → **the Brigade** · gardé
+  - Où : LISEZMOI du kit, badges (Héros et Plume de la Brigade), textes-parametres.ts (Boîte à idées, On recrute), textes-mise-a-jour.ts
+  - Décision du 24/10. B majuscule ; la brigade de cuisine est connue en anglais. Pas d'article au vocatif : « Merci la Brigade ! » → « Thanks, Brigade! ». « Envie de rejoindre la Brigade ? » → « Fancy joining the Brigade? » ; « la Brigade lit tout et te répond » → « the Brigade reads everything and gets back to you ». Verbe au singulier (« the Brigade's waiting »).
+- **Un vrai coup de main, jamais de la pitié.** → **Real help, never pity.** · traduit
+  - Où : Site, page Carrière (carriere.ts) ; phrase de référence de la règle 13
+  - C'est la règle de dignité du BIG SOS, dite par la marque elle-même. Elle sert de pierre de touche pour tout texte sur un lieu en difficulté.
+- **BIG SOS** → **BIG SOS** · gardé
+  - Où : Diapo de bienvenue, fiches, FAQ, espace pro, carrousel « Les BIG SOS », newsletter (CaseNewsletter.tsx)
+  - Décision du 24/10. Toujours en capitales, et une seule tournure : « a place with a BIG SOS », jamais « on a BIG SOS ». Pluriel : « places with a BIG SOS ». Le carrousel « Les BIG SOS » → « BIG SOS » ; « BIG SOS près de chez moi » → « Places with a BIG SOS near me ». Jamais « BIG SOSs » ni « BIG SOS calls », qui ferait penser à un appel d'urgence. « à la une 7 jours » → « in the spotlight for 7 days ». Phrase de référence : « Places with a BIG SOS are going through a really tough time and had the courage to say so. » « hardship » est écarté : il évoque la pauvreté et les privations (règle 13).
+- **Miam Safe** → **Miam Safe** · gardé
+  - Où : Bouton 🚨 de la fiche, feuille Miam Safe, charte, badges des lieux (214 lignes)
+  - Décision du 24/10. Sans trait d'union. C'est un nom, jamais un adjectif (règle 11). Le badge garde son nom : « 🛡️ Miam Safe ». Dans le texte courant, écrire « a venue that's signed the Miam Safe charter » plutôt que « a Miam Safe venue ». « la charte Miam Safe » → « the Miam Safe charter ». « Ici, on est Miam Safe » (affiche, hors périmètre) → « We've signed the Miam Safe charter », jamais « We're Miam Safe here ». Jamais « safe venue », « safe space » ni « certified safe ».
+- **une pépite / les pépites** → **a gem / hidden gems** · adapté
+  - Où : 33 fichiers : « Trouver une pépite », « Proposer une pépite », « Ta prochaine pépite », story « Pépites » du kit
+  - « Trouver une pépite » → « Find a gem » ; « Plenty more gems are waiting in Explore ». La story « Pépites » (kit, hors périmètre) deviendrait « Hidden gems ».
+- **les gourmands du coin / de ton coin** → **local foodies / near you** · adapté
+  - Où : Mode pro › Ce soir (« les gourmands du coin le voient tout de suite », « SOS lancé : les gourmands du coin arrivent ! »), diapos
+  - « foodies » rend « gourmands ». « du coin » → « local » ou « nearby ». « SOS lancé : les gourmands du coin arrivent ! » → « SOS sent out – local foodies are on their way! » ; « les restos de ton coin » → « restaurants near you ».
+
+### La mascotte (4)
+
+- **Capitaine Bouiboui** → **Capitaine Bouiboui** · gardé
+  - Où : Mascotte (kit 02_Mascotte), avatar du compte officiel, Restaurant du Capitaine Bouiboui (démo pro), écran discret Miam Safe
+  - Décision du 24/10 : jamais « Captain Bouiboui ». Une seule glose, la même partout (carrousel, accueil /en) : « Bouiboui is French slang for a cheap and cheerful little eatery. » On écarte « hole-in-the-wall », qui désigne d'abord le distributeur de billets au Royaume-Uni. Baliser le nom en français pour le lecteur d'écran (accessibilityLanguage fr-FR), sinon VoiceOver anglais l'écorche.
+- **le Capitaine (seul)** → **the Captain** · adapté
+  - Où : textes-mise-a-jour.ts (« Le Capitaine a briqué le pont »), badge Second du Capitaine, affiches
+  - Décision du 24/10. « Le Capitaine a briqué le pont : nouveautés et petites réparations à bord. » → « The Captain's swabbed the decks: new features and a few repairs on board. » (« swab the decks » est l'expression marine consacrée). Majuscule pour la mascotte, minuscule pour le gérant : au comptoir, « C'est toi le capitaine ! » → « You're the captain here! ». Exception : la phrase Miam Safe reste « Le Capitaine est là ? ».
+- **Bouiboui (pour les moments tendres)** → **Bouiboui** · gardé
+  - Où : LISEZMOI du kit (« Bouiboui » pour les moments tendres)
+  - Même usage qu'en français, sans diminutif anglais.
+- **la bouée (la mascotte, le logo)** → **the lifebuoy** · traduit
+  - Où : diapos-bienvenue.ts (« Salut, moi c'est la bouée de SOS Miam ! »), textes-profil.ts (« tes bouées de la semaine »), kit (bouée gourmande)
+  - « Salut, moi c'est la bouée de SOS Miam ! » → « Hi, I'm the SOS Miam lifebuoy! ». « lifebuoy » est le mot britannique ; « life ring » est plutôt américain, et « rubber ring » désigne une bouée de plage.
+
+### Formules et slogans (33)
+
+- **les restos, pâtisseries, bars et sorties de ton coin qui ont besoin de monde (diapo 1) / Ils ont besoin de toi (site)** → **restaurants, patisseries, bars and things to do near you that would love a few more faces / They'd love to see you** · adapté
+  - Où : 1re diapo de bienvenue ; accueil du site (IlsOntBesoinDeToi.tsx : « Des lieux nouveaux ou trop calmes, qui méritent plus de monde. »), kit média
+  - Formules écartées : « that need people », « that need customers », « that need help », « struggling ». Toutes tombent dans le misérabilisme (règle 13). « Des lieux nouveaux ou trop calmes, qui méritent plus de monde » → « New places, or quiet ones, that deserve a fuller room ».
+- **Sauve une table, régale-toi.** → **Rescue a table, treat yourself.** · adapté
+  - Où : Hero du site, image de partage, affiches, légendes des stores (statut du bot Discord : hors périmètre)
+  - Décision de Hugo du 25/10. « Save a table » est écarté : il se lit « garder une table pour quelqu'un ».
+- **régale-toi / tu te régales / dégusté** → **treat yourself / tuck in / tucked into** · adapté
+  - Où : Slogan, badges (« ce que tu as dégusté »), diapos, notifications
+  - Le verbe gourmand de la marque. « tuck in » est britannique et chaleureux ; « enjoy yourself » est plat, et « savour » trop guindé.
+- **À la rescousse !** → **To the rescue!** · traduit
+  - Où : Bouton, affiches, kit
+  - —
+- **Le quartier à la rescousse** → **The neighbourhood to the rescue** · traduit
+  - Où : Légende des captures des stores
+  - Orthographe britannique : « neighbourhood ».
+- **Un SOS ce soir ? Fonce.** → **SOS tonight? Go for it.** · adapté
+  - Où : Légende des captures des stores
+  - Variante : « Off you go. »
+- **3 rescousses par semaine** → **3 rescues a week** · traduit
+  - Où : Diapo de bienvenue, Hero du site, stores
+  - « Elles se rechargent lundi » → « They top up on Monday ».
+- **Salut les Miamis ! / Merci la Brigade !** → **Hi Miamis! / Thanks, Brigade!** · adapté
+  - Où : LISEZMOI du kit, annonces
+  - Pas d'article au vocatif.
+- **Bienvenue à bord / Du nouveau à bord / Escale au port** → **Welcome aboard / New on board / Time for a refit** · adapté
+  - Où : Nouveautés 1.0.0, écrans de mise à jour (obligatoire et douce)
+  - « Pit stop in port » est écarté : « pit stop » vient de la Formule 1, et l'image se mélange. Un « refit », c'est le passage d'un bateau au chantier, ce qui colle à une mise à jour et au Capitaine. « Ta version de SOS Miam a pris un coup de vieux » → « Your version of SOS Miam is showing its age » ; « la Brigade t'attend à bord » → « the Brigade's waiting for you on board » ; « Une nouvelle version t'attend ! » → « A new version is waiting for you! ».
+- **Réessaie dans un instant** → **Try again in a moment** · traduit
+  - Où : 97 occurrences
+  - Ne pas ajouter « please » partout.
+- **Un instant…** → **Just a sec… / One moment…** · adapté
+  - Où : 39 occurrences (boutons en cours)
+  - « Just a sec… » partout, sauf sur les écrans sérieux (Miam Safe, suppression), où l'on écrit « One moment… ».
+- **Oups** → **Oops** · traduit
+  - Où : 50 occurrences (alertes)
+  - « Oups, ça a coincé » → « Oops, we hit a snag » (« got stuck » calque le français et suggère une app figée) ; « Oups, ça ne veut pas s'ouvrir » → « Oops, that won't open ».
+- **C'est noté** → **Got it / Noted** · adapté
+  - Où : 26 occurrences
+  - « ✅ C'est noté, et ça reste entre nous. » → « ✅ Noted, and it stays between us. »
+- **Pas de réseau** → **No signal** · adapté
+  - Où : 18 occurrences
+  - « No signal » est l'usage britannique. « Pas de réseau, pas de places » → « No signal, no tables ».
+- **Le réseau fait des siennes** → **The network's playing up** · adapté
+  - Où : 3 fichiers
+  - « play up » est l'idiome britannique exact pour un appareil capricieux.
+- **Ils t'attendent bien au chaud** → **We're keeping them warm for you** · adapté
+  - Où : 10 occurrences (badges, avis hors réseau)
+  - En anglais, c'est quelqu'un qui garde quelque chose au chaud (« I'll keep your dinner warm ») : la tournure « They're keeping warm for you » sonnerait traduite.
+- **Ça ne passe pas (chez nous)** → **That doesn't go down well here** · adapté
+  - Où : 48 occurrences (filtre de mots, photos, champs)
+  - « that won't fly » est un américanisme. « Un mot de ce titre ne passe pas chez nous. Tu reformules gentiment ? » → « A word in this title doesn't go down well here. Mind rephrasing it? » ; pour une photo : « That photo doesn't go down well here. Try another, or post without. » ; pour un champ technique : « Something's not right – check your choices ».
+- **Ton compte est limité** → **Your account is restricted** · traduit
+  - Où : 41 occurrences (limitation-compte.ts)
+  - Ton sobre, mais jamais plus froid que le français (règle 10). « attendra la fin de la limitation » → « will have to wait until the restriction ends ».
+- **Bon retour parmi les Miamis ! (fin de limitation)** → **Welcome back to the Miamis!** · adapté
+  - Où : limitation-compte.ts introFinie (« C'est fini ou levé : tout remarche comme d'habitude. Bon retour parmi les Miamis ! »)
+  - → « It's over or lifted, and everything's back to normal. Welcome back to the Miamis! ». On garde le point d'exclamation du français. On évite le vocatif « Welcome back, Miami! », qui ramène à la Floride.
+- **Plus tard / Finalement non / Pas cette fois / Compris / Pas de souci** → **Not now / Actually, no / Not this time / Got it / No worries** · adapté
+  - Où : Boutons de confirmation
+  - « Plus tard » → « Not now » sur un bouton, « Later » ailleurs.
+- **ouvrir le bal** → **get the ball rolling** · adapté
+  - Où : « Et si tu ouvrais le bal ? » (Qui est là), avis (« ouvre le bal »)
+  - → « Why not get the ball rolling? ».
+- **à toi l'honneur ?** → **Fancy doing the honours?** · adapté
+  - Où : textes-miamis.ts aucuneSortieTexte, CarteInvitationSortie.tsx (« Personne n'a encore répondu : à toi l'honneur ! »)
+  - « do the honours » est l'idiome britannique, avec le « u » britannique. « Personne n'a encore répondu : à toi l'honneur ! » → « No one's replied yet – fancy doing the honours? ».
+- **une tournée des crêpes** → **a crêpe crawl** · adapté
+  - Où : textes-miamis.ts aucuneSortieTexte (« Un brunch, un resto, une tournée des crêpes : à toi l'honneur ? »), site (apercu-communaute.ts)
+  - Un jeu de mots sur « pub crawl », compris de tous, et la sortie elle-même ne parle pas d'alcool. → « A brunch, a restaurant, a crêpe crawl – fancy doing the honours? ». Jamais dans un badge (règle 5).
+- **C'est calme… trop calme.** → **It's quiet… too quiet.** · traduit
+  - Où : textes-miamis.ts filVide
+  - Le cliché de film existe tel quel en anglais : un rare jeu de mots qui se traduit mot pour mot.
+- **papoter / de quoi papoter** → **have a natter / something to natter about** · adapté
+  - Où : 3 fichiers (Qui est là, messagerie)
+  - « natter » est très britannique et chaleureux. « chat » se confondrait avec la messagerie. Sur les écrans légers seulement.
+- **la chasse est ouverte** → **happy hunting** · adapté
+  - Où : Badges (« encore 6 à débloquer, la chasse est ouverte ! »)
+  - → « 6 more to unlock – happy hunting! ».
+- **la Brigade en reste bouche bée** → **the Brigade's lost for words** · adapté
+  - Où : textes-badges.ts collectionComplete (« Collection complète : la Brigade en reste bouche bée ! »)
+  - → « Full collection – the Brigade's lost for words! ». « open-mouthed » est littéral et plat.
+- **te doit une fière chandelle** → **owes you one** · adapté
+  - Où : Badge Chasseur de bugs, palier (« la ville te doit une fière chandelle »)
+  - → « the whole city owes you one ».
+- **Bon appétit !** → **Bon appétit!** · gardé
+  - Où : « Présence validée au comptoir. Bon appétit ! »
+  - Compris en anglais, et ça garde une touche française. Variante : « Enjoy your meal! ».
+- **Ta messagerie fait peau neuve / Bonsoir le mode sombre** → **Your messages have had a makeover / Say hello to dark mode** · adapté
+  - Où : nouveautes-versions.ts (titres des versions 1.0.2 et 1.0.1)
+  - Present perfect britannique (« got » sonne américain). « Good evening, dark mode » est écarté : parler au mode sombre reste raide en anglais. Les nouveautés s'écrivent dans les deux langues (règle du 24/10).
+- **seuls tes petits creux nous intéressent (permission des mouvements)** → **SOS Miam doesn't use your motion data – we're only interested in your snack attacks.** · adapté
+  - Où : app.json, motionUsagePermission (clé locales du build d'ouverture)
+  - « your motion » n'est pas idiomatique, alors que la revue d'Apple attend « motion data », le nom de la permission. Un texte de permission doit rester clair pour cette revue.
+- **Désinscription en un clic, sans rancune 🍟** → **Unsubscribe in one click, no hard feelings 🍟** · traduit
+  - Où : Newsletter (site)
+  - —
+- **Et c'est 100 % gratuit** → **And it's 100% free** · traduit
+  - Où : Diapo de bienvenue
+  - « Pour toi comme pour les lieux » → « For you and for the places ».
+
+### Mots de l'interface (63)
+
+- **Pour toi (onglet et fil)** → **For you** · adapté
+  - Où : 1er onglet ((onglets)/_layout.tsx), fil « Pour toi », « Retour à Pour toi »
+  - En casse de phrase : « For you », pas « For You ». « le fil « Pour toi » » → « the For you feed ».
+- **Abonnements (fil)** → **Following** · traduit
+  - Où : Un des trois fils (« Abonnements », « Pour toi », « SOS ce soir »)
+  - Usage des réseaux sociaux.
+- **le fil (Pour toi, Abonnements, SOS ce soir)** → **feed** · traduit
+  - Où : Fil, profil (« donne une rescousse dans le fil »), menus
+  - « thread » est réservé aux discussions de la messagerie. « dans le fil » → « from your feed ».
+- **Explorer / Autour de moi** → **Explore / Near me** · traduit
+  - Où : Onglet Explorer, bouton « Autour de moi »
+  - « Autour de moi arrêté : ta position est oubliée » → « Near me is off – your location's been forgotten ». Le badge « Explorateur » devient « Explorer » (le nom), et ne gêne pas l'onglet « Explore » (le verbe).
+- **Communauté / Profil / Paramètres (de l'app) / Réglages (du téléphone)** → **Community / Profile / Settings / your phone's Settings app** · traduit
+  - Où : Onglets, Paramètres › …, avatar.tsx, ChampChat.tsx, FeuilleAjoutChat.tsx, ChoixVille.tsx (qui renvoient aux Réglages du téléphone)
+  - « Paramètres › Messages » → « Settings › Messages ». Le français distingue Paramètres (l'app) et Réglages (iOS). En anglais, les deux deviennent « Settings », donc l'appli du téléphone s'écrit toujours « your phone's Settings app », jamais « Settings » seul (règle 26).
+- **Quoi de neuf (activité de la bande)** → **Crew news** · adapté
+  - Où : « Quoi de neuf dans ta bande », menu « Retirer de « Quoi de neuf » »
+  - « What's new » est déjà pris par « Les nouveautés » de l'app. Le titre suit le choix de « Ma bande » : avec « gang » ou « friends », ce serait « Latest from your friends ». « Retirer de « Quoi de neuf » » → « Remove from Crew news ».
+- **Les nouveautés (fenêtre et page) / La vie de SOS Miam** → **What's new / Inside SOS Miam** · adapté
+  - Où : textes-nouveautes.ts, Paramètres › La vie de SOS Miam (nouveautés, boîte à idées, chasse aux bugs, contact, On recrute)
+  - « Voir les nouveautés » → « See what's new » ; « Nouveau dans la 1.0.2 » → « New in 1.0.2 » ; « Ta version » → « Your version ». « Life at SOS Miam » est écarté : c'est la formule consacrée des pages carrières (« Life at Google »), alors que la section contient bien plus.
+- **classement du mois** → **this month's leaderboard** · traduit
+  - Où : Ma bande
+  - En titre court : « Monthly leaderboard ».
+- **Garder / lieux gardés / Ta collection** → **Save / saved places / Your collection** · traduit
+  - Où : Menu du fil, profil (TEXTES_COLLECTION)
+  - « Garder Chez Nonna pour plus tard » → « Save Chez Nonna for later » ; « 3 gardés · 5 J'aime » → « 3 saved · 5 likes ». « Save » seul est réservé aux lieux gardés. « Enregistrer » un réglage devient « Save changes » ou « Done » (voir « Modifier / Enregistrer »).
+- **Modifier / Enregistrer** → **Edit / Save changes (ou Done)** · traduit
+  - Où : Profil, infos, envies, réglages, messages (modifier pendant 15 min)
+  - « Modify » ne se dit jamais sur un bouton. « Save changes » évite la collision avec « Save » (Garder). « Modifié » sur un message → « Edited ».
+- **Retour / Fermer / Annuler / Terminé / Supprimer / Retirer** → **Back / Close / Cancel / Done / Delete / Remove** · traduit
+  - Où : Les boutons les plus nombreux de l'app et du site
+  - Fixés pour que deux sessions n'écrivent pas « Finish » et « Done », ou « Erase » et « Delete ». « Supprimer » efface pour de bon (« Delete ») ; « Retirer » enlève d'une liste (« Remove »).
+- **Accepter / Refuser (une demande, une arrivée, une addition)** → **Accept / Decline** · traduit
+  - Où : Demandes de bande, réservations, comptoir
+  - « Refuse » est brutal en anglais. « Decline » est la formule polie attendue, et il va avec le refus qui ne prévient personne.
+- **Signaler / Bloquer / Masquer** → **Report / Block / Hide** · traduit
+  - Où : Menus des profils, publications, messages
+  - C'est le vocabulaire standard des réseaux sociaux, que les gens reconnaissent. « Signal » est un faux ami.
+- **J'aime / Pas intéressé / Ça m'intéresse** → **Like / Not for me / Interested** · traduit
+  - Où : Fil, menus, événements des lieux
+  - « Pas intéressé · On t'en montrera moins comme ça » → « Not for me · We'll show you less like this ».
+- **Suivre / Suivi / Tu suis / abonnés** → **Follow / Following / You follow / followers** · traduit
+  - Où : Fiches, profils, liste « Tu suis »
+  - « Ne plus suivre ? » → « Unfollow? ».
+- **pseudo / @pseudo** → **username** · traduit
+  - Où : 12 fichiers : fais-connaissance.tsx (« Choisis-toi un pseudo »), erreurs du serveur (pseudo-pris), profils
+  - Faux ami : en anglais, « pseudo » veut dire « faux, prétentieux ». « nickname » veut dire surnom, et « handle » fait Twitter. « Choisis-toi un pseudo » → « Pick a username » ; « Ce pseudo est déjà pris » → « That username's taken ».
+- **prénom / nom** → **first name / surname** · traduit
+  - Où : Inscription (prénom obligatoire, nom facultatif), « Merci, {prenom} ! », « Déniché par … », signatures d'avis
+  - « surname » plutôt que « last name » en anglais britannique. « Nom (facultatif) » → « Surname (optional) ».
+- **la fiche (d'un lieu)** → **the place's page (côté Miamis) / your listing (mode pro)** · adapté
+  - Où : Partout : fiche du lieu, « sa fiche affichera ton prénom », mode pro
+  - C'est le mot le plus fréquent après « lieu ». « listing » est le mot des professionnels ; « file » est un faux ami. « Rien ne s'affiche sur la fiche » → « Nothing shows on the place's page ».
+- **Tu passes chez eux ?** → **Popping in?** · adapté
+  - Où : Bloc de la fiche du lieu (addition, scan, fidélité, réserver)
+  - « popping in » est très britannique et chaleureux. Variante : « Dropping by? ».
+- **Je suis là / Venu / Pas venu / Montrer le QR** → **I'm here / Arrived / No-show / Show the QR code** · adapté
+  - Où : Réservations (client), comptoir, sorties
+  - « no-show » est le terme exact de la restauration britannique, qu'un professionnel reconnaît tout de suite. « Showed up » est écarté : familier, et sans contraire naturel. « 📍 Je suis là » → « 📍 I'm here » ; « Pas encore là ? … un retard, ça arrive » → « Not here yet? … People run late. »
+- **un lieu** → **a place (côté Miamis) / a venue (mode pro, Miam Safe, légal)** · adapté
+  - Où : Partout
+  - Tranché. « place » côté Miamis, parce que c'est plus chaleureux ; « venue » dans le mode pro, la charte Miam Safe et le légal. « Mon lieu » → « My venue ».
+- **le patron (du lieu)** → **the owner** · traduit
+  - Où : Avis (« Pas devant le patron »), comptoir, FAQ
+  - Faux ami total : en anglais, « patron » veut dire le client, ou le mécène.
+- **resto / restos** → **restaurant / restaurants** · traduit
+  - Où : Partout, et dans les textes des badges (« au resto »)
+  - L'anglais n'a pas d'abréviation familière (« resto » est canadien ou français). « au resto » → « restaurant visits ».
+- **Vérifié ✓ / Non vérifié** → **Verified ✓ / Not verified** · traduit
+  - Où : Fiche, liste d'Explorer, carte, publications
+  - « Not verified » plutôt que « Unverified », qui sonne suspect. Explication : « Not verified: this place doesn't have an SOS Miam account yet ».
+- **la carte (trois sens)** → **the map / the menu / the card** · adapté
+  - Où : Explorer (carte), Mon lieu › La carte, carte de fidélité, « sans carte bancaire »
+  - Faux ami : la carte d'un lieu, c'est « the menu ». « Mise à jour par le lieu le … » → « Updated by the venue on … ». « Gratuit, sans carte bancaire » → « Free, no card needed ».
+- **sections de la carte : Entrées, Plats, Desserts, À boire, Menu enfant** → **Starters, Mains, Desserts, Drinks, Kids' menu** · adapté
+  - Où : Idées de sections de la carte du lieu (mode pro)
+  - « entrée » est un faux ami : en américain, c'est le plat principal. « Kids' menu » est permis, puisqu'il parle d'une carte et pas d'un compte (règle 14).
+- **réserver / réservation / résa / un créneau** → **book / booking / a slot (time slot)** · adapté
+  - Où : TEXTES_RESERVER_TABLE, Mes réservations, comptoir (7 fichiers pour « créneau »)
+  - Britannique : « Book a table », « My bookings ». « Pas de résa ce jour-là » → « No bookings that day ». « Plan B » ne change pas. Pour « créneau », « niche » et « window » ne conviennent pas.
+- **complet** → **full (sortie) / fully booked (lieu, réservations)** · traduit
+  - Où : Sorties, réservations, SOS
+  - « complete » est un faux ami.
+- **liste d'attente** → **waiting list** · traduit
+  - Où : Sorties, fondateurs
+  - « waitlist » est américain. « Tu es n° 2 sur la liste d'attente » → « You're #2 on the waiting list ».
+- **Je ne peux plus venir** → **I can't make it any more** · traduit
+  - Où : Sorties, réservations
+  - « make it » est l'idiome, et « any more » s'écrit en deux mots en anglais britannique.
+- **le petit mot (demande de réservation, photos)** → **a note (« Add a note for the venue »)** · traduit
+  - Où : 8 fichiers : réservation, messagerie (photos avec un petit mot)
+  - « little word » est un calque, et « message » se confondrait avec la messagerie.
+- **la pastille (non-lus, icône de l'app)** → **the dot / unread count** · traduit
+  - Où : Onglet Communauté, icône de l'app, messagerie
+  - iOS appelle ça un « badge » : le mot se confondrait avec les 35 badges. « A dot for unread messages » est clair.
+- **un avis / avis vérifié / notes de 1 à 5** → **a review / verified review** · traduit
+  - Où : TEXTES_DONNER_AVIS, TEXTES_AVIS_LIEU, LIBELLES_NOTES_AVIS
+  - « Alors, c'était comment ? » → « So, how was it? ». Les notes : 1 « Raté cette fois » → « Missed the mark » ; 2 « Bof, peut mieux faire » → « Meh, could do better » ; 3 « Sympa, sans plus » → « Decent, nothing special » (« Nice » en tête de libellé se lit comme la ville) ; 4 « Très bon moment » → « Really lovely » ; 5 « Coup de cœur ! » → « Loved it! ». « Critique, c'est permis, insulte non. » → « Criticism, yes. Insults, no. » ; « Pas devant le patron. » → « Not under the owner's nose. » (« patron » est le propriétaire, et tous les lieux n'ont pas de « chef »).
+- **Repas offert / Avec réduction / Offerte par le lieu** → **Gifted meal / Discounted / Gifted by the venue** · adapté
+  - Où : Avis publics, choix du règlement au comptoir, Mes visites (libelles-reglement.ts)
+  - Ce sont des étiquettes de transparence. « Gifted » est le mot que les règles britanniques de la publicité (ASA, CMA) imposent aux influenceurs : un anglophone y reconnaît une mention de transparence. « Meal on the house » est écarté : il sonne comme un geste commercial sympathique.
+- **Inviter ce lieu** → **Invite this place** · traduit
+  - Où : Fiche d'un lieu non vérifié, menu ⋯ du fil
+  - « Partage-lui le lien d'inscription, c'est gratuit » → « Send them the sign-up link – it's free. »
+- **Mode pro / Espace pro / Mon lieu / Ce soir** → **Pro mode / Pro area / My venue / Tonight** · adapté
+  - Où : Profil › Tes espaces, mode pro de l'app, pro.sosmiam.fr
+  - « Pro space » est écarté : calque maladroit. Variante : « Business area ».
+- **Boîte à idées** → **Suggestion box** · adapté
+  - Où : Paramètres › La vie de SOS Miam, Communauté
+  - C'est le mot britannique courant ; « Idea box » est écarté. « Propose, vote et commente : la Brigade lit tout et te répond » → « Suggest, vote and comment – the Brigade reads everything and gets back to you ».
+- **Chasse aux bugs** → **Bug hunt** · traduit
+  - Où : Paramètres, sosmiam.fr/securite
+  - « Tu as trouvé une faille de sécurité ? Dis-le-nous, il y a un badge à la clé » → « Found a security flaw? Tell us – there's a badge in it for you ».
+- **On recrute** → **Get involved** · adapté
+  - Où : Paramètres › La vie de SOS Miam, page Carrière
+  - « We're hiring » et « We're recruiting » laissent croire à un emploi salarié, alors que c'est « bénévolat ou mission ». « Get involved » est la formule britannique du bénévolat, et la mission y trouve aussi sa place. « Envie de rejoindre la Brigade ? Bénévolat ou mission, les offres du moment » → « Fancy joining the Brigade? Volunteering or project work: see what's open ».
+- **Carrière (badge de la page) / Ni stage, ni alternance, ni emploi pour l'instant / On se tutoie** → **Join us / No internships, apprenticeships or jobs for now / We're on first-name terms** · adapté
+  - Où : Site, page Carrière (carriere.ts)
+  - Même raison que pour « On recrute » : « Careers » laisse croire à des emplois payés. « on se tutoie » n'a pas d'équivalent grammatical en anglais.
+- **Écris-nous / Nous écrire** → **Drop us a line / Contact us** · adapté
+  - Où : Boutons du site, Paramètres, légal (« Écris-nous à … »)
+  - « Drop us a line » dans l'interface, « Contact us » dans le légal.
+- **Je m'inscris / J'ai un lieu / J'inscris mon lieu / Mon lieu n'est pas sur SOS Miam** → **Sign me up / I run a venue / List my venue / My venue isn't on SOS Miam** · adapté
+  - Où : Hero du site, page pros, formulaire /inscrire-mon-lieu
+  - Boutons à la première personne, comme en français.
+- **Crée ton compte / Connecte-toi / Se déconnecter / S'inscrire / Mot de passe oublié ?** → **Create your account / Log in / Log out / Sign up / Forgotten your password?** · adapté
+  - Où : 54 et 17 occurrences, écrans d'inscription et de connexion, site
+  - Tranché : « Log in / Log out », le britannique courant. « Sign in » n'est pas nécessaire, puisque nos boutons d'Apple et de Google disent « Continue with … ». « Forgotten your password? » est la tournure britannique ; « Forgot your password? » est américain.
+- **Juste jeter un œil / Pas tout de suite, juste jeter un œil 👀** → **Just browsing / Not now, just browsing 👀** · adapté
+  - Où : Entrée de la visite sans compte (bienvenue.tsx, compte.tsx)
+  - La visite sans compte reste tout public (âge inconnu) : la formule ne parle ni d'âge ni d'alcool.
+- **Fais connaissance / C'est prêt** → **Let's get to know you / You're all set!** · adapté
+  - Où : Inscription (fais-connaissance.tsx, c-est-pret.tsx)
+  - L'écran arrive avant que la personne ait donné quoi que ce soit, donc « Nice to meet you » vient trop tôt. On le garde pour la fin de l'étape, ou pour « C'est prêt ».
+- **Où es-tu en France ? (ville à l'inscription)** → **Where in France are you? — aide : « Living here or just visiting? Pick the city you're in. »** · adapté
+  - Où : Fais connaissance, champ ville ; formule écrite dans decisions.md (Version anglaise)
+  - Décision de Hugo du 25/10 (decisions.md mis à jour) : la ville reste obligatoire ; « staying » est écarté, il ne colle pas aux expats.
+- **tes envies / Mes envies** → **What I'm into / what you're into ; pour la nourriture : cravings** · adapté
+  - Où : Inscription (envies.ts), Mes envies (sorties des Miamis), « Ton avatar, tes infos, tes envies »
+  - Tranché. « What I fancy » est écarté : « to fancy someone » veut dire être attiré par quelqu'un, et sur un écran de sorties entre inconnus filtrées par genre, ça se lit comme un site de rencontre. « interests » est plat. Les étapes de l'inscription sur la nourriture disent « cravings » (« Pick your cravings »). « Te correspond » → « Your kind of thing » ; « Ton avatar, tes infos, tes envies » → « Your avatar, your details, what you're into ». Titres des étapes : « Tu sors où ? » → « Where do you like to go? » (« go out » seul veut dire faire la fête, ou sortir avec quelqu'un) ; « Qu'est-ce qui te fait saliver ? » → « What makes your mouth water? » ; « Et pour boire ? » → « And to drink? ».
+- **Mon genre / Entre filles / Entre garçons / Autres genres** → **My gender / Women only / Men only / Other genders** · adapté
+  - Où : textes-genre.ts (Femme, Homme), CHOIX_PUBLICS_SORTIE
+  - Tranché. « Girls only / Guys only » est écarté : dans une app 18+ où l'on sort avec des inconnus, « Girls only » peut se lire comme une sortie de jeunes filles. Les choix du profil disent d'ailleurs « Femme » et « Homme ». « Je préfère ne pas le dire » → « I'd rather not say ». « LGBT+ friendly » ne change pas.
+- **tranches d'âge** → **age groups** · traduit
+  - Où : NOMS_TRANCHES_AGE (sorties réservées)
+  - « 18–25 ans » → « 18–25 » ; « 30 ans et + » → « 30+ ».
+- **étiquettes** → **tags** · traduit
+  - Où : textes-etiquettes.ts, sorties
+  - « 24 caractères au plus : fais court et gourmand ! » → « 24 characters max – keep it short and tasty! » ; « Pas d'étiquette sur l'alcool : on garde ça pour le comptoir. » → « No tags about alcohol – we'll leave that to the bar staff. »
+- **Coulisses (mode démo)** → **Behind the scenes** · traduit
+  - Où : Mode démo
+  - Seule l'interface de la démo se traduit ; ses contenus restent en français.
+- **Infos pratiques** → **Good to know** · adapté
+  - Où : Fiche du lieu
+  - Variante : « Practical info ».
+- **tickets resto / chèques-vacances** → **meal vouchers (titres-restaurant) / Chèques-Vacances (French holiday vouchers)** · adapté
+  - Où : Infos pratiques (moyens de paiement)
+  - « Ticket Restaurant » est écarté : c'est une marque d'Edenred, alors que le libellé couvre tous les émetteurs (Swile, Up Déjeuner, Pluxee…). « titres-restaurant » est le terme générique que le personnel connaît. On garde le nom français, avec une glose.
+- **messagerie : Vu / On mange où ? / Tu viens ? / On y va ? / dire miam** → **Seen / Where shall we eat? / You in? / Shall we? / say yum** · adapté
+  - Où : textes-messages.ts, sondage, sorties, nouveautes-versions.ts
+  - « shall » est britannique. « touche deux fois un message pour dire miam » → « double-tap a message to say yum » (pas d'emoji ajouté : le 😋 est déjà dans le champ emoji du point).
+- **note vocale** → **voice note** · traduit
+  - Où : Messagerie 1.0.2, nouveautés, texte de permission du micro
+  - C'est l'usage britannique (WhatsApp). « voice message » fait répondeur.
+- **Continuer avec Apple** → **Continue with Apple** · gardé
+  - Où : Boutons de connexion de l'app (libellé maison) et du site
+  - Formule imposée par Apple (Human Interface Guidelines) : seules « Sign in with Apple », « Sign up with Apple » et « Continue with Apple » sont permises, mot pour mot. « Continue with Apple » colle au français actuel. Le bouton natif d'Apple se traduit tout seul ; notre bouton maison doit reprendre la chaîne exacte.
+- **Continuer avec Google** → **Continue with Google** · gardé
+  - Où : Boutons de connexion de l'app et du site
+  - Formule imposée par Google (règles de marque de Sign in with Google) : « Sign in with Google », « Sign up with Google » ou « Continue with Google », mot pour mot. On garde « Continue with Google », pour l'accorder avec Apple.
+- **Confirmer avec Apple / Confirmer avec Google (suppression du compte)** → **Continue with Apple / Continue with Google, sous la phrase « To delete your account, confirm it's you. »** · adapté
+  - Où : Suppression d'un compte sans mot de passe (reconnexion)
+  - « Confirm with Apple/Google » n'est pas une formule permise. On garde le bouton imposé, et le sens passe dans la phrase au-dessus.
+- **identifiant Apple / adresse masquée d'Apple / « Se connecter avec Apple » (réglage d'iOS)** → **Apple Account / Hide My Email address / “Sign in with Apple”** · adapté
+  - Où : AVERTISSEMENT_RELAIS_APPLE (mes-connexions.ts)
+  - On cite des réglages d'Apple, donc avec leurs noms officiels en anglais. Depuis iOS 18, « Apple ID » est devenu « Apple Account » (et en français, « identifiant Apple » est devenu « compte Apple »).
+- **Position exacte (« Le Capitaine te voit un peu flou »)** → **Precise Location : « The Captain can only see you roughly – turn on Precise Location for SOS Miam in your phone's Settings app »** · adapté
+  - Où : AvisPositionApproximative.tsx
+  - Le nom du réglage doit être celui qu'affiche iOS en anglais (Android : « precise location »), sinon la personne ne le trouve pas.
+- **Canaux Android : Messages et sorties / Messages à la suite / Nouvelles de SOS Miam / Miam Safe** → **Messages and get-togethers / Follow-up messages / News from SOS Miam / Miam Safe** · adapté
+  - Où : creer-canaux-android.ts (réenregistrés à chaque changement de langue, plan 3.2)
+  - Le canal « Miam Safe » garde son nom de marque. « sorties » suit l'entrée « une sortie ».
+- **Réservé aux 18 ans et plus / Tu as 18 ans ou plus ? Crée ton compte, et ce lieu t'ouvre ses portes.** → **18+ only / Are you 18 or over? Create your account and this place will open its doors to you.** · traduit
+  - Où : LieuReserveAdultes.tsx (fiche d'un bar en visite sans compte)
+  - C'est la formule exacte du 18+ dans l'app. Jamais « adults only » (règle 14).
+- **Encore un peu de patience · SOS Miam, c'est dès ta majorité : 18 ans en France. On te garde une table au chaud pour ce jour-là !** → **Just a little longer · In France, SOS Miam is for over-18s. We'll keep a table warm for you till then!** · adapté
+  - Où : messages-services.ts, age-minimum (après la date de naissance, jamais à côté du champ)
+  - Le message s'adresse à une personne de moins de 18 ans : ni « minor », ni « kid », ni « for adults ». Il dit toujours « in France », puisque le pays ne se déduit jamais de la langue du téléphone (règle 14).
+
+### Fonctions de l'app (34)
+
+- **une rescousse** → **a rescue** · traduit
+  - Où : 606 lignes : bouton du fil, profil, diapos, badges, barème
+  - Nom comptable : « 3 rescues a week », « 1 rescue left ». Les noms de code (Rescousse, rescoussesDuMois) restent en français.
+- **donner une rescousse** → **give a rescue** · adapté
+  - Où : « Donner une rescousse », « Donne une de tes rescousses à ce lieu, il t'en reste 2 cette semaine », textes des badges
+  - Tranché : c'est un calque assumé, et il marche dans les compteurs (« Give 10 rescues »). Écartés : « send a rescue » (moins clair) et « rescue this place » (impossible à compter). « Give this place one of your rescues – you've got 2 left this week ».
+- **À la rescousse / Sauvé ! / Reviens lundi (bouton)** → **To the rescue / Rescued! / Back on Monday** · adapté
+  - Où : Bouton de rescousse du fil et de la fiche (trois états)
+  - « Rescued! » plutôt que « Saved! », car « save » sert à « Garder ». « Plus de rescousse cette semaine, reviens lundi ! 🛟 » → « No rescues left this week. Back on Monday! 🛟 » ; « Reprendre ma rescousse » → « Take back my rescue » (« Undo my rescue » si la place manque) ; « Rescousse reprise » → « Rescue taken back ».
+- **lieux sauvés** → **places you've rescued** · traduit
+  - Où : Profil, bande (lieuxSauves) : « Pas encore de lieu sauvé : donne une rescousse dans le fil, il t'attendra ici. »
+  - → « No places rescued yet. Give a rescue from your feed and it'll show up here. » Jamais « saved places », qui veut dire « lieux gardés ».
+- **lancer un SOS / le SOS (mode pro)** → **send out an SOS / the SOS** · adapté
+  - Où : Mode pro › Ce soir : « Lancer le SOS », « Arrêter le SOS », « On lance le SOS ? », « SOS arrêté. À demain pour le prochain ! »
+  - « send out an SOS » est l'expression idiomatique. « Des tables vides ce soir ? Lance un SOS » → « Empty tables tonight? Send out an SOS » ; « Lancer le SOS » → « Send the SOS » ; « Arrêter le SOS » → « End the SOS » ; « SOS arrêté. À demain pour le prochain ! » → « SOS ended. See you tomorrow for the next one! ».
+- **SOS du soir / SOS « place ce soir »** → **tonight's SOS** · adapté
+  - Où : Mode pro (« Le SOS du soir et le message du moment »), nouveautés 1.0.0, decisions.md
+  - « Le SOS du soir et ton message du moment » → « Tonight's SOS and your message of the moment ». Le pluriel « SOSs » est laid : reformuler (« Les SOS du soir » → « evening SOS alerts »).
+- **SOS ce soir 🔥 (fil et liste)** → **SOS tonight 🔥** · adapté
+  - Où : 3e fil (« Abonnements », « Pour toi », « SOS ce soir »), fiche (« En SOS ce soir : 3 places jusqu'à 22 h »), forme courte « SOS 🔥 »
+  - « En SOS ce soir : 3 places jusqu'à 22 h » → « SOS tonight: 3 seats until 22:00 ». La forme courte « SOS 🔥 » ne change pas, car la largeur est comptée sur iPhone.
+- **places (d'un SOS, d'une sortie)** → **seats (SOS) / spots (get-together)** · adapté
+  - Où : SOS du soir (nombre de places), sorties (« 1 place libre », « complet »)
+  - Pour le SOS d'un lieu, « seats ». Pour une sortie, « spots » (« 1 spot left », « full »). « place de fondateur » → « founding spot ».
+- **Message du moment** → **Message of the moment** · adapté
+  - Où : Mode pro › Ce soir (« Salle calme ce soir », « Happy hour jusqu'à 20 h »), fiche du lieu
+  - Tranché : c'est fidèle et compris. Écartés : « Today's note » (le message peut durer 24 h, donc couvrir deux jours), « Live update » (fait flash d'info) et « Right-now message » (pas idiomatique).
+- **Premier sauveteur (statut et annonce)** → **First to the Rescue** · adapté
+  - Où : Annonce « 🚀 Premier sauveteur ! … +20 points », barème, FAQ
+  - « 🚀 Premier sauveteur ! Chez Nonna vient d'arriver et tu es déjà là : +20 points » → « 🚀 First to the rescue! Chez Nonna has just joined and you're already there: +20 points ». « First Responder » est écarté : en anglais, ce sont les secours, trop près de Miam Safe et des urgences.
+- **Déniché par … / Déniché par toi** → **Spotted by … / Spotted by you** · adapté
+  - Où : Fiche du lieu (« 🛟 Déniché par Léa »), badge, inscription (aidePrenom)
+  - Variantes écartées : « Found by » (plat), « Unearthed by » (long). « Il pourra s'afficher « Déniché par … » sur la fiche d'un lieu que tu as proposé » → « It may show as “Spotted by …” on the page of a place you suggested ».
+- **la cloche (notifications dans l'app)** → **the bell 🔔 / your notifications** · adapté
+  - Où : « Tu seras prévenu·e dans la cloche », « depuis la cloche », écran Notifications
+  - Quand on désigne l'icône : « tap the bell ». Sinon : « you'll get a notification » ou « in your notifications ». « Tu seras prévenu·e dans la cloche. » → « You'll get a notification. »
+- **le pouls (pouls social)** → **(jamais affiché)** · gardé
+  - Où : Nom de code seulement (utiliserPoulsSocial, route du pouls)
+  - Jamais visible à l'écran : rien à traduire, le nom de code reste en français.
+- **Ma bande / ta bande** → **My crew / your crew** · adapté
+  - Où : Communauté › Ma bande (12 fichiers), « Ajouter à ma bande », « Dans ta bande », badge « Toute la bande », « Quoi de neuf »
+  - Décision de Hugo du 25/10 : « crew ». Badge « The Whole Crew », « Quoi de neuf » → « Crew news ». Les écrans Miam Safe disent « your friends » (règle 10).
+- **les potes / un pote** → **friends / a friend** · traduit
+  - Où : 1 822 lignes : « Envoyer à un pote », « Prévenir un pote », « Entre potes », messagerie
+  - Décision du 24/10. « mates » est écarté : trop marqué, et déplacé dans Miam Safe. « Entre potes » → « With friends » ; « tes potes ne sont pas loin » → « your friends aren't far ».
+- **une sortie (entre potes)** → **a get-together** · adapté
+  - Où : Organiser une sortie (TEXTES_ORGANISER), « Tu viens ? », vote du lieu, rappel de sortie, badge Toute la bande, canal Android
+  - Tranché. « outing » est écarté : il fait sortie scolaire (« school outing »), et « outing someone » veut dire révéler l'homosexualité de quelqu'un, un sens malheureux à côté de « LGBT+ friendly ». « hangout » fait jeune, et « plan » est flou. « Organiser une sortie » → « Organise a get-together » (bouton court : « Make plans ») ; « Le rappel de sortie » → « Get-together reminder » ; « Tu viens ? » → « You in? ». « Lance une sortie pour réveiller la Brigade ! » → « Start a get-together and wake up the Brigade! ».
+- **Sorties des Miamis / une sortie des Miamis** → **Meet the Miamis (section) / an open meetup / Open meetup (barre)** · adapté
+  - Où : Communauté › Les Miamis (sortiesTitre, barre « Sortie des Miamis », « Publier pour les Miamis »)
+  - Tranché. « Miamis meetups » est écarté : un nom employé comme adjectif reste au singulier, et « Miami meetups » ramène à la Floride. « Meet the Miamis » est une vraie formule de titre, allitérée. « open » dit ce que le français explique : la sortie est ouverte à des inconnus. « Publier pour les Miamis » → « Open it to the Miamis ».
+- **sorties (catégorie de lieux)** → **things to do** · adapté
+  - Où : Kit (pictos « restos, pâtisseries, bars et sorties »), diapo de bienvenue, envies
+  - Ce n'est pas la sortie entre potes, mais les bowlings, les escape games, les musées. « les restos, pâtisseries, bars et sorties de ton coin » → « restaurants, patisseries, bars and things to do near you ». « Sorties nature » → « Outdoor trips ».
+- **Qui est là ? / faire coucou** → **Who's around? / wave** · adapté
+  - Où : Communauté › Les Miamis, TEXTES_QUI_EST_LA
+  - « Coucou » → « Wave » ; « Coucou envoyé » → « Wave sent » ; « T'a fait coucou » → « Waved at you » ; « Coucou réciproque » → « You both waved » ; « c'est donnant-donnant » → « it works both ways » ; « Reviens à l'heure du déjeuner, c'est là que ça bouge ! » → « Come back at lunchtime – that's when it gets lively! ».
+- **une visite validée / faire valider une visite** → **a confirmed visit / get a visit confirmed** · adapté
+  - Où : 42 fichiers : badges, profil (« 3 validées »), barème, diapo « Ta visite est validée quand tu paies »
+  - Tranché : « confirmed visit » est naturel, et il laisse « verified » aux lieux ✓ et aux avis. Écartés : « verified visit » (se mélange avec Verified ✓) et « validated visit » (fait ticket de parking). « Ta visite est validée quand tu paies » → « Your visit is confirmed when you pay » ; « 3 validées » → « 3 confirmed ». La carte d'avis « ✓ Visite vérifiée » → « ✓ Verified visit ».
+- **le comptoir (mode pro, QR du comptoir)** → **the counter** · adapté
+  - Où : Mode pro › Comptoir (776 lignes), « Scanne le QR du comptoir », sorties (« Je suis là (QR) »)
+  - « QR du comptoir » → « counter QR code ». Écartés : « till » (la caisse) et « bar » (ambigu). Dans Miam Safe, on parle de « the staff » : « Demander au comptoir » → « Ask the staff ».
+- **l'addition / demander l'addition** → **the bill / ask for the bill** · traduit
+  - Où : Bloc « Tu passes chez eux ? », onglet Scan, comptoir (« Refuser l'addition de Léa »), profil (« Une addition en attente »)
+  - Britannique : jamais « check ». « Demander l'addition ici » → « Ask for the bill here » ; « Une addition en attente » → « A bill waiting » ; « Pas de QR ? Demande l'addition » → « No QR code? Ask for the bill » ; « Refuser l'addition de Léa » → « Decline Léa's bill ».
+- **Scan (onglet) / scanner** → **Scan / scan** · gardé
+  - Où : Onglet Scan, « Scanne le QR d'un comptoir », « Scanner le QR du comptoir »
+  - Même mot. « Scanne le QR d'un comptoir » → « Scan a counter QR code ».
+- **la fidélité / carte de fidélité / tampon** → **loyalty / loyalty card / stamp** · traduit
+  - Où : Profil (« Cartes de fidélité »), fiche, Scan, comptoir
+  - « Un tampon à chaque visite validée » → « A stamp for every confirmed visit » ; « Tes tampons et tes cadeaux » → « Your stamps and treats ».
+- **récompense / cadeau / Demander ma récompense / Récompenses à donner** → **reward / treat / Claim my reward / Rewards to hand out** · adapté
+  - Où : Fidélité côté client et comptoir, profil (« 1 cadeau t'attend 🎁 »)
+  - « 1 cadeau t'attend 🎁 » → « 1 treat waiting for you 🎁 » ; « le cadeau, c'est déjà l'assiette ! » → « the plate is the treat! ».
+- **les points** → **points** · traduit
+  - Où : Barème (+15, +25, +10, +30, +5, +20, +2), palier, défis
+  - « Plus que 12 points avant Dénicheur » → « 12 more points and you're a Gem Hunter ». « until » devant un rang sonne faux.
+- **les paliers : Curieux, Dénicheur, Ambassadeur de quartier, Ambassadeur de ville** → **levels: Taster, Gem Hunter, Neighbourhood Ambassador, City Ambassador** · adapté
+  - Où : packages/commun/src/regles/ambassadeurs.ts (emojis 👀 🔎 🏘️ 🎖️), profil (« Ton palier Ambassadeur »), site (programme)
+  - Tranché. « palier » → « level » (« tier » fait commercial). Un rang doit être un nom : « Level: Curious » sonne faux. « Taster » garde l'idée de goûter à tout et va avec 👀 (variante : « Newcomer »). « Gem Hunter » rejoint « gems », et « Scout » reste une variante. « Truffle Hunter » est écarté, car il ferait doublon avec le badge Fureteur (« Truffle Hound »). « Neighbourhood » s'écrit à la britannique. « Ton palier Ambassadeur » → « Your Ambassador level ».
+- **les défis** → **challenges** · traduit
+  - Où : Profil (défis), barème (« Un défi réussi »)
+  - Les titres des défis viennent du logiciel de gestion, écrits en français par la Brigade. Ils restent en français tant que le logiciel n'a pas de champ anglais (voir les questions).
+- **Envoyer à un pote** → **Send to a friend** · traduit
+  - Où : Menu ⋯ du fil et de la fiche (« 💌 Envoyer à un pote · Fais-le découvrir à ta bande »)
+  - « Fais-le découvrir à ta bande » → « Share it with your crew » (suit le choix de « Ma bande »).
+- **les listes / Nouvelle liste** → **lists / New list** · traduit
+  - Où : Profil, listes partagées, feuille « Nouvelle liste »
+  - « qui la voit (tout le monde ou ta bande) » → « who can see it (everyone or your crew) ».
+- **Fondateur n° 3 de Lyon · n° 147 en France / place de fondateur** → **Founder #3 in Lyon · #147 in France / founding spot** · adapté
+  - Où : Carte de fondateur (site, espace ambassadeur), « 367 places de fondateur »
+  - « n° » → « # ». Plus d'élision : « de Lyon », « du Rhône », « des Landes » → « in Lyon », « in Rhône », « in Landes ».
+- **Ambassadeur / mode ambassadeur / Ambassadeur certifié ✓** → **Ambassador / Ambassador mode / Certified Ambassador ✓** · traduit
+  - Où : Profil › Tes espaces, programme, espace ambassadeur
+  - « programme » s'écrit à la britannique.
+- **bons solidaires (BIG SOS)** → **support vouchers** · adapté
+  - Où : Site (BIG SOS), FAQ ; pas encore construits
+  - Choix provisoire, à revoir quand le chantier commencera. « pay-it-forward vouchers » est inexact (on paie pour soi, plus tard), et « solidarity vouchers » est un calque. « tu paies maintenant, tu profites plus tard » → « pay now, enjoy later ».
+- **à la une** → **in the spotlight / featured** · adapté
+  - Où : BIG SOS (« à la une 7 jours »), Hero (« 7 j à la une pour un BIG SOS »)
+  - « 7 j à la une pour un BIG SOS » → « 7 days in the spotlight for a BIG SOS ».
+
+### Miam Safe, urgences et prévention (29)
+
+- **112 · Urgences (lu : « Appeler le 112, les urgences, partout en Europe »)** → **112 · Emergencies (lu : « Call 112 for any emergency, anywhere in Europe »)** · adapté
+  - Où : apps/app-mobile/src/contenus/miam-safe.ts NUMEROS_URGENCE, NumerosUrgence.tsx
+  - Décision du 24/10 : en premier dans l'app anglaise, puis 17, 18, 15, 114. « (EU) » est écarté : un Britannique (hors de l'UE depuis 2020), un Suisse ou un Américain pourrait croire que ce numéro n'est pas pour lui, alors qu'en France le 112 marche pour tout le monde. Ne rien promettre sur la langue des opérateurs.
+- **17 · Police (lu : « Appeler le 17, la police »)** → **17 · Police (lu : « Call 17 for the police »)** · traduit
+  - Où : NUMEROS_URGENCE
+  - Avec « for », le libellé lu devient une phrase complète, et ne ressemble plus à une liste (règle 23).
+- **18 · Pompiers (lu : « Appeler le 18, les pompiers »)** → **18 · Fire & rescue (lu : « Call 18 for fire and rescue »)** · adapté
+  - Où : NUMEROS_URGENCE
+  - « Fire & rescue » plutôt que « Fire brigade », car en France les pompiers portent aussi secours aux personnes. Libellé court, à vérifier sur un petit écran.
+- **15 · Samu (lu : « Appeler le 15, le Samu »)** → **15 · Ambulance (SAMU) (lu : « Call 15 for a medical emergency, SAMU »)** · adapté
+  - Où : NUMEROS_URGENCE
+  - SAMU reste le nom officiel, glosé par « Ambulance ».
+- **114 · Par SMS (lu : « Écrire au 114 par SMS, si tu ne peux pas parler »)** → **114 · By text (SMS) (lu : « Text 114 if you can't speak »)** · adapté
+  - Où : NUMEROS_URGENCE (lien sms:114)
+  - À vérifier depuis une carte SIM étrangère avant l'ouverture (plan, section 4). Ne pas promettre de réponse en anglais.
+- **Danger réel ? Appelle tout de suite. / Ces numéros marchent sans Internet** → **In real danger? Call now. / These numbers work without internet** · traduit
+  - Où : NumerosUrgence.tsx, FeuilleSecoursMiamSafe.tsx, ECHECS_ALERTE_MIAM_SAFE
+  - Sans point d'exclamation. « Pas de réseau ici. Les numéros d'urgence, eux, marchent sans Internet. » → « No signal here. Emergency numbers still work without internet. »
+- **Tu ne te sens pas en sécurité ici ? Les secours, et un écran à montrer à l'équipe (lu, bouton 🚨) / Lieu Miam Safe : son équipe sait quoi faire si tu ne te sens pas en sécurité (lu, badge)** → **Don't feel safe here? Emergency numbers, and a screen to show the staff / This venue has signed the Miam Safe charter: its staff know what to do if you don't feel safe** · traduit
+  - Où : Libellés lus de BoutonSecoursMiamSafe.tsx et de BadgesMiamSafe.tsx
+  - Ce sont les premiers mots de Miam Safe qu'entend une personne qui utilise un lecteur d'écran. Le badge dit l'engagement, pas un résultat (règle 11).
+- **Le Capitaine est là ? (phrase à dire au comptoir)** → **Le Capitaine est là ? — gardée en français. Feuille : « Say this to a member of staff, in French: “Le Capitaine est là ?” (luh ka-pee-TEN eh LAH?). It means “Is the Captain here?” The staff here know it – in French only. To anyone else, it just sounds like an ordinary question. »** · gardé
+  - Où : packages/commun/src/regles/miam-safe.ts PHRASE_MIAM_SAFE, FeuilleMiamSafe.tsx:118 (« Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres. »), PhraseComptoirMiamSafe.tsx, charte, affiches
+  - Décision du 24/10 : l'équipe du lieu, française, ne connaît que cette phrase. Il faut dire pourquoi elle est en français, sinon un anglophone risque de dire la traduction, que personne ne reconnaîtra. On écarte « means nothing to anyone else », qui peut se lire « ça ne sert à rien ». La voix monte à la fin, comme une question. La ligne suivante (FeuilleMiamSafe.tsx:121, « Pas envie de parler ? Montre l'écran : il est sombre et discret, la consigne n'est écrite qu'en petit. ») devient : « Rather not speak, or not sure how to say it? Show the screen instead. It's dark and discreet, and the note for the staff is in small print, in French. » Sur l'écran montré à l'équipe, la phrase reste en français, en gros. Si un bouton audio est ajouté (voir les questions) : jamais de lecture automatique, ni au haut-parleur.
+- **Pour l'équipe : cette personne a besoin d'aide. Accompagne-la à l'écart, sans bruit, et demande-lui ce qu'il lui faut.** → **Gardée en français sur l'écran. Traduction sur la feuille qui précède : « For the staff: this person needs help. Take them aside, quietly, and ask what they need. »** · gardé
+  - Où : PhraseComptoirMiamSafe.tsx (CONSIGNE en petit sous la phrase, écran sombre avec le Capitaine)
+  - Décision du 24/10. La traduction s'affiche sur la feuille qui précède, et non sur l'écran montré au personnel, pour que celui-ci reste discret (voir les questions).
+- **J'ai besoin d'aide, discrètement. / Je ne me sens pas en sécurité. Accompagne-moi à l'écart, sans bruit, et demande-moi ce qu'il me faut : un taxi, appeler un proche, les secours.** → **Gardé en français sur l'écran. Traduction : « I need help, discreetly. / I don't feel safe. Take me aside, quietly, and ask me what I need: a taxi, a call to someone I trust, the emergency services. »** · gardé
+  - Où : ConsigneComptoirMiamSafe.tsx (écran en clair, proposé dans tous les lieux et sans compte)
+  - Même règle : c'est une consigne pour une équipe française. « un proche » se traduit partout « someone you trust » (« someone I trust » ici), pour qu'un même mot du parcours garde une seule traduction.
+- **Montre cet écran à quelqu'un de l'équipe : il dit en clair que tu as besoin d'aide, et quoi faire (feuille, quatre cas de la charte) / Montrer l'écran au personnel / Montrer l'écran à l'équipe** → **Signée : « This venue has signed the Miam Safe charter. The screen tells its staff, in French, that you need help and what to do. » Pas signée : « This venue hasn't signed the Miam Safe charter, so its staff may not know Miam Safe. The screen still tells them, in French, that you need help and what to do. » En cours : « We're checking whether this venue has signed the Miam Safe charter. The screen tells the staff, in French, that you need help and what to do. » Inconnue : « We couldn't check whether this venue has signed the Miam Safe charter. The screen tells the staff, in French, that you need help and what to do. » Bouton : « Show the screen to the staff ».** · adapté
+  - Où : FeuilleMiamSafe.tsx TEXTES_ECRAN_EN_CLAIR (signee, pas-signee, en-cours, inconnue) et boutons des lignes 123 et 130, FeuilleSecoursMiamSafe.tsx
+  - L'écran reste en français, donc la feuille anglaise dit « in French » dans les quatre cas. Les deux boutons français désignent le même geste : une seule traduction.
+- **Prévenir un pote / Demander au comptoir / Alerter le comptoir (en silence) / Raconter ce qui s'est passé** → **Alert a friend / Ask the staff / Silently alert the staff / Tell us what happened** · traduit
+  - Où : ChoixAideMiamSafe.tsx, FeuilleMiamSafe.tsx (TITRES : pote, comptoir, alerte)
+  - Jamais « Tell a friend », qui est la formule du parrainage. Les détails : « Une notification, et ta position pendant 1 h. » → « A notification, and your location for 1 hour. » ; « Une phrase à dire, ou un écran à montrer. » → « A phrase to say, or a screen to show. » ; « Si tu ne peux pas y aller. » → « If you can't go to them. » ; « Reste entre toi et notre équipe. » → « Stays between you and the SOS Miam team. ». Les emojis-icônes du français (👋 🛎 🤫 ✏️) restent.
+- **Prévenir Léa / Partager ma position pendant 1 heure / Ton pote la voit dans son app. Tu arrêtes quand tu veux. / Arrêter le partage / Partage terminé / Écrire à Léa / Prends vite de ses nouvelles. / Ouvrir dans Plans** → **Alert Léa / Share my location for 1 hour / Your friend sees it in their app. Stop whenever you like. / Stop sharing / Sharing ended / Message Léa / Check on Léa now. / Open in Maps** · traduit
+  - Où : PrevenirPoteMiamSafe, PartageEnvoyeMiamSafe, PartageRecuMiamSafe, BandeauPartagesRecusMiamSafe
+  - « Check on Léa » évite de deviner « her » (règle 19). L'app Plans s'appelle Maps en anglais.
+- **Ta bande est vide (Miam Safe › Prévenir un pote)** → **You haven't added any friends yet** · adapté
+  - Où : PrevenirPoteMiamSafe
+  - Sur un écran de stress, des mots simples : ni « crew » ni aucun autre mot de marque, quel que soit le choix fait pour « Ma bande » (règle 10).
+- **Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours. / Ne reste pas seul·e** → **Is the problem with the staff? Call someone you trust or the emergency services instead. / Don't stay on your own** · traduit
+  - Où : FeuilleMiamSafe.tsx SOUCI_EQUIPE, AlerteComptoirMiamSafe.tsx, ChoixAideMiamSafe.tsx
+  - « Ne reste pas seul·e : appelle les secours, ou préviens un pote. » → « Don't stay on your own: call the emergency services or alert a friend. »
+- **On arrive (réponse de l'équipe) / On est là.** → **On our way / We're here.** · traduit
+  - Où : Comptoir (bouton de l'équipe), suivi de l'alerte, sous-titre de la feuille Miam Safe
+  - « Elle a répondu « On arrive » à 21h42. Reste où tu es si tu peux, quelqu'un vient te voir discrètement » → « The staff replied “On our way” at 21:42. Stay where you are if you can – someone's coming to you quietly. » Toujours « the staff » pour le lieu et « the SOS Miam team » pour nous, jamais « the team » seul (règle 12) : « … est remontée à l'équipe SOS Miam » → « Your 21:40 alert has gone to the SOS Miam team ».
+- **L'équipe arrive / Alerte envoyée / ⚠️ L'équipe n'a rien reçu / ⚠️ L'alerte n'est pas partie / Renvoyer une alerte / Nouvelle alerte / Rien ne sonne de ton côté.** → **The staff are on their way / Alert sent / ⚠️ The staff didn't get the alert / ⚠️ The alert didn't go through / Send the alert again / New alert / Nothing will ring on your phone.** · traduit
+  - Où : AlerteComptoirMiamSafe.tsx, l'écran le plus sensible après les urgences
+  - « Nothing will ring on your phone » rassure sur la discrétion : à traduire tel quel. Pas de point d'exclamation ; les ⚠️ du français restent.
+- **En salle / En terrasse / Aux toilettes / Ailleurs ; Un détail pour te trouver (« Table 12, pull vert… »)** → **Inside / On the terrace / In the toilets / Somewhere else ; A detail to help find you (“Table 12, green jumper…”), avec dessous : « The staff may not read English – a table number helps most. »** · traduit
+  - Où : LIBELLES_ENDROIT_ALERTE, AlerteComptoirMiamSafe.tsx, ecrire-texte-alerte.ts (le détail part tel quel sur les téléphones de l'équipe)
+  - « jumper » est le mot britannique. « Envoyer en silence » → « Send silently ». Le détail est lu par une équipe française : un numéro de table passe mieux qu'une phrase.
+- **Harcèlement / Agression / Discrimination / Quelqu'un de l'équipe / Autre chose** → **Harassment / Assault / Discrimination / A member of staff / Something else** · traduit
+  - Où : LIBELLES_RAISON_MIAM_SAFE (signaler après coup)
+  - Les détails : « Someone wouldn't take no for an answer, followed you, or made inappropriate comments or gestures. » (« kept insisting » appelle un complément) ; « Someone hurt you, or tried to. » ; « You were treated differently because of who you are. » ; « The behaviour of someone who works there. » ; « Tell us in your own words. »
+- **Merci de nous l'avoir dit. / Désolé·e. Rien ne s'affiche sur la fiche : si tu veux, raconte-nous ce qui s'est passé.** → **Thank you for telling us. / We're sorry. Nothing shows on the place's page. If you like, tell us what happened.** · traduit
+  - Où : RaconterMiamSafe.tsx, QuestionSentiBien.tsx
+  - « Thank you » plutôt que « Thanks! », et « We're sorry » plutôt qu'un « Sorry » sec.
+- **Les Miamis s'y sentent bien / Tu t'es senti·e bien ici ?** → **Miamis feel at ease here / Did you feel at ease here?** · adapté
+  - Où : BadgesMiamSafe.tsx, QuestionSentiBien.tsx (réponses « Oui » / « Pas vraiment »)
+  - Jamais « safe » : le repère ne promet pas la sécurité. Réponses : « Yes » / « Not really ».
+- **Miam Safe est là sur place si tu ne te sens pas bien.** → **Miam Safe is there on the spot if you ever feel uncomfortable.** · adapté
+  - Où : textes-sorties-miamis.ts (règles des Sorties des Miamis)
+  - « feel unwell » voudrait dire malade, et enverrait vers Miam Safe pour un malaise. « feel safe » serait une promesse. « uncomfortable » garde le sens de Miam Safe (règle 11).
+- **Notification Prévenir un pote : « 🛡 Léa a besoin de toi » / « Léa ne se sent pas en sécurité à « [lieu] ». Sa position est partagée avec toi pendant 1 h. » (et la version sans position)** → **« 🛡 Léa needs you » / « Léa doesn't feel safe at “[place]”. Léa's location is shared with you for 1 hour. » ; bandeau : « Léa doesn't feel safe. Léa's location is shared with you · View »** · traduit
+  - Où : Notification urgente rédigée par le serveur (ecrire-message-pote.ts), dans la langue du téléphone qui la reçoit ; BandeauPartagesRecusMiamSafe
+  - On répète le prénom plutôt que de deviner her ou his. Le message est rédigé dans la langue du destinataire, jamais dans celle de l'expéditeur.
+- **Miam Safe et « Demande Angela »** → **It works a bit like Ask for Angela – but in France, say the French phrase.** · adapté
+  - Où : Charte, FAQ, page Miam Safe du site (decisions.md : « sur le principe de Demande Angela »)
+  - Les Britanniques connaissent Ask for Angela, et la comparaison leur fait comprendre Miam Safe d'un coup. Mais une équipe française ne connaît pas Angela. On ne la cite donc que sur les pages d'explication, jamais sur la feuille lue sous stress (règle 11).
+- **Charte Miam Safe (mode pro) : « Toute l'équipe connaît la phrase et l'écran », « Quand quelqu'un demande « Le Capitaine est là ? »… », « on appuie sur « On arrive » »** → **“The whole team knows the phrase and the screen” ; “When someone asks “Le Capitaine est là ?” (Is the Captain here?)…” ; “tap “On our way””** · adapté
+  - Où : Charte Miam Safe signée par les lieux (mode pro, espace pro)
+  - Un gérant anglophone signera la charte en anglais. La phrase y reste en français, puisque ce sont les clients qui la diront. Le bouton cité est celui de son app (règle 25). Comme la charte est un engagement, elle porte le même bandeau que le légal, avec « Only the French version is legally binding » (règle 27). Ici, « team » désigne l'équipe du lieu vue par le gérant, ce qui reste clair.
+- **L'abus d'alcool est dangereux pour la santé, à consommer avec modération.** → **Gardée en français, mot pour mot. Traduction dessous : « Alcohol abuse is dangerous to health. Consume in moderation. »** · gardé
+  - Où : packages/commun/src/contenus/prevention-alcool.ts MESSAGE_SANITAIRE_ALCOOL : pied de page, fiches de bars, offres, publications, fidélité
+  - Décision du 24/10. Le français vient en premier ; la traduction n'est ni plus grande ni plus visible (loi Toubon). Traduction impersonnelle, comme l'original (pas de tutoiement). « Drink responsibly » est écarté : c'est la formule de l'industrie britannique, moins fidèle.
+- **Alcool Info Service : 0 980 980 930, appel anonyme et non surtaxé, 7 jours sur 7** → **Alcool Info Service (French-language helpline): 0 980 980 930 (+33 9 80 98 09 30), anonymous, no premium charge, 7 days a week** · adapté
+  - Où : ALCOOL_INFO_SERVICE, encadré des fiches, page /prevention
+  - On garde le nom et on dit que le service est en français. « non surtaxé » ne veut pas dire « free ». La forme internationale sert à un téléphone étranger.
+- **Alcool proposé à des mineurs (motif de signalement et de modération)** → **Alcohol offered to minors** · traduit
+  - Où : raisons-signalement.ts, motifs-moderation.ts
+  - Ici, « minors » vise des tiers, pas un compte : c'est permis, et nécessaire. C'est une exception écrite à la règle 14, pour qu'un essai ou une relecture ne le retire pas.
+- **mots interdits du filtre (mots-interdits.ts)** → **formes britanniques à ajouter : arse, arsehole, wanker, twat, bollocks, tosser, bellend, slag** · adapté
+  - Où : Filtre des pseudos, titres, étiquettes, avis
+  - L'inventaire ne prévoit que des insultes américaines (« asshole »). Les Britanniques écrivent « arsehole », et leurs insultes courantes sont différentes.
+
+### Légal (20)
+
+- **Collaboration commerciale** → **Collaboration commerciale (gardée en français) · paid or gifted partnership ; lu : « Collaboration commerciale: a paid or gifted partnership »** · gardé
+  - Où : Publications des créateurs (PostPublication.tsx), visites et avis (EtiquettesReglement.tsx, libelles-reglement.ts partenariat), ChoixReglement.tsx, profil créateur
+  - C'est une mention imposée par la loi, comme la formule Évin. La loi n° 2023-451 du 9 juin 2023 exige « Publicité » ou « Collaboration commerciale », et la loi Toubon exige le français : une étiquette tout en anglais ferait disparaître la mention légale. Le français vient en premier, avec lang=fr et accessibilityLanguage fr-FR. « Paid partnership » seul exclurait les cadeaux, et « Ad » est trop sec. Piège dans le code : EtiquettesReglement.tsx:38 compare le texte affiché pour mettre l'étiquette en noir et en premier. Il faut comparer la clé « partenariat » avant toute traduction. À faire confirmer par Hugo et par le juriste déjà prévu pour les offres d'alcool.
+- **Happy hour ou formule (avantage d'une visite)** → **Happy hour or set menu** · traduit
+  - Où : libelles-reglement.ts
+  - En anglais aussi, « happy hour » parle d'alcool : l'étiquette reste soumise au message Évin, comme en français.
+- **Conditions d'utilisation (CGU)** → **Terms of Use** · traduit
+  - Où : /cgu, liens-legaux.ts, adresse anglaise /en/cgu
+  - « Les règles du jeu du site et de l'app. » → « The ground rules for the site and the app. »
+- **Mentions légales** → **Legal notice** · traduit
+  - Où : /mentions-legales
+  - « Qui édite SOS Miam, qui l'héberge, et comment signaler un contenu. » → « Who publishes SOS Miam, who hosts it, and how to report content. »
+- **Confidentialité / politique de confidentialité** → **Privacy / Privacy policy** · traduit
+  - Où : /confidentialite (traduite en premier, avec les CGU)
+  - « Ce qu'on fait de tes données, combien de temps, et tes droits. » → « What we do with your data, for how long, and your rights. »
+- **Cookies / Gérer mes cookies** → **Cookies / Cookie settings** · adapté
+  - Où : /cookies, lienGererCookies
+  - « Cookie settings » est la formule courante.
+- **Accessibilité / RGAA** → **Accessibility / RGAA (the French accessibility standard)** · traduit
+  - Où : /accessibilite
+  - —
+- **SOS Miam et l'âge** → **Age and SOS Miam** · adapté
+  - Où : /age (URL d'adéquation à l'âge de l'App Store)
+  - « Un compte dès 18 ans, et les repères pour les parents. » → « Accounts are 18+, plus some pointers for parents. » Jamais teen, minor ni adults only.
+- **Santé et prévention** → **Health and wellbeing** · adapté
+  - Où : /prevention, lien des Paramètres
+  - En titre, « prevention » seul sonne traduit (l'anglais demande « prevention of what? »). « wellbeing » est le mot britannique qui couvre l'alcool, la route et le manger-bouger. « Health and safety » est écarté : c'est la sécurité au travail. « Quand on boit, on ne conduit pas » → « Don't drink and drive ».
+- **Statistiques de visite** → **Visitor statistics** · traduit
+  - Où : /statistiques
+  - —
+- **Seule la version française fait foi (bandeau)** → **Toutes les pages : « This is a courtesy translation. If it differs from the French version, the French version prevails. » CGU et charte Miam Safe : on ajoute « Only the French version is legally binding. »** · adapté
+  - Où : En tête de chaque page légale anglaise, et de la charte Miam Safe en anglais
+  - Décision du 24/10 : une traduction de courtoisie. La confidentialité, les cookies et les mentions légales informent, ils ne lient pas : écrire qu'ils « lient » laisserait croire que l'anglais n'engage à rien, alors que le RGPD (art. 12) demande une information compréhensible par le public visé. « prevails » rend exactement « fait foi ». Traduction fidèle, car un doute profite au consommateur (L211-1).
+- **conciliateur de justice** → **conciliateur de justice (a free, court-appointed conciliator)** · adapté
+  - Où : CGU, « Droit applicable et litiges »
+  - Nom français gardé, glosé à la première mention.
+- **éditeur / hébergeur / particulier, à titre non professionnel** → **publisher / hosting provider / private individual, acting in a non-professional capacity** · traduit
+  - Où : informations-legales.ts, mentions légales
+  - « hosting provider » est le terme anglais de la LCEN et du DSA (« hosting service provider »). « host » seul se lit aussi « hôte », celui qui reçoit. Même éditeur (Hugo Rostagno Laurens) et même hébergeur, sans dupliquer les coordonnées.
+- **RGPD / CNIL / DSA / LCEN / loi Informatique et Libertés** → **GDPR / CNIL (the French data protection authority) / Digital Services Act (DSA) / LCEN (French law on confidence in the digital economy) / French Data Protection Act (loi Informatique et Libertés)** · adapté
+  - Où : Confidentialité, cookies, CGU (modération)
+  - Sigles français gardés et glosés à la première mention ; RGPD devient GDPR.
+- **responsable de traitement / sous-traitant / intérêt légitime / exécution des conditions d'utilisation / consentement** → **data controller / processor / legitimate interest / performance of the Terms of Use / consent** · traduit
+  - Où : Confidentialité (bases légales, art. 6.1 du RGPD)
+  - Vocabulaire officiel de la version anglaise du RGPD.
+- **droits d'accès, de rectification, d'effacement, d'opposition, de limitation, à la portabilité** → **rights of access, rectification, erasure, objection, restriction and data portability** · traduit
+  - Où : Confidentialité
+  - Vocabulaire officiel du RGPD en anglais. « erasure » est réservé à ce droit (voir « Supprimer mon compte / Effacer mes données »).
+- **Mise à jour le … / En bref** → **Last updated: … / In short** · traduit
+  - Où : type-legal.ts (miseAJour, enBref)
+  - Même date que le français, écrite à l'anglaise (« 23 October 2026 »).
+- **droit applicable / tribunaux français compétents / règles de droit commun / règles impératives du pays de résidence** → **governing law / the competent French courts / the ordinary rules of jurisdiction / the mandatory rules of your country of residence** · traduit
+  - Où : CGU, « Droit applicable et litiges »
+  - —
+- **signalement / modération / limitation d'un compte / contestation / motif** → **Interface : Report / moderation / account restriction / Appeal / statement of reasons. Légal : notice (signalement, DSA art. 16) / complaint (contestation, DSA art. 20, « internal complaint-handling system »), avec « (appeal) » à la première mention** · adapté
+  - Où : CGU (modération), messages de limitation, décisions de modération
+  - La version anglaise officielle du DSA dit « notice » et « complaint ». Des CGU qui diraient « appeal » feraient croire à une autre procédure (un recours en justice). « statement of reasons » est le terme du DSA (art. 17). Les motifs restent écrits en français au début, car le logiciel est en français.
+- **Supprimer mon compte / Effacer mes données (et recommencer)** → **Delete my account / Clear my data and start again — détail : « Profile, avatar, rescues, saved places… it all goes back to zero »** · adapté
+  - Où : Paramètres › Tes données (SectionTesDonnees.tsx : « Effacer mes données et recommencer », qui ne touche que ce téléphone), Mon compte › suppression
+  - Ton sobre, sans blague. Le bouton des Paramètres remet le téléphone à zéro : « Erase my data » se lirait comme le droit à l'effacement du RGPD, et l'anglais promettrait plus que le français (règle 24). « erase » reste au légal et à la suppression du compte. « start again » est britannique, « start over » américain. « Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte » » → « Clearing here only affects this phone. To delete your account, go to “My account”. »
+
+### Formats (10)
+
+- **Dates : « 23 octobre 2026 », « 1er mars », « lundi 3 novembre », « 03/11/2026 »** → **« 23 October 2026 », « 1 March », « Monday 3 November », « 03/11/2026 »** · adapté
+  - Où : ecrire-date-langue.ts, contenus/calendrier.ts, nouveautés, légal
+  - Le jour avant le mois, sans « 1st » ; une majuscule aux mois et aux jours ; format numérique britannique JJ/MM/AAAA ; mois court « 3 Nov ».
+- **Heures : « 21h30 », « 21 h 30 », « 22 h », « jusqu'à 20 h », « jusqu'à minuit », « à l'heure de Paris »** → **« 21:30 », « 22:00 », « until 20:00 », « until midnight », « Paris time »** · adapté
+  - Où : formater-heure-langue.ts, SOS, réservations, messagerie
+  - Décision du 24/10 : 24 h aussi en anglais, jamais « 9:30 pm ». Dans une phrase, « midnight » et « midday » plutôt que « 00:00 » et « 12:00 ».
+- **Durées et temps relatif : « 1 h », « 3 h », « il y a 5 min », « Envoyé il y a 12 min · 19h08 »** → **« 1 hour », « 3 hours », « 5 min ago », « Sent 12 min ago · 19:08 »** · adapté
+  - Où : ecrire-il-y-a.ts, Qui est là, Miam Safe, messagerie
+  - « hr » seulement si la place manque.
+- **Prix : « 4,50 € », « 0 € », « de 0,01 € à 500 € », « 1 200 € », « 0 € de commission »** → **« €4.50 », « €0 », « from €0.01 to €500 », « €1,200 », « Zero commission »** · adapté
+  - Où : formater-prix-langue.ts, carte du lieu, Hero (« 0 € de commission »)
+  - Symbole devant, point décimal, virgule des milliers, toujours en euros. Un argument commercial écrit « Zero commission » : « €0 commission » se lirait comme un prix affiché.
+- **Distances : « 1,2 km », « 200 m »** → **« 1.2 km », « 200 m »** · adapté
+  - Où : Explorer, fiche
+  - Décision du 24/10 : jamais de miles. Les expressions figées gardent leur image (règle 5).
+- **Nombres, pourcentages, tailles : « 1 234 », « 1,2 k », « 90 % », « 5 Mo »** → **« 1,234 », « 1.2k », « 90% », « 5 MB »** · adapté
+  - Où : formater-nombre-court-langue.ts, avis (« 92 % des clients reviennent »), photos
+  - Pas d'espace avant %.
+- **Numéros et ordinaux : « n° 3 », « 1er choix »** → **« #3 », « 1st choice »** · adapté
+  - Où : Fondateurs, liste d'attente (« Tu es n° 2 sur la liste d'attente »), comptoir (« son 1er choix »)
+  - « Tu es n° 2 sur la liste d'attente » → « You're #2 on the waiting list ». Les ordinaux s'écrivent « 1st » pour un rang, jamais dans une date.
+- **Téléphones : « 0 980 980 930 »** → **« 0 980 980 930 (+33 9 80 98 09 30) »** · adapté
+  - Où : Alcool Info Service ; les numéros d'urgence courts ne changent pas
+  - On ajoute la forme internationale pour un téléphone étranger.
+- **Âges : « dès 18 ans », « 18–25 ans », « 30 ans et + »** → **« 18+ », « 18–25 », « 30+ »** · adapté
+  - Où : Inscription, sorties réservées, /age
+  - Jamais teen, minor ni adults only. Aucune mention de l'âge à côté du champ de la date de naissance (règle 14).
+- **Typographie : guillemets « … » français, espace avant ? ! : ;, deux-points de liaison, « e-mail »** → **guillemets “…” via citer(), pas d'espace avant la ponctuation, tiret demi-cadratin espacé « – » ou point à la place des deux-points de liaison, « email »** · adapté
+  - Où : lierPonctuation (1 813 lignes), citer(texte, langue)
+  - lierPonctuation reste appliqué partout : il ne change rien à un anglais correct, et protège les textes restés en français (règle 16). Pas de tiret cadratin, pas de virgule d'Oxford, pas de virgule entre deux phrases complètes. « e-mail » devient « email », l'usage britannique courant.
+
+### Badges (35)
+
+- **Première rescousse — Donne ta première rescousse à un lieu** → **Maiden Voyage — Give your very first rescue to a place** · adapté
+  - Où : badges.ts · premiere-rescousse · 🛟
+  - Clin d'œil marin (le premier voyage). Variante sobre : « First Rescue ». Les textes des badges n'ont pas de ponctuation finale (règle 23).
+- **Sauveteur en série — Donne 10 rescousses : la Brigade commence à compter sur toi** → **Serial Rescuer — Give 10 rescues – the Brigade's starting to count on you** · traduit
+  - Où : badges.ts · sauveteur-en-serie · ⛑️
+  - Le jeu de mots (serial killer) marche pareil en anglais.
+- **Second du Capitaine — Donne 25 rescousses : le Capitaine Bouiboui te confie la barre** → **First Mate — Give 25 rescues – Capitaine Bouiboui hands you the helm** · adapté
+  - Où : badges.ts · second-du-capitaine · ⚓
+  - Le second d'un navire se dit « first mate ». Variante : « Captain's First Mate ».
+- **Héros de la Brigade — Donne 50 rescousses : toute la Brigade te porte en triomphe** → **Brigade Hero — Give 50 rescues – the whole Brigade carries you shoulder-high** · traduit
+  - Où : badges.ts · heros-de-la-brigade · 🏆
+  - « shoulder-high » est l'image britannique du triomphe.
+- **Cœur sur la main — Fais valider 3 visites pendant un SOS : le lieu a des tables à remplir, toi un bon appétit** → **Heart of Gold — Get 3 visits confirmed during an SOS – they've got tables to fill, you've got an appetite** · adapté
+  - Où : badges.ts · coeur-sur-la-main · 💛
+  - C'est l'équivalent idiomatique de la générosité. « an SOS » (règle 6).
+- **Bonne étoile — Fais valider une visite dans 3 lieux différents, pendant leur SOS** → **Lucky Star — Get a visit confirmed at 3 different places during their SOS** · adapté
+  - Où : badges.ts · bonne-etoile · 🌟
+  - Variante : « Guiding Star ».
+- **Premier sauveteur — Donne la toute première rescousse à un lieu qui vient d'arriver** → **First to the Rescue — Give the very first rescue to a place that's just joined** · adapté
+  - Où : badges.ts · premier-sauveteur · 🚀
+  - « First Responder » est écarté : en anglais, ce sont les secours, trop près des urgences et de Miam Safe.
+- **Vigie — Donne la toute première rescousse à 5 lieux qui viennent d'arriver : rien n'échappe à ta longue-vue** → **Lookout — Be first to the rescue at 5 places that have just joined – nothing gets past your spyglass** · traduit
+  - Où : badges.ts · vigie · 🔭
+  - « spyglass » est la longue-vue du marin et de la vigie ; « telescope » fait observatoire. « gets past » est plus naturel que « escapes ».
+- **Déniché par toi — Propose un lieu qui rejoint SOS Miam : sa fiche affichera ton prénom** → **Spotted by You — Suggest a place that joins SOS Miam – its page will show your first name** · adapté
+  - Où : badges.ts · deniche-par-toi · 🔎
+  - Même formule que « Spotted by Léa » sur la fiche du lieu.
+- **Fondateur — Prends une place de fondateur dans ta ville** → **Founder — Grab a founding spot in your city** · traduit
+  - Où : badges.ts · fondateur · 🎖️
+  - Cohérent avec « Founder #3 in Lyon ».
+- **Fine fourchette — Fais valider 10 visites au resto** → **Fine Diner — Get 10 restaurant visits confirmed** · adapté
+  - Où : badges.ts · fine-fourchette · 🍽️
+  - Jeu de mots sur « fine dining ».
+- **Fourchette d'or — Fais valider 25 visites au resto : les chefs te saluent bien bas** → **Golden Fork — Get 25 restaurant visits confirmed – chefs doff their toques to you** · adapté
+  - Où : badges.ts · fourchette-d-or · 🥇
+  - « doff their toques » rappelle l'avatar Toque.
+- **Tour de table — Fais valider une visite dans 5 restos différents** → **Table Hopper — Get a visit confirmed at 5 different restaurants** · adapté
+  - Où : badges.ts · tour-de-table · 🥘
+  - « table-hopping », c'est aller de table en table.
+- **Iodé — Des huîtres ou des fruits de mer dégustés sur place** → **The World's Your Oyster — Tuck into oysters or seafood on the spot** · adapté
+  - Où : badges.ts · iode · 🦪 (attend sa mesure : type de plat)
+  - Tranché. « Oyster Card » est écarté : c'est une marque déposée de Transport for London (règle 5). « Salty Sea Dog » aussi : en argot, « salty » veut dire vexé, aigri. « The world's your oyster » est une expression connue de tous, positive, et sans marque. Le nom tient en 3 lignes dans la case (CaseBadge, numberOfLines 3). Variante : « Oystercatcher ».
+- **Bec sucré — 5 visites validées en pâtisserie ou confiserie** → **Sweet Tooth — 5 confirmed visits to patisseries or sweet shops** · traduit
+  - Où : badges.ts · bec-sucre · 🍬
+  - Équivalent exact. « confiserie » → « sweet shop » (britannique).
+- **Crème de la crème — Fais valider 20 visites en pâtisserie ou confiserie** → **Crème de la Crème — Get 20 visits confirmed at patisseries or sweet shops** · gardé
+  - Où : badges.ts · creme-de-la-creme · 🍰
+  - L'expression s'emploie telle quelle en anglais.
+- **As du goûter — Fais valider une visite dans 5 pâtisseries ou confiseries différentes** → **Cake O'Clock — Get a visit confirmed at 5 different patisseries or sweet shops** · adapté
+  - Où : badges.ts · as-du-gouter · 🧁
+  - Tranché. « Teatime Ace » est écarté : dans le nord de l'Angleterre, « tea » désigne le repas du soir. « Let Them Eat Cake » aussi : c'est la phrase prêtée à Marie-Antoinette, le mépris des pauvres, un mauvais écho pour une marque qui soutient des lieux en difficulté. « Cake o'clock » est une tournure britannique courante et souriante.
+- **Habitué — Fais valider 25 visites : on commence à bien te connaître** → **Familiar Face — Get 25 visits confirmed – they're starting to know you by name** · adapté
+  - Où : badges.ts · habitue · 💯
+  - « The Usual » est écarté : au Royaume-Uni, « The usual? » est d'abord la question du pub (ta pinte habituelle ?), et la décision du 14/10 exclut l'alcool des badges. Variante sans jeu de mots : « Regular », comme dans le compteur « 2 regulars ».
+- **Mordu de miam — Fais valider 50 visites : tu as mordu à l'hameçon** → **Hooked on Yum — Get 50 visits confirmed – you've fallen for it hook, line and sinker** · adapté
+  - Où : badges.ts · mordu-de-miam · 🎣
+  - « hook, line and sinker » a besoin de son verbe (« fall for it »). Le léger « tu t'es fait avoir » existe aussi en français.
+- **Légende du miam — Fais valider 100 visites : les Miamis parlent de toi jusqu'en cuisine** → **Yum Legend — Get 100 visits confirmed – even the kitchen's heard about you** · adapté
+  - Où : badges.ts · legende-du-miam · 👑
+  - Variante : « Living Legend ».
+- **4 semaines d'affilée — Une visite validée par semaine pendant 4 semaines** → **On a Roll — A confirmed visit every week for 4 weeks** · adapté
+  - Où : badges.ts · serie-4 · 🔥
+  - Double sens : une série, et un petit pain (« roll »).
+- **Saison complète — Fais valider une visite chaque semaine, 12 semaines d'affilée** → **Season Ticket — Get a visit confirmed every week, 12 weeks in a row** · adapté
+  - Où : badges.ts · saison-complete · 🗓️
+  - L'abonnement de saison, très britannique (football, théâtre).
+- **Marathon du miam — Fais valider une visite chaque semaine, 26 semaines d'affilée : six mois sans lâcher la fourchette** → **Yum Marathon — Get a visit confirmed every week, 26 weeks in a row – six months without putting your fork down** · adapté
+  - Où : badges.ts · marathon-du-miam · 🏃
+  - Variante : « Feastathon ».
+- **Un an de miam — Fais valider une visite chaque semaine, 52 semaines d'affilée : ça se fête, avec du gâteau** → **A Year of Yum — Get a visit confirmed every week, 52 weeks in a row – that calls for cake** · traduit
+  - Où : badges.ts · un-an-de-miam · 🎂
+  - —
+- **Noctambule — 3 visites validées après 22 h** → **Night Owl — 3 confirmed visits after 22:00** · traduit
+  - Où : badges.ts · noctambule · 🌙
+  - Rien qui évoque l'alcool (loi Évin, décision du 14/10).
+- **Fureteur — Fais valider une visite dans 10 lieux différents** → **Truffle Hound — Get a visit confirmed at 10 different places** · adapté
+  - Où : badges.ts · fureteur · 🗺️
+  - Le chien truffier qui fouine partout : une image gourmande. Variante : « Nosy Parker » (très britannique).
+- **Explorateur — Des visites validées dans 5 villes différentes** → **Explorer — Confirmed visits in 5 different cities** · traduit
+  - Où : badges.ts · explorateur · 🧭
+  - Le nom « Explorer » ne gêne pas l'onglet « Explore ».
+- **Baroudeur — Fais valider des visites dans 10 villes différentes : ta fourchette voit du pays** → **Globetrotter — Get visits confirmed in 10 different cities – your fork's seeing the sights** · adapté
+  - Où : badges.ts · baroudeur · 🎒
+  - « clocking up the kilometres » est écarté : l'expression figée est « the miles », et on ne la passe pas en km (règle 5). « seeing the sights » rend « voir du pays » sans unité.
+- **Toute la bande — Une sortie entre potes validée à 4 ou plus** → **The Whole Crew — A confirmed get-together with 4 or more friends** · adapté
+  - Où : badges.ts · bande · 👯 (attend sa mesure)
+  - Suit le choix pour « Ma bande » (« The Whole Gang » avec « gang ») et l'entrée « une sortie ».
+- **Première plume — Publie ton premier avis après une visite validée** → **First Draft — Post your first review after a confirmed visit** · adapté
+  - Où : badges.ts · premiere-plume · 📝
+  - Le premier jet d'un auteur.
+- **Plume de la Brigade — Publie 5 avis après tes visites validées** → **Brigade Scribe — Post 5 reviews after your confirmed visits** · adapté
+  - Où : badges.ts · plume-de-la-brigade · 🪶
+  - Variante : « Quill of the Brigade ».
+- **Plume d'or — Publie 20 avis après tes visites validées : les lieux te lisent avec gourmandise** → **Golden Quill — Post 20 reviews after your confirmed visits – places devour every word** · adapté
+  - Où : badges.ts · plume-d-or · 🖋️
+  - « devour every word » garde la gourmandise.
+- **Œil de chef — Publie 5 avis avec une photo de ce que tu as dégusté** → **Snap Happy — Post 5 reviews with a photo of what you tucked into** · adapté
+  - Où : badges.ts · oeil-de-chef · 📸
+  - « snap happy » se dit de quelqu'un qui photographie tout, en britannique. « Chef's Eye » est écarté : plat en anglais.
+- **Objectif gourmand — Publie 20 avis avec une photo : ton assiette a trouvé son photographe** → **Plate Paparazzi — Post 20 reviews with a photo – your plate's ready for its close-up** · adapté
+  - Où : badges.ts · objectif-gourmand · 🖼️
+  - Le double sens d'« objectif » se perd ; l'allitération le remplace. « ready for its close-up » (Boulevard du crépuscule) prolonge la blague au lieu de répéter « paparazzi ».
+- **Chasseur de bugs — Signale une vraie faille de sécurité sur la page Chasse aux bugs : la Brigade te doit une fière chandelle** → **Bug Hunter — Report a real security flaw on the Bug hunt page – the Brigade owes you one** · traduit
+  - Où : badges.ts · chasseur-de-bugs · 🐞
+  - —
+
+### Avatars des Miamis (17)
+
+- **Toque** → **Toque** · gardé
+  - Où : avatars-miamis.ts · toque de chef ; nom lu par le lecteur d'écran
+  - « toque » existe en anglais pour la toque de chef.
+- **Pompon** → **Pompon** · gardé
+  - Où : avatars-miamis.ts · bonnet de marin à pompon rouge
+  - Le mot existe en anglais, et ce n'est pas un faux ami (règle de Hugo : on ne change que les faux amis). Variante : « Pompom ».
+- **Béret** → **Béret** · gardé
+  - Où : avatars-miamis.ts · béret basque
+  - On garde l'accent pour le charme français (l'anglais écrit « beret »).
+- **Galette** → **Galette** · gardé
+  - Où : avatars-miamis.ts · couronne de la galette des rois, yeux en cœur
+  - Ce n'est pas un faux ami : le nom est gardé pour le charme, même si le lien avec la couronne se perd.
+- **Paille** → **Paille** · gardé
+  - Où : avatars-miamis.ts · chapeau de paille à ruban noir, calotte ronde (scripts/avatars-miamis/miamis.ts : « Chapeau de paille et marché du dimanche. »)
+  - Décision de Hugo du 25/10 : gardé tel quel (on ne change que les faux amis).
+- **Platine** → **DJ** · adapté
+  - Où : avatars-miamis.ts · casque de DJ et notes de musique (« Toujours une playlist prête pour l'apéro. »)
+  - Faux ami : on lirait « platinum » (contresens du premier inventaire). « Decks » est écarté, car le dessin montre un casque et pas des platines. « Beats » est une marque de casques. « DJ » se lit d'un coup d'œil.
+- **Solaire** → **Shades** · adapté
+  - Où : avatars-miamis.ts · lunettes de soleil
+  - Faux ami : « solar » ne veut pas dire lunettes de soleil.
+- **Pirate** → **Pirate** · gardé
+  - Où : avatars-miamis.ts · bandana à pois et cache-œil
+  - Même mot.
+- **Fiesta** → **Fiesta** · gardé
+  - Où : avatars-miamis.ts · chapeau de fête et confettis
+  - Compris en anglais.
+- **Bob** → **Bucket** · adapté
+  - Où : avatars-miamis.ts · bob (chapeau)
+  - Faux ami : « Bob » est un prénom, ou une coupe au carré. Variante : « Bucket Hat ».
+- **Raclette** → **Raclette** · gardé
+  - Où : avatars-miamis.ts · bonnet de ski à pompon
+  - Le fromage est connu au Royaume-Uni, et le clin d'œil au ski passe.
+- **Moustache** → **Moustache** · gardé
+  - Où : avatars-miamis.ts · haut-de-forme, moustache et nœud papillon
+  - Même orthographe en anglais britannique.
+- **Chantilly** → **Chantilly** · gardé
+  - Où : avatars-miamis.ts · crème fouettée et cerise
+  - « Chantilly cream » est connue.
+- **Binocles** → **Specs** · adapté
+  - Où : avatars-miamis.ts · toque de diplômé et lunettes rondes
+  - Faux ami : on lirait « binoculars » (jumelles). « Specs » rend exactement « binocles ». « Boffin » est écarté : trop daté pour une personne non native.
+- **Marmotte** → **Marmotte** · gardé
+  - Où : avatars-miamis.ts · bonnet de nuit, yeux fermés, « zz »
+  - Ce n'est pas un faux ami (« marmot » existe) : on garde le nom, selon la règle de Hugo. L'expression « dormir comme une marmotte » se perd, mais le dessin dit le sommeil. « Dormouse » est écarté.
+- **Tuba** → **Snorkel** · adapté
+  - Où : avatars-miamis.ts · masque et tuba de plongée
+  - Faux ami : en anglais, « tuba » est l'instrument de musique.
+- **Capitaine Bouiboui (avatar du compte officiel)** → **Capitaine Bouiboui** · gardé
+  - Où : AVATAR_CAPITAINE, réservé au compte officiel SOS Miam
+  - Personne d'autre ne peut le choisir. Nom lu en fr-FR.
+
+### Humeurs (7)
+
+- **Miam !** → **Yum!** · traduit
+  - Où : Kit 02_Mascotte, expression « miam » de l'app
+  - —
+- **Clin d'œil** → **Wink** · traduit
+  - Où : Kit, expression « clin » (écran discret de Miam Safe)
+  - —
+- **Place ce soir !** → **Tables tonight!** · adapté
+  - Où : Kit (bulle des bannières), image de partage du site
+  - Tranché : ça parle de restaurant. Écartés : « Seats tonight! » (fait cinéma), « Room tonight! » (une chambre d'hôtel), « Table tonight! » (singulier bancal).
+- **Fait dodo** → **Snoozing** · adapté
+  - Où : Kit
+  - « Fait dodo » est enfantin. Variante : « Nap time ».
+- **Coup de cœur** → **Smitten** · adapté
+  - Où : Kit
+  - Variante : « Love at first bite » (jeu de mots, plus long). « Crush » est écarté : il fait ado.
+- **C'est la fête** → **Party time!** · traduit
+  - Où : Kit
+  - —
+- **surprise (expression de l'app)** → **(nom de code)** · gardé
+  - Où : Mascotte.tsx, diapo « Un lieu lance un SOS »
+  - Jamais affichée en texte.

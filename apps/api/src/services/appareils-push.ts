@@ -1,6 +1,7 @@
 // Inscription des téléphones aux notifications, pour l'app (PUT/DELETE /app/appareils) : le jeton donné par Apple ou Google, la
 // plateforme, la ville choisie dans l'app et, si la personne est connectée, son compte et la session qui l'a inscrit. Quand cette
 // session se ferme, la base remet sessionId à null : le téléphone ne reçoit plus rien du compte (prevenirCompte).
+import type { Langue } from "../../../../packages/commun/src/regles/langues.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { lireApercusBranches, type ApercusPush } from "./notifications/apercus-push.ts";
 
@@ -10,6 +11,7 @@ export type InscriptionAppareil = {
   empreinteSession: string | null;
   /** La clé de l'aperçu chiffré des messages, tirée par le téléphone (32 octets) ; absente : texte neutre seulement */
   cleApercu: Uint8Array | null;
+  langue: Langue;
 };
 
 /** Clé étrangère qui ne mène plus à rien (Prisma P2003) : ici, la session fermée entre la lecture et l'écriture */
@@ -20,7 +22,7 @@ const estCleEtrangereManquante = (erreur: unknown) => typeof erreur === "object"
  * il y est lié (sessionId) ; sans session, il est détaché (compteId et sessionId à null).
  */
 export async function inscrireAppareil(
-  { jeton, plateforme, ville, offres, compteId, empreinteSession, cleApercu }: InscriptionAppareil,
+  { jeton, plateforme, ville, offres, compteId, empreinteSession, cleApercu, langue }: InscriptionAppareil,
   maintenant = new Date(),
   apercus: ApercusPush | null = lireApercusBranches(),
 ) {
@@ -31,8 +33,8 @@ export async function inscrireAppareil(
   const cleApercuChiffree = cleApercu && compteId !== null && apercus ? apercus.garderCle(cleApercu, jeton) : null;
   const ecrire = (sessionId: number | null) => baseDeDonnees.appareilPush.upsert({
     where: { jeton },
-    create: { jeton, plateforme, ville, compteId, sessionId, offresAcceptees: offres, offresAccepteesLe: offres ? maintenant : null, cleApercuChiffree },
-    update: { plateforme, ville, compteId, sessionId, actif: true, vuLe: maintenant, cleApercuChiffree, ...accord },
+    create: { jeton, plateforme, ville, compteId, sessionId, offresAcceptees: offres, offresAccepteesLe: offres ? maintenant : null, cleApercuChiffree, langue },
+    update: { plateforme, ville, compteId, sessionId, actif: true, vuLe: maintenant, cleApercuChiffree, langue, ...accord },
   });
   try {
     await ecrire(session?.id ?? null);

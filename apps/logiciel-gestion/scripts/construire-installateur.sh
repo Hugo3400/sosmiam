@@ -23,6 +23,8 @@ cd "$DOSSIER"
 [ -d node_modules ] || npm ci
 npm run typecheck
 npm test
+[ "${SANS_VERIFIER_API:-}" = "1" ] || node scripts/verifier-api-a-jour.mjs
+[ "${SANS_ESSAI_ECRANS:-}" = "1" ] || bash ../../scripts/essai-ecrans-gestion/lancer.sh
 npx tauri build --runner cargo-xwin --target "$CIBLE"
 
 VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version")"
@@ -52,6 +54,17 @@ renameSync(process.argv[1] + ".tmp", process.argv[1]);
 # On ne garde que les 3 derniers installateurs publiés
 ls -1t "$DOSSIER_MAJ"/SOS-Miam-Gestion-*-installateur.exe | tail -n +4 | xargs -r rm -f
 
+EMPREINTE="$(sha256sum "installateur/$NOM" | cut -d' ' -f1)"
+{
+  echo "SOS Miam Gestion $VERSION, construit le $(date '+%d/%m/%Y à %H:%M:%S')"
+  echo "Commit : $(git -C "$DOSSIER" log -1 --format='%h %ad %s' --date=format:'%d/%m %H:%M')"
+  echo "Empreinte SHA-256 : $EMPREINTE"
+  echo "Notes : ${NOTES:-aucune}"
+  echo "Fichiers pas encore commités au moment de la construction :"
+  git -C "$DOSSIER/../.." status --short -- apps/logiciel-gestion packages/commun apps/api/src/routes/gestion.ts apps/api/src/controleurs/gestion apps/api/src/services/gestion || true
+} > "installateur/SOS-Miam-Gestion-${VERSION}-contenu.txt"
+
 echo "Installateur prêt : $DOSSIER/installateur/$NOM"
 echo "Mise à jour publiée : les logiciels installés la proposeront à leur prochaine connexion."
-echo "Empreinte SHA-256 : $(sha256sum "installateur/$NOM" | cut -d' ' -f1)"
+echo "Empreinte SHA-256 : $EMPREINTE"
+echo "Contenu de la version : $DOSSIER/installateur/SOS-Miam-Gestion-${VERSION}-contenu.txt"
