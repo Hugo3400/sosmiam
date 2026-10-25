@@ -1,4 +1,3 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { memo } from "react";
 import { Text, View } from "react-native";
 
@@ -6,7 +5,9 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
+import { BanniereFicheLieu } from "~/composants/lieux/BanniereFicheLieu";
 import { CarteLieuNonVerifie } from "~/composants/lieux/CarteLieuNonVerifie";
+import { LogoLieu } from "~/composants/lieux/LogoLieu";
 import { BadgesMiamSafe } from "~/composants/miam-safe/BadgesMiamSafe";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -16,6 +17,7 @@ import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
+import { lireSourceImageLieu } from "~/fonctions/lieux/lire-source-image-lieu";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -33,9 +35,7 @@ type Props = {
   onAnnoncer: (texte: string) => void;
 };
 
-// Mêmes objets à chaque rendu : rien à recalculer pour le dégradé
-const DEBUT_DEGRADE = { x: 0.1, y: 0 };
-const FIN_DEGRADE = { x: 0.9, y: 1 };
+const TAILLE_LOGO = 76;
 const AUTEUR_LIEU = { type: "lieu" } as const;
 
 /**
@@ -51,20 +51,17 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, depuis,
   // Un SOS dont l'heure de fin est passée ne s'affiche plus (il ne compte plus pour les visites non plus)
   const sos = verifie && estSosEnCours(lieu) ? lieu.sos : undefined;
   const miamSafe = utiliserMiamSafeLieu(lieu.id);
+  const logo = verifie ? lireSourceImageLieu(lieu, "logo") : null;
   return (
     <>
-      <LinearGradient
-        colors={lieu.couleurs}
-        start={DEBUT_DEGRADE}
-        end={FIN_DEGRADE}
-        style={{ height: 260 + margeHaut, alignItems: "center", justifyContent: "center" }}
-      >
-        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ fontSize: 110, marginTop: margeHaut }}>
-          {lieu.emoji}
-        </Text>
-      </LinearGradient>
+      <BanniereFicheLieu lieu={lieu} margeHaut={margeHaut} />
 
       <View className="gap-4 px-5 pt-5">
+        {logo ? (
+          <View style={{ marginTop: -(TAILLE_LOGO / 2) - 20 }}>
+            <LogoLieu source={logo} taille={TAILLE_LOGO} />
+          </View>
+        ) : null}
         <View className="flex-row flex-wrap gap-2">
           <BadgeVerification verifie={verifie} />
           <BadgesMiamSafe miamSafe={miamSafe} />
