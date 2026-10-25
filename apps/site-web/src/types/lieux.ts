@@ -18,3 +18,11 @@ export type LieuPublic = {
 };
 
 export type LieuListe = LieuPublic & { verifie: boolean; sos: { places: number } | null };
+
+export type VilleLieux = { ville: string; nombre: number };
+
+export type PageLieux = { lieux: LieuListe[]; total: number; page: number; pages: number };
+
+export type EpingleLieu = { id: number; nom: string; type: CategorieLieu; latitude: number; longitude: number; sos: boolean };
+
+export type ApercuLieu = LieuListe & { adresse: string | null };
