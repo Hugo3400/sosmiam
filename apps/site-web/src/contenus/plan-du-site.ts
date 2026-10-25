@@ -3,6 +3,7 @@
 // (apercu.sosmiam.fr) et les aperçus de ce qu'on prépare pour l'app (/preview, en noindex).
 export const pagesIndexees = [
   "/",
+  "/lieux",
   "/faq",
   "/inscrire-mon-lieu",
   "/carriere",

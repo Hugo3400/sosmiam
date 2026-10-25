@@ -41,6 +41,7 @@ import { sectionMiamSafe, sectionPrevenirUnPote } from "~/contenus/legal/confide
 import { sectionSignalementsSociaux } from "~/contenus/legal/confidentialite-signalements-sociaux";
 import { sectionPotes } from "~/contenus/legal/confidentialite-social";
 import { sectionCandidatures } from "~/contenus/legal/confidentialite-candidatures";
+import { sectionCarteDesLieux } from "~/contenus/legal/confidentialite-carte-des-lieux";
 import { sectionChasseAuxBugs } from "~/contenus/legal/confidentialite-securite";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
@@ -56,7 +57,7 @@ export const documentConfidentialite: DocumentLegal = {
   titre: "Politique de confidentialité",
   description:
     "Ce que SOS Miam fait de tes données : journaux du serveur, statistiques de visite sans cookie, Cloudflare, e-mails, newsletter, candidatures, signalements de faille, comptes ambassadeur et pro, app mobile, ta bande, ta messagerie, les Miamis et Miam Safe. Aucun cookie de pistage, zéro revente, et tes droits en clair.",
-  miseAJour: "23 octobre 2026",
+  miseAJour: "25 octobre 2026",
   introduction: [
     "Tes données, c'est comme la recette secrète d'un resto de quartier : on en prend soin et on ne la vend à personne. Ici, on t'explique sans jargon ce que SOS Miam collecte aujourd'hui (spoiler : pas grand-chose), pourquoi, combien de temps, et comment tu gardes la main dessus.",
     `Cette politique s'applique au site ${site.adresse} et à ses sous-domaines, à l'app SOS Miam (iPhone et Android), ainsi qu'aux e-mails que tu envoies à ${lienEmail}. Elle est rédigée en application du Règlement général sur la protection des données (RGPD, règlement (UE) 2016/679) et de la loi Informatique et Libertés (loi n° 78-17 du 6 janvier 1978).`,
@@ -69,6 +70,7 @@ export const documentConfidentialite: DocumentLegal = {
         "**Les journaux du serveur** gardent une trace technique de tes visites (adresse IP, page demandée…) pendant **15 jours au plus**, pour la sécurité, puis s'effacent tout seuls.",
         "**Des statistiques de visite, sans cookie** : notre serveur compte les pages vues et les visiteurs, sans jamais garder ton adresse IP ni rien qui permette de te reconnaître. Tu peux refuser d'être compté en un clic, sur la page [Tes visites et nos statistiques](/statistiques).",
         "**Cloudflare**, une entreprise américaine, protège le site : tout le trafic passe par ses serveurs, et des données peuvent être traitées hors de l'Union européenne, notamment aux États-Unis, avec les garanties prévues par le RGPD.",
+        "**La carte des lieux** : son fond de carte vient d'OpenFreeMap (données OpenStreetMap), mais il passe toujours par notre serveur : OpenFreeMap ne voit jamais ta visite. Ta position n'est jamais envoyée ; seulement, si tu touches « Près de moi », une position arrondie qui sert à trouver ta commune, comme pour le bouton 📍.",
         "**La newsletter** : on te prévient du lancement près de chez toi, puis on continue de te donner des nouvelles tant que tu ne te désinscris pas (un clic sur « Me désinscrire » en bas de chaque newsletter, ou un simple mail, même juste « STOP »). Quand tu crées un compte, dans l'app ou dans l'espace ambassadeur, c'est toi qui choisis à l'inscription (une case cochée d'avance, que tu peux décocher) : dans l'app, tu es inscrit tout de suite ; comme ambassadeur, une fois ta candidature validée. Si tu la décoches, on retient ton « non », pour ne jamais t'inscrire par erreur.",
         "**Le formulaire « Préviens-moi »** du site enregistre ton adresse e-mail, ta ville ou ta région, ton téléphone (iPhone ou Android) si tu le dis et tes réponses aux cases bêta et ambassadeur, sur notre serveur en France, pour te prévenir du lancement puis t'envoyer la newsletter. Si tu demandes la bêta, ton adresse est transmise à Google ou à Apple pour t'inviter. Si tu touches le bouton 📍, ta position arrondie sert seulement à trouver ta commune ; notre serveur ne la garde pas. Ton adresse IP sert seulement à freiner les robots : elle n'est jamais enregistrée avec ton inscription.",
         "**Le formulaire « J'inscris mon lieu »** : les informations de ton lieu servent à créer sa fiche si on accepte la demande ; ton nom, ton e-mail et ton téléphone servent seulement à te répondre, et ne sont jamais publiés.",
@@ -155,6 +157,7 @@ export const documentConfidentialite: DocumentLegal = {
         "**Et les cookies ?** Cloudflare dépose un cookie de sécurité strictement nécessaire, « cf_clearance », qui retient que ton navigateur a passé sa vérification anti-robots (durée relevée : 1 an) ; dans certains cas, il peut aussi déposer « __cf_bm », qui aide à distinguer les humains des robots et expire au bout d'environ 30 minutes. Ces cookies indispensables ne nécessitent pas ton accord : tous les détails sont sur la page [Cookies](/cookies#liste-des-cookies).",
       ],
     },
+    sectionCarteDesLieux,
     {
       id: "newsletter",
       titre: "La newsletter",
@@ -281,7 +284,7 @@ export const documentConfidentialite: DocumentLegal = {
           ],
         },
         "Ces prestataires peuvent eux-mêmes faire appel à d'autres prestataires techniques (des « sous-traitants ultérieurs »), qui doivent respecter les mêmes obligations de protection de tes données.",
-        "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien. Enfin, si un lieu que tu as proposé depuis ton espace ambassadeur rejoint SOS Miam, ton prénom peut s'afficher sur sa fiche, visible par tous (« Déniché par ») ; et si tu deviens ambassadeur certifié, le badge « Ambassadeur certifié ✓ » s'affiche avec ton prénom et, si tu en as indiqué une, le nom de ta structure, sur les fiches des lieux que tu as aidés. Il n'y a pas de liste publique des ambassadeurs certifiés.",
+        "Seulement si tu as demandé à tester la bêta, ton adresse e-mail est transmise à **Google** (liste de testeurs de la Play Console, pour Android) ou à **Apple** (TestFlight, pour iPhone) au moment de t'inviter. Et seulement si tu touches le bouton 📍 du formulaire ou « Près de moi » sur la page des lieux, ta position arrondie est envoyée par notre serveur au service public **geo.api.gouv.fr** pour trouver ta commune : notre serveur n'en garde rien. Le fond de la carte des lieux vient d'**OpenFreeMap**, mais c'est notre serveur qui le lui demande : OpenFreeMap ne reçoit rien de toi (voir « [La carte des lieux](#carte-des-lieux) »). Enfin, si un lieu que tu as proposé depuis ton espace ambassadeur rejoint SOS Miam, ton prénom peut s'afficher sur sa fiche, visible par tous (« Déniché par ») ; et si tu deviens ambassadeur certifié, le badge « Ambassadeur certifié ✓ » s'affiche avec ton prénom et, si tu en as indiqué une, le nom de ta structure, sur les fiches des lieux que tu as aidés. Il n'y a pas de liste publique des ambassadeurs certifiés.",
         "Dans l'app, et seulement quand tu le demandes, ta position est envoyée au service de ton téléphone (celui d'**Apple** sur iPhone, celui de **Google** sur Android) pour trouver le nom de ta ville ; sur iPhone, la carte d'Explorer est dessinée par **Plans d'Apple**, qui reçoit la zone que tu regardes. Les notifications passent par le service d'**Apple** (APNs) ou de **Google** (Firebase Cloud Messaging), qui reçoit leur titre et leur texte pour les livrer à ton téléphone : pour la messagerie et les Miamis, le prénom de la personne et, selon le cas, le titre d'un groupe ou d'une sortie et le nom de son lieu, et la sorte de message ; l'aperçu d'un message, lui, voyage **chiffré pour ton seul téléphone**, qu'ils ne peuvent pas lire (voir « Ta messagerie »). Quand un GIF s'affiche, son image vient directement de **GIPHY** (GIPHY, Inc., aux États-Unis), qui voit alors l'adresse IP de ton téléphone ; ta recherche, elle, passe par notre serveur, sans ton compte ni ton adresse IP. Ce sont alors leurs propres règles de confidentialité qui s'appliquent (voir « L'app SOS Miam : sur ton téléphone »).",
         "Et bien sûr, ce que tu partages dans l'app va aux personnes que tu choisis : tes messages aux membres de la conversation, ta position de « Prévenir un pote » au seul pote choisi, ton profil et tes listes selon tes réglages (voir « Ta bande, tes abonnés et ton profil »), une sortie des Miamis à son seul public, ta présence dans « Qui est là ? » aux Miamis de ta ville, et tes idées et tes commentaires d'idée à tous les Miamis (voir [Les Miamis](#communaute)).",
         "Si la loi l'impose, certaines données peuvent être communiquées à une autorité qui les demande dans un cadre légal, par exemple sur décision d'un juge. Personne d'autre ne les reçoit.",
@@ -388,7 +391,7 @@ export const documentConfidentialite: DocumentLegal = {
   ],
   chapitres: [
     { id: "qui-on-est", titre: "Qui on est", sections: ["responsable"] },
-    { id: "quand-tu-visites", titre: "Quand tu visites le site", sections: ["journaux", "statistiques", "cloudflare"] },
+    { id: "quand-tu-visites", titre: "Quand tu visites le site", sections: ["journaux", "statistiques", "cloudflare", "carte-des-lieux"] },
     { id: "quand-tu-nous-ecris", titre: "Quand tu t'inscris ou nous écris", sections: ["newsletter", "formulaire", "demande-lieu", "candidatures", "chasse-aux-bugs", "messages"] },
     {
       id: "ton-compte-et-l-app",

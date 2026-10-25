@@ -10,6 +10,7 @@ import { calculerNiveauProfil } from "../../../../packages/commun/src/regles/cal
 import type { CibleSignalementSocial, SignalementSocialValide } from "../../../../packages/commun/src/types/signalement.ts";
 import type { VisibiliteListe } from "../../../../packages/commun/src/types/listes.ts";
 import { construireInstantane, type AuteurInstantane, type ContenuSignale } from "../fonctions/social/construire-instantane.ts";
+import { dechiffrerLieuSondage } from "../fonctions/social/dechiffrer-lieu-sondage.ts";
 import { lireGifMessage } from "../fonctions/social/lire-gif-message.ts";
 import { lireMentionsCommentaire } from "../fonctions/social/lire-mentions-commentaire.ts";
 import type { ChiffrementSocial } from "./chiffrement-social.ts";
@@ -90,6 +91,7 @@ async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, co
       id: true, conversationId: true, auteurId: true, type: true, idClient: true, texteChiffre: true, fichier: true, typeMime: true, taille: true,
       dureeSecondes: true, mediaExpireLe: true, creeLe: true, supprimeLe: true, suspenduLe: true, retireLe: true, systeme: true,
       conversation: { select: { type: true, titreChiffre: true, emoji: true } },
+      sondage: { select: { options: { select: { ordre: true, lieuChiffre: true }, orderBy: { ordre: "asc" } } } },
     },
   });
   if (!m || m.supprimeLe || m.suspenduLe || m.retireLe || m.systeme) return null;
@@ -117,9 +119,12 @@ async function lireMessage(tx: TransactionSociale, d: DependancesInstantanes, co
   }
   const titre = m.conversation.type === "groupe" && m.conversation.titreChiffre ? relire(() => d.chiffrement.dechiffrerTitre(m.conversation.titreChiffre!, m.conversationId)) : null;
   const avecMedia = m.fichier !== null && (m.type === "photo" || m.type === "vocal");
+  const lieux = m.type === "vote" && m.sondage
+    ? m.sondage.options.map((o) => dechiffrerLieuSondage(d.chiffrement, o.lieuChiffre, { conversationId: m.conversationId, idClient: m.idClient, ordre: o.ordre })).filter((id): id is number => id !== null)
+    : null;
   return {
     contenu: {
-      cible: "message", type: m.type, texte, lieuId, illisible,
+      cible: "message", type: m.type, texte, lieuId, illisible, ...(lieux ? { lieux } : {}),
       media: avecMedia ? { typeMime: m.typeMime, taille: m.taille, dureeSecondes: m.dureeSecondes } : null,
       conversation: { type: m.conversation.type, titre, emoji: m.conversation.emoji }, auteur: await lireAuteur(tx, m.auteurId), date: m.creeLe, gif,
     },

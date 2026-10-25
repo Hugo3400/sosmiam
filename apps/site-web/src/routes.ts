@@ -10,6 +10,7 @@ export default [
     route("carriere", "routes/public/carriere.tsx"),
     route("carriere/:id", "routes/public/offre-carriere.tsx"),
     route("securite", "routes/public/securite.tsx"),
+    route("lieux", "routes/public/lieux.tsx"),
     // Fiche publique d'un lieu publié (indexée), avec « Vérifié ✓ » ou « Lieu non vérifié »
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
     route("lieux/:id/carte", "routes/public/carte-du-lieu.tsx"),
@@ -77,7 +78,9 @@ export default [
     route("lieu/:id/chevalet", "routes/pro/chevalet.tsx"),
     route("lieu/:id/miam-safe", "routes/pro/miam-safe.tsx"),
     route("lieu/:id/kit", "routes/pro/kit.tsx"),
+    route("lieu/:id/images", "routes/pro/images-lieu.tsx"),
   ]),
+  route("lieu/:id/images/:quelle", "routes/ressources/images-lieu-pro.ts"),
   // « Mon compte » : la même page que /espace/mon-compte (son propre id). Une seule adresse, deux espaces : sur
   // pro.sosmiam.fr, celui de l'espace pro (cadre pro) ; sur sosmiam.fr, celui du site principal (cadre public, connexion
   // dans la page, « Mes données », suppression sans se connecter : l'adresse donnée aux stores). Le cadre suit l'hôte.
@@ -120,6 +123,8 @@ export default [
   route("localiser", "routes/ressources/localiser.ts"),
   route("communes", "routes/ressources/communes.ts"),
   route("recherche-lieux", "routes/ressources/recherche-lieux.ts"),
+  route("lieux/epingles", "routes/ressources/epingles-lieux.ts"),
+  route("lieux/apercu/:id", "routes/ressources/apercu-lieu.ts"),
   // Pour les moteurs de recherche (texte et XML générés à chaque demande)
   route("robots.txt", "routes/ressources/robots.ts"),
   route("sitemap.xml", "routes/ressources/plan-du-site.ts"),

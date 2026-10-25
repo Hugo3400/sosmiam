@@ -1,12 +1,14 @@
 import { Bouton } from "~/composants/interface/Bouton";
 import { CLASSE_TITRE_COTE } from "~/composants/lieux/classes-fiche-lieu";
+import { LienSignalerImage } from "~/composants/lieux/LienSignalerImage";
 import { LienSignalerInfo } from "~/composants/lieux/LienSignalerInfo";
 import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
 import { HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
+import { listerImagesSignalables } from "~/fonctions/lieux/lister-images-signalables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { FichePublique } from "~/types/pro";
 
-type Props = { lieu: Pick<FichePublique, "id" | "nom" | "type" | "estVerifie">; adresseFiche: string };
+type Props = { lieu: Pick<FichePublique, "id" | "nom" | "type" | "estVerifie" | "banniere" | "logo">; adresseFiche: string };
 
 /** « Ce lieu est à toi ? » au bas d'une fiche publique : vers la demande de rattachement de l'espace pro. */
 export function EncartCeLieuEstAToi({ lieu, adresseFiche }: Props) {
@@ -18,8 +20,9 @@ export function EncartCeLieuEstAToi({ lieu, adresseFiche }: Props) {
       <Bouton href={`https://${HOTE_PRO}/rattacher/${lieu.id}`} petit className="mt-1 self-start">
         {lieu.estVerifie ? T.boutonVerifie : T.boutonNonVerifie}
       </Bouton>
-      <div className="mt-1.5 flex">
+      <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1.5">
         <LienSignalerInfo nom={lieu.nom} lieuId={lieu.id} adresseFiche={adresseFiche} />
+        {listerImagesSignalables(lieu).length > 0 && <LienSignalerImage lieuId={lieu.id} />}
       </div>
     </aside>
   );

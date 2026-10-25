@@ -19,7 +19,8 @@ import { LIMITE_LIEUX_PUBLICS, limiterVisiteursTransmis } from "./lieux-publics.
  *                                          puis restos, pâtisseries, bars et sorties, de villes différentes, tirés à
  *                                          nouveau chaque jour (heure de Paris). Cache public de 5 minutes.
  * GET /lieux/site/:id                    → 200 { ok, lieu: FichePublique + position | null, sos | null, ouverture,
- *                                          etiquettes, autour (4 lieux proches) } · 404 lieu-inconnu. Cache d'une minute.
+ *                                          etiquettes, autour (4 lieux proches), reservable (réservation SOS Miam dans
+ *                                          l'app) } · 404 lieu-inconnu. Cache d'une minute.
  */
 export function creerRoutesLieuxSite(services: ServicesLieuxSite, horloge?: () => number) {
   const c = creerControleursLieuxSite(services, horloge);

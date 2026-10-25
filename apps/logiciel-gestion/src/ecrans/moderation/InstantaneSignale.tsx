@@ -40,7 +40,7 @@ export function InstantaneSignale({ signalement, lieux }: { signalement: Signale
     return <p className="text-sm text-gris">Instantané {i.etat === "sans-cle" ? "illisible : la clé des données manque sur le serveur" : "illisible (clé changée)"}.</p>;
   }
   const c = i.contenu;
-  const titre = `${cible?.emoji ?? ""} ${cible ? cible.le[0]!.toUpperCase() + cible.le.slice(1) : signalement.cible} n° ${signalement.cibleId}`;
+  const titre = `${cible?.emoji ?? ""} ${cible ? cible.le[0]!.toUpperCase() + cible.le.slice(1) : signalement.cible}${c.cible === "image-lieu" ? "" : ` n° ${signalement.cibleId}`}`;
   return (
     <div className="grid gap-1.5">
       <p className="font-titre text-lg font-extrabold">{titre}</p>
@@ -103,6 +103,11 @@ export function InstantaneSignale({ signalement, lieux }: { signalement: Signale
           {texte(c.description) && <p className="rounded-xl bg-creme px-3 py-2 text-sm whitespace-pre-line">{texte(c.description)}</p>}
           {Array.isArray(c.etiquettesLibres) && c.etiquettesLibres.length > 0 && <p className="text-[13px] text-gris">Étiquettes : {c.etiquettesLibres.map(texte).join(", ")}</p>}
         </>
+      )}
+      {c.cible === "image-lieu" && (
+        <p className="text-sm">
+          {c.quelle === "logo" ? "Logo" : "Bannière"} de {nomLieu(c.lieuId) || "un lieu inconnu"} · {texte((c.media as { typeMime?: unknown } | null)?.typeMime) === "image/png" ? "PNG" : "JPEG"}
+        </p>
       )}
       {c.cible === "groupe" && <p className="text-sm">{texte(c.emoji)} <strong>{texte(c.titre) || "Groupe sans titre"}</strong> · créé par {nomAuteur(c.createur)}</p>}
     </div>

@@ -153,5 +153,5 @@ export type FichePublique = BaseFiche & {
   ouverture?: CreneauOuverture[];
   etiquettes?: string[];
   autour?: LieuListe[];
-  lienReservation?: string | null;
+  reservable?: boolean;
 };

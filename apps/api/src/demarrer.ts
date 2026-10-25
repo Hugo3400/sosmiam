@@ -59,7 +59,10 @@ import { creerEvenements } from "./services/evenements.ts";
 import { creerDepotAvis } from "./services/avis.ts";
 import { citationsPhotosAvis } from "./services/citations-photos-avis.ts";
 import { creerPhotosAvis } from "./services/photos-avis.ts";
-import { creerImagesLieuEnLigne } from "./services/images-lieu-base.ts";
+import { creerDepotSignalementsImagesLieu, creerImagesLieuEnLigne } from "./services/images-lieu-base.ts";
+import { brancherImagesLieu } from "./services/images-lieu.ts";
+import { brancherSignalementsImagesLieu, creerSignalementsImagesLieu } from "./services/images-lieu-signalements.ts";
+import { creerStockagesImagesLieu } from "./services/stockage-images-lieu.ts";
 import { creerStockagePhotosAvis } from "./services/stockage-photos-avis.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
 import { brancherApercusPush, creerApercusPush } from "./services/notifications/apercus-push.ts";
@@ -185,6 +188,8 @@ const photosProfil = creerPhotosProfil({
   stockage: creerStockagePhotosProfil(), depot: creerDepotPhotosProfil(), preuves: { chiffrement: socialApp.chiffrement, medias: socialApp.medias },
 });
 brancherPhotosProfil(photosProfil);
+brancherImagesLieu(imagesLieu);
+brancherSignalementsImagesLieu(creerSignalementsImagesLieu({ depot: creerDepotSignalementsImagesLieu(), stockages: creerStockagesImagesLieu(), chiffrement: socialApp.chiffrement, medias: socialApp.medias }));
 const carriere = brancherCarriere(chiffrement);
 const securite = brancherSecurite(chiffrement);
 const confirmationsNewsletter = creerDepotConfirmationsNewsletter();

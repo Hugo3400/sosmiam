@@ -29,7 +29,7 @@ export const CIBLES_SIGNALEMENT_SOCIAL = ["commentaire", "message", "liste", "pr
  * réponse d'un lieu à un avis, masqués par l'équipe à la relecture (décision du 15/10/2026), pour leur auteur seulement.
  * Ne sert jamais à valider ce qu'on signale par l'app (c'est CIBLES_SIGNALEMENT_SOCIAL).
  */
-export const CIBLES_DECISION_MODERATION = [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis"] as const satisfies readonly CibleDecisionModeration[];
+export const CIBLES_DECISION_MODERATION = [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis", "image-lieu"] as const satisfies readonly CibleDecisionModeration[];
 
 /**
  * Contenus sociaux masqués pour tout le monde au premier signalement « choquant », en attendant la modération. Jamais un

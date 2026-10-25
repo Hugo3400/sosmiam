@@ -5,7 +5,7 @@ import type { Request, Response } from "express";
 
 import type { ContexteGestion } from "../../middlewares/proteger-gestion.ts";
 import type { AvisGestion } from "../../services/avis-gestion.ts";
-import { CIBLES_AVIS, CIBLES_COMMUNAUTE, CIBLES_REMISES_PAR_DEFAUT, CIBLES_SOCIALES, type ModerationSociale } from "../../services/gestion/cibles-moderation.ts";
+import { CIBLES_AVIS, CIBLES_COMMUNAUTE, CIBLES_IMAGES_LIEU, CIBLES_REMISES_PAR_DEFAUT, CIBLES_SOCIALES, type ModerationSociale } from "../../services/gestion/cibles-moderation.ts";
 import { MOTIFS_MODERATION } from "../../services/gestion/motifs-moderation.ts";
 import type { ServicesGestion } from "../../services/gestion/tous-les-services.ts";
 import { ChampInvalide, lireChoix, lireId, lireParametre, lireTexte } from "./lire-champs.ts";
@@ -25,7 +25,7 @@ function verifier(controleur: (requete: Request, reponse: Response) => Promise<u
   };
 }
 
-const CIBLES = ["publication", ...CIBLES_SOCIALES, ...CIBLES_AVIS, ...CIBLES_COMMUNAUTE] as readonly string[];
+const CIBLES = ["publication", ...CIBLES_SOCIALES, ...CIBLES_AVIS, ...CIBLES_COMMUNAUTE, ...CIBLES_IMAGES_LIEU] as readonly string[];
 
 export function creerControleursModeration(s: ServicesGestion, social?: ModerationSociale, avis?: AvisGestion) {
   const noter = (reponse: Response, action: string, detail?: string) => s.noterAction((reponse.locals.gestion as ContexteGestion).poste.nom, action, detail);

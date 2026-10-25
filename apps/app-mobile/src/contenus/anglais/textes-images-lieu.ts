@@ -35,4 +35,12 @@ export const TEXTES_IMAGES_LIEU_ANGLAIS: Traduction<typeof TEXTES_IMAGES_LIEU> =
   galerieFermee: "Your gallery didn't open. Allow access to your photos in your phone's Settings app.",
   illisible: "This image can't be read. Try another one.",
   tropLourde: "This image is still too heavy, even compressed. Try another one.",
+  signaler: {
+    lien: "Report an image",
+    quelle: "Which image are you reporting?",
+    banniere: "The banner",
+    logo: "The logo",
+    sousTitre: { banniere: (lieu: string) => `Banner for ${lieu}`, logo: (lieu: string) => `Logo for ${lieu}` },
+    fermer: "Close",
+  },
 };

@@ -17,7 +17,7 @@ export type LienEnTete = {
 export type GroupeEnTete = { titre: string; liens: LienEnTete[] };
 
 const app: LienEnTete = { texte: "L'app", adresse: "/#comment", site: "principal", section: "comment", detail: "Comment ça marche, en trois gestes" };
-const lieux: LienEnTete = { texte: "Les lieux", adresse: "/#adresses", site: "principal", section: "adresses", detail: "Des pépites qui méritent plus de monde" };
+const lieux: LienEnTete = { texte: "Les lieux", adresse: "/lieux", site: "principal", detail: "Des pépites qui méritent plus de monde" };
 const bigSos: LienEnTete = { texte: "BIG SOS", adresse: "/#big-sos", site: "principal", section: "big-sos", detail: "Un coup dur ? La Brigade à la rescousse" };
 const faq: LienEnTete = { texte: "FAQ", adresse: "/faq", site: "principal", detail: "Tes questions, même les plus farfelues" };
 const ambassadeurs: LienEnTete = { texte: "Ambassadeurs", adresse: "/programme", site: "ambassadeur", detail: "Fais découvrir tes pépites, dès 18 ans" };

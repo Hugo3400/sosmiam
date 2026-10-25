@@ -11,7 +11,7 @@ export const documentMentionsLegales: DocumentLegal = {
   titre: "Mentions légales",
   description:
     "Qui édite SOS Miam, qui l'héberge, comment nous écrire ou signaler un contenu illicite : toutes les mentions légales du site sosmiam.fr.",
-  miseAJour: "23 octobre 2026",
+  miseAJour: "25 octobre 2026",
   introduction: [
     "Qui se cache derrière SOS Miam, qui héberge le site et comment nous joindre : c'est la page la plus sérieuse du site, mais on a fait en sorte qu'elle reste digeste.",
     `Ces mentions s'appliquent au site **${site.adresse}** et à ses sous-domaines.`,
@@ -111,6 +111,7 @@ export const documentMentionsLegales: DocumentLegal = {
           ],
         },
         "Ces polices sont distribuées sous licence [SIL Open Font License 1.1](https://openfontlicense.org). Elles sont hébergées avec le site, sur notre serveur chez notre hébergeur : aucun service de polices extérieur (comme Google Fonts) n'est appelé quand tu consultes le site.",
+        "Fond de carte : [OpenFreeMap](https://openfreemap.org), [OpenMapTiles](https://www.openmaptiles.org/), données © [les contributeurs d'OpenStreetMap](https://www.openstreetmap.org/copyright). Notre serveur le demande lui-même à OpenFreeMap : ta visite ne quitte pas sosmiam.fr (voir « [La carte des lieux](/confidentialite#carte-des-lieux) »).",
         "Fiches de lieux : le texte et les infos de certaines fiches « non vérifiées » viennent des offices de tourisme de Montpellier, Lyon, Lille et Marseille, et de [DATAtourisme](https://www.datatourisme.fr) (sous [Licence Ouverte 2.0](https://www.etalab.gouv.fr/licence-ouverte-open-licence/)) : la source est indiquée sur chaque fiche concernée.",
       ],
     },

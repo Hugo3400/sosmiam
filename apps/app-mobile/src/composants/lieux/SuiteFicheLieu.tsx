@@ -11,6 +11,7 @@ import { ApercuCarte } from "~/composants/lieux/ApercuCarte";
 import { BlocEvenementsLieu } from "~/composants/lieux/BlocEvenementsLieu";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
 import { LienProposerModification } from "~/composants/lieux/LienProposerModification";
+import { LienSignalerImageLieu } from "~/composants/lieux/LienSignalerImageLieu";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
@@ -126,6 +127,7 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
 
       {/* Une info a changé : le client la propose, l'équipe vérifie avant de toucher à la fiche */}
       <LienProposerModification lieu={lieu} />
+      <LienSignalerImageLieu lieu={lieu} />
     </Animated.View>
   );
 });

@@ -30,7 +30,8 @@ async function signaler(jeton?: string, raison = "choquant") {
     headers: { "X-IP-Visiteur": `visiteur-${++visiteur}`, "Content-Type": "application/json", ...(jeton ? { Authorization: `Bearer ${jeton}` } : {}) },
     body: JSON.stringify({ publicationId: "42", lieuId: 7, raison, precision: null, explication: "" }),
   });
-  return { statut: reponse.status, masquage: recus.at(-1)?.masquageAutorise };
+  const dernier = recus.at(-1);
+  return { statut: reponse.status, masquage: dernier && dernier.cible !== "image-lieu" ? dernier.masquageAutorise : undefined };
 }
 
 async function creerCompte(email: string, { confirme, ageJours }: { confirme: boolean; ageJours: number }) {

@@ -8,6 +8,8 @@ import type { AvisGestion, ResultatRetablir } from "../avis-gestion.ts";
 import { PREFIXE_AVATAR_PHOTO } from "../../../../../packages/commun/src/regles/photo-profil.ts";
 import { appliquerDecisionCommunaute } from "../communaute-moderation.ts";
 import { creerStockageMediasChat } from "../stockage-medias-chat.ts";
+import { retirerImageLieuModeree } from "../images-lieu.ts";
+import { enregistrerSignalementImageLieu, lireCibleImageLieu, type SignalementImageLieuRecu } from "../images-lieu-signalements.ts";
 import { CIBLES_AVIS, CIBLES_COMMUNAUTE } from "./cibles-moderation.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
@@ -156,6 +158,7 @@ export async function deciderSignalement(
     await avis!.apresRetablir(retabli, maintenant);
   }
   if (decision === "retenu" && signalement.cible === "profil" && signalement.auteurContenuId) await retirerPhotoDuProfilRetenu(signalement.auteurContenuId);
+  if (decision === "retenu" && signalement.cible === "image-lieu") await retirerImageLieuRetenue(signalement, social);
   await prevenirApresDecision(social, decides, decision, motif, fichier, maintenant);
   return rendu;
 }
@@ -172,7 +175,16 @@ export async function contesterSignalement(id: number, contestation: string, mai
   return count > 0;
 }
 
-export type SignalementRecu = {
+async function retirerImageLieuRetenue(signalement: { id: number; cibleId: string; instantaneChiffre: string | null }, social?: ModerationSociale) {
+  const cible = lireCibleImageLieu(signalement.cibleId);
+  const instantane = lireInstantane(social, signalement);
+  const nom = instantane?.etat === "lu" && typeof instantane.contenu.nom === "string" ? instantane.contenu.nom : null;
+  if (!cible || !nom) return console.error(`Modération : image du signalement n° ${signalement.id} pas retirée (instantané illisible)`);
+  await retirerImageLieuModeree(cible.lieuId, cible.quelle, nom).catch((erreur: unknown) => console.error(`Modération : image du signalement n° ${signalement.id} pas retirée :`, (erreur as Error).message));
+}
+
+export type SignalementPublicationRecu = {
+  cible?: undefined;
   publicationId: string;
   lieuId: number;
   raison: string;
@@ -181,11 +193,19 @@ export type SignalementRecu = {
   masquageAutorise: boolean;
 };
 
+export type SignalementRecu = SignalementPublicationRecu | SignalementImageLieuRecu;
+
 /**
  * Enregistre un signalement envoyé depuis l'app (déjà vérifié par le contrôleur). Pour une raison grave
  * (RAISONS_AVEC_MASQUAGE_IMMEDIAT), la publication est suspendue pour tout le monde dès ce premier signalement.
  */
-export async function enregistrerSignalement({ publicationId, lieuId, raison, precision, explication, masquageAutorise }: SignalementRecu) {
+export async function enregistrerSignalement(signalement: SignalementRecu) {
+  if (signalement.cible === "image-lieu") {
+    const issue = await enregistrerSignalementImageLieu(signalement);
+    if (issue === "chiffrement-indisponible") console.error("Signalement d'une image de lieu : clé des données absente, rien n'est gardé");
+    return;
+  }
+  const { publicationId, lieuId, raison, precision, explication, masquageAutorise } = signalement;
   await baseDeDonnees.signalement.create({
     data: { cible: "publication", cibleId: publicationId, lieuId, raison, precision, explication, source: "app" },
   });

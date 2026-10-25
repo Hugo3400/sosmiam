@@ -35,6 +35,14 @@ export const TEXTES_IMAGES_LIEU = {
   galerieFermee: "Ta galerie ne s'est pas ouverte. Autorise l'accès aux photos dans les réglages de ton téléphone.",
   illisible: "Cette image ne se lit pas. Essaie avec une autre.",
   tropLourde: "Cette image reste trop lourde, même compressée. Essaie avec une autre.",
+  signaler: {
+    lien: "Signaler une image",
+    quelle: "Quelle image tu signales ?",
+    banniere: "La bannière",
+    logo: "Le logo",
+    sousTitre: { banniere: (lieu: string) => `Bannière de ${lieu}`, logo: (lieu: string) => `Logo de ${lieu}` },
+    fermer: "Fermer",
+  },
 } as const;
 
 export const TEXTES_IMAGES_LIEU_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_IMAGES_LIEU>> = { fr: TEXTES_IMAGES_LIEU, en: TEXTES_IMAGES_LIEU_ANGLAIS };

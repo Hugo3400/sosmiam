@@ -26,10 +26,11 @@ type Props = {
   /** Retour au menu « ⋯ » depuis la première étape */
   onRetourMenu: () => void;
   onFermer: () => void;
+  sousTitre?: string;
 };
 
 /** Signaler une publication, en trois temps : la raison, les précisions et le pourquoi, puis merci. */
-export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoyer, onRetourMenu, onFermer }: Props) {
+export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoyer, onRetourMenu, onFermer, sousTitre: sousTitreChoisi }: Props) {
   const couleurs = utiliserCouleurs();
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoy
 
   const details = etape === "details" && raison !== null;
   const titre = details ? raison.titre : "Pourquoi tu signales ?";
-  const sousTitre = details ? "Dis-nous-en plus, ça aide l'équipe." : `Publication sur ${nomLieu}`;
+  const sousTitre = details ? "Dis-nous-en plus, ça aide l'équipe." : (sousTitreChoisi ?? `Publication sur ${nomLieu}`);
 
   // Le contenu change sous le doigt : le lecteur d'écran repart du titre de la nouvelle étape
   useEffect(() => {

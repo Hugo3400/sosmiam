@@ -137,7 +137,7 @@ test("nettoyerFichePublique : une API plus ancienne (sans les nouveaux champs) d
   assert.deepEqual(propre.ouverture, []);
   assert.deepEqual(propre.etiquettes, []);
   assert.deepEqual(propre.autour, []);
-  assert.equal(propre.lienReservation, null);
+  assert.equal(propre.reservable, false);
   assert.equal(propre.siteWeb, "https://capitaine.example");
   assert.equal(propre.instagram, "capitaine.bouiboui");
 });
@@ -155,7 +155,7 @@ test("nettoyerFichePublique : garde les nouveaux champs bien formés et écarte 
     ouverture: [{ jours: [2, 3, 9], de: "12:00", a: "14:00" }, { jours: [], de: "19:00", a: "23:00" }, { jours: [5], de: "7h", a: "12:00" }],
     etiquettes: ["Fait maison", " Fait maison ", "", "Terrasse", 4, "x".repeat(41)],
     autour: [voisin, { ...voisin, id: 18 }, { ...voisin, id: 0 }, { ...voisin, id: 21, sos: { places: 0 }, logo: "/autre.png" }, { ...voisin, id: 22 }, { ...voisin, id: 23 }, { ...voisin, id: 24 }],
-    lienReservation: "https://resa.example/capitaine",
+    reservable: "oui",
   } as unknown as FichePublique;
   const propre = nettoyerFichePublique(brute);
   assert.equal(propre.siteWeb, null);
@@ -170,7 +170,8 @@ test("nettoyerFichePublique : garde les nouveaux champs bien formés et écarte 
   assert.deepEqual(propre.autour?.[1]?.sos, null);
   assert.equal(propre.autour?.[1]?.logo, null);
   assert.equal(propre.autour?.[0]?.logo, LOGO);
-  assert.equal(propre.lienReservation, "https://resa.example/capitaine");
+  assert.equal(propre.reservable, false);
+  assert.equal(nettoyerFichePublique({ ...FICHE, reservable: true } as unknown as FichePublique).reservable, true);
   for (const position of [{ latitude: 91, longitude: 0 }, { latitude: "43", longitude: 3 }, { latitude: Number.NaN, longitude: 3 }]) {
     assert.equal(nettoyerFichePublique({ ...FICHE, position } as unknown as FichePublique).position, null);
   }

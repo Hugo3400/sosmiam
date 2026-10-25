@@ -26,6 +26,7 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
   const [decision, setDecision] = useState<"retenu" | "rejete" | null>(null);
   const [etat, setEtat] = useState<{ enCours: boolean; erreur: string | null }>({ enCours: false, erreur: null });
   const premier = signalements[0]!;
+  const avecMedia = signalements.find((s) => s.avecMedia);
   const publication = premier.publication;
   const cible = CIBLES_MODERATION[premier.cible] ?? { libelle: premier.cible, le: "le contenu", emoji: "❔" };
   const urgent = signalements.some((s) => s.urgent && s.statut === "a-traiter");
@@ -53,8 +54,8 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
     <article className={`grid gap-5 rounded-carte border bg-white p-5 lg:grid-cols-[160px_minmax(0,1fr)_auto] ${urgent ? "border-2 border-tomate" : "border-ligne"}`}>
       {publication ? (
         <VignetteMedia fichier={media?.fichier ?? null} video={media?.type === "video"} controles className="aspect-[9/16] w-40 rounded-xl border border-ligne" />
-      ) : premier.avecMedia && aTraiter ? (
-        <MediaSignale signalementId={premier.id} />
+      ) : avecMedia && aTraiter ? (
+        <MediaSignale signalementId={avecMedia.id} />
       ) : (
         <div className="grid aspect-square w-40 place-items-center rounded-xl bg-creme text-5xl" aria-hidden>{cible.emoji}</div>
       )}

@@ -34,7 +34,8 @@ export const TEXTES_FICHE_LIEU = {
     vers: (nom: string) => ` vers ${nom}`,
     appeler: "Appeler",
     appelerLe: (numero: string) => ` le ${numero}`,
-    reserver: "Réserver",
+    reserverDansApp: "Réserver dans l'app",
+    appelerPourReserver: "Appeler pour réserver",
     siteWeb: "Site web",
     instagram: "Instagram",
     partager: "Partager",
@@ -99,6 +100,7 @@ export const TEXTES_FICHE_LIEU = {
     lien: "Une info fausse ? Signale-la",
     objet: (nom: string, id: number) => `Une info fausse sur la fiche de ${nom} (n° ${id})`,
     texte: (adresse: string) => `Salut l'équipe SOS Miam !\n\nSur la fiche ${adresse}, cette info n'est pas juste : \n\nLa bonne info : \n`,
+    image: "Signaler une image",
   },
   autour: {
     titre: "Autour de ce lieu",

@@ -31,6 +31,7 @@ export type ContenuSignale =
       auteur: AuteurInstantane;
       date: Date;
       gif?: { id: string; url: string } | null;
+      lieux?: number[];
     }
   | { cible: "liste"; titre: string; emoji: string; description: string; visibilite: string; lieux: number[]; auteur: AuteurInstantane }
   | { cible: "profil"; pseudo: string | null; prenom: string; avatar: string | null }
@@ -67,6 +68,7 @@ export function construireInstantane(contenu: ContenuSignale): string {
         v: 1, cible: contenu.cible, type: contenu.type, texte: couper(contenu.texte, MAX_TEXTE), lieuId: contenu.lieuId, illisible: contenu.illisible,
         media: contenu.media, conversation: { ...contenu.conversation, titre: couper(contenu.conversation.titre, MAX_COURT) },
         auteur: auteur(contenu.auteur), date: contenu.date.toISOString(), ...(contenu.gif ? { gif: contenu.gif } : {}),
+        ...(contenu.lieux ? { lieux: contenu.lieux.slice(0, MAX_LIEUX) } : {}),
       });
     case "liste":
       return JSON.stringify({

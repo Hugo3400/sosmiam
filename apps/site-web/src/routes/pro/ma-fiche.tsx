@@ -3,6 +3,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/ma-fiche";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { Section } from "~/composants/mise-en-page/Section";
+import { EncartImagesLieu } from "~/composants/pro/EncartImagesLieu";
 import { FicheEnLecture } from "~/composants/pro/FicheEnLecture";
 import { FormulaireFiche } from "~/composants/pro/FormulaireFiche";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
@@ -91,6 +92,7 @@ export default function PageMaFiche({ loaderData }: Route.ComponentProps) {
         page="Ma fiche"
         chapo={peutModifier ? lierPonctuation("Horaires, présentation, contact et infos pratiques : en ligne dès que tu enregistres.") : undefined}
       />
+      {lieu.estVerifie && <EncartImagesLieu lieuId={lieu.id} gerant={peutModifier} />}
       {peutModifier ? <FormulaireFiche lieu={lieu} /> : <FicheEnLecture lieu={lieu} />}
     </Section>
   );

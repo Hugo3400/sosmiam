@@ -70,6 +70,9 @@ const colonnes = await q(`SELECT column_name FROM information_schema.columns WHE
 egal(colonnes.map((c) => c.column_name), ["id", "lieu_chiffre", "message_id", "ordre"], "pas de colonne d'id de lieu");
 egal((await messagerie.envoyer(lea, groupe, { idClient, type: "vote", lieux: [bella, wok], finLe: apres(30) }, T)).ok, true, "rejoué");
 egal(Number((await q(`SELECT count(*)::int AS n FROM sondages_messages`))[0]!.n), 1);
+const { lireContenuSignale } = await import("../../src/services/instantanes-signalements.ts");
+const signale = await baseDeDonnees.$transaction((tx) => lireContenuSignale(tx as never, { chiffrement, relations }, malo, "message", String(messageId), T));
+egal([signale?.contenu.cible, signale?.contenu.cible === "message" ? signale.contenu.lieux : null], ["message", [bella, wok]], "un sondage signalé garde ses lieux dans l'instantané");
 
 egal(await t.voterSondage(messageId, malo, 2, T), true, "INSERT … SELECT … ON CONFLICT : premier vote");
 egal(await t.voterSondage(messageId, malo, 2, T), false, "le même : rien ne change");

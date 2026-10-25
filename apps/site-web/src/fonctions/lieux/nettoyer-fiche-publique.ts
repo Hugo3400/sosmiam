@@ -68,6 +68,6 @@ export function nettoyerFichePublique(lieu: FichePublique): FichePublique {
     ouverture: lireOuverture(lieu.ouverture),
     etiquettes: lireEtiquettes(lieu.etiquettes),
     autour: lireAutour(lieu.autour, lieu.id),
-    lienReservation: lireLienExterne(lieu.lienReservation),
+    reservable: lieu.reservable === true,
   };
 }

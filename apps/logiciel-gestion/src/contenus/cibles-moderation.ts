@@ -15,4 +15,5 @@ export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; em
   profil: { libelle: "Profils", le: "le profil", emoji: "👤", remise: "son pseudo devient « miami » et 4 chiffres (l'ancien est bloqué 30 jours) et son avatar est effacé. Le prénom se corrige depuis la fiche du compte" },
   sortie: { libelle: "Sorties", le: "la sortie", emoji: "🎉", remise: "son titre redevient « Sortie », pour tous ceux qui y sont invités" },
   groupe: { libelle: "Groupes", le: "le groupe", emoji: "👥", remise: "son nom est effacé : il s'affiche « Groupe » chez tous ses membres" },
+  "image-lieu": { libelle: "Bannières et logos", le: "l'image du lieu", emoji: "🖼️" },
 };

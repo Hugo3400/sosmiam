@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { BoutonRattachement } from "~/composants/pro/BoutonRattachement";
 import { PastilleStatut } from "~/composants/pro/PastilleStatut";
+import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { Rattachement } from "~/types/pro";
 
@@ -33,6 +34,7 @@ export function CarteLieuPro({ rattachement }: { rattachement: Rattachement }) {
           <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
             <li><Link to={adresse} className={classeLien}>{gerant ? "Ma fiche" : "La fiche"}</Link></li>
             <li><Link to={`${adresse}/carte`} className={classeLien}>{gerant ? "Ma carte" : "La carte"}</Link></li>
+            <li><Link to={`${adresse}/images`} className={classeLien}>{TEXTES_IMAGES_LIEU.lien}</Link></li>
             <li><Link to={`${adresse}/suggestions`} className={classeLien}>Suggestions</Link></li>
             {gerant && <li><Link to={`${adresse}/equipe`} className={classeLien}>Mon équipe</Link></li>}
             <li><Link to={`${adresse}/affichette`} className={classeLien}>Affichette</Link></li>

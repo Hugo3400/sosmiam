@@ -6,7 +6,7 @@ import type { FichePublique } from "~/types/pro";
 
 export function BlocCommentReserver({ lieu }: { lieu: FichePublique }) {
   const T = TEXTES_FICHE_LIEU.commentReserver;
-  const lienSite = lieu.lienReservation ?? lieu.siteWeb;
+  const lienSite = lieu.siteWeb;
   if (!lienSite && !lieu.telephone) return null;
   return (
     <section aria-labelledby="fiche-reserver" className="flex flex-col gap-2.5 rounded-carte bg-encre p-5 text-creme md:px-[30px] md:py-7">

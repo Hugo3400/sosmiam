@@ -2,6 +2,7 @@ import { data, type ShouldRevalidateFunctionArgs } from "react-router";
 
 import type { Route } from "./+types/accueil";
 
+import { BandeauThemeSaison } from "~/composants/accueil/BandeauThemeSaison";
 import { CommentCaMarche } from "~/composants/accueil/CommentCaMarche";
 import { DevenirAmbassadeur } from "~/composants/accueil/DevenirAmbassadeur";
 import { Hero } from "~/composants/accueil/Hero";
@@ -17,7 +18,9 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { trouverLieuPropose } from "~/fonctions/texte/trouver-lieu-propose";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
 import { inscrireNewsletter, type ResultatInscription } from "~/services/inscriptions.server";
-import { listerLieuxPublics } from "~/services/lieux.server";
+import { listerLieuxAccueil, listerVillesLieux } from "~/services/page-lieux.server";
+import { lireIpVisiteur } from "~/services/session-compte.server";
+import { lireThemeSaisonAccueil } from "~/services/themes-saison.server";
 
 const messagesErreur: Record<Exclude<ResultatInscription, "ok">, string> = {
   "email-invalide": "Oups, cette adresse e-mail ne semble pas valide.",
@@ -35,8 +38,11 @@ export function meta(_: Route.MetaArgs) {
 }
 
 /** Les vrais lieux publiés, lus à chaque affichage de l'accueil : aucun lieu inventé sur le site. */
-export async function loader() {
-  return { lieux: await listerLieuxPublics() };
+export async function loader({ request }: Route.LoaderArgs) {
+  const ip = lireIpVisiteur(request);
+  const [accueil, villes, themeSaison] = await Promise.all([listerLieuxAccueil(ip), listerVillesLieux(ip), lireThemeSaisonAccueil(ip)]);
+  const nombreLieux = villes.ok ? villes.donnees.reduce((total, ville) => total + ville.nombre, 0) : null;
+  return { lieux: accueil.lieux, tirage: accueil.tirage, nombreLieux, themeSaison };
 }
 
 /** Après l'envoi du formulaire d'inscription, inutile de relire les lieux. */
@@ -98,9 +104,10 @@ export default function Accueil({ loaderData }: Route.ComponentProps) {
   return (
     <>
       <DonneesStructurees donnees={[creerDonneesSite(), creerDonneesOrganisation()]} />
+      {loaderData.themeSaison && <BandeauThemeSaison theme={loaderData.themeSaison} />}
       <Hero />
       <CommentCaMarche />
-      <IlsOntBesoinDeToi lieux={loaderData.lieux} />
+      <IlsOntBesoinDeToi lieux={loaderData.lieux} nombreLieux={loaderData.nombreLieux} tirage={loaderData.tirage} />
       <BigSosEnBref />
       <PourLesPros />
       <DevenirAmbassadeur />

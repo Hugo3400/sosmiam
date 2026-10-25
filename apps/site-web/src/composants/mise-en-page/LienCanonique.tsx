@@ -1,7 +1,8 @@
-import { useLocation } from "react-router";
+import { useLocation, useMatches } from "react-router";
 
 import { site as informationsSite } from "~/contenus/legal/informations-legales";
 import { creerAdresseCanonique } from "~/fonctions/seo/creer-adresse-canonique";
+import { lireCheminCanonique } from "~/fonctions/seo/lire-chemin-canonique";
 
 type Props = {
   /** Adresse du site, sans « / » final : https://sosmiam.fr par défaut, https://ambassadeur.sosmiam.fr pour l'espace ambassadeur */
@@ -14,7 +15,9 @@ type Props = {
  */
 export function LienCanonique({ site = `https://${informationsSite.adresse}` }: Props) {
   const { pathname } = useLocation();
-  const adresse = creerAdresseCanonique(site, pathname);
+  const choisi = lireCheminCanonique(useMatches());
+  const [chemin, requete = ""] = (choisi ?? pathname).split("?");
+  const adresse = creerAdresseCanonique(site, chemin, choisi ? requete : "");
   return (
     <>
       <link rel="canonical" href={adresse} />

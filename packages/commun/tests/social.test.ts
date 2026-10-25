@@ -43,9 +43,9 @@ test("signalement social : les 6 cibles, et l'identifiant qui va avec", () => {
   assert.equal(validerSignalementContenu([signalement]), null);
 });
 
-test("décisions de la modération : les 6 cibles sociales, plus l'avis et la réponse d'un lieu, qui ne se signalent pas par là", () => {
-  assert.deepEqual([...CIBLES_DECISION_MODERATION], [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis"]);
-  for (const cible of ["avis", "reponse-avis"]) {
+test("décisions de la modération : les cibles sociales, plus l'avis, la réponse d'un lieu et l'image d'un lieu, qui ne se signalent pas par là", () => {
+  assert.deepEqual([...CIBLES_DECISION_MODERATION], [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis", "image-lieu"]);
+  for (const cible of ["avis", "reponse-avis", "image-lieu"]) {
     assert.equal((CIBLES_SIGNALEMENT_SOCIAL as readonly string[]).includes(cible), false, cible);
     assert.equal(validerSignalementContenu({ ...signalement, cible }), null, cible);
   }

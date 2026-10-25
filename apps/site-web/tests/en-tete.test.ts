@@ -75,14 +75,14 @@ const AMBASSADEURS = "https://ambassadeur.sosmiam.fr/programme";
 const PROS = "https://pro.sosmiam.fr/bienvenue";
 const BARRE = [
   ["L'app", "/#comment"],
-  ["Les lieux", "/#adresses"],
+  ["Les lieux", "/lieux"],
   ["BIG SOS", "/#big-sos"],
   ["Ambassadeurs", AMBASSADEURS],
   ["Pros", PROS],
 ];
 const MENU = [
   ["L'app", "/#comment"],
-  ["Les lieux", "/#adresses"],
+  ["Les lieux", "/lieux"],
   ["BIG SOS", "/#big-sos"],
   ["FAQ", "/faq"],
   ["Ambassadeurs", AMBASSADEURS],
@@ -168,6 +168,9 @@ test("aria-current : la page où l'on est, et rien d'autre", () => {
   const compte = courants("/mon-compte");
   assert.equal(compte.length, 3);
   for (const lien of compte) assert.deepEqual([lien.adresse, lien.courant], ["/mon-compte", "page"]);
+  const lieux = courants("/lieux");
+  assert.equal(lieux.length, 3);
+  for (const lien of lieux) assert.deepEqual([lien.adresse, lien.courant], ["/lieux", "page"]);
   // Une fiche de lieu ou « J'inscris mon lieu » : aucun lien de l'en-tête n'est la page
   assert.deepEqual(courants("/lieux/12"), []);
   assert.deepEqual(courants("/inscrire-mon-lieu"), []);

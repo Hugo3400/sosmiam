@@ -49,11 +49,12 @@ test("chaque page publique a une adresse canonique, et la page elle-même ne se 
     const avecCanonique = sources.some((source) => /<LienCanonique\b|<Cadre(Public|Ambassadeur|Pro)\b/.test(source));
     assert.ok(avecCanonique, `${chemin} (${fichiers.join(", ")}) sans adresse canonique`);
     // La fiche d'un lieu ne met « noindex » que quand elle est introuvable (404) : la condition est vérifiée à part
-    if (chemin.startsWith("/lieux/") || chemin.startsWith("/carriere/")) continue;
+    if (chemin === "/lieux" || chemin.startsWith("/lieux/") || chemin.startsWith("/carriere/")) continue;
     for (const [rang, source] of sources.entries()) assert.doesNotMatch(source, /noindex/, `${chemin} : ${fichiers[rang]}`);
   }
   assert.match(lire("routes/public/fiche-lieu.tsx"), /if \(!loaderData\) return \[[^\n]*noindex/);
   assert.match(lire("routes/public/offre-carriere.tsx"), /if \(!loaderData\) return \[[^\n]*noindex/);
+  assert.match(lire("routes/public/lieux.tsx"), /const sansIndex = filtres\.recherche !== null[^\n]*\n\s*return sansIndex \? \[[^\n]*noindex/);
 });
 
 test("adresse canonique : absolue, sans paramètres ni « / » final", () => {
@@ -71,7 +72,7 @@ test("chaque page privée est en noindex (mon compte, espaces, désinscription, 
     "/espace", "/espace/mon-compte", "/espace/kit-media", "/espace/kit-media-pro", "/espace/proposer-un-lieu", "/espace/fondateur",
     "/espace/certification", "/espace/missions", "/espace/messages",
     "/tableau", "/rattacher", "/rattacher/12", "/lieu/12", "/lieu/12/carte", "/lieu/12/suggestions", "/lieu/12/equipe",
-    "/lieu/12/affichette", "/lieu/12/miam-safe", "/invitation/lea.croque", "/preview", "/preview/communaute",
+    "/lieu/12/affichette", "/lieu/12/miam-safe", "/lieu/12/images", "/invitation/lea.croque", "/preview", "/preview/communaute",
   ];
   for (const chemin of privees) {
     const fichiers = fichiersDe(chemin);

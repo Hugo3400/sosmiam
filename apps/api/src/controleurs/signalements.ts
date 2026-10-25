@@ -16,6 +16,27 @@ export function creerControleurSignalement(enregistrer: (signalement: Signalemen
   return async (requete: Request, reponse: Response) => {
     const s = typeof requete.body === "object" && requete.body !== null ? (requete.body as Record<string, unknown>) : {};
     const explication = typeof s.explication === "string" ? s.explication.trim() : "";
+    const raisonValide =
+      typeof s.raison === "string" && RAISONS.includes(s.raison) &&
+      (s.precision === null || s.precision === undefined || (typeof s.precision === "string" && s.precision.length <= 80)) &&
+      explication.length <= EXPLICATION_MAX &&
+      (!RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(String(s.raison)) || explication.length >= EXPLICATION_MIN_SI_OBLIGATOIRE);
+    const compte = reponse.locals.compte as CompteSession | undefined;
+    if (s.cible === "image-lieu") {
+      const valideImage = raisonValide && typeof s.lieuId === "number" && Number.isSafeInteger(s.lieuId) && s.lieuId > 0 && (s.quelle === "banniere" || s.quelle === "logo");
+      if (!valideImage) return reponse.status(400).json({ ok: false, erreur: "signalement-invalide" });
+      await enregistrer({
+        cible: "image-lieu",
+        lieuId: s.lieuId as number,
+        quelle: s.quelle as "banniere" | "logo",
+        raison: s.raison as string,
+        precision: typeof s.precision === "string" && s.precision.trim() ? s.precision.trim() : null,
+        explication,
+        signaleParId: compte?.id ?? null,
+        source: s.source === "site" ? "site" : "app",
+      });
+      return reponse.status(201).json({ ok: true });
+    }
     const valide =
       typeof s.publicationId === "string" && /^[\w-]{1,40}$/.test(s.publicationId) &&
       typeof s.lieuId === "number" && Number.isInteger(s.lieuId) &&
@@ -24,7 +45,6 @@ export function creerControleurSignalement(enregistrer: (signalement: Signalemen
       explication.length <= EXPLICATION_MAX &&
       (!RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(String(s.raison)) || explication.length >= EXPLICATION_MIN_SI_OBLIGATOIRE);
     if (!valide) return reponse.status(400).json({ ok: false, erreur: "signalement-invalide" });
-    const compte = reponse.locals.compte as CompteSession | undefined;
     const masquageAutorise = compte !== undefined && jugerSignaleur !== null && (await jugerSignaleur(compte.id));
     await enregistrer({
       publicationId: s.publicationId as string,

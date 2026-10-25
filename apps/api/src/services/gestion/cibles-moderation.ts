@@ -10,6 +10,7 @@ export const CIBLES_SOCIALES = ["commentaire", "message", "liste", "profil", "so
 export const CIBLES_AVIS = ["avis", "reponse-avis"] as const;
 export const CIBLES_COMMUNAUTE = ["idee", "comment-idee", "miamis"] as const;
 export const CIBLES_REMISES_PAR_DEFAUT = ["profil", "sortie", "groupe"] as const;
+export const CIBLES_IMAGES_LIEU = ["image-lieu"] as const;
 
 /** Ce que la modération sociale reçoit de demarrer.ts (les mêmes objets que la partie sociale de l'app) */
 export type ModerationSociale = { chiffrement: ChiffrementSocial | null; medias: StockageMediasChat; cloche: ServicesCloche };

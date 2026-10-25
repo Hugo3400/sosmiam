@@ -21,6 +21,7 @@ export type FicheSite = FichePublique & {
   ouverture: LieuApi["ouverture"];
   etiquettes: string[];
   autour: LieuListe[];
+  reservable: boolean;
 };
 
 export type ServicesLieuxSite = {
@@ -166,6 +167,7 @@ export function creerLieuxSite(dependances: {
         sos: lieuApp?.sos ?? null,
         ouverture: lieuApp?.ouverture ?? [],
         etiquettes: lieuApp?.tags ?? [],
+        reservable: lieuApp?.reservable ?? false,
         autour: position ? await listerAutour(id, position, maintenant) : [],
       };
     },

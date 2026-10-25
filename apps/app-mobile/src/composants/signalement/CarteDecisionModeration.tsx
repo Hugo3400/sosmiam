@@ -31,6 +31,7 @@ const CIBLES: Readonly<Record<CibleDecisionModeration, { nom: string; feminin: b
   idee: { nom: "idée", feminin: true, dansUnePhrase: "ton idée dans la boîte à idées" },
   "comment-idee": { nom: "commentaire", feminin: false, dansUnePhrase: "ton commentaire sur une idée" },
   miamis: { nom: "sortie des Miamis", feminin: true },
+  "image-lieu": { nom: "image", feminin: true, dansUnePhrase: "la bannière ou le logo de ton lieu" },
 };
 
 /**

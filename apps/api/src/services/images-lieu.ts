@@ -23,10 +23,11 @@ export function creerImagesLieu({ stockages, depot, lireRole, horloge = Date.now
     return { ok: false, erreur: role === null ? "role-requis" : "reserve-au-gerant" };
   }
 
-  async function changerImage(lieuId: number, quelle: ImageLieu, nouvelle: string | null): Promise<IssueChangement> {
+  async function changerImage(lieuId: number, quelle: ImageLieu, nouvelle: string | null, seulementSi?: string): Promise<IssueChangement> {
     const issue = await depot.ecrire(async (t): Promise<IssueChangement> => {
       const avant = await t.verrouillerLieu(lieuId);
       if (!avant) return { refus: "lieu-inconnu" };
+      if (seulementSi !== undefined && avant[quelle] !== seulementSi) return { avant: { ...avant, [quelle]: null } };
       if (avant[quelle] !== nouvelle) await t.ecrireImage(lieuId, quelle, nouvelle, maintenant());
       return { avant };
     });
@@ -67,8 +68,8 @@ export function creerImagesLieu({ stockages, depot, lireRole, horloge = Date.now
       return { ok: true, retiree: issue.avant[quelle] !== null };
     },
 
-    async retirerParEquipe(lieuId: number, quelle: ImageLieu): Promise<{ ok: true; retiree: boolean } | RefusImageLieu> {
-      const issue = await changerImage(lieuId, quelle, null);
+    async retirerParEquipe(lieuId: number, quelle: ImageLieu, seulementSi?: string): Promise<{ ok: true; retiree: boolean } | RefusImageLieu> {
+      const issue = await changerImage(lieuId, quelle, null, seulementSi);
       if ("refus" in issue) return { ok: false, erreur: issue.refus };
       return { ok: true, retiree: issue.avant[quelle] !== null };
     },
@@ -100,4 +101,16 @@ export function creerImagesLieu({ stockages, depot, lireRole, horloge = Date.now
       return effacees;
     },
   };
+}
+
+let imagesBranchees: ImagesLieu | null = null;
+
+export function brancherImagesLieu(images: ImagesLieu | null): void {
+  imagesBranchees = images;
+}
+
+export async function retirerImageLieuModeree(lieuId: number, quelle: ImageLieu, nom: string): Promise<boolean> {
+  if (!imagesBranchees) return false;
+  const r = await imagesBranchees.retirerParEquipe(lieuId, quelle, nom);
+  return r.ok && r.retiree;
 }

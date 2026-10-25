@@ -4,6 +4,7 @@ import { IconeFiche } from "~/composants/lieux/IconeFiche";
 import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
 import { creerLienItineraire } from "~/fonctions/lieux/creer-lien-itineraire";
 import { creerLienTelephone } from "~/fonctions/lieux/creer-lien-telephone";
+import { creerLienAppLieu } from "~/fonctions/liens-app/creer-lien-app-lieu";
 import type { FichePublique } from "~/types/pro";
 
 export function ActionsFicheLieu({ lieu, adresseFiche }: { lieu: FichePublique; adresseFiche: string }) {
@@ -26,14 +27,21 @@ export function ActionsFicheLieu({ lieu, adresseFiche }: { lieu: FichePublique; 
           </a>
         </li>
       )}
-      {lieu.lienReservation && (
+      {lieu.reservable ? (
         <li>
-          <a href={lieu.lienReservation} rel="noopener nofollow" className={CLASSE_ACTION}>
+          <a href={creerLienAppLieu(lieu.id)} className={CLASSE_ACTION}>
             <IconeFiche nom="reserver" />
-            {T.reserver}
+            {T.reserverDansApp}
           </a>
         </li>
-      )}
+      ) : lieu.telephone && (lieu.reservation === "conseillee" || lieu.reservation === "obligatoire") ? (
+        <li>
+          <a href={creerLienTelephone(lieu.telephone)} className={CLASSE_ACTION}>
+            <IconeFiche nom="reserver" />
+            {T.appelerPourReserver}
+          </a>
+        </li>
+      ) : null}
       {lieu.siteWeb && (
         <li>
           <a href={lieu.siteWeb} rel="noopener nofollow" className={CLASSE_ACTION}>
