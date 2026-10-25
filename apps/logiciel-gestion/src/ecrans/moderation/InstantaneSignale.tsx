@@ -9,6 +9,16 @@ const nomAuteur = (a: unknown) => {
   return auteur ? (auteur.pseudo ? `@${auteur.pseudo}` : auteur.prenom ?? "?") : "compte supprimé";
 };
 const texte = (v: unknown) => (typeof v === "string" ? v : "");
+const adresseGif = (v: unknown) => {
+  const url = (v as { url?: unknown } | null)?.url;
+  if (typeof url !== "string") return null;
+  try {
+    const adresse = new URL(url);
+    return adresse.protocol === "https:" && /^(?:media\d?|i)\.giphy\.com$/.test(adresse.hostname) ? adresse.href : null;
+  } catch {
+    return null;
+  }
+};
 /** Un emoji tel quel, ou le nom d'un avatar Miami (« miami:toque » → « Miami Toque ») ; un Miami inconnu de cette version : « avatar Miami » */
 const nomAvatar = (v: unknown) => {
   const miami = lireAvatarMiami(v);
@@ -49,6 +59,13 @@ export function InstantaneSignale({ signalement, lieux }: { signalement: Signale
           {c.illisible ? <p className="text-sm text-gris">Texte illisible.</p> : texte(c.texte) && <p className="rounded-xl bg-creme px-3 py-2 text-sm whitespace-pre-line">{texte(c.texte)}</p>}
           {c.lieuId !== null && c.lieuId !== undefined && <p className="text-sm">Lieu envoyé : {nomLieu(c.lieuId)}</p>}
           {c.media ? <p className="text-[13px] text-gris">Contient une {texte((c.media as { typeMime?: unknown }).typeMime).startsWith("audio") ? "note vocale" : "photo"}.</p> : null}
+          {adresseGif(c.gif) && <img src={adresseGif(c.gif)!} alt="GIF envoyé" referrerPolicy="no-referrer" className="max-h-48 w-fit rounded-xl border border-ligne" />}
+          {c.type === "gif" && !adresseGif(c.gif) && !c.illisible && <p className="text-[13px] text-gris">GIF introuvable dans l'instantané.</p>}
+          {c.type === "vote" && (
+            <p className="text-[13px] text-gris">
+              Sondage{Array.isArray(c.lieux) && c.lieux.length > 0 ? ` · lieux proposés : ${c.lieux.map(nomLieu).join(", ")}` : " · les lieux proposés ne sont pas gardés dans l'instantané"}
+            </p>
+          )}
         </>
       )}
       {c.cible === "liste" && (

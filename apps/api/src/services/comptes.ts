@@ -255,11 +255,11 @@ export async function lireIdentifiants(id: number): Promise<{ email: string; mot
   return baseDeDonnees.compte.findUnique({ where: { id }, select: { email: true, motDePasse: true } });
 }
 
-/** Prénom, ville et quartier changés par la personne dans « Mon compte ». */
 export async function changerLangueCompte(id: number, langue: Langue): Promise<void> {
   await baseDeDonnees.compte.updateMany({ where: { id }, data: { langue } });
 }
 
+/** Prénom, ville et quartier changés par la personne dans « Mon compte ». */
 export async function modifierCompte(id: number, { prenom, ville, quartier }: ModificationCompte): Promise<void> {
   await baseDeDonnees.$transaction([
     ...(prenom !== undefined ? [baseDeDonnees.compte.update({ where: { id }, data: { prenom } })] : []),

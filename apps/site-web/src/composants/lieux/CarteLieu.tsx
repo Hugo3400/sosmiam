@@ -27,7 +27,7 @@ export function CarteLieu({ lieu }: { lieu: LieuPublic }) {
           </Link>
         </h3>
         <p className="text-sm text-gris">{lieu.prix ? `${lieu.info} · ${lieu.prix}` : lieu.info}</p>
-        <p className="text-sm text-gris"><span aria-hidden="true">📍 </span>{lieu.quartier}, {lieu.ville}</p>
+        <p className="text-sm text-gris"><span aria-hidden="true">📍 </span>{[lieu.quartier, lieu.ville].filter(Boolean).join(", ")}</p>
         {lieu.decouvertPar && (
           <p className="mt-auto pt-3 text-sm font-semibold"><span aria-hidden="true">🛟 </span>Déniché par {lieu.decouvertPar}</p>
         )}

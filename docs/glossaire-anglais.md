@@ -199,7 +199,7 @@ Anglais britannique, « you » chaleureux, mêmes règles de ton que le françai
   - Où : Diapo de bienvenue
   - « Pour toi comme pour les lieux » → « For you and for the places ».
 
-### Mots de l'interface (63)
+### Mots de l'interface (64)
 
 - **Pour toi (onglet et fil)** → **For you** · adapté
   - Où : 1er onglet ((onglets)/_layout.tsx), fil « Pour toi », « Retour à Pour toi »
@@ -216,6 +216,9 @@ Anglais britannique, « you » chaleureux, mêmes règles de ton que le françai
 - **Communauté / Profil / Paramètres (de l'app) / Réglages (du téléphone)** → **Community / Profile / Settings / your phone's Settings app** · traduit
   - Où : Onglets, Paramètres › …, avatar.tsx, ChampChat.tsx, FeuilleAjoutChat.tsx, ChoixVille.tsx (qui renvoient aux Réglages du téléphone)
   - « Paramètres › Messages » → « Settings › Messages ». Le français distingue Paramètres (l'app) et Réglages (iOS). En anglais, les deux deviennent « Settings », donc l'appli du téléphone s'écrit toujours « your phone's Settings app », jamais « Settings » seul (règle 26).
+- **Chemins d'écran : Paramètres › Décisions de la modération / Profil › Modifier mon profil › Mes infos** → **Settings › Moderation decisions / Profile › Edit my profile › My details** · traduit
+  - Où : Messages d'erreur de packages/commun (compte-limite, ville-requise, pseudo-requis), écrans de l'app, légal anglais du site
+  - Ajouté le 25/10. L'app (titres des écrans) et le site (légal) reprennent ces libellés mot pour mot (règle 25). « Mot de passe oublié ? » → « Forgotten your password? » (entrée « Crée ton compte… »).
 - **Quoi de neuf (activité de la bande)** → **Crew news** · adapté
   - Où : « Quoi de neuf dans ta bande », menu « Retirer de « Quoi de neuf » »
   - « What's new » est déjà pris par « Les nouveautés » de l'app. Le titre suit le choix de « Ma bande » : avec « gang » ou « friends », ce serait « Latest from your friends ». « Retirer de « Quoi de neuf » » → « Remove from Crew news ».
