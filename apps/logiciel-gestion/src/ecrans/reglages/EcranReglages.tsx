@@ -15,6 +15,7 @@ import { CarteMiseAJour } from "./CarteMiseAJour.tsx";
 import { CarteApparence } from "./CarteApparence.tsx";
 import { CarteReponsesTypes } from "./CarteReponsesTypes.tsx";
 import type { ChoixTheme } from "~/stockage/reglages-poste.ts";
+import { TEXTES_POSTES } from "~/contenus/postes.ts";
 import { CarteVerrouillage } from "./CarteVerrouillage.tsx";
 
 type Props = {
@@ -81,6 +82,7 @@ export function EcranReglages({ coffre, onCoffreChange, onOublierPoste, minutesV
             Sur le serveur, lance <code className="rounded bg-creme px-1.5 py-0.5 text-[13px]">npm run gestion:autoriser -- --retirer {coffre.idPoste}</code> :
             ce poste est coupé dans la seconde. Pour changer aussi le code à 6 chiffres : <code className="rounded bg-creme px-1.5 py-0.5 text-[13px]">npm run gestion:autoriser -- --nouveau-code</code>.
           </p>
+          <p className="mt-2 text-sm">{TEXTES_POSTES.depuisReglages}</p>
           <Bouton variante="danger" icone={Trash2} className="mt-4" onClick={() => window.confirm("Effacer la clé de ce PC ? Il faudra en recréer une et l'autoriser à nouveau sur le serveur.") && onOublierPoste()}>
             Effacer la clé de ce PC
           </Bouton>

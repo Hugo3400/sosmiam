@@ -77,5 +77,6 @@ export const TEXTES_POSTES = {
   annuler: "Annuler",
   coupe: (nom: string) => `« ${nom} » est coupé.`,
   actualiser: "Actualiser",
+  depuisReglages: "Depuis un autre PC, tu peux aussi le couper dans Sécurité → PC autorisés.",
   pasBranche: "Pas encore branché sur le serveur : cet écran marchera après le prochain redémarrage de l'API.",
 } as const;

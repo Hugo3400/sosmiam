@@ -52,7 +52,7 @@ import { configurerClient, definirSession, surPosteRefuse, surSessionPerdue } fr
 import { couperPoste } from "~/services/postes.ts";
 import { definirCleCoffre, fermerSession } from "~/services/session.ts";
 import { oublierSessionLocale } from "~/stockage/session-locale.ts";
-import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
+import { estPassageFini, lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { oublierDeverrouillageRetenu } from "~/stockage/deverrouillage-retenu.ts";
 import { deverrouillageRetenuValable } from "~/services/deverrouillage.ts";
 import { ecrireMinutesVerrou, lireMinutesVerrou } from "~/stockage/reglages-poste.ts";
@@ -181,7 +181,10 @@ export function Application() {
           setCleEnMemoire(true);
           setPhase("connecte");
         }}
-        onRevoirAutorisation={() => setPhase("autorisation")}
+        onRevoirAutorisation={() => {
+          setPosteCoupe(estPassageFini(coffre));
+          setPhase("autorisation");
+        }}
         onOublierPoste={oublierCePc}
       />
     );
