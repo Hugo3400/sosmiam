@@ -10,6 +10,7 @@ import { estNotificationUrgente } from "~/fonctions/notifications/est-notificati
 import { lireLienNotification } from "~/fonctions/notifications/lire-lien-notification";
 import { lireModeDuLien } from "~/fonctions/notifications/lire-mode-du-lien";
 import { utiliserAppareilPush } from "~/hooks/utiliser-appareil-push";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRenvoiChoixOffres } from "~/hooks/utiliser-renvoi-choix-offres";
@@ -96,6 +97,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
   const { pret, connecte } = utiliserSession();
   const { profil } = utiliserProfil();
   const { inscrire } = utiliserAppareilPush();
+  const { langue } = utiliserLangue();
   const modes = utiliserModes();
   const modesActuels = useRef(modes);
   const [lienEnAttente, setLienEnAttente] = useState<string | null>(null);
@@ -116,7 +118,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
       actif = false;
     };
     // connecte : une connexion lie le téléphone au compte, une déconnexion l'en délie
-  }, [pret, connecte, avecProfil, inscrire]);
+  }, [pret, connecte, avecProfil, inscrire, langue]);
 
   useEffect(() => {
     if (Platform.OS === "web" || !pileAffichee) return;

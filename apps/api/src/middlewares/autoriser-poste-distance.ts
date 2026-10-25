@@ -46,7 +46,7 @@ function lireDemande(corps: unknown): Demande | null {
   const cle = Buffer.from(clePublique, "base64url");
   if (cle.length !== 32 || cle.toString("base64url") !== clePublique) return null;
   if (typeof duree !== "string" || !Object.hasOwn(DUREES_POSTE_DISTANCE, duree)) return null;
-  const propre = nom.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  const propre = nom.replace(/\s+/g, " ").replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim().slice(0, 40);
   if (!propre || motDePasse.length === 0 || motDePasse.length > 256 || code.length > 12) return null;
   return { clePublique: new Uint8Array(cle), nom: propre, duree: duree as DureePosteDistance, motDePasse, code };
 }

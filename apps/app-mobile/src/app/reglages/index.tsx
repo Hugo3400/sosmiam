@@ -5,20 +5,25 @@ import { Alert, Linking, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ADRESSE_PAGE_PREVENTION } from "@sos-miam/commun/contenus/prevention-alcool";
+import { LANGUES_OUVERTES_APP } from "@sos-miam/commun/regles/langues";
 import { Annonce } from "~/composants/interface/Annonce";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { ChoixApparence } from "~/composants/reglages/ChoixApparence";
+import { ChoixLangue } from "~/composants/reglages/ChoixLangue";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
+import { TEXTES_LANGUE_PAR_LANGUE } from "~/contenus/textes-langue";
 import { TEXTES_PARAMETRES as T } from "~/contenus/textes-parametres";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
@@ -35,6 +40,8 @@ function ouvrirLien(adresse: string) {
 export default function Parametres() {
   const router = useRouter();
   const { reglage: reglageApparence } = utiliserTheme();
+  const { reglage: reglageLangue } = utiliserLangue();
+  const TL = utiliserTextes(TEXTES_LANGUE_PAR_LANGUE);
   const { profil } = utiliserProfil();
   const communaute = utiliserCommunaute();
   const suivisPersonnes = utiliserSuivisPersonnes();
@@ -126,6 +133,12 @@ export default function Parametres() {
         <SectionReglages titre={T.apparence.titre} section="parametres-apparence" resume={T.apparence.resume[reglageApparence]}>
           <ChoixApparence />
         </SectionReglages>
+
+        {LANGUES_OUVERTES_APP.length > 1 || demo.possible ? (
+          <SectionReglages titre={TL.titre} section="parametres-langue" resume={TL.resume[reglageLangue]}>
+            <ChoixLangue apercu={!LANGUES_OUVERTES_APP.includes("en")} />
+          </SectionReglages>
+        ) : null}
 
         <SectionReglages titre={T.securite.titre} section="parametres-securite" resume={resumeSecurite}>
           <LigneReglage

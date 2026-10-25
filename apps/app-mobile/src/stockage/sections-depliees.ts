@@ -7,6 +7,7 @@ export type IdSectionPliable =
   | "collection"
   | "parametres-compte"
   | "parametres-apparence"
+  | "parametres-langue"
   | "parametres-securite"
   | "parametres-vie"
   | "parametres-aide"
@@ -22,6 +23,7 @@ const DEPLIEES_PAR_DEFAUT: Record<IdSectionPliable, boolean> = {
   collection: true,
   "parametres-compte": true,
   "parametres-apparence": false,
+  "parametres-langue": false,
   "parametres-securite": true,
   "parametres-vie": true,
   "parametres-aide": true,

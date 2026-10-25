@@ -15,6 +15,7 @@ import { FournisseurPositionActuelle } from "~/composants/explorer/FournisseurPo
 import { FournisseurActivite } from "~/composants/fil/FournisseurActivite";
 import { FournisseurPublications } from "~/composants/fil/FournisseurPublications";
 import { FournisseurInvite } from "~/composants/invite/FournisseurInvite";
+import { FournisseurLangue } from "~/composants/langue/FournisseurLangue";
 import { FournisseurModes } from "~/composants/modes/FournisseurModes";
 import { FournisseurNotifications } from "~/composants/notifications/FournisseurNotifications";
 import { FournisseurCommunaute } from "~/composants/potes/FournisseurCommunaute";
@@ -47,6 +48,7 @@ export default function RacineApp() {
 
   return (
     <FournisseurTheme>
+    <FournisseurLangue>
     {/* La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert */}
     <FournisseurSession>
     <FournisseurProfil>
@@ -88,6 +90,7 @@ export default function RacineApp() {
       </FournisseurActivite>
     </FournisseurProfil>
     </FournisseurSession>
+    </FournisseurLangue>
     </FournisseurTheme>
   );
 }

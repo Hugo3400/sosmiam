@@ -12,6 +12,7 @@ import { observerCompteLimite } from "~/fonctions/compte/observer-compte-limite"
 import { ContexteSession, type ValeurSession } from "~/hooks/utiliser-session";
 import { ADRESSE_API } from "~/services/adresse-api";
 import { signalerCompteLimite } from "~/services/refus-compte-limite";
+import { lireLangueActuelle } from "~/services/langue-actuelle";
 import { VERSION_INSTALLEE } from "~/services/version-installee";
 import { oublierCleApercu } from "~/stockage/cle-apercu";
 import { effacerJetonSession, enregistrerJetonSession, lireJetonSession } from "~/stockage/session-compte";
@@ -43,7 +44,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
   const client = useMemo(
     () =>
       observerCompteLimite(
-        creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier(true), versionApp: VERSION_INSTALLEE ?? undefined }),
+        creerClientHttp({ adresse: ADRESSE_API, lireJeton: () => jetonActuel.current, surSessionExpiree: () => void oublier(true), versionApp: VERSION_INSTALLEE ?? undefined, lireLangue: lireLangueActuelle }),
         signalerCompteLimite,
       ),
     [oublier],
