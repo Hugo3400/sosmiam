@@ -97,7 +97,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
         <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">Ta bande est vide</Text>
           <Text className="font-texte text-base leading-6 text-encre">
-            On ne peut prévenir qu'un pote de ta bande. Ajoute tes potes depuis l'onglet Potes ; là, appelle plutôt un proche.
+            On ne peut prévenir qu'un pote de ta bande. Ajoute tes potes depuis l'onglet Communauté ; là, appelle plutôt un proche.
           </Text>
         </View>
       ) : (

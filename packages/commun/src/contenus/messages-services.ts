@@ -296,7 +296,7 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   "qr-invitation": {
     emoji: "👋",
     titre: "C'est le QR d'un pote, pas celui du comptoir",
-    texte: "Pour ajouter un pote, passe par l'onglet Potes.",
+    texte: "Pour ajouter un pote, passe par l'onglet Communauté.",
   },
   "qr-expire": {
     emoji: "⏳",
