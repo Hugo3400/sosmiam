@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { BandeauMiseAJour } from "~/composants/mise-en-page/BandeauMiseAJour.tsx";
 import { BandeauNouveautes } from "~/composants/mise-en-page/BandeauNouveautes.tsx";
+import { BandeauPosteDePassage } from "~/composants/mise-en-page/BandeauPosteDePassage.tsx";
 import { FiletDeSecurite } from "~/composants/interface/FiletDeSecurite.tsx";
 import { BarreLaterale } from "~/composants/mise-en-page/BarreLaterale.tsx";
 import type { Ecran } from "~/contenus/menu.ts";
@@ -16,6 +17,7 @@ import { EcranCommunaute } from "~/ecrans/communaute/EcranCommunaute.tsx";
 import { EcranCarriere } from "~/ecrans/carriere/EcranCarriere.tsx";
 import { EcranChasseAuxBugs } from "~/ecrans/securite/EcranChasseAuxBugs.tsx";
 import { EcranVersionsApp } from "~/ecrans/versions-app/EcranVersionsApp.tsx";
+import { EcranPostes } from "~/ecrans/postes/EcranPostes.tsx";
 import { EcranAnnonces } from "~/ecrans/annonces/EcranAnnonces.tsx";
 import { EcranBigSos } from "~/ecrans/big-sos/EcranBigSos.tsx";
 import { EcranCalendrier } from "~/ecrans/calendrier/EcranCalendrier.tsx";
@@ -46,7 +48,8 @@ import { utiliserAlertesServeur } from "~/hooks/utiliser-alertes-serveur.ts";
 import { utiliserInactivite } from "~/hooks/utiliser-inactivite.ts";
 import { utiliserMiseAJour } from "~/hooks/utiliser-mise-a-jour.ts";
 import { utiliserResumeSemaine } from "~/hooks/utiliser-resume-semaine.ts";
-import { configurerClient, surSessionPerdue } from "~/services/client-gestion.ts";
+import { configurerClient, definirSession, surPosteRefuse, surSessionPerdue } from "~/services/client-gestion.ts";
+import { couperPoste } from "~/services/postes.ts";
 import { definirCleCoffre, fermerSession } from "~/services/session.ts";
 import { oublierSessionLocale } from "~/stockage/session-locale.ts";
 import { lireCoffre, oublierCoffre, type CoffreCle } from "~/stockage/coffre-local.ts";
@@ -61,6 +64,7 @@ export function Application() {
   const [coffre, setCoffre] = useState<CoffreCle | null>(() => lireCoffre());
   const [phase, setPhase] = useState<Phase>(() => (lireCoffre() ? "deverrouillage" : "premier-lancement"));
   const [cleEnMemoire, setCleEnMemoire] = useState(false);
+  const [posteCoupe, setPosteCoupe] = useState(false);
   const [poste, setPoste] = useState("Ce PC");
   const [ecran, setEcran] = useState<Ecran>("tableau-de-bord");
   // Recherche partout (Ctrl+K), et l'élément à ouvrir dans l'écran choisi (un objet neuf à chaque fois)
@@ -95,8 +99,33 @@ export function Application() {
       setCleEnMemoire(true);
       setPhase("deverrouillage");
     });
-    return () => surSessionPerdue(null);
+    surPosteRefuse(() => {
+      setPosteCoupe(true);
+      setCleEnMemoire(true);
+      setPhase("autorisation");
+    });
+    return () => {
+      surSessionPerdue(null);
+      surPosteRefuse(null);
+    };
   }, []);
+
+  function oublierCePc() {
+    oublierCoffre();
+    oublierSessionLocale();
+    oublierDeverrouillageRetenu();
+    definirSession(null);
+    configurerClient(null, null);
+    void definirCleCoffre(null);
+    setCoffre(null);
+    setPosteCoupe(false);
+    setPhase("premier-lancement");
+  }
+
+  async function partirDeCePc() {
+    if (coffre) await couperPoste(coffre.idPoste).catch(() => {});
+    oublierCePc();
+  }
 
   /** Oublie la clé (mot de passe redemandé) ; `fermer` ferme aussi la session (code redemandé). */
   function verrouiller(fermer: boolean) {
@@ -124,7 +153,23 @@ export function Application() {
       />
     );
   }
-  if (phase === "autorisation") return <EcranAutorisation coffre={coffre} onContinuer={() => setPhase("deverrouillage")} />;
+  if (phase === "autorisation") {
+    return (
+      <EcranAutorisation
+        coffre={coffre}
+        coupe={posteCoupe}
+        onConnecte={(nom, misAJour) => {
+          setCoffre(misAJour);
+          setPoste(nom);
+          setPosteCoupe(false);
+          setCleEnMemoire(true);
+          setPhase("connecte");
+        }}
+        onContinuer={() => setPhase("deverrouillage")}
+        onOublierPoste={oublierCePc}
+      />
+    );
+  }
   if (phase === "deverrouillage") {
     return (
       <EcranDeverrouillage
@@ -137,14 +182,7 @@ export function Application() {
           setPhase("connecte");
         }}
         onRevoirAutorisation={() => setPhase("autorisation")}
-        onOublierPoste={() => {
-          oublierCoffre();
-          oublierSessionLocale();
-          oublierDeverrouillageRetenu();
-          configurerClient(null, null);
-          setCoffre(null);
-          setPhase("premier-lancement");
-        }}
+        onOublierPoste={oublierCePc}
       />
     );
   }
@@ -162,6 +200,7 @@ export function Application() {
       <RechercheGlobale ouverte={recherche} onFermer={() => setRecherche(false)} onAller={allerA} />
       <ModaleRaccourcis ouverte={aideClavier} onFermer={() => setAideClavier(false)} />
       <main className="min-w-0 flex-1 overflow-y-auto">
+        <BandeauPosteDePassage coffre={coffre} onPartir={partirDeCePc} />
         <BandeauNouveautes />
         {miseAJour && <BandeauMiseAJour miseAJour={miseAJour} />}
         <div className="mx-auto max-w-[1280px] px-8 py-7">
@@ -192,6 +231,7 @@ export function Application() {
             {ecran === "carriere" && <EcranCarriere onDecision={actualiserAlertes} />}
             {ecran === "chasse-aux-bugs" && <EcranChasseAuxBugs onDecision={actualiserAlertes} />}
             {ecran === "versions-app" && <EcranVersionsApp />}
+            {ecran === "postes" && <EcranPostes />}
             {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
             {ecran === "reglages" && (
               <EcranReglages

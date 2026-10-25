@@ -13,7 +13,9 @@ import { CHOIX_RETENUE, ecrireChoixRetenue, lireChoixRetenue } from "~/stockage/
 import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { aUneSession, configurerClient, ErreurApi } from "~/services/client-gestion.ts";
 import { aUneSessionGardee, definirCleCoffre, ouvrirSession, reprendreSessionGardee } from "~/services/session.ts";
-import type { CoffreCle } from "~/stockage/coffre-local.ts";
+import { TEXTES_AUTORISATION, TEXTES_PASSAGE } from "~/contenus/postes.ts";
+import { formaterDate } from "~/fonctions/texte/formater-date.ts";
+import { estPassageFini, estPosteDePassage, type CoffreCle } from "~/stockage/coffre-local.ts";
 import { CadreConnexion } from "./CadreConnexion.tsx";
 
 type Props = {
@@ -40,6 +42,10 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
     configurerClient(cles.cleSecrete, coffre.idPoste);
     await definirCleCoffre(cles.cleCoffre);
     setCleOuverte(true);
+    if (estPassageFini(coffre)) {
+      onRevoirAutorisation();
+      return true;
+    }
     if (aUneSession()) {
       onConnecte("");
       return true;
@@ -105,11 +111,12 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
 
   return (
     <CadreConnexion titre={cleOuverte ? "Ton code, s'il te plaît" : "Re-bonjour Hugo"} sousTitre={`Poste ${coffre.idPoste}`}>
+      {estPassageFini(coffre) && <p role="status" className="mb-4 rounded-xl bg-jaune-clair px-3 py-2 text-sm font-semibold">{TEXTES_PASSAGE.expire(formaterDate(coffre.expireLe!, true))}</p>}
       <form onSubmit={entrer} className="grid gap-4">
         {!cleOuverte && (
           <Champ libelle="Mot de passe de ce PC" type="password" autoComplete="current-password" autoFocus valeur={motDePasse} onChange={setMotDePasse} />
         )}
-        {!cleOuverte && peutRetenirMotDePasse() && (
+        {!cleOuverte && peutRetenirMotDePasse() && !estPosteDePassage(coffre) && (
           <Selecteur libelle="Retenir le mot de passe sur ce PC" valeur={retenue} onChange={setRetenue} options={CHOIX_RETENUE.map(({ valeur, libelle }) => ({ valeur, libelle }))} className="w-full" />
         )}
         {demanderCode && (
@@ -129,7 +136,7 @@ export function EcranDeverrouillage({ coffre, cleEnMemoire, onConnecte, onRevoir
           <div role="alert" className="rounded-xl bg-rose-alerte px-3 py-2 text-sm font-semibold text-rouge-texte">
             {erreur.texte}
             {erreur.nonAutorise && (
-              <button type="button" onClick={onRevoirAutorisation} className="mt-1 block underline">Revoir la commande d'autorisation</button>
+              <button type="button" onClick={onRevoirAutorisation} className="mt-1 block underline">{TEXTES_AUTORISATION.lienDepuisConnexion}</button>
             )}
           </div>
         )}

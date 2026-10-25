@@ -37,6 +37,7 @@ export const TEXTES_AUTORISATION = {
     copier: "Copier la commande",
     bouton: "C'est fait, je me connecte",
   },
+  lienDepuisConnexion: "Autoriser ce PC",
   effacer: "Effacer ce PC",
   confirmerEffacer: "Effacer la clé de ce PC ? Il faudra en recréer une pour revenir.",
 } as const;
@@ -75,5 +76,6 @@ export const TEXTES_POSTES = {
   confirmer: "Couper ce PC",
   annuler: "Annuler",
   coupe: (nom: string) => `« ${nom} » est coupé.`,
+  actualiser: "Actualiser",
   pasBranche: "Pas encore branché sur le serveur : cet écran marchera après le prochain redémarrage de l'API.",
 } as const;
