@@ -12,6 +12,7 @@ const CHAMPS = {
   prix: true, prixMoyen: true, couleurs: true, horaires: true, ouverture: true, plat: true, tags: true, envies: true, reservable: true,
   telephone: true, siteWeb: true, instagram: true, animaux: true, accessible: true, terrasse: true, wifi: true, enfants: true,
   parking: true, paiements: true, reservation: true, decouvertPar: true, alerte: true, alerteJusqua: true, publieLe: true, note: true,
+  banniere: true, logo: true,
   _count: { select: { rattachements: { where: { statut: "valide" } }, rescousses: true } },
 } as const;
 

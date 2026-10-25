@@ -6,6 +6,8 @@ import { creerControleursEquipe } from "../controleurs/pro-equipe.ts";
 import { creerControleursFichePro } from "../controleurs/pro-fiche.ts";
 import { creerControleursRattachements } from "../controleurs/pro-rattachements.ts";
 import type { ControleMajorite } from "../middlewares/exiger-majeur.ts";
+import { creerRoutesImagesLieu } from "./images-lieu.ts";
+import type { ImagesLieu } from "../services/images-lieu.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 import { gererErreursComptes, type ProtectionComptes } from "../middlewares/proteger-comptes.ts";
 import { creerProtectionPro } from "../middlewares/proteger-pro.ts";
@@ -20,6 +22,8 @@ export const LIMITE_ENREGISTRER_CARTE = { fenetre: 60 * 60_000, maximum: 60 };
 /** Inviter dans son équipe : 20 envois par visiteur et par heure (en plus : 30 essais par gérant et par 24 h, 10
  * invitations par lieu et par 24 h, 30 membres au plus) */
 export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
+
+export const LIMITE_IMAGES_LIEU = { fenetre: 3600_000, maximum: 20 };
 
 /**
  * /pro/… : espace pro (pro.sosmiam.fr), appelé seulement par le serveur du site, avec la session du compte unique
@@ -92,6 +96,8 @@ export const LIMITE_INVITATIONS = { fenetre: 60 * 60_000, maximum: 20 };
  * verraient est refusé, 403 { ok: false, erreur: "compte-limite", details: { jusqua } } (ISO 8601, ou null : jusqu'à
  * nouvel ordre), après les contrôles du lieu et du rôle, et rien n'est fait : PATCH /pro/lieux/:id (fiche publique),
  * PUT /pro/lieux/:id/carte, POST /pro/lieux/:id/equipe (invitation). Lire, chercher, et retirer un membre restent permis.
+ * PUT et DELETE /pro/lieux/:id/banniere et /pro/lieux/:id/logo : contrat dans routes/images-lieu.ts (gérant d'un lieu
+ * vérifié ; bannière image/jpeg 1600 × 500, logo image/png 512 × 512), 20 par heure et par compte ; compte limité : PUT refusé.
  */
 export function creerRoutesPro(
   services: ServicesPro, protection: ProtectionComptes, limiteConnectee: RequestHandler, horloge: () => number = Date.now,
@@ -99,6 +105,7 @@ export function creerRoutesPro(
   majorite: ControleMajorite,
   /** Compte limité : refuse ce qui se voit des autres (middlewares/refuser-si-limite.ts) ; absent : rien n'est refusé */
   refuserSiLimite: RequestHandler = (_requete, _reponse, suite) => suite(),
+  images?: Pick<ImagesLieu, "envoyer" | "retirer" | "lirePublique">,
 ) {
   const exigerRattachement = creerProtectionPro(services);
   const rattachements = creerControleursRattachements(services, horloge);
@@ -118,6 +125,10 @@ export function creerRoutesPro(
   routes.get("/lieux/:id/equipe", exigerRattachement(true), equipe.lister);
   routes.post("/lieux/:id/equipe", limiterRequetes(LIMITE_INVITATIONS), exigerRattachement(true), refuserSiLimite, equipe.inviter);
   routes.delete("/lieux/:id/equipe/:compteId", exigerRattachement(true), equipe.retirer);
+  if (images) {
+    const limiteImages = limiterRequetes({ ...LIMITE_IMAGES_LIEU, cle: (_requete, reponse) => `compte:${lireCompteId(reponse)}` });
+    routes.use(creerRoutesImagesLieu(images, [limiteImages, refuserSiLimite], [limiteImages]));
+  }
   routes.use(gererErreursComptes);
   return routes;
 }

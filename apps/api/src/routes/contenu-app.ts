@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { creerControleursContenuApp, type DependancesContenuApp } from "../controleurs/contenu-app.ts";
+import { creerControleursImagesLieu } from "../controleurs/images-lieu.ts";
 import { limiterRequetes } from "../middlewares/limiter-requetes.ts";
 
 /** Lieux et fil : l'app les lit à l'ouverture et en faisant défiler ; les médias, plusieurs par publication */
@@ -35,6 +36,7 @@ export function creerRoutesContenuApp(dependances: DependancesContenuApp) {
   const c = creerControleursContenuApp(dependances);
   const lectures = limiterRequetes(LIMITE_LECTURES_APP);
   const routes = Router();
+  if (dependances.images) routes.get("/lieux/images/:nom", limiterRequetes(LIMITE_MEDIAS_APP), creerControleursImagesLieu(dependances.images).lire);
   if (dependances.lieux) {
     routes.get("/lieux", lectures, c.listerLieux);
     routes.get("/lieux/code/:code", lectures, c.trouverParCode);

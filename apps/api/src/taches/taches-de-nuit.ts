@@ -30,6 +30,7 @@ import { effacerDemandesQrExpirees } from "../services/connexion-qr.ts";
 import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
 import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts";
 import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
+import { menagerImagesLieu } from "../services/images-lieu-base.ts";
 import { faireLeMenagePhotosAvis } from "../services/menage-photos-avis.ts";
 import { faireLeMenageCommunaute } from "../services/menage-communaute.ts";
 import { decrireBilanMenageCommunaute } from "../fonctions/communaute/decrire-bilan-menage-communaute.ts";
@@ -206,6 +207,15 @@ async function nettoyerPhotosAvis() {
   }
 }
 
+async function nettoyerImagesLieu() {
+  try {
+    const effacees = await menagerImagesLieu();
+    if (effacees > 0) await noterAction("serveur", "Bannières et logos de lieux orphelins effacés (plus de 24 h)", `${effacees} image(s)`);
+  } catch (erreur) {
+    console.error("Ménage des images des lieux impossible :", resumerErreur(erreur));
+  }
+}
+
 async function nettoyerPhotosProfil() {
   try {
     const effacees = await menagerPhotosProfil();
@@ -222,6 +232,7 @@ async function nettoyerPuisSauvegarder() {
   await nettoyerSocial();
   await nettoyerCommunaute();
   await nettoyerPhotosProfil();
+  await nettoyerImagesLieu();
   await nettoyerPhotosAvis();
   await nettoyerCarriere();
   await nettoyerSecurite();

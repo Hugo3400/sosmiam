@@ -4,12 +4,14 @@ import { join } from "node:path";
 import type { Request, Response } from "express";
 
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
+import type { ImagesLieu } from "../services/images-lieu.ts";
 import { FORME_CODE_PUBLIC, type ServicesLieuxApp, type ZoneLieux } from "../services/lieux-app-regles.ts";
 import { PUBLICATIONS_PAR_PAGE, PUBLICATIONS_PAR_PAGE_MAX, type CurseurFil, type ServicesPublicationsApp } from "../services/publications-app-regles.ts";
 
 export type DependancesContenuApp = {
   lieux?: ServicesLieuxApp;
   publications?: ServicesPublicationsApp;
+  images?: Pick<ImagesLieu, "envoyer" | "retirer" | "lirePublique">;
   /** Le dossier des fichiers de médias (DOSSIER_MEDIAS) */
   dossierMedias: string;
   /** Pour les tests : une fausse horloge */

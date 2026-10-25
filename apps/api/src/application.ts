@@ -59,6 +59,9 @@ import { creerRoutesSocialesApp, type DependancesSocialApp } from "./routes/soci
 import { creerRoutesPhotosProfil } from "./routes/photos-profil.ts";
 import { creerRoutesCarriere } from "./routes/carriere.ts";
 import type { ServicesCarrierePublics } from "./services/carriere-regles.ts";
+import type { ImagesLieu } from "./services/images-lieu.ts";
+import { creerRoutesLieuxSite } from "./routes/lieux-site.ts";
+import type { ServicesLieuxSite } from "./services/lieux-site.ts";
 import { poserLangue } from "./middlewares/poser-langue.ts";
 import { creerRoutesSecurite } from "./routes/securite.ts";
 import type { ServicesSecuritePublics } from "./services/securite-regles.ts";
@@ -77,6 +80,7 @@ type Dependances = {
   /** Fiche publique d'un lieu publié, pour sa page sur le site (GET /lieux/publics/:id ; absente si non fournie) */
   lireFichePublique?: (id: number) => Promise<FichePublique | null>;
   lieuxSite?: ServicesLieuxSite;
+  imagesLieuPro?: Pick<ImagesLieu, "envoyer" | "retirer" | "lirePublique">;
   /** Tous les lieux publiés (id et date de modification), pour le plan du site (GET /lieux/plan ; absente si non fournie) */
   listerLieuxDuPlan?: () => Promise<LieuDuPlan[]>;
   /** Un lieu qui demande à être sur SOS Miam, depuis le site (route absente si non fournie) */
@@ -142,7 +146,7 @@ const interdireCache: express.RequestHandler = (_requete, reponse, suite) => {
 export function creerApplication({
   enregistrerInscription, enregistrerVue, enregistrerClic, enregistrerSignalement, trouverCommune, listerLieuxPublics, lireFichePublique,
   enregistrerDemandeLieu, bot, gestion,
-  listerLieuxDuPlan,
+  listerLieuxDuPlan, lieuxSite, imagesLieuPro,
   comptes, espaceAmbassadeur, zones, miamSafe,
   app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
   newsletter, appareilsApp, annoncesApp,
@@ -180,6 +184,7 @@ export function creerApplication({
   }
   application.use("/inscriptions", creerRoutesInscriptions(enregistrerInscription));
   if (trouverCommune) application.use("/localisation", creerRoutesLocalisation(trouverCommune));
+  if (lieuxSite) application.use("/lieux", creerRoutesLieuxSite(lieuxSite));
   if (listerLieuxPublics || lireFichePublique) application.use("/lieux", creerRoutesLieuxPublics(listerLieuxPublics, lireFichePublique));
   if (listerLieuxDuPlan) application.use("/lieux", creerRoutePlanLieux(listerLieuxDuPlan));
   if (enregistrerDemandeLieu) application.use("/demandes-lieux", creerRoutesDemandesLieux(enregistrerDemandeLieu));
@@ -217,7 +222,7 @@ export function creerApplication({
       application.use("/pro/comptoir", routesVisites.comptoir);
     }
     // Espace pro (pro.sosmiam.fr) : même compte, même session
-    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, majorite, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
+    if (comptes.pro) application.use("/pro", creerRoutesPro(comptes.pro, protection, limiteConnectee, comptes.horloge, majorite, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge), imagesLieuPro));
     // Miam Safe : même compte, même session ; le comptoir du lieu passe par les rattachements de l'espace pro
     if (comptes.pro && miamSafe) application.use("/miam-safe", creerRoutesMiamSafe(miamSafe, comptes.pro, protection, limiteConnectee, comptes.horloge, majorite.exigerMajeur));
     // L'activité de l'app (même compte, même session), avant le routeur /app de l'heure et de la version

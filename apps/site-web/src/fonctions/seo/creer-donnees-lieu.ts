@@ -1,3 +1,4 @@
+import { listerRubriquesCarte } from "~/fonctions/carte/lister-rubriques-carte";
 import type { CategorieLieu } from "~/types/lieux";
 import type { FichePublique } from "~/types/pro";
 
@@ -14,8 +15,8 @@ const FOURCHETTE_PRIX = /^€{1,4}$/;
 
 /**
  * Données structurées d'une fiche publique (/lieux/:id) : le type du lieu (Restaurant, BarOrPub, Bakery ou LocalBusiness),
- * son nom, son adresse, son téléphone et ses liens, SEULEMENT ce que la fiche affiche déjà. Pas de note, d'avis ni de position
- * (l'API publique ne les donne pas) ; pas d'image (les fiches n'en ont pas encore).
+ * son nom, son adresse, son téléphone et ses liens, SEULEMENT ce que la fiche affiche déjà. Pas de note ni d'avis
+ * (l'API publique ne les donne pas).
  */
 export function creerDonneesLieu(lieu: FichePublique, adresseFiche: string) {
   const liens = [lieu.siteWeb, lieu.instagram && `https://www.instagram.com/${lieu.instagram}/`].filter(
@@ -39,5 +40,9 @@ export function creerDonneesLieu(lieu: FichePublique, adresseFiche: string) {
     ...(lieu.telephone ? { telephone: lieu.telephone } : {}),
     ...(FOURCHETTE_PRIX.test(lieu.prix) ? { priceRange: lieu.prix } : {}),
     ...(liens.length > 0 ? { sameAs: liens } : {}),
+    ...(lieu.banniere ? { image: new URL(lieu.banniere, adresseFiche).href } : {}),
+    ...(lieu.logo ? { logo: new URL(lieu.logo, adresseFiche).href } : {}),
+    ...(lieu.position ? { geo: { "@type": "GeoCoordinates", latitude: lieu.position.latitude, longitude: lieu.position.longitude } } : {}),
+    ...(lieu.type !== "sortie" && listerRubriquesCarte(lieu.carte).length > 0 ? { hasMenu: `${adresseFiche}/carte` } : {}),
   };
 }

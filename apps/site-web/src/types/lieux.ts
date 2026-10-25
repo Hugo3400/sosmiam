@@ -14,4 +14,7 @@ export type LieuPublic = {
   prix: string;
   couleurs: string[];
   decouvertPar: string | null;
+  logo?: string | null;
 };
+
+export type LieuListe = LieuPublic & { verifie: boolean; sos: { places: number } | null };

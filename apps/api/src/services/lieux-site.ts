@@ -1,4 +1,5 @@
 import { calculerDistanceMetres } from "../../../../packages/commun/src/fonctions/geo/calculer-distance-metres.ts";
+import { ecrireAdresseImageLieu } from "../../../../packages/commun/src/fonctions/lieux/ecrire-adresse-image-lieu.ts";
 import type { LieuApi, PositionLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import { baseDeDonnees } from "../base-de-donnees/connexion.ts";
 import { choisirLieuxAccueil } from "../fonctions/lieux/choisir-lieux-accueil.ts";
@@ -30,7 +31,7 @@ export type ServicesLieuxSite = {
   lireFiche: (id: number, maintenant: Date) => Promise<FicheSite | null>;
 };
 
-const CHAMPS_PUBLICS = { id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true } as const;
+const CHAMPS_PUBLICS = { id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true, logo: true } as const;
 
 const sosEnCours = (maintenant: Date) => ({ arreteLe: null, jusqua: { gt: maintenant } });
 
@@ -40,11 +41,11 @@ const champsListe = (maintenant: Date) => ({
   _count: { select: { rattachements: { where: { statut: "valide" } } } },
 });
 
-type LigneListe = LieuPublic & { sos: { places: number }[]; _count: { rattachements: number } };
+type LigneListe = Omit<LieuPublic, "logo"> & { logo: string | null; sos: { places: number }[]; _count: { rattachements: number } };
 
-const versLieuListe = ({ sos, _count, ...lieu }: LigneListe): LieuListe => {
+const versLieuListe = ({ sos, _count, logo, ...lieu }: LigneListe): LieuListe => {
   const verifie = _count.rattachements > 0;
-  return { ...lieu, verifie, sos: verifie && sos[0] ? { places: sos[0].places } : null };
+  return { ...lieu, logo: verifie ? ecrireAdresseImageLieu(logo) : null, verifie, sos: verifie && sos[0] ? { places: sos[0].places } : null };
 };
 
 const filtreRecherche = ({ ville, type, recherche }: Pick<FiltresListeLieux, "ville" | "type" | "recherche">) => ({

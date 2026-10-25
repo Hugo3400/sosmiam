@@ -1,6 +1,7 @@
 // Un lieu de la base, mis au format de l'app (type LieuApi de packages/commun). Jamais la note interne, le statut ni qui
 // gère le lieu : seulement « vérifié » (au moins un rattachement validé, docs/decisions.md « Lieux vérifiés »), et la source
 // d'une fiche importée (déjà lue dans la note par le service), citée à la fin du texte comme le veut sa licence.
+import { ecrireAdresseImageLieu } from "../../../../../packages/commun/src/fonctions/lieux/ecrire-adresse-image-lieu.ts";
 import type { InfosPratiques } from "../../../../../packages/commun/src/types/infos-pratiques.ts";
 import { JOURS_LIEU_NOUVEAU } from "../../../../../packages/commun/src/regles/lieux-nouveaux.ts";
 import type { CreneauOuverture, EnvieLieu, LieuApi, TypeLieu } from "../../../../../packages/commun/src/types/lieu.ts";
@@ -54,6 +55,8 @@ export type LigneLieuApp = {
   publieLe: Date | null;
   /** D'où viennent le texte et les infos d'une fiche importée (lireSourceLieu sur la note) ; jamais la note elle-même */
   source?: SourceLieu | null;
+  banniere?: string | null;
+  logo?: string | null;
 };
 
 const JOUR_MS = 24 * 60 * 60 * 1000;
@@ -98,6 +101,8 @@ export function presenterLieuApp(l: LigneLieuApp, maintenant: Date): LieuApi {
   const sos = verifie && l.sos && l.sos.jusqua > maintenant ? l.sos : null;
   const alerte = l.alerte && (!l.alerteJusqua || l.alerteJusqua > maintenant) ? l.alerte : null;
   const nouveau = l.publieLe !== null && maintenant.getTime() - l.publieLe.getTime() < JOURS_LIEU_NOUVEAU * JOUR_MS;
+  const banniere = verifie ? ecrireAdresseImageLieu(l.banniere) : null;
+  const logo = verifie ? ecrireAdresseImageLieu(l.logo) : null;
   return {
     id: l.id,
     nom: l.nom,
@@ -125,5 +130,7 @@ export function presenterLieuApp(l: LigneLieuApp, maintenant: Date): LieuApi {
     verifie,
     ...(pratique ? { pratique } : {}),
     ...(l.source ? { source: l.source } : {}),
+    ...(banniere ? { banniere } : {}),
+    ...(logo ? { logo } : {}),
   };
 }

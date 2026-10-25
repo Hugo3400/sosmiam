@@ -3,7 +3,8 @@
 // Les codes des infos pratiques sont ceux de packages/commun/src/types/infos-pratiques.ts (recopiés : le site ne charge
 // pas encore packages/commun).
 import type { CarteLieu } from "~/types/carte";
-import type { CategorieLieu } from "~/types/lieux";
+import type { CategorieLieu, LieuListe } from "~/types/lieux";
+import type { CreneauOuverture, PositionLieu, SosLieu } from "../../../../packages/commun/src/types/lieu.ts";
 import type { SourceLieu } from "../../../../packages/commun/src/types/source-lieu.ts";
 
 /** Le rôle d'un compte dans un lieu : le gérant (il modifie la fiche) ou un membre de l'équipe (il la lit). */
@@ -145,4 +146,12 @@ export type FichePublique = BaseFiche & {
   /** Moment exact de sa dernière mise à jour (ISO 8601), ou null */
   carteMajLe?: string | null;
   source?: SourceLieu | null;
+  banniere?: string | null;
+  logo?: string | null;
+  position?: PositionLieu | null;
+  sos?: SosLieu | null;
+  ouverture?: CreneauOuverture[];
+  etiquettes?: string[];
+  autour?: LieuListe[];
+  lienReservation?: string | null;
 };

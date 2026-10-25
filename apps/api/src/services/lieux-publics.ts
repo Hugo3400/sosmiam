@@ -1,3 +1,4 @@
+import { ecrireAdresseImageLieu } from "../../../../packages/commun/src/fonctions/lieux/ecrire-adresse-image-lieu.ts";
 import { lireSourceLieu } from "../../../../packages/commun/src/fonctions/lieux/lire-source-lieu.ts";
 import type { CarteLieu } from "../../../../packages/commun/src/types/carte.ts";
 import type { SourceLieu } from "../../../../packages/commun/src/types/source-lieu.ts";
@@ -17,16 +18,21 @@ export type LieuPublic = {
   prix: string;
   couleurs: string[];
   decouvertPar: string | null;
+  logo: string | null;
 };
 
 /** Les lieux publiés (statut « publie »), du plus récemment mis à jour au plus ancien, 48 au plus. */
 export async function listerLieuxPublics(): Promise<LieuPublic[]> {
-  return baseDeDonnees.lieu.findMany({
+  const lignes = await baseDeDonnees.lieu.findMany({
     where: { statut: "publie" },
-    select: { id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true },
+    select: {
+      id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true, logo: true,
+      _count: { select: { rattachements: { where: { statut: "valide" } } } },
+    },
     orderBy: { modifieLe: "desc" },
     take: 48,
   });
+  return lignes.map(({ logo, _count, ...lieu }) => ({ ...lieu, logo: _count.rattachements > 0 ? ecrireAdresseImageLieu(logo) : null }));
 }
 
 /** Une fiche publiée pour le plan du site : son identifiant et sa dernière modification */
@@ -57,6 +63,7 @@ export type FichePublique = LieuPublic & {
   parking: boolean | null; paiements: string[]; reservation: string | null;
   estVerifie: boolean;
   source: SourceLieu | null;
+  banniere: string | null;
   /** La carte remplie par le lieu (majLe : « AAAA-MM-JJ »), ou null ; carteMajLe : le moment exact (ISO 8601), ou null */
   carte: CarteLieu | null; carteMajLe: string | null;
 };
@@ -68,12 +75,16 @@ export async function lireFichePublique(id: number): Promise<FichePublique | nul
     select: {
       id: true, nom: true, type: true, emoji: true, info: true, quartier: true, ville: true, prix: true, couleurs: true, decouvertPar: true,
       adresse: true, horaires: true, texte: true, telephone: true, siteWeb: true, instagram: true, animaux: true, accessible: true,
-      terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true, carte: true, carteMajLe: true, note: true,
+      terrasse: true, wifi: true, enfants: true, parking: true, paiements: true, reservation: true, carte: true, carteMajLe: true, note: true, banniere: true, logo: true,
       _count: { select: { rattachements: { where: { statut: "valide" } } } },
     },
   });
   if (!lieu) return null;
-  const { _count, carte: carteGardee, carteMajLe: majLeGarde, note, ...fiche } = lieu;
+  const { _count, carte: carteGardee, carteMajLe: majLeGarde, note, banniere, logo, ...fiche } = lieu;
+  const estVerifie = _count.rattachements > 0;
   const { carte, majLe } = presenterCarte((carteGardee ?? null) as Omit<CarteLieu, "majLe"> | null, majLeGarde);
-  return { ...fiche, estVerifie: _count.rattachements > 0, source: lireSourceLieu(note), carte, carteMajLe: majLe };
+  return {
+    ...fiche, logo: estVerifie ? ecrireAdresseImageLieu(logo) : null, banniere: estVerifie ? ecrireAdresseImageLieu(banniere) : null, estVerifie,
+    source: lireSourceLieu(note), carte, carteMajLe: majLe,
+  };
 }

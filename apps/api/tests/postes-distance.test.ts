@@ -79,7 +79,7 @@ const codeSuivant = () => {
   return calculerCodeTotp(secretTotp, Math.floor(horloge / 30_000));
 };
 const demandeDistance = (poste: Poste, saisie: Partial<{ nom: string; duree: string; motDePasse: string; code: string }> = {}) => ({
-  clePublique: poste.clePublique, nom: "PC de la médiathèque", duree: "passage", motDePasse: MOT_DE_PASSE, code: codeSuivant(), ...saisie,
+  clePublique: poste.clePublique, nom: "PC de la médiathèque", duree: "passage", motDePasse: MOT_DE_PASSE, ...saisie, code: saisie.code ?? codeSuivant(),
 });
 async function autoriser(poste: Poste, saisie: Parameters<typeof demandeDistance>[1] = {}) {
   const reponse = await demander(poste, "POST", "/postes/distance", { corps: demandeDistance(poste, saisie) });
@@ -109,8 +109,8 @@ test("bon mot de passe et bon code : PC autorisé 12 h, session ouverte et mail 
   const session = await demander(passage, "GET", "/session", { session: corps.session });
   assert.equal(session.status, 200);
   assert.equal(((await session.json()) as { expireLe: string }).expireLe, corps.expireLe);
-  assert.equal(alertes.at(-1)?.type, "nouveau-poste");
-  assert.equal(alertes.at(-1)?.type === "nouveau-poste" && alertes.at(-1)?.nom, "PC de la médiathèque");
+  const derniere = alertes.at(-1);
+  assert.equal(derniere?.type === "nouveau-poste" ? derniere.nom : null, "PC de la médiathèque");
 
   horloge += 12 * 3600_000;
   const finie = await demander(passage, "GET", "/session", { session: corps.session });
@@ -159,7 +159,7 @@ test("un PC de passage peut partir tout seul ; 5 PC à distance au plus", async 
 test("pas plus de 2 vérifications de mot de passe à la fois : les suivantes attendent leur tour ailleurs", async () => {
   horloge += 3600_000;
   const intrus = await creerPoste();
-  const statuts = await Promise.all(Array.from({ length: 6 }, (_, i) => autoriser(intrus, { motDePasse: `simultane ${i}` }).then((r) => r.statut)));
+  const statuts = await Promise.all(Array.from({ length: 6 }, (_, i) => autoriser(intrus, { motDePasse: `simultane ${i}`, code: "000000" }).then((r) => r.statut)));
   assert.deepEqual(statuts.filter((statut) => statut === 401).length, 2);
   assert.deepEqual(statuts.filter((statut) => statut === 503).length, 4);
 });

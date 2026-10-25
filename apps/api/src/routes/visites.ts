@@ -93,6 +93,7 @@ export function creerRoutesVisites(
     statistiques: d.statistiques ? creerControleursStatistiques(d.statistiques, roleDe, horloge) : null,
     evenements: d.evenements ? creerControleursEvenementsPro(d.evenements, roleDe, horloge, refuserSiLimite) : null,
     avis: d.avis ? creerControleursAvisPro(d.avis, roleDe, horloge) : null,
+    imagesLieu: d.imagesLieu ?? null,
   };
   const avantComptoir = exigerMajeur ? [...avant, exigerMajeur] : avant;
   const comptoir = creerControleursComptoir(c.comptoir, d.ajouterPoints, refuserSiLimite);

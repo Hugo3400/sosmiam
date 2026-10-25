@@ -7,6 +7,8 @@ import type { creerControleursMomentLieu } from "../controleurs/moment-lieu.ts";
 import type { creerControleursReservationsPro } from "../controleurs/reservations-pro.ts";
 import type { creerControleursStatistiques } from "../controleurs/statistiques-lieu.ts";
 import { gererErreursComptes } from "../middlewares/proteger-comptes.ts";
+import type { ImagesLieu } from "../services/images-lieu.ts";
+import { creerRoutesImagesLieu } from "./images-lieu.ts";
 
 /** L'écran du comptoir se relit toutes les 5 s (et le programme, les lieux), par compte */
 export const LIMITE_LECTURES_COMPTOIR = { fenetre: 10 * 60_000, maximum: 600 };
@@ -163,11 +165,12 @@ export type ControleursComptoirEnPlus = {
   statistiques: ReturnType<typeof creerControleursStatistiques> | null;
   evenements: ReturnType<typeof creerControleursEvenementsPro> | null;
   avis: ReturnType<typeof creerControleursAvisPro> | null;
+  imagesLieu: Pick<ImagesLieu, "envoyer" | "retirer" | "lirePublique"> | null;
 };
 
 export function creerRoutesComptoir(
   c: ReturnType<typeof creerControleursComptoir>,
-  { moment, reservations, statistiques, evenements, avis }: ControleursComptoirEnPlus,
+  { moment, reservations, statistiques, evenements, avis, imagesLieu }: ControleursComptoirEnPlus,
   avant: RequestHandler[],
   parCompte: (r: { fenetre: number; maximum: number }) => RequestHandler,
   /** Compte limité : 403 compte-limite sur ce que le lieu publie pour les autres (middlewares/refuser-si-limite.ts) ; le
@@ -214,6 +217,7 @@ export function creerRoutesComptoir(
     routes.get("/lieux/:id/avis", lectures, avis.lister);
     routes.post("/avis/:avisId/reponse", gestes, refuserSiLimite, avis.repondre);
   }
+  if (imagesLieu) routes.use(creerRoutesImagesLieu(imagesLieu, [gestes, refuserSiLimite], [gestes]));
   routes.use(gererErreursComptes);
   return routes;
 }

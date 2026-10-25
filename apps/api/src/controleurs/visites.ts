@@ -17,6 +17,7 @@ import type { ServicesMomentLieu } from "../services/moment-lieu-regles.ts";
 import type { ServicesEvenements } from "../services/evenements-regles.ts";
 import type { ServicesStatistiquesLieu } from "../services/statistiques-lieu-regles.ts";
 import type { DependancesAvis } from "./avis.ts";
+import type { ImagesLieu } from "../services/images-lieu.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 
 export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
@@ -31,6 +32,7 @@ export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
   /** Avis vus du comptoir (routes /pro/comptoir/lieux/:id/avis et /pro/comptoir/avis/:avisId/reponse ; absentes si non fourni) */
   avis?: Pick<DependancesAvis, "depot">;
   prevenirCompte?: PrevenirCompte;
+  imagesLieu?: Pick<ImagesLieu, "envoyer" | "retirer" | "lirePublique">;
 };
 
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */

@@ -34,7 +34,7 @@ test("sans lieu publié, la liste est vide (et ce n'est pas une erreur)", async 
 
 test("les lieux publiés sont renvoyés tels que le service les donne", async () => {
   lieux = [{ id: 3, nom: "Le Petit Comptoir", type: "resto", emoji: "🍲", info: "Bistrot", quartier: "Écusson", ville: "Montpellier",
-    prix: "€€", couleurs: ["#FF6B5B", "#C9184A"], decouvertPar: "Léa" }];
+    prix: "€€", couleurs: ["#FF6B5B", "#C9184A"], decouvertPar: "Léa", logo: null }];
   assert.deepEqual(await (await fetch(`${adresse}/lieux`)).json(), { ok: true, lieux });
 });
 

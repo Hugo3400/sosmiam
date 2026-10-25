@@ -9,7 +9,7 @@ import { lireListeInscrits } from "../gestion/boite-mail.ts";
 import { creerAdresseDesinscriptionUnClic, creerLienDesinscription } from "../liens-desinscription.ts";
 import { expedierCourriel, type ExpedierCourriel, type MessageCourriel } from "./expedier-courriel.ts";
 import { lireReglagesEnvoi, type EtatReglagesEnvoi } from "./reglages-envoi.ts";
-import { annoncerRelance, creerRelancesEnvois, prochaineRelance } from "./relances-envois.ts";
+import { annoncerRelance, arreterAnnonceRelance, creerRelancesEnvois, estAnnonceDeRelance, prochaineRelance } from "./relances-envois.ts";
 
 const UNE_HEURE = 3600_000;
 /** Au plus tant de mails par passage (toutes les 20 s), même si la limite horaire le permettrait */
@@ -22,6 +22,8 @@ export type ContenuEnvoi = { objet: string; html: string; texte: string };
 /** Problème de réglages vu au dernier passage (identifiants refusés…), effacé au premier envoi réussi */
 let problemeReglages: { message: string; moment: Date } | null = null;
 let passageEnCours = false;
+const DEMARRAGE = new Date();
+let relancesCoupeesMarquees = false;
 
 /** Ce qu'on peut garder d'une erreur de serveur mail : sa réponse (« 550 … »), jamais le contenu du mail. */
 function decrireErreur(erreur: unknown): string {
@@ -37,6 +39,16 @@ const relances = creerRelancesEnvois({
   },
 });
 
+async function marquerRelancesCoupees(maintenant: Date) {
+  const lignes = await baseDeDonnees.envoiCourriel.findMany({
+    where: { statut: "echec", creeLe: { gte: new Date(maintenant.getTime() - UNE_HEURE), lt: DEMARRAGE }, erreur: { contains: "nouvel essai à" } },
+    select: { id: true, erreur: true },
+  });
+  for (const ligne of lignes) {
+    if (estAnnonceDeRelance(ligne.erreur)) await baseDeDonnees.envoiCourriel.update({ where: { id: ligne.id }, data: { erreur: arreterAnnonceRelance(ligne.erreur!) } });
+  }
+}
+
 /** Met un mail dans la file : il part au prochain passage (dans 20 secondes au plus, selon la limite horaire). */
 export async function mettreEnFile(type: string, destinataire: string, contenu: ContenuEnvoi) {
   return baseDeDonnees.envoiCourriel.create({ data: { type, destinataire: destinataire.trim().toLowerCase(), ...contenu } });
@@ -49,6 +61,10 @@ export async function traiterFileCourriels({ expedier = expedierCourriel, lireRe
   if (passageEnCours) return 0;
   passageEnCours = true;
   try {
+    if (!relancesCoupeesMarquees) {
+      relancesCoupeesMarquees = true;
+      await marquerRelancesCoupees(maintenant).catch(() => {});
+    }
     const { reglages } = await lireReglages();
     if (!reglages) return 0;
     const dejaEnvoyes = await baseDeDonnees.envoiCourriel.count({ where: { statut: "envoye", envoyeLe: { gte: new Date(maintenant.getTime() - UNE_HEURE) } } });

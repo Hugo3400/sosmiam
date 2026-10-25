@@ -47,6 +47,7 @@ import { lireProfil, modifierProfil, pseudoEstPris } from "./services/comptes-pr
 import { lireVersionApp } from "./fonctions/texte/lire-version-app.ts";
 import { DOSSIER_MEDIAS } from "./services/gestion/medias.ts";
 import { creerLieuxApp } from "./services/lieux-app.ts";
+import { creerLieuxSite } from "./services/lieux-site.ts";
 import { creerPublicationsApp } from "./services/publications-app.ts";
 import { creerActivite } from "./services/activite.ts";
 import { creerDepotVisites } from "./services/visites.ts";
@@ -58,6 +59,7 @@ import { creerEvenements } from "./services/evenements.ts";
 import { creerDepotAvis } from "./services/avis.ts";
 import { citationsPhotosAvis } from "./services/citations-photos-avis.ts";
 import { creerPhotosAvis } from "./services/photos-avis.ts";
+import { creerImagesLieuEnLigne } from "./services/images-lieu-base.ts";
 import { creerStockagePhotosAvis } from "./services/stockage-photos-avis.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
 import { brancherApercusPush, creerApercusPush } from "./services/notifications/apercus-push.ts";
@@ -118,6 +120,7 @@ brancherRechiffrementDeNuit(chiffrement);
 const evenements = creerEvenements();
 const depotAvis = creerDepotAvis();
 const photosAvis = creerPhotosAvis({ stockage: creerStockagePhotosAvis(), citations: citationsPhotosAvis });
+const imagesLieu = creerImagesLieuEnLigne();
 // Défis et badges automatiques : recomptés après chaque ajout de points des autres domaines (sans les faire attendre ni
 // échouer) et à chaque lecture des défis ; leurs propres points sont posés avec la réussite, dans la même transaction
 const defis = creerDefis({ ajouterPointsDans, donnerBadge });
@@ -197,6 +200,8 @@ const serveur = creerApplication({
   trouverCommune,
   listerLieuxPublics,
   lireFichePublique,
+  imagesLieuPro: imagesLieu,
+  lieuxSite: creerLieuxSite({ lireFichePublique, lireLieuApp: (id, maintenant) => creerLieuxApp().lireLieu(id, maintenant) }),
   listerLieuxDuPlan,
   enregistrerDemandeLieu,
   bot: { enregistrerDemandeLieu, listerAnnoncesAPublier, noterPublicationAnnonce },
@@ -268,6 +273,7 @@ const serveur = creerApplication({
   // Adresse publique des médias du fil, telle que l'app la lit (SOS_MIAM_ADRESSE_MEDIAS, par défaut celle de api.sosmiam.fr)
   contenuApp: {
     lieux: creerLieuxApp(),
+    images: imagesLieu,
     publications: creerPublicationsApp((fichier) => `${adresseMedias}/${fichier}`),
     dossierMedias: DOSSIER_MEDIAS,
   },
@@ -277,7 +283,7 @@ const serveur = creerApplication({
   visitesApp: {
     depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
     lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints: ajouterPointsEtDefis, moment: creerMomentLieu(),
-    statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis }, prevenirCompte,
+    statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis }, prevenirCompte, imagesLieu,
   },
   // Vues des fiches dans l'app : un compteur par lieu et par jour ; les visiteurs ne sont reconnus qu'en mémoire, jusqu'à minuit
   vuesLieux: { services: creerVuesLieux() },

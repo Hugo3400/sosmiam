@@ -2,6 +2,7 @@
 // viennent de packages/commun (types/carte.ts, regles/carte-du-lieu.ts, validation/valider-carte-du-lieu.ts), importés
 // tels quels : jamais recopiés. Ici, seulement le brouillon du formulaire.
 export type { CarteLieu, ElementCarte, EtiquetteCarte, SectionCarte } from "../../../../packages/commun/src/types/carte.ts";
+import type { ElementCarte, EtiquetteCarte } from "../../../../packages/commun/src/types/carte.ts";
 
 /** Un plat tel qu'il est tapé dans le formulaire : du texte (le prix aussi, « 12,50 »), pas encore vérifié */
 export type BrouillonElement = {
@@ -21,3 +22,7 @@ export type BrouillonCarte = { sections: BrouillonSection[] };
 
 /** Où mettre le focus après un geste : un champ (par son nom) ou un bouton (par son id) */
 export type FocusCarte = { champ: string } | { bouton: string } | null;
+
+export type RubriqueCarte = { id: string; titre: string; elements: ElementCarte[]; alcool: boolean };
+
+export type FiltreCarte = EtiquetteCarte | "sans-alcool";

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { annoncerRelance, creerRelancesEnvois, DELAIS_RELANCE_MS, type EtatRelance } from "../src/services/courriels/relances-envois.ts";
+import { annoncerRelance, arreterAnnonceRelance, creerRelancesEnvois, DELAIS_RELANCE_MS, estAnnonceDeRelance, type EtatRelance } from "../src/services/courriels/relances-envois.ts";
 
 const temporaire = () => Object.assign(new Error("421 trop de connexions"), { responseCode: 421 });
 const definitif = () => Object.assign(new Error("550 adresse inconnue"), { responseCode: 550 });
@@ -108,4 +108,13 @@ test("annonce : heure de Paris, message coupé pour tenir dans le journal", () =
   assert.equal(annoncerRelance("421 occupé", Date.UTC(2026, 11, 24, 19, 30)), "421 occupé · nouvel essai à 20:30");
   assert.ok(annoncerRelance("x".repeat(500), Date.now()).length <= 300);
   assert.equal(annoncerRelance("x".repeat(500), null).length, 300);
+});
+
+test("après un redémarrage, une relance annoncée devient « relances arrêtées »", () => {
+  const annonce = annoncerRelance("421 Service indisponible", Date.parse("2026-10-25T09:30:00Z"));
+  assert.equal(estAnnonceDeRelance(annonce), true);
+  assert.equal(arreterAnnonceRelance(annonce), "421 Service indisponible · relances arrêtées par un redémarrage du serveur");
+  assert.equal(estAnnonceDeRelance(arreterAnnonceRelance(annonce)), false);
+  assert.equal(estAnnonceDeRelance("550 Adresse inconnue"), false);
+  assert.equal(estAnnonceDeRelance(null), false);
 });

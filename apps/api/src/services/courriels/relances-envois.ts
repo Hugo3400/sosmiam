@@ -31,6 +31,14 @@ export function annoncerRelance(message: string, prochainLe: number | null): str
   return prochainLe === null ? message.slice(0, 300) : `${message.slice(0, 240)} · nouvel essai à ${HEURE_PARIS.format(prochainLe)}`;
 }
 
+const ANNONCE_RELANCE = / · nouvel essai à \d{2}:\d{2}$/;
+
+export const estAnnonceDeRelance = (erreur: string | null) => erreur !== null && ANNONCE_RELANCE.test(erreur);
+
+export function arreterAnnonceRelance(erreur: string): string {
+  return erreur.replace(ANNONCE_RELANCE, " · relances arrêtées par un redémarrage du serveur");
+}
+
 export function creerRelancesEnvois({ noter, decrire, planifier = planifierMinuteur, horloge = Date.now }: DependancesRelances) {
   const enCours = new Map<string, { jeton: symbol; tache: Tache }>();
 
