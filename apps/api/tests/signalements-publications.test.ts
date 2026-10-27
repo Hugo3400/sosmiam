@@ -31,7 +31,7 @@ async function signaler(jeton?: string, raison = "choquant") {
     body: JSON.stringify({ publicationId: "42", lieuId: 7, raison, precision: null, explication: "" }),
   });
   const dernier = recus.at(-1);
-  return { statut: reponse.status, masquage: dernier && dernier.cible !== "image-lieu" ? dernier.masquageAutorise : undefined };
+  return { statut: reponse.status, masquage: dernier && "masquageAutorise" in dernier ? dernier.masquageAutorise : undefined };
 }
 
 async function creerCompte(email: string, { confirme, ageJours }: { confirme: boolean; ageJours: number }) {
@@ -64,4 +64,24 @@ test("masquage immédiat seulement par un compte au mail confirmé, de 7 jours a
   assert.deepEqual(await signaler(limite.jeton), { statut: 201, masquage: false });
   assert.deepEqual(await signaler("a".repeat(43)), { statut: 201, masquage: false }, "session inconnue : reçu comme anonyme");
   assert.ok(recus.every((s) => !("compteId" in s) && !("signaleParId" in s)), "jamais qui a signalé");
+});
+
+async function signalerActus(corps: Record<string, unknown>) {
+  return fetch(`${adresse}/signalements`, {
+    method: "POST",
+    headers: { "X-IP-Visiteur": `visiteur-${++visiteur}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ raison: "vie-privee", precision: null, explication: "", ...corps }),
+  });
+}
+
+test("signaler un article des Actus ou la réponse d'un lieu : la forme est vérifiée, la source gardée", async () => {
+  assert.equal((await signalerActus({ cible: "article-actu", articleId: 12, source: "site" })).status, 201);
+  assert.deepEqual(recus.at(-1), { cible: "article-actu", articleId: 12, lieuId: null, raison: "vie-privee", precision: null, explication: "", signaleParId: null, source: "site" });
+  assert.equal((await signalerActus({ cible: "reponse-actu", articleId: 12, lieuId: 3 })).status, 201);
+  assert.deepEqual(recus.at(-1), { cible: "reponse-actu", articleId: 12, lieuId: 3, raison: "vie-privee", precision: null, explication: "", signaleParId: null, source: "app" });
+  const avant = recus.length;
+  assert.equal((await signalerActus({ cible: "article-actu", articleId: "12" })).status, 400);
+  assert.equal((await signalerActus({ cible: "reponse-actu", articleId: 12 })).status, 400);
+  assert.equal((await signalerActus({ cible: "article-actu", articleId: 12, raison: "pas-une-raison" })).status, 400);
+  assert.equal(recus.length, avant);
 });

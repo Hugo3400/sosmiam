@@ -4,6 +4,7 @@ import type { NouvelleNotificationCloche } from "../../src/services/effets-socia
 import { creerActusAuteur } from "../../src/services/actus-auteur.ts";
 import { creerActusLecture } from "../../src/services/actus-lecture.ts";
 import { creerActusPro } from "../../src/services/actus-pro.ts";
+import { enregistrerSignalementActus } from "../../src/services/actus-signalements.ts";
 import { ajouterPointsDans } from "../../src/services/comptes.ts";
 import { listerActusARelire } from "../../src/services/gestion/actus-a-relire.ts";
 import { brancherActusGestion, creerActusGestion } from "../../src/services/gestion/actus-gestion.ts";
@@ -166,6 +167,28 @@ await essai.sql("UPDATE articles_actus SET fin_le = '2026-10-20' WHERE id = $1",
 egal((await lecture.lister({ rubrique: "bon-plan", ville: null, curseur: null, avecAlcool: true, compteId: null })).articles.length, 0, "un bon plan terminé se range tout seul");
 vrai(await lecture.lire(ID4, true, null), "mais reste lisible par son adresse");
 egal(await gestion.compter(), 1, "compteur du logiciel : l'article revenu en relecture");
+
+const signaler = (cible: "article-actu" | "reponse-actu", articleId: number, signaleParId: number, lieuId: number | null = null) =>
+  enregistrerSignalementActus({ cible, articleId, lieuId, raison: "vie-privee", precision: null, explication: "", signaleParId, source: "app" }, base);
+await essai.sql("UPDATE articles_actus SET alcool = false WHERE id = $1", [ID1]);
+egal(await signaler("article-actu", ID1, LEA), "enregistre", "un article publié se signale");
+egal(await signaler("article-actu", ID1, LEA), "deja-signale", "une fois par personne tant qu'il est ouvert");
+egal(await signaler("article-actu", ID3, LEA), "introuvable", "un article pas encore publié ne se signale pas");
+const signale = await base.signalement.findFirstOrThrow({ where: { cible: "article-actu", cibleId: String(ID1), raison: "vie-privee" } });
+egal([signale.statut, signale.auteurContenuId, signale.signaleParId, signale.lieuId], ["a-traiter", ZOE, LEA, RESTO], "le signalement attend la modération, au nom de l'autrice");
+vrai(await deciderSignalement(signale.id, { decision: "retenu", note: null, motif: "vie-privee", motivation: "Une personne est reconnaissable." }, undefined, new Date(MAINTENANT)), "la modération retient le signalement");
+egal((await base.articleActus.findUniqueOrThrow({ where: { id: ID1 }, select: { statut: true, aLaUne: true } })), { statut: "retire", aLaUne: false }, "l'article est retiré, et quitte la une");
+egal(await lecture.lire(ID1, true, LEA), null, "il ne se lit plus");
+egal((await auteur.mesArticles(ZOE)).articles.find((a) => a.id === ID1)?.statut, "retire", "Mes articles le montre retiré");
+await essai.sql("UPDATE signalements SET conteste_le = $1, contestation = $2 WHERE id = $3", [new Date(MAINTENANT), "La personne est d'accord.", signale.id]);
+vrai(await deciderSignalement(signale.id, { decision: "rejete", note: null, motif: null, motivation: "Accord vérifié." }, undefined, new Date(MAINTENANT)), "la contestation donne raison à l'autrice");
+egal((await base.articleActus.findUniqueOrThrow({ where: { id: ID1 }, select: { statut: true } })).statut, "publie", "l'article revient en ligne");
+egal(await signaler("reponse-actu", ID1, LEA, RESTO), "enregistre", "la réponse d'un lieu se signale");
+egal(await signaler("reponse-actu", ID1, LEA, BAR), "introuvable", "pas de réponse de ce lieu : rien à signaler");
+const signaleReponse = await base.signalement.findFirstOrThrow({ where: { cible: "reponse-actu", statut: "a-traiter" } });
+egal(signaleReponse.auteurContenuId, GERANT, "au nom du gérant qui l'a écrite");
+await deciderSignalement(signaleReponse.id, { decision: "retenu", note: null, motif: "pub-cachee", motivation: "Une promotion déguisée." }, undefined, new Date(MAINTENANT));
+egal((await lecture.lire(ID1, true, LEA))?.reponsesLieux, [], "la réponse retirée disparaît de l'article");
 
 const citees = new Set((await base.articleActus.findMany({ select: { couverture: true, photos: true } })).flatMap((a) => [a.couverture, ...a.photos]));
 const avantMenage = stockage.fichiers.size;

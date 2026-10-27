@@ -30,7 +30,8 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
   const premier = signalements[0]!;
   const avecMedia = signalements.find((s) => s.avecMedia);
   const publication = premier.publication;
-  const cible = CIBLES_MODERATION[premier.cible] ?? { libelle: premier.cible, le: "le contenu", emoji: "❔" };
+  const fiche = CIBLES_MODERATION[premier.cible] ?? { libelle: premier.cible, le: "le contenu", emoji: "❔" };
+  const cible = premier.raison === "relecture" ? fiche : { ...fiche, refus: false, retourRelecture: undefined };
   const urgent = signalements.some((s) => s.urgent && s.statut === "a-traiter");
   // Contestée et pas encore réexaminée : on peut décider à nouveau
   const conteste = !!premier.contesteLe && !premier.reexamineLe;

@@ -21,6 +21,7 @@ export const VUES_ACTUS = [
   { valeur: "a-retoucher", libelle: "En retouche" },
   { valeur: "publies", libelle: "Publiés" },
   { valeur: "refuses", libelle: "Refusés" },
+  { valeur: "retires", libelle: "Retirés" },
 ] as const;
 
 export type VueActus = (typeof VUES_ACTUS)[number]["valeur"];
@@ -35,6 +36,7 @@ export const TEXTES_ACTUS = {
     "a-retoucher": { emoji: "✏️", titre: "Aucun article en retouche" },
     publies: { emoji: "📰", titre: "Aucun article publié pour l'instant" },
     refuses: { emoji: "🙅", titre: "Aucun article refusé" },
+    retires: { emoji: "🧹", titre: "Aucun article retiré après un signalement" },
   },
   liste: "Articles",
   renvoye: "renvoyé après retouche",
@@ -73,6 +75,7 @@ export const TEXTES_ACTUS = {
     retouche: (le: string) => `Renvoyé à l'auteur le ${le}, en attente de sa nouvelle version.`,
     publie: (le: string) => `Publié le ${le}.`,
     refuse: (le: string) => `Refusé le ${le}.`,
+    retire: "Retiré après le signalement d'un Miami. La décision, et la contestation de l'auteur s'il y en a une, sont dans Modération.",
     regle: (libelle: string) => `Règle enfreinte : ${libelle}`,
     contestation: "Contestation de l'auteur",
   },

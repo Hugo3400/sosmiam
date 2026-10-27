@@ -214,7 +214,7 @@ export type SignalementRecu = SignalementPublicationRecu | SignalementImageLieuR
  * (RAISONS_AVEC_MASQUAGE_IMMEDIAT), la publication est suspendue pour tout le monde dès ce premier signalement.
  */
 export async function enregistrerSignalement(signalement: SignalementRecu) {
-  if (signalement.cible === "article-actu" || signalement.cible === "reponse-actu") {
+  if ("articleId" in signalement) {
     await enregistrerSignalementActus(signalement);
     return;
   }
