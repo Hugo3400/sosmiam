@@ -1,8 +1,5 @@
 import { ARTICLES_ACTUS_PAR_SEMAINE, COMMENTAIRE_ACTUS_MAX, PHOTOS_ACTUS_MAX, POINTS_ARTICLE_ACTUS, REPONSE_LIEU_ACTUS_MAX, TEXTE_ACTUS_MAX, TEXTE_ACTUS_MIN, TITRE_ACTUS_MAX, TITRE_ACTUS_MIN } from "../../../../../packages/commun/src/regles/actus.ts";
-import { site } from "~/contenus/legal/informations-legales";
 import type { SectionLegale } from "~/contenus/legal/type-legal";
-
-const lienContact = `[${site.emailContact}](mailto:${site.emailContact})`;
 
 export const sectionActusCgu: SectionLegale = {
   id: "actus",
@@ -19,7 +16,7 @@ export const sectionActusCgu: SectionLegale = {
         `**Le lieu** : un lieu vérifié est prévenu quand un article le cite. Il peut y laisser une réponse publique (${REPONSE_LIEU_ACTUS_MAX} caractères au plus), relue par la Brigade avant de paraître, et signaler l'article.`,
         `**Les lecteurs** : avec un compte, on peut aimer un article, le commenter (${COMMENTAIRE_ACTUS_MAX} caractères au plus, avec les mêmes règles que les [commentaires](#commentaires)) et l'envoyer à un pote ; sans compte, on le lit seulement. Un article publié arrive aussi dans le fil Abonnements de ceux qui te suivent.`,
         `**Ce que ça te rapporte** : ${POINTS_ARTICLE_ACTUS} points par article publié, et des badges (au 1er, au 5e et au 20e article publié). Jamais d'argent.`,
-        `**Tes droits sur ton article** : tu restes l'auteur de ton texte et de tes photos. En l'envoyant, tu nous autorises à l'afficher gratuitement dans l'app et sur sosmiam.fr, tant qu'il est publié. Pour faire retirer un de tes articles, écris-nous à ${lienContact} ; et si tu supprimes ton compte, tes articles partent avec lui.`,
+        `**Tes droits sur ton article** : tu restes l'auteur de ton texte et de tes photos. En l'envoyant, tu nous autorises à l'afficher gratuitement dans l'app et sur sosmiam.fr, tant qu'il est publié. Tu peux supprimer un de tes articles quand tu veux, depuis « Mes articles » dans l'app : il disparaît aussitôt des Actus, et tes points restent. Si tu supprimes ton compte, tes articles partent avec lui.`,
       ],
     },
   ],

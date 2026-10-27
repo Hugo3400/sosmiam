@@ -35,6 +35,7 @@ import { creerControleursSurveillance, type VisitesGestion } from "../controleur
 import { creerControleursValidationLieu } from "../controleurs/gestion/controleurs-validation-lieu.ts";
 import { creerControleursGestion } from "../controleurs/gestion/controleurs-gestion.ts";
 import { creerControleursPostes } from "../controleurs/gestion/controleurs-postes.ts";
+import { creerControleursCompteurs } from "../controleurs/gestion/controleurs-compteurs.ts";
 import { fusionnerAccesGestion } from "../fonctions/securite/fusionner-acces-gestion.ts";
 import { creerAutorisationDistance } from "../middlewares/autoriser-poste-distance.ts";
 import { autoriserOriginesGestion } from "../middlewares/autoriser-origines-gestion.ts";
@@ -85,6 +86,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
     prevenir: (courriel, alerte) => services.prevenirAccesDistance(courriel, alerte),
   });
   const postes = creerControleursPostes({ lireAcces: lireTout, registre, oublierSessionsDuPoste: protection.oublierSessionsDuPoste, noterAction: services.noterAction });
+  const compteurs = creerControleursCompteurs({ lireAcces: lireTout, lireAlertes: () => services.lireAlertes(), noterAction: services.noterAction, horloge: lireHeure });
   const c = creerControleursGestion(services, comptes);
   const a = creerControleursAmbassadeurs(services, comptes);
   const f = creerControleursFondateurs(services, comptes);
@@ -147,6 +149,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
     reponse.download(chemin);
   });
   routes.post("/postes/distance", express.raw({ type: () => true, limit: "8kb" }), distance);
+  routes.get("/compteurs", compteurs.lire);
   routes.use(protection.controlerEnTetes);
   // Corps lu tel quel (la signature porte sur ses octets exacts), seulement une fois les en-têtes contrôlés
   routes.use(express.raw({ type: () => true, limit: TAILLE_MAX_VIDEO + 1024 }));
@@ -161,6 +164,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   });
   routes.get("/postes", postes.lister);
   routes.delete("/postes/:id", postes.couper);
+  routes.post("/compteurs/jeton", compteurs.creerJeton);
 
   routes.get("/tableau-de-bord", c.tableauDeBord);
   routes.get("/alertes", c.alertes);

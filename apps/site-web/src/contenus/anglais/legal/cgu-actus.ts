@@ -1,8 +1,5 @@
 import { ARTICLES_ACTUS_PAR_SEMAINE, COMMENTAIRE_ACTUS_MAX, PHOTOS_ACTUS_MAX, POINTS_ARTICLE_ACTUS, REPONSE_LIEU_ACTUS_MAX, TEXTE_ACTUS_MAX, TEXTE_ACTUS_MIN, TITRE_ACTUS_MAX, TITRE_ACTUS_MIN } from "../../../../../../packages/commun/src/regles/actus.ts";
-import { site } from "~/contenus/legal/informations-legales";
 import type { SectionLegale } from "~/contenus/legal/type-legal";
-
-const lienContact = `[${site.emailContact}](mailto:${site.emailContact})`;
 
 export const sectionActusCguAnglais: SectionLegale = {
   id: "actus",
@@ -19,7 +16,7 @@ export const sectionActusCguAnglais: SectionLegale = {
         `**The venue**: a verified venue is notified when an article mentions it. It can leave a public reply (no more than ${REPONSE_LIEU_ACTUS_MAX} characters), reviewed by the Brigade before it appears, and report the article.`,
         `**Readers**: with an account, people can like an article, comment on it (no more than ${COMMENTAIRE_ACTUS_MAX} characters, with the same rules as [comments](#commentaires)) and send it to a friend; without an account, they can only read it. A published article also appears in the Following feed of the people who follow you.`,
         `**What you get**: ${POINTS_ARTICLE_ACTUS} points per published article, and badges (for your 1st, 5th and 20th published article). Never money.`,
-        `**Your rights over your article**: you remain the author of your text and your photos. By sending it, you allow us to display it free of charge in the app and on sosmiam.fr, for as long as it is published. To have one of your articles removed, email us at ${lienContact}; and if you delete your account, your articles go with it.`,
+        `**Your rights over your article**: you remain the author of your text and your photos. By sending it, you allow us to display it free of charge in the app and on sosmiam.fr, for as long as it is published. You can delete one of your articles whenever you like, from “My stories” in the app: it disappears from News straight away, and you keep your points. If you delete your account, your articles go with it.`,
       ],
     },
   ],

@@ -16,7 +16,7 @@ export function autoriserOriginesGestion(supplementaires = (process.env.ORIGINES
         "Access-Control-Allow-Origin": origine,
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
         "Access-Control-Allow-Headers":
-          "Content-Type, X-Gestion-Poste, X-Gestion-Horodatage, X-Gestion-Nonce, X-Gestion-Session, X-Gestion-Signature",
+          "Content-Type, X-Gestion-Poste, X-Gestion-Horodatage, X-Gestion-Nonce, X-Gestion-Session, X-Gestion-Signature, X-Gestion-Jeton",
         "Access-Control-Max-Age": "600",
         Vary: "Origin",
       });
