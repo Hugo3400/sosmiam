@@ -12,7 +12,10 @@ registerHooks({
   },
 });
 
-const { groupesPiedDePage } = await import("../src/contenus/liens-pied-de-page.ts");
+const { TEXTES_PIED_DE_PAGE } = await import("../src/contenus/liens-pied-de-page.ts");
+const { TEXTES_PAGES_LEGALES } = await import("../src/contenus/legal/liens-legaux.ts");
+const { construireGroupesPiedDePage } = await import("../src/fonctions/navigation/construire-groupes-pied-de-page.ts");
+const groupesPiedDePage = construireGroupesPiedDePage(TEXTES_PIED_DE_PAGE, TEXTES_PAGES_LEGALES, "fr");
 const { pagesIndexees } = await import("../src/contenus/plan-du-site.ts");
 const { documentConfidentialite } = await import("../src/contenus/legal/confidentialite.ts");
 const { documentCgu } = await import("../src/contenus/legal/cgu.ts");

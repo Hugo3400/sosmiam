@@ -9,8 +9,8 @@ export type ArticleARelire = {
   accroche: string;
   paragraphes: string[];
   citation: string | null;
-  couverture: string | null;
-  photos: number;
+  couverture: string;
+  photos: string[];
   lieux: LieuCiteActus[];
   auteur: { id: number; prenom: string; ambassadeur: boolean; ville: string };
   collaboration: boolean;

@@ -1,4 +1,5 @@
 import { appeler, parametres } from "./client-gestion.ts";
+import type { ArticleARelire, ReponseLieuARelire } from "./actus.ts";
 import type { Media } from "./publications.ts";
 
 export type StatutSignalement = "a-traiter" | "retenu" | "rejete";
@@ -48,6 +49,8 @@ export type Signalement = {
   } | null;
   /** Avis ou réponse d'un lieu masqué à la relecture : tel qu'il est en base, pour le réexamen */
   avis?: AvisDecide | null;
+  article?: ArticleARelire | null;
+  reponseActus?: ReponseLieuARelire | null;
 };
 
 export type AvisDecide = {

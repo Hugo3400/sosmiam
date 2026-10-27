@@ -18,6 +18,8 @@ export default [
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
     route("lieux/:id/carte", "routes/public/carte-du-lieu.tsx"),
     route("lieux/:id/signaler-image", "routes/public/signaler-image.tsx"),
+    route("actus", "routes/public/actus.tsx"),
+    route("actus/:id", "routes/public/article-actus.tsx"),
     // QR de vitrine d'un lieu (sosmiam.fr/l/<code>) : redirige vers sa fiche, ou une petite page aimable (noindex)
     route("l/:code", "routes/public/qr-vitrine.tsx"),
     // Lien d'invitation d'un pote (sosmiam.fr/invitation/<pseudo>#c=<code>) : « Ouvre SOS Miam… » (noindex, sans appel à
@@ -146,6 +148,7 @@ export default [
       anglaise("carriere/:id", "routes/public/offre-carriere.tsx"),
       anglaise("securite", "routes/public/securite.tsx"),
       anglaise("lieux", "routes/public/lieux.tsx"),
+      anglaise("actus", "routes/public/actus.tsx"),
     ]),
     layout("routes/public/mise-en-page-legale.tsx", enAnglais("routes/public/mise-en-page-legale.tsx"), [
       anglaise("mentions-legales", "routes/public/mentions-legales.tsx"),

@@ -1,6 +1,6 @@
 import { LienNavigation } from "~/composants/mise-en-page/LienNavigation";
-import { groupesMenu } from "~/contenus/liens-en-tete";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserEnTete } from "~/hooks/utiliser-en-tete";
 
 type Props = {
   /** Début des id des titres : deux menus vivent dans la page (le dialogue, et celui sans JavaScript) */
@@ -21,6 +21,7 @@ const classeLien =
  * phrase, et la page où l'on est (ou la section qu'on lit) surlignée en jaune.
  */
 export function GroupesMenu({ prefixe, sectionVisible, surLien }: Props) {
+  const { groupesMenu } = utiliserEnTete();
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {groupesMenu.map((groupe, position) => {

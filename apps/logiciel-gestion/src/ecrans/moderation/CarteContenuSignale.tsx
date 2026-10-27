@@ -10,6 +10,8 @@ import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { deciderSignalement, type LieuCite, type Signalement } from "~/services/moderation.ts";
+import { ApercuArticleActus } from "~/ecrans/actus/ApercuArticleActus.tsx";
+import { ApercuReponseLieuActus } from "~/ecrans/actus/ApercuReponseLieuActus.tsx";
 import { InstantaneSignale } from "./InstantaneSignale.tsx";
 import { MediaSignale } from "./MediaSignale.tsx";
 import { AvisSignale } from "./AvisSignale.tsx";
@@ -63,7 +65,7 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
         <div className="flex flex-wrap items-center gap-2">
           {urgent && <Badge ton="rouge"><Siren className="size-3.5" aria-hidden /> Masquée pour tous</Badge>}
           <Badge>{signalements.length} signalement{signalements.length > 1 ? "s" : ""}</Badge>
-          {premier.statut !== "a-traiter" && <Badge ton={premier.statut === "retenu" ? "rouge" : "vert"}>{premier.statut === "retenu" ? (cible.remise ? "Remis par défaut" : premier.cible === "avis" || premier.cible === "reponse-avis" ? "Masqué" : "Retiré") : "Remis en ligne"}</Badge>}
+          {premier.statut !== "a-traiter" && <Badge ton={premier.statut === "retenu" ? "rouge" : "vert"}>{premier.statut === "retenu" ? (cible.remise ? "Remis par défaut" : cible.refus ? "Refusé" : premier.cible === "avis" || premier.cible === "reponse-avis" ? "Masqué" : "Retiré") : "Remis en ligne"}</Badge>}
           {conteste && <Badge ton="jaune">Contesté le {formaterDate(premier.contesteLe!)}</Badge>}
         </div>
         {publication ? (
@@ -79,6 +81,10 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
           <p className="text-sm text-gris">Contenu introuvable ({premier.cible} n° {premier.cibleId}) : il a peut-être été supprimé.</p>
         ) : premier.cible === "avis" || premier.cible === "reponse-avis" ? (
           <AvisSignale avis={premier.avis} reponse={premier.cible === "reponse-avis"} />
+        ) : premier.cible === "article-actus" && premier.article ? (
+          <ApercuArticleActus article={premier.article} />
+        ) : premier.cible === "reponse-actus" && premier.reponseActus ? (
+          <ApercuReponseLieuActus reponse={premier.reponseActus} />
         ) : (
           <InstantaneSignale signalement={premier} lieux={lieux} />
         )}
@@ -114,13 +120,14 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
       {aTraiter && (
         <div className="flex flex-col gap-2 lg:w-60">
           <Bouton variante="danger" icone={EyeOff} onClick={() => setDecision("retenu")}>{conteste ? "Maintenir la décision" : cible.remise ? "Remettre par défaut" : `Retirer ${cible.le}`}</Bouton>
-          <Bouton icone={Check} onClick={() => setDecision("rejete")}>{conteste ? (cible.remise ? "Donner raison" : "Remettre en ligne") : urgent && !cible.remise ? "Remettre en ligne" : "Rien à redire"}</Bouton>
+          <Bouton icone={Check} onClick={() => setDecision("rejete")}>{conteste ? (cible.remise || cible.retourRelecture ? "Donner raison" : "Remettre en ligne") : urgent && !cible.remise ? "Remettre en ligne" : "Rien à redire"}</Bouton>
         </div>
       )}
       {decision && (
         <ModaleDecisionModeration
           decision={decision}
           cible={cible}
+          explication={decision === "rejete" && conteste ? cible.retourRelecture : undefined}
           urgent={urgent}
           reexamen={conteste}
           enCours={etat.enCours}

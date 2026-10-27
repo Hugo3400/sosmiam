@@ -2,7 +2,10 @@ import type { ArticleARelire, ReponseLieuARelire } from "~/services/actus.ts";
 
 const lieu = (id: number, nom: string, emoji: string, quartier: string, verifie = true) => ({ id, nom, emoji, quartier, ville: "Montpellier", verifie });
 
-const BASE = { citation: null, couverture: null, collaboration: false, alcool: false, finLe: null, retouche: null, renvoye: false, publieLe: null, refus: null };
+const image = (emoji: string, fond: string) =>
+  `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400"><rect width="640" height="400" fill="${fond}"/><text x="320" y="215" font-size="150" text-anchor="middle" dominant-baseline="middle">${emoji}</text></svg>`)}`;
+
+const BASE = { citation: null, collaboration: false, alcool: false, finLe: null, retouche: null, renvoye: false, publieLe: null, refus: null };
 
 export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
   {
@@ -15,7 +18,8 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
       "On part à 10 h, jumelles autour du cou. Deux heures plus tard, les flamants nous ont ignorés avec beaucoup d'élégance, et nos estomacs ont pris le relais : direction la crêperie du port.",
       "La complète est généreuse, la caramel beurre salé tient toutes ses promesses, et l'accueil est aussi chaleureux que le billig. On repart avec l'envie de revenir au printemps.",
     ],
-    photos: 1,
+    couverture: image("🦩", "#FFD6E0"),
+    photos: [image("🥞", "#FFE8B0")],
     lieux: [lieu(901, "Les étangs", "🦩", "Bord de mer"), lieu(902, "La Crêperie de la Brigade", "🥞", "Port Marianne")],
     auteur: { id: 41, prenom: "Inès", ambassadeur: true, ville: "Montpellier" },
     envoyeLe: "2026-10-26T17:40:00Z",
@@ -32,7 +36,8 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
       "On finit au Salon de thé des Miamis, où le cheesecake du jour se partage (ou pas).",
     ],
     citation: "« Ici, la crème est fouettée à la main, sinon ce n'est pas de la crème. »",
-    photos: 3,
+    couverture: image("🍰", "#FFF1A8"),
+    photos: [image("🥐", "#FFE8B0"), image("🍨", "#D8F3E4"), image("🍫", "#EAD7C7")],
     lieux: [
       lieu(903, "Le Fournil de la Brigade", "🥐", "Comédie"),
       lieu(904, "Glaces Bouiboui", "🍨", "Comédie"),
@@ -53,7 +58,8 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
       "Tous les midis de la semaine, la Trattoria propose des pâtes fraîches du jour, un tiramisu maison et un café. Les portions sont honnêtes et le service rapide, parfait pour une pause déjeuner.",
       "Le chef nous a offert le dessert pour goûter la nouvelle recette : on le précise, et on confirme qu'il vaut le détour.",
     ],
-    photos: 2,
+    couverture: image("🍝", "#FFE0CC"),
+    photos: [image("🍝", "#FFE0CC"), image("🍮", "#FFF1A8")],
     lieux: [lieu(907, "Trattoria de la Brigade", "🍝", "Écusson")],
     auteur: { id: 43, prenom: "Zoé", ambassadeur: true, ville: "Montpellier" },
     collaboration: true,
@@ -73,7 +79,8 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
       "Arrivée à 9 h, juste après la criée : le poisson est sur la glace, les légumes attendent d'être taillés. Le Capitaine nous raconte comment il a repris l'adresse il y a dix ans.",
       "Le soir, la salle se remplit vite. Le vin du coin accompagne la marée, mais le jus de raisin maison a aussi ses fans.",
     ],
-    photos: 4,
+    couverture: image("⚓", "#CFE8FF"),
+    photos: [image("🐟", "#CFE8FF"), image("🔪", "#E6E6E6"), image("🧑‍🍳", "#FFF1A8"), image("🍷", "#F3D6DA")],
     lieux: [lieu(18, "Restaurant du Capitaine Bouiboui", "⚓", "Port Marianne")],
     auteur: { id: 43, prenom: "Zoé", ambassadeur: true, ville: "Montpellier" },
     alcool: true,
@@ -87,7 +94,8 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
     titre: "Les 3 meilleurs brunchs de l'Écusson",
     accroche: "Œufs, pancakes et jus pressés : trois adresses pour bien commencer le dimanche.",
     paragraphes: ["Trois adresses, trois styles : on a tout goûté, même ce qu'on n'aurait pas dû."],
-    photos: 2,
+    couverture: image("🍳", "#FFF1A8"),
+    photos: [image("🥞", "#FFE8B0"), image("🍹", "#D8F3E4")],
     lieux: [lieu(908, "Le Brunch du Port", "🍳", "Écusson"), lieu(909, "Pancakes & Cie", "🥞", "Écusson"), lieu(910, "La Table des Miamis", "🍽️", "Écusson")],
     auteur: { id: 42, prenom: "Malo", ambassadeur: true, ville: "Montpellier" },
     envoyeLe: "2026-10-25T09:00:00Z",
@@ -101,7 +109,8 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
     titre: "Chez Mamie Douceur, la tarte aux fraises du dimanche",
     accroche: "Une pâtisserie de quartier où l'on vient pour la tarte et où l'on reste pour discuter.",
     paragraphes: ["La tarte aux fraises part avant 11 h : on a vu des gens courir."],
-    photos: 1,
+    couverture: image("🍓", "#FFD6E0"),
+    photos: [image("🍰", "#FFD6E0")],
     lieux: [lieu(911, "Pâtisserie Mamie Douceur", "🍰", "Comédie")],
     auteur: { id: 41, prenom: "Inès", ambassadeur: true, ville: "Montpellier" },
     envoyeLe: "2026-10-22T08:00:00Z",
@@ -115,13 +124,14 @@ export const ARTICLES_ACTUS_EXEMPLE: ArticleARelire[] = [
     titre: "Happy hour à volonté au Comptoir du Port",
     accroche: "Des pintes à moitié prix toute la soirée : on en a profité.",
     paragraphes: ["Les pintes sont à moitié prix jusqu'à minuit, alors on a enchaîné."],
-    photos: 1,
+    couverture: image("🍺", "#FFE8B0"),
+    photos: [image("🍺", "#FFE8B0")],
     lieux: [lieu(912, "Le Comptoir du Port", "🍺", "Port Marianne")],
     auteur: { id: 44, prenom: "Théo", ambassadeur: true, ville: "Montpellier" },
     alcool: true,
     envoyeLe: "2026-10-21T20:00:00Z",
     statut: "refuse",
-    refus: { motif: "danger", motivation: "L'article incite à boire (« on a enchaîné », pintes à volonté) : la loi Évin l'interdit. Parle plutôt de l'ambiance ou des planches à partager.", le: "2026-10-22T09:30:00Z", contestation: null },
+    refus: { motif: "danger", motivation: "L'article incite à boire (« on a enchaîné », pintes à volonté) : la loi Évin l'interdit. Parle plutôt de l'ambiance ou des planches à partager.", le: "2026-10-22T09:30:00Z", contestation: "Je voulais surtout parler de l'ambiance du port, je peux réécrire ce passage sans les pintes." },
   },
 ];
 

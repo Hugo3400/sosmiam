@@ -1,22 +1,26 @@
-// Les pages légales : le pied de page (groupe « Infos légales »), le pied de page simple de /liens et le bloc « À lire
-// aussi » en bas de chaque page légale (PagesLegalesLiees).
+import type { ParLangue, Traduction } from "../../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_PAGES_LEGALES_ANGLAIS } from "~/contenus/anglais/legal/liens-legaux";
 
-export type PageLegale = { href: string; texte: string; /** Une phrase pour « À lire aussi » */ resume: string };
+export type PageLegale = { href: string; texte: string; resume: string };
 
-/** Toutes les pages légales, dans l'ordre du pied de page */
-export const pagesLegales: PageLegale[] = [
-  { href: "/mentions-legales", texte: "Mentions légales", resume: "Qui édite SOS Miam, qui l'héberge, et comment signaler un contenu." },
-  { href: "/confidentialite", texte: "Confidentialité", resume: "Ce qu'on fait de tes données, combien de temps, et tes droits." },
-  { href: "/cookies", texte: "Cookies", resume: "Chaque cookie posé, à quoi il sert, combien de temps, et ton choix." },
-  { href: "/cgu", texte: "Conditions d'utilisation", resume: "Les règles du jeu du site et de l'app." },
-  { href: "/accessibilite", texte: "Accessibilité", resume: "Ce qui marche déjà, ce qui est en cours, et comment nous alerter." },
-  { href: "/age", texte: "SOS Miam et l'âge", resume: "Un compte dès 18 ans, et les repères pour les parents." },
-  { href: "/prevention", texte: "Santé et prévention", resume: "L'alcool, la route, manger et bouger, et où trouver de l'aide." },
-  { href: "/statistiques", texte: "Statistiques de visite", resume: "Comment on compte les visites sans cookie, et comment ne plus être compté." },
-];
+export const ADRESSE_GERER_COOKIES = "/cookies#mes-choix";
 
-/** Les cinq pages légales « classiques », reprises dans le pied de page simple de /liens */
-export const liensLegaux = pagesLegales.slice(0, 5);
+export const TEXTES_PAGES_LEGALES = {
+  pages: {
+    mentionsLegales: { texte: "Mentions légales", resume: "Qui édite SOS Miam, qui l'héberge, et comment signaler un contenu." },
+    confidentialite: { texte: "Confidentialité", resume: "Ce qu'on fait de tes données, combien de temps, et tes droits." },
+    cookies: { texte: "Cookies", resume: "Chaque cookie posé, à quoi il sert, combien de temps, et ton choix." },
+    cgu: { texte: "Conditions d'utilisation", resume: "Les règles du jeu du site et de l'app." },
+    accessibilite: { texte: "Accessibilité", resume: "Ce qui marche déjà, ce qui est en cours, et comment nous alerter." },
+    age: { texte: "SOS Miam et l'âge", resume: "Un compte dès 18 ans, et les repères pour les parents." },
+    prevention: { texte: "Santé et prévention", resume: "L'alcool, la route, manger et bouger, et où trouver de l'aide." },
+    statistiques: { texte: "Statistiques de visite", resume: "Comment on compte les visites sans cookie, et comment ne plus être compté." },
+  },
+  gererCookies: "Gérer mes cookies",
+  aLireAussi: "À lire aussi",
+};
 
-/** Le lien « Gérer mes cookies » du pied de page : la partie « Tes choix » de la page Cookies */
-export const lienGererCookies = { href: "/cookies#mes-choix", texte: "Gérer mes cookies" };
+export const TEXTES_PAGES_LEGALES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PAGES_LEGALES>> = {
+  fr: TEXTES_PAGES_LEGALES,
+  en: TEXTES_PAGES_LEGALES_ANGLAIS,
+};

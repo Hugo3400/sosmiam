@@ -6,13 +6,12 @@ import { Logo } from "~/composants/interface/Logo";
 import { LienNavigation } from "~/composants/mise-en-page/LienNavigation";
 import { MenuMobile } from "~/composants/mise-en-page/MenuMobile";
 import { MenuSansJavascript } from "~/composants/mise-en-page/MenuSansJavascript";
-import { lienMonCompte, lienPreviensMoi, liensBarre } from "~/contenus/liens-en-tete";
+import { utiliserEnTete } from "~/hooks/utiliser-en-tete";
 import { utiliserEnTeteCollee } from "~/hooks/utiliser-en-tete-collee";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
 import { utiliserSectionVisible } from "~/hooks/utiliser-section-visible";
 
 const ID_MENU = "menu-mobile";
-/** Les sections de l'accueil suivies à l'écran (« L'app », « Les lieux », « BIG SOS ») */
-const SECTIONS = liensBarre.flatMap((lien) => (lien.section ? [lien.section] : []));
 
 const focusVisible = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
 const classeLienBarre =
@@ -33,8 +32,11 @@ export function EnTete() {
   const enTete = useRef<HTMLElement>(null);
   const boutonMenu = useRef<HTMLButtonElement>(null);
   const { pathname } = useLocation();
+  const { textes, liensBarre, lienMonCompte, lienPreviensMoi } = utiliserEnTete();
+  const lienLangue = utiliserLienLangue();
   const collee = utiliserEnTeteCollee(enTete);
-  const sectionVisible = utiliserSectionVisible(SECTIONS, pathname === "/");
+  const sections = liensBarre.flatMap((lien) => (lien.section ? [lien.section] : []));
+  const sectionVisible = utiliserSectionVisible(sections, pathname === "/" || pathname === "/en");
   const fermerMenu = useCallback(() => setMenuOuvert(false), []);
 
   return (
@@ -45,11 +47,11 @@ export function EnTete() {
           ${collee ? "border-encre/10 bg-creme/85 shadow-[0_10px_24px_-18px_rgb(26_26_26/0.45)]" : "border-encre/5 bg-creme"}`}
       >
         <div className="mx-auto flex h-[72px] w-[min(1120px,100%-32px)] items-center gap-4">
-          <Link to="/" aria-label="SOS Miam, accueil" className="shrink-0 rounded-lg focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-encre">
+          <Link to={lienLangue("/")} aria-label={textes.accueil} className="shrink-0 rounded-lg focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-encre">
             <Logo className="h-9 w-auto xl:h-10" />
           </Link>
 
-          <nav aria-label="Menu principal" className="mx-auto hidden lg:block">
+          <nav aria-label={textes.menuPrincipal} className="mx-auto hidden lg:block">
             <ul className="flex items-center gap-0.5 xl:gap-1">
               {liensBarre.map((lien) => (
                 <li key={lien.adresse}>
@@ -86,7 +88,7 @@ export function EnTete() {
               <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
                 <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
-              Menu
+              {textes.menu}
             </button>
             <MenuSansJavascript />
           </div>

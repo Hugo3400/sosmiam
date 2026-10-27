@@ -5,6 +5,8 @@ import { Badge } from "~/composants/interface/Badge.tsx";
 import { RUBRIQUES_ACTUS_GESTION, TEXTES_ACTUS as T } from "~/contenus/actus.ts";
 import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import type { ArticleARelire } from "~/services/actus.ts";
+import { ImageActus } from "./ImageActus.tsx";
+import { PhotosArticleActus } from "./PhotosArticleActus.tsx";
 
 export function ApercuArticleActus({ article }: { article: ArticleARelire }) {
   const rubrique = RUBRIQUES_ACTUS_GESTION[article.rubrique];
@@ -14,21 +16,26 @@ export function ApercuArticleActus({ article }: { article: ArticleARelire }) {
 
   return (
     <article className="min-w-0 overflow-hidden rounded-carte border-2 border-encre bg-white">
-      {article.couverture
-        ? <img src={article.couverture} alt="" className="h-48 w-full object-cover" />
-        : <div className="grid h-40 place-items-center bg-creme text-6xl" aria-hidden>{rubrique.emoji}</div>}
+      <ImageActus adresse={article.couverture} alt={T.couverture} className="h-52 w-full" />
       <div className="grid gap-3 p-5">
         <p className="text-[11px] font-extrabold tracking-wide text-gris uppercase">{rubrique.libelle}</p>
         <h2 className="font-titre text-2xl leading-tight font-extrabold">{article.titre}</h2>
         <p className="font-semibold">{article.accroche}</p>
         {article.paragraphes.map((paragraphe, rang) => <p key={rang} className="text-[15px] leading-relaxed">{paragraphe}</p>)}
         {article.citation && <blockquote className="rounded-xl bg-creme px-4 py-3 text-[15px] italic">{article.citation}</blockquote>}
+        {article.statut === "en-relecture" && article.refus?.contestation && (
+          <div className="rounded-xl bg-jaune-clair px-3 py-2 text-[13px]">
+            <p className="font-bold">{T.contestee(formaterDate(article.refus.le, true))}</p>
+            <p>« {article.refus.contestation} »</p>
+          </div>
+        )}
         {article.retouche && article.renvoye && (
           <div className="rounded-xl border border-ligne px-3 py-2 text-[13px]">
             <p className="font-bold">{T.demandeRetouche} ({formaterDate(article.retouche.le, true)})</p>
             <p className="text-gris">« {article.retouche.message} »</p>
           </div>
         )}
+        <PhotosArticleActus photos={article.photos} />
         <div className="grid gap-2 border-t border-ligne pt-3">
           <p className="text-sm font-extrabold">{T.lieuxCites}</p>
           <ul className="grid gap-1.5">
@@ -48,7 +55,7 @@ export function ApercuArticleActus({ article }: { article: ArticleARelire }) {
           {article.finLe && <Badge ton="contour">{T.finLe(formaterDate(article.finLe))}</Badge>}
         </div>
         <p className="text-[13px] text-gris">
-          {T.photos(article.photos)} · {T.caracteres(corps.length)} · {T.lecture(minutes)}
+          {T.photos(article.photos.length)} · {T.caracteres(corps.length)} · {T.lecture(minutes)}
           <br />
           {article.auteur.prenom}{article.auteur.ambassadeur ? ` · ${T.ambassadeur}` : ""} · {article.auteur.ville} · {T.envoye(formaterDate(article.envoyeLe, true))}
         </p>

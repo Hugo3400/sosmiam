@@ -4,9 +4,15 @@ import { LienGererCookies } from "~/composants/cookies/LienGererCookies";
 import { Logo } from "~/composants/interface/Logo";
 import { ChoixLangue } from "~/composants/mise-en-page/ChoixLangue";
 import { MESSAGE_SANITAIRE_ALCOOL } from "~/contenus/legal/prevention";
-import { groupesPiedDePage, type LienPiedDePage } from "~/contenus/liens-pied-de-page";
+import { MESSAGE_SANITAIRE_ALCOOL_TRADUIT } from "~/contenus/anglais/liens-pied-de-page";
+import { TEXTES_PAGES_LEGALES_PAR_LANGUE } from "~/contenus/legal/liens-legaux";
+import { TEXTES_PIED_DE_PAGE_PAR_LANGUE, type LienPiedDePage } from "~/contenus/liens-pied-de-page";
 import { creerAdresseLien, type EspaceDuLien } from "~/fonctions/hotes/creer-adresse-lien";
+import { ecrireCheminLangue } from "~/fonctions/langue/ecrire-chemin-langue";
+import { construireGroupesPiedDePage } from "~/fonctions/navigation/construire-groupes-pied-de-page";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Espace = EspaceDuLien;
 
@@ -31,17 +37,20 @@ function LienDuPied({ lien, espace }: { lien: LienPiedDePage; espace: Espace }) 
 }
 
 /** Pied de page de sosmiam.fr, de l'espace ambassadeur et de l'espace pro : tous les liens du site, de l'espace, des réseaux et légaux. */
-export function PiedDePage({ espace = "principal", accroche = "Fait avec 🧡 pour les adresses de ton quartier." }: Props) {
+export function PiedDePage({ espace = "principal", accroche }: Props) {
   const annee = new Date().getFullYear();
+  const langue = utiliserLangue();
+  const T = utiliserTextes(TEXTES_PIED_DE_PAGE_PAR_LANGUE);
+  const groupesPiedDePage = construireGroupesPiedDePage(T, utiliserTextes(TEXTES_PAGES_LEGALES_PAR_LANGUE), langue);
   return (
     <footer className="bg-encre pt-12 pb-8 text-creme">
       <div className="mx-auto w-[min(1120px,100%-32px)]">
         <div className="grid gap-10 md:grid-cols-[1fr_3fr]">
           <div className="flex flex-col items-center gap-3 text-center md:items-start md:text-left">
             <Logo clair />
-            <p className="max-w-60 text-sm opacity-80">{lierPonctuation(accroche)}</p>
+            <p className="max-w-60 text-sm opacity-80">{lierPonctuation(accroche ?? T.accroche)}</p>
           </div>
-          <nav aria-label="Tous les liens" className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+          <nav aria-label={T.tousLesLiens} className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
             {groupesPiedDePage.map((groupe, position) => (
               <div key={groupe.titre}>
                 <h2 id={`pied-groupe-${position}`} className="mb-3 font-titre text-base font-extrabold text-jaune">{groupe.titre}</h2>
@@ -55,8 +64,9 @@ export function PiedDePage({ espace = "principal", accroche = "Fait avec 🧡 po
         {/* Année calculée au rendu : peut différer entre serveur et navigateur autour du 1er janvier */}
         {/* Message sanitaire de la loi Évin, mot pour mot (des lieux servent de l'alcool) ; détails et aide sur /prevention */}
         <p className="mt-10 border-t border-creme/15 pt-6 text-center text-sm">
-          {MESSAGE_SANITAIRE_ALCOOL}{" "}
-          <LienDuPied lien={{ texte: "Besoin d'aide ?", adresse: "/prevention", site: "principal" }} espace={espace} />
+          <span lang="fr">{MESSAGE_SANITAIRE_ALCOOL}</span>{" "}
+          <LienDuPied lien={{ texte: T.besoinDAide, adresse: ecrireCheminLangue("/prevention", langue), site: "principal" }} espace={espace} />
+          {langue === "en" && <span className="mt-1 block opacity-80">{MESSAGE_SANITAIRE_ALCOOL_TRADUIT}</span>}
         </p>
         <p className="mt-2 text-center text-sm opacity-70" suppressHydrationWarning>© {annee} SOS Miam</p>
         <ChoixLangue />

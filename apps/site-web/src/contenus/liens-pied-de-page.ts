@@ -1,9 +1,5 @@
-// Tous les liens du pied de page, rangés par groupe : le site, l'espace ambassadeur, les réseaux et les pages légales.
-// « site » dit où vit la page : le pied de page en fait une adresse complète quand il est affiché sur un autre site
-// (sosmiam.fr, ambassadeur.sosmiam.fr, pro.sosmiam.fr). Les réseaux viennent de liens-publics.ts, les pages légales (et « Gérer mes cookies ») de liens-legaux.ts.
-import { site } from "~/contenus/legal/informations-legales";
-import { lienGererCookies, pagesLegales } from "~/contenus/legal/liens-legaux";
-import { liensPublics, RESEAUX_SOCIAUX } from "~/contenus/liens-publics";
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_PIED_DE_PAGE_ANGLAIS } from "~/contenus/anglais/liens-pied-de-page";
 
 export type SiteDuLien = "principal" | "ambassadeur" | "pro" | "externe";
 
@@ -11,51 +7,35 @@ export type LienPiedDePage = {
   texte: string;
   adresse: string;
   site: SiteDuLien;
-  /** « Gérer mes cookies » : rouvre le panneau des cookies (composants/cookies/LienGererCookies), sinon suit l'adresse */
   reglagesCookies?: boolean;
 };
 
 export type GroupePiedDePage = { titre: string; liens: LienPiedDePage[] };
 
-export const groupesPiedDePage: GroupePiedDePage[] = [
-  {
-    titre: "SOS Miam",
-    liens: [
-      { texte: "Accueil", adresse: "/", site: "principal" },
-      { texte: "Questions fréquentes", adresse: "/faq", site: "principal" },
-      { texte: "J'inscris mon lieu", adresse: "/inscrire-mon-lieu", site: "principal" },
-      { texte: "On recrute", adresse: "/carriere", site: "principal" },
-      { texte: "Chasse aux bugs", adresse: "/securite", site: "principal" },
-      // Aperçus de ce qu'on prépare pour l'app (noindex, « ça peut encore changer »), ajouté à la demande de Hugo le 15/10
-      { texte: "Ce qu'on prépare", adresse: "/preview", site: "principal" },
-      { texte: "Espace pro", adresse: "/bienvenue", site: "pro" },
-      // Un seul compte pour l'app et les espaces : infos, données, suppression (même sans se connecter)
-      { texte: "Mon compte", adresse: "/mon-compte", site: "principal" },
-      { texte: "Contact", adresse: `mailto:${site.emailContact}`, site: "externe" },
-    ],
+export const TEXTES_PIED_DE_PAGE = {
+  groupes: { site: "SOS Miam", ambassadeurs: "Ambassadeurs", suivre: "Nous suivre", legal: "Infos légales" },
+  liens: {
+    accueil: "Accueil",
+    faq: "Questions fréquentes",
+    inscrireLieu: "J'inscris mon lieu",
+    carriere: "On recrute",
+    securite: "Chasse aux bugs",
+    apercus: "Ce qu'on prépare",
+    espacePro: "Espace pro",
+    monCompte: "Mon compte",
+    contact: "Contact",
+    programme: "Le programme",
+    devenirAmbassadeur: "Devenir ambassadeur",
+    seConnecter: "Se connecter",
+    tousNosLiens: "Tous nos liens",
   },
-  {
-    titre: "Ambassadeurs",
-    liens: [
-      { texte: "Le programme", adresse: "/programme", site: "ambassadeur" },
-      { texte: "Devenir ambassadeur", adresse: "/inscription", site: "ambassadeur" },
-      { texte: "Se connecter", adresse: "/connexion", site: "ambassadeur" },
-    ],
-  },
-  {
-    titre: "Nous suivre",
-    liens: [
-      ...liensPublics
-        .filter((lien) => RESEAUX_SOCIAUX.includes(lien.reseau))
-        .map((lien) => ({ texte: lien.nom, adresse: lien.adresse, site: "externe" as const })),
-      { texte: "Tous nos liens", adresse: "/liens", site: "principal" },
-    ],
-  },
-  {
-    titre: "Infos légales",
-    liens: [
-      ...pagesLegales.map((lien) => ({ texte: lien.texte, adresse: lien.href, site: "principal" as const })),
-      { texte: lienGererCookies.texte, adresse: lienGererCookies.href, site: "principal", reglagesCookies: true },
-    ],
-  },
-];
+  reseaux: { discord: "Le Discord", tiktok: "TikTok", instagram: "Instagram" },
+  accroche: "Fait avec 🧡 pour les adresses de ton quartier.",
+  tousLesLiens: "Tous les liens",
+  besoinDAide: "Besoin d'aide ?",
+};
+
+export const TEXTES_PIED_DE_PAGE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PIED_DE_PAGE>> = {
+  fr: TEXTES_PIED_DE_PAGE,
+  en: TEXTES_PIED_DE_PAGE_ANGLAIS,
+};

@@ -1,6 +1,6 @@
 // Les contenus que la modération juge, en clair (mêmes clés que l'API : services/gestion/cibles-moderation.ts).
 
-export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; emoji: string; remise?: string }> = {
+export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; emoji: string; remise?: string; retourRelecture?: string; refus?: boolean }> = {
   publication: { libelle: "Publications", le: "la publication", emoji: "🎬" },
   commentaire: { libelle: "Commentaires", le: "le commentaire", emoji: "💬" },
   message: { libelle: "Messages", le: "le message", emoji: "✉️" },
@@ -16,4 +16,6 @@ export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; em
   sortie: { libelle: "Sorties", le: "la sortie", emoji: "🎉", remise: "son titre redevient « Sortie », pour tous ceux qui y sont invités" },
   groupe: { libelle: "Groupes", le: "le groupe", emoji: "👥", remise: "son nom est effacé : il s'affiche « Groupe » chez tous ses membres" },
   "image-lieu": { libelle: "Bannières et logos", le: "l'image du lieu", emoji: "🖼️" },
+  "article-actus": { libelle: "Articles d'Actus", le: "l'article", emoji: "📰", refus: true, retourRelecture: "L'article revient dans « Actus à relire », avec la contestation visible : il ne repart pas en ligne tout seul, tu le relis puis tu le publies." },
+  "reponse-actus": { libelle: "Réponses aux articles", le: "la réponse du lieu", emoji: "💬", refus: true, retourRelecture: "La réponse revient dans « Actus à relire » (Réponses des lieux), avec la contestation visible : tu la relis puis tu la publies." },
 };

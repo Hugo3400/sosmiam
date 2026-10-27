@@ -1,15 +1,19 @@
 import { Link, useLocation } from "react-router";
 
-import { pagesLegales } from "~/contenus/legal/liens-legaux";
+import { TEXTES_PAGES_LEGALES_PAR_LANGUE } from "~/contenus/legal/liens-legaux";
+import { listerPagesLegales } from "~/fonctions/legal/lister-pages-legales";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** « À lire aussi » en bas d'une page légale : les autres pages légales, avec une phrase chacune. */
 export function PagesLegalesLiees() {
   const { pathname } = useLocation();
-  const autres = pagesLegales.filter((page) => page.href !== pathname);
+  const T = utiliserTextes(TEXTES_PAGES_LEGALES_PAR_LANGUE);
+  const autres = listerPagesLegales(T, utiliserLangue()).filter((page) => page.href !== pathname);
   return (
     <nav aria-labelledby="a-lire-aussi" className="mt-16 border-t-2 border-encre/10 pt-8">
-      <h2 id="a-lire-aussi" className="mb-4 text-xl font-extrabold">À lire aussi</h2>
+      <h2 id="a-lire-aussi" className="mb-4 text-xl font-extrabold">{T.aLireAussi}</h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         {autres.map((page) => (
           <li key={page.href}>

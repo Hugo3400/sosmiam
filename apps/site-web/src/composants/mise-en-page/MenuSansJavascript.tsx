@@ -1,6 +1,6 @@
 import { Bouton } from "~/composants/interface/Bouton";
 import { GroupesMenu } from "~/composants/mise-en-page/GroupesMenu";
-import { lienPreviensMoi } from "~/contenus/liens-en-tete";
+import { utiliserEnTete } from "~/hooks/utiliser-en-tete";
 
 /**
  * Le menu des petits écrans quand JavaScript est coupé (@media (scripting: none), variante noscript: de Tailwind) : un
@@ -8,6 +8,7 @@ import { lienPreviensMoi } from "~/contenus/liens-en-tete";
  * l'en-tête. Avec JavaScript, il reste caché : c'est le bouton « Menu » et son dialogue qui servent.
  */
 export function MenuSansJavascript() {
+  const { textes, lienPreviensMoi } = utiliserEnTete();
   return (
     <details className="group hidden noscript:block">
       <summary
@@ -16,11 +17,11 @@ export function MenuSansJavascript() {
           [&::-webkit-details-marker]:hidden"
       >
         <span aria-hidden="true" className="text-lg leading-none">☰</span>
-        <span className="group-open:hidden">Menu</span>
-        <span className="hidden group-open:inline">Fermer</span>
+        <span className="group-open:hidden">{textes.menu}</span>
+        <span className="hidden group-open:inline">{textes.fermer}</span>
       </summary>
       <div className="absolute inset-x-0 top-full max-h-[calc(100dvh-72px)] overflow-y-auto border-b-2 border-encre bg-creme shadow-douce">
-        <nav aria-label="Menu principal" className="mx-auto w-[min(1120px,100%-16px)] py-6">
+        <nav aria-label={textes.menuPrincipal} className="mx-auto w-[min(1120px,100%-16px)] py-6">
           <GroupesMenu prefixe="menu-sans-javascript" sectionVisible={null} />
           <div className="mt-6 px-2">
             <Bouton href={lienPreviensMoi.adresse} className="w-full">{lienPreviensMoi.texte}</Bouton>

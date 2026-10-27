@@ -5,8 +5,9 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { Logo } from "~/composants/interface/Logo";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { GroupesMenu } from "~/composants/mise-en-page/GroupesMenu";
-import { lienPreviensMoi } from "~/contenus/liens-en-tete";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserEnTete } from "~/hooks/utiliser-en-tete";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
 
 type Props = {
   /** L'id du dialogue, que le bouton « Menu » de l'en-tête désigne (aria-controls) */
@@ -26,6 +27,8 @@ type Props = {
  * suivante ou la section reçoit le focus) et quand l'écran s'élargit. Sans JavaScript, c'est MenuSansJavascript qui sert.
  */
 export function MenuMobile({ id, ouvert, surFermeture, boutonMenu, sectionVisible }: Props) {
+  const { textes, lienPreviensMoi } = utiliserEnTete();
+  const lienLangue = utiliserLienLangue();
   const dialogue = useRef<HTMLDialogElement>(null);
   const boutonFermer = useRef<HTMLButtonElement>(null);
   // Fermeture demandée par la page : l'événement « close » qui suit est déjà traité
@@ -84,7 +87,7 @@ export function MenuMobile({ id, ouvert, surFermeture, boutonMenu, sectionVisibl
     <dialog
       ref={dialogue}
       id={id}
-      aria-label="Menu"
+      aria-label={textes.menu}
       onClose={surClose}
       className="m-0 h-dvh max-h-none w-full max-w-none translate-y-2 overflow-hidden border-0 bg-creme p-0 text-encre opacity-0
         transition-[opacity,translate,display,overlay] transition-discrete duration-200 ease-out backdrop:bg-encre/30
@@ -92,7 +95,7 @@ export function MenuMobile({ id, ouvert, surFermeture, boutonMenu, sectionVisibl
     >
       <div className="flex h-full flex-col">
         <div className="mx-auto flex h-[72px] w-[min(1120px,100%-32px)] shrink-0 items-center justify-between gap-4">
-          <Link to="/" aria-label="SOS Miam, accueil" onClick={quitter} className="rounded-lg focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-encre">
+          <Link to={lienLangue("/")} aria-label={textes.accueil} onClick={quitter} className="rounded-lg focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-encre">
             <Logo className="h-9 w-auto" />
           </Link>
           <button
@@ -105,11 +108,11 @@ export function MenuMobile({ id, ouvert, surFermeture, boutonMenu, sectionVisibl
             <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true">
               <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
-            Fermer
+            {textes.fermer}
           </button>
         </div>
 
-        <nav aria-label="Menu principal" className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-encre/10">
+        <nav aria-label={textes.menuPrincipal} className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-encre/10">
           <div className="mx-auto w-[min(1120px,100%-16px)] py-5">
             <GroupesMenu prefixe={id} sectionVisible={sectionVisible} surLien={quitter} />
           </div>
@@ -119,7 +122,7 @@ export function MenuMobile({ id, ouvert, surFermeture, boutonMenu, sectionVisibl
           <div className="mx-auto flex w-[min(1120px,100%-32px)] flex-wrap items-center gap-x-4 gap-y-3 py-3">
             <Mascotte expression="clin" className="size-12 shrink-0" />
             <p className="min-w-0 flex-[1_1_180px] leading-snug font-semibold">
-              {lierPonctuation("L'app arrive bientôt partout en France : on te fait signe ?")}
+              {lierPonctuation(textes.appBientot)}
             </p>
             <Bouton href={lienPreviensMoi.adresse} variante="blanc" onClick={quitter} className="w-full whitespace-nowrap md:w-auto">
               {lienPreviensMoi.texte}

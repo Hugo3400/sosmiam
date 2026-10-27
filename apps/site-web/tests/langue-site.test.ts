@@ -126,12 +126,13 @@ test("routes : chaque page doublée a sa jumelle /en (id « en/… »), et /en n
 });
 
 const dossierAnglais = `${dossierSrc}contenus/anglais/`;
+const IDENTIQUES_PERMIS = new Set(["BIG SOS", "FAQ", "Menu", "Instagram", "TikTok", "Discord", "Facebook", "Contact", "Halloween", "Cookies"]);
 
 function comparer(francais: unknown, anglais: unknown, chemin: string, identiques: string[]) {
   if (typeof francais === "string") {
     assert.equal(typeof anglais, "string", chemin);
     assert.ok((anglais as string).trim() !== "", `${chemin} : vide`);
-    if (anglais === francais && !/^[\s—·✓0-9+%-]*(SOS Miam)?[\s—·✓0-9+%-]*$/.test(francais)) identiques.push(`${chemin} : « ${francais} »`);
+    if (anglais === francais && !IDENTIQUES_PERMIS.has(francais) && !/^[\s—·✓0-9+%-]*(SOS Miam)?[\s—·✓0-9+%-]*$/.test(francais)) identiques.push(`${chemin} : « ${francais} »`);
     return;
   }
   if (typeof francais === "function") return assert.equal(typeof anglais, "function", chemin);
@@ -147,7 +148,7 @@ function comparer(francais: unknown, anglais: unknown, chemin: string, identique
 }
 
 test("contenus/anglais : chaque dictionnaire a son jumeau français, sa paire, aucun texte vide ni recopié du français", async () => {
-  const fichiers = readdirSync(dossierAnglais).filter((nom) => nom.endsWith(".ts"));
+  const fichiers = readdirSync(dossierAnglais, { recursive: true, encoding: "utf8" }).filter((nom) => nom.endsWith(".ts"));
   assert.ok(fichiers.length > 0);
   for (const fichier of fichiers) {
     const anglais = await import(`${dossierAnglais}${fichier}`);

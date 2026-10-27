@@ -5,6 +5,7 @@ const PAGES_DOUBLEES = [
   "/carriere",
   "/securite",
   "/lieux",
+  "/actus",
   "/mentions-legales",
   "/confidentialite",
   "/cookies",

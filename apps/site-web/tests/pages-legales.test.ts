@@ -16,8 +16,12 @@ registerHooks({
 });
 
 const { regrouperEnChapitres } = await import("../src/fonctions/legal/regrouper-en-chapitres.ts");
-const { pagesLegales, lienGererCookies } = await import("../src/contenus/legal/liens-legaux.ts");
-const { groupesPiedDePage } = await import("../src/contenus/liens-pied-de-page.ts");
+const { TEXTES_PIED_DE_PAGE } = await import("../src/contenus/liens-pied-de-page.ts");
+const { TEXTES_PAGES_LEGALES, ADRESSE_GERER_COOKIES } = await import("../src/contenus/legal/liens-legaux.ts");
+const { construireGroupesPiedDePage } = await import("../src/fonctions/navigation/construire-groupes-pied-de-page.ts");
+const groupesPiedDePage = construireGroupesPiedDePage(TEXTES_PIED_DE_PAGE, TEXTES_PAGES_LEGALES, "fr");
+const { listerPagesLegales } = await import("../src/fonctions/legal/lister-pages-legales.ts");
+const pagesLegales = listerPagesLegales(TEXTES_PAGES_LEGALES, "fr");
 
 type Document = import("../src/contenus/legal/type-legal.ts").DocumentLegal;
 
@@ -113,7 +117,7 @@ test("toutes les pages légales sont dans le pied de page, avec « Gérer mes co
   const infos = groupesPiedDePage.find((groupe) => groupe.titre === "Infos légales");
   assert.ok(infos);
   assert.deepEqual(infos.liens.map((lien) => lien.adresse), [...pagesLegales.map((page) => page.href), "/cookies#mes-choix"]);
-  assert.equal(lienGererCookies.href, "/cookies#mes-choix");
+  assert.equal(ADRESSE_GERER_COOKIES, "/cookies#mes-choix");
   assert.ok(documents["/cookies"].sections.some((section) => section.id === "mes-choix"));
 });
 
