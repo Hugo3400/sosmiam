@@ -23,6 +23,10 @@ export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
     texte: "Our ambassadors are sharpening their pencils. In the meantime, have a look at the other sections or cities.",
     lien: "See all the news",
   },
+  aucunDuTout: {
+    titre: "The first stories are on their way",
+    texte: "Our ambassadors are sharpening their pencils: their first venue portraits, neighbourhood top picks and deals are coming soon, here and in the app.",
+  },
   lecture: (minutes: number) => `${minutes} min read`,
   voirPlus: "See more",
   plusRecents: "Back to the latest",

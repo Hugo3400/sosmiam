@@ -17,7 +17,7 @@ export function ListeArticlesActus({ filtres, articles, suivant, indisponible }:
   return (
     <section aria-labelledby="titre-liste-actus" className="flex flex-col gap-4">
       <h2 id="titre-liste-actus" className="sr-only">{T.liste}</h2>
-      <p aria-live="polite" className="text-sm font-semibold text-gris">{!indisponible && complete ? T.compte(articles.length) : ""}</p>
+      <p aria-live="polite" className="text-sm font-semibold text-gris">{!indisponible && complete && articles.length > 0 ? T.compte(articles.length) : ""}</p>
       {indisponible ? (
         <ActusIndisponibles reessayer={lienLangue(ecrireAdresseActus(filtres))} />
       ) : articles.length > 0 ? (
@@ -29,7 +29,7 @@ export function ListeArticlesActus({ filtres, articles, suivant, indisponible }:
           ))}
         </ul>
       ) : (
-        <AucunArticleActus />
+        <AucunArticleActus filtre={filtres.rubrique !== null || filtres.ville !== null} />
       )}
       {!indisponible && (suivant || filtres.curseur) && (
         <nav aria-label={T.liste} className="mt-2 flex flex-wrap items-center justify-center gap-4">

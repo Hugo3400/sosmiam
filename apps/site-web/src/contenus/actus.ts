@@ -23,6 +23,10 @@ export const TEXTES_ACTUS = {
     texte: "Les ambassadeurs affûtent leurs plumes. En attendant, jette un œil aux autres rubriques ou aux autres villes.",
     lien: "Voir toutes les actus",
   },
+  aucunDuTout: {
+    titre: "Les premiers articles arrivent bientôt",
+    texte: "Les ambassadeurs affûtent leurs plumes : leurs premiers portraits de lieux, tops du quartier et bons plans arrivent bientôt, ici et dans l'app.",
+  },
   lecture: (minutes: number) => `${minutes} min de lecture`,
   voirPlus: "Voir plus",
   plusRecents: "Revenir aux plus récents",
