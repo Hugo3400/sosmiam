@@ -151,11 +151,11 @@ test("Mon compte en anglais, sans connexion : RGPD, suppression par mail, et le 
   assert.equal(titre(pageMonCompte.meta({ loaderData: { espace: "site" }, matches: racineEn } as never)), "My account — SOS Miam");
 });
 
-test("Mon compte en anglais, connecté : compte limité sobre, motif gardé en français, façons de se connecter et suppression", async () => {
+test("Mon compte en anglais, connecté : compte limité sobre, motif traduit et mot de l'équipe en français, façons de se connecter et suppression", async () => {
   const html = await servir("/mon-compte?langue=en&connexions=relie&avec=google", { cookie: cookieConnecte });
   for (const texte of [
     "Your account is restricted", "The SOS Miam team has restricted your account until 22 October 2026 at 12:00.",
-    '<strong lang="fr">Haine ou harcèlement</strong>', '<dd lang="fr"', "What has to wait until it ends", "Send my appeal", "0 / 1,000 characters",
+    '<strong>Hate or harassment</strong>', '<dd lang="fr"', "What has to wait until it ends", "Send my appeal", "0 / 1,000 characters",
     "My ways to log in", "Linked! You can now log in with Google, as well as your other ways.", "Unlink<span class=\"sr-only\"> my Google account</span>",
     "My details", "Save changes", "Change my password", ">Log out<", "Careful: this is permanent.", ">Delete my account<", "Back to the home page",
   ]) assert.ok(html.includes(texte), texte);

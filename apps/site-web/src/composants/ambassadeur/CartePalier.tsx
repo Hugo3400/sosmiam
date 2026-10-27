@@ -1,4 +1,4 @@
-import { BADGES } from "../../../../../packages/commun/src/contenus/badges.ts";
+import { BADGES_PAR_LANGUE } from "../../../../../packages/commun/src/contenus/badges.ts";
 import { BadgePalier, type NiveauPalier } from "~/composants/marque/BadgePalier";
 import { TEXTES_AMBASSADEURS_PAR_LANGUE } from "~/contenus/ambassadeurs";
 import { TEXTES_ESPACE_AMBASSADEUR_PAR_LANGUE } from "~/contenus/espace-ambassadeur";
@@ -16,8 +16,6 @@ const paliers: { cle: PalierCompte; seuil: number | null }[] = [
   { cle: "ambassadeur-ville", seuil: null },
 ];
 
-// Le catalogue commun des badges (packages/commun) : le même que l'app et le logiciel de gestion
-const badgesConnus = new Map<string, { emoji: string; nom: string }>(BADGES.map((badge) => [badge.id, badge]));
 
 type Props = {
   palier: PalierCompte;
@@ -34,6 +32,7 @@ type Props = {
 export function CartePalier({ palier, points, badges, certifie = null }: Props) {
   const T = utiliserTextes(TEXTES_ESPACE_AMBASSADEUR_PAR_LANGUE).palier;
   const paliersAmbassadeurs = listerPaliersAmbassadeurs(utiliserTextes(TEXTES_AMBASSADEURS_PAR_LANGUE));
+  const badgesConnus = new Map<string, { emoji: string; nom: string }>(utiliserTextes(BADGES_PAR_LANGUE).map((badge) => [badge.id, badge]));
   const index = Math.max(0, paliers.findIndex((p) => p.cle === palier));
   const suivant = paliers[index + 1];
   const nomSuivant = paliersAmbassadeurs[index + 1]?.titre ?? "";
