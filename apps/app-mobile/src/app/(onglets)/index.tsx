@@ -8,16 +8,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { ListeActus } from "~/composants/actus/ListeActus";
 import { BanniereThemeFil } from "~/composants/fil/BanniereThemeFil";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
-import { FilVide } from "~/composants/fil/FilVide";
-import { FilVideAbonnements } from "~/composants/fil/FilVideAbonnements";
-import { FilVidePourToi } from "~/composants/fil/FilVidePourToi";
+import { FilSansPublication } from "~/composants/fil/FilSansPublication";
 import { MenuPublication, type ChoixMenu } from "~/composants/fil/MenuPublication";
 import { PostPublication, type GestesPublication } from "~/composants/fil/PostPublication";
 import type { ChoixSignalement } from "~/composants/signalement/SignalementPublication";
 import { Annonce } from "~/composants/interface/Annonce";
+import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { TAILLE_PAGE_FIL } from "~/contenus/taille-page-fil";
@@ -152,7 +152,7 @@ export default function PourToi() {
     // « Abonnements » : ce que publient les lieux et créateurs suivis au moment du tri (la vidéo à l'écran reste après « Ne plus suivre »)
     const suivis = new Set(suivisDuTri);
     const gardees = publications.filter((p) => {
-      if (estMasquee(p.id)) return false;
+      if (onglet === "actus" || estMasquee(p.id)) return false;
       if (onglet === "tous") return true;
       if (onglet === "abonnements") return estPublieeParSuivi(p, suivis);
       const lieu = lieuParId.get(p.lieuId);
@@ -377,12 +377,14 @@ export default function PourToi() {
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: couleurs.nuit }}
+      style={{ flex: 1, backgroundColor: onglet === "actus" ? couleurs.creme : couleurs.nuit }}
       onLayout={(e) => setTaille({ largeur: e.nativeEvent.layout.width, hauteur: e.nativeEvent.layout.height })}
     >
-      {focus ? <StatusBar style="light" /> : null}
+      {focus ? (onglet === "actus" ? <BarreEtatTheme /> : <StatusBar style="light" />) : null}
       {taille.hauteur > 0 ? (
-        liste.length > 0 ? (
+        onglet === "actus" ? (
+          <ListeActus margeHaut={marges.top + hauteurEnTete} margeBas={hauteurBarreOnglets} />
+        ) : liste.length > 0 ? (
           <FlatList
             ref={refListe}
             key={onglet}
@@ -431,22 +433,21 @@ export default function PourToi() {
               );
             }}
           />
-        ) : onglet === "abonnements" ? (
-          <FilVideAbonnements
+        ) : (
+          <FilSansPublication
+            onglet={onglet}
             hauteur={taille.hauteur}
             margeHaut={marges.top + hauteurEnTete}
             margeBas={hauteurBarreOnglets}
+            horsLigne={filHorsLigne}
             onVoirTout={() => setOnglet("tous")}
+            onVoirAdresses={() => router.navigate("/explorer")}
             onAnnoncer={annoncer}
           />
-        ) : onglet === "tous" ? (
-          <FilVidePourToi hauteur={taille.hauteur} horsLigne={filHorsLigne} onVoirAdresses={() => router.navigate("/explorer")} />
-        ) : (
-          <FilVide hauteur={taille.hauteur} onVoirTout={() => setOnglet("tous")} />
         )
       ) : null}
       <EnTeteFil onglet={onglet} onChoisir={setOnglet} restantes={activite.restantes} haut={marges.top} invite={invite} onCreerCompte={creerCompte} />
-      <BanniereThemeFil visible={surPremiere} haut={hautIndications} onHauteur={setHauteurBanniere} />
+      <BanniereThemeFil visible={surPremiere && onglet !== "actus"} haut={hautIndications} onHauteur={setHauteurBanniere} />
       <Annonce annonce={annonce} haut={marges.top + hauteurEnTete + 2} onFin={finAnnonce} />
       <MenuPublication
         visible={menu !== null}
