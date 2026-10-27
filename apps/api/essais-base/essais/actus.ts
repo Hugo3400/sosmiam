@@ -257,6 +257,18 @@ await essai.sql("UPDATE articles_actus SET statut = 'refuse', refus_le = $1 WHER
 egal(await menagerArticlesActus(new Date(MAINTENANT), base), 1, "un article refusé depuis plus de 6 mois est effacé la nuit");
 egal(await base.articleActus.count(), avantArticles - 1, "et lui seul");
 
+egal(await auteur.supprimer(LEA, ID1), { ok: false, erreur: "introuvable" }, "on ne supprime que ses propres articles");
+egal(await auteur.supprimer(ZOE, ID1), { ok: true }, "l'autrice supprime son article");
+egal(await lecture.lire(ID1, true, LEA), null, "il disparaît des lectures");
+egal((await auteur.mesArticles(ZOE)).articles.some((a) => a.id === ID1), false, "et de Mes articles");
+egal(await base.articleActus.count({ where: { id: ID1 } }), 1, "mais il reste dans la base");
+vrai(await base.journalGestion.findFirst({ where: { action: "Article des Actus supprimé par son auteur", detail: `article n° ${ID1}` } }), "la Brigade le voit au journal");
+egal((await listerActusARelire(base)).articles.find((a) => a.id === ID1)?.statut, "supprime", "et dans la liste du logiciel");
+egal(await auteur.supprimer(ZOE, ID1), { ok: false, erreur: "introuvable" }, "une seule fois");
+egal(await menagerArticlesActus(new Date(MAINTENANT), base), 0, "supprimé hier : gardé");
+await essai.sql("UPDATE articles_actus SET supprime_le = $1 WHERE id = $2", [new Date(MAINTENANT - 200 * 86_400_000), ID1]);
+egal(await menagerArticlesActus(new Date(MAINTENANT), base), 1, "supprimé depuis plus de 6 mois : effacé la nuit");
+
 const citees = new Set((await base.articleActus.findMany({ select: { couverture: true, photos: true } })).flatMap((a) => [a.couverture, ...a.photos]));
 const avantMenage = stockage.fichiers.size;
 const effacees = await photos.menager(new Date(MAINTENANT + 30 * 3600_000));
