@@ -1,14 +1,15 @@
 import { BoutonPartager } from "~/composants/lieux/BoutonPartager";
 import { CLASSE_ACTION, CLASSE_ACTION_PRINCIPALE } from "~/composants/lieux/classes-fiche-lieu";
 import { IconeFiche } from "~/composants/lieux/IconeFiche";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { creerLienItineraire } from "~/fonctions/lieux/creer-lien-itineraire";
 import { creerLienTelephone } from "~/fonctions/lieux/creer-lien-telephone";
 import { creerLienAppLieu } from "~/fonctions/liens-app/creer-lien-app-lieu";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FichePublique } from "~/types/pro";
 
 export function ActionsFicheLieu({ lieu, adresseFiche }: { lieu: FichePublique; adresseFiche: string }) {
-  const T = TEXTES_FICHE_LIEU.actions;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).actions;
   return (
     <ul aria-label={T.etiquette} className="flex flex-wrap gap-2.5">
       <li className="hidden md:block">

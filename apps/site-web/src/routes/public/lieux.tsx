@@ -1,4 +1,5 @@
 import type { Route } from "./+types/lieux";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 
 import { MessageCarte } from "~/composants/carte-des-lieux/MessageCarte";
 import { CarteLieu } from "~/composants/lieux/CarteLieu";
@@ -13,8 +14,10 @@ import { PaginationLieux } from "~/composants/page-lieux/PaginationLieux";
 import { PanneauCarteLieux } from "~/composants/page-lieux/PanneauCarteLieux";
 import { RechercheLieux } from "~/composants/page-lieux/RechercheLieux";
 import { site } from "~/contenus/legal/informations-legales";
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
-import { ecrireAdresseLieux } from "~/fonctions/page-lieux/ecrire-adresse-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
+import { ecrireCheminLangue } from "~/fonctions/langue/ecrire-chemin-langue";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
+import { ecrireAdresseLieux, type ParametresAdresseLieux } from "~/fonctions/page-lieux/ecrire-adresse-lieux";
 import { ecrireIdentifiantVille } from "~/fonctions/page-lieux/ecrire-identifiant-ville";
 import { lireFiltresLieux } from "~/fonctions/page-lieux/lire-filtres-lieux";
 import { trouverVille } from "~/fonctions/page-lieux/trouver-ville";
@@ -22,13 +25,15 @@ import { creerDonneesFilAriane } from "~/fonctions/seo/creer-donnees-fil-ariane"
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserEcranLarge } from "~/hooks/utiliser-ecran-large";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { lireLangueRequete } from "~/services/langue.server";
 import { listerPageLieux, listerVillesLieux } from "~/services/page-lieux.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 
-const T = TEXTES_PAGE_LIEUX;
-
 export async function loader({ request }: Route.LoaderArgs) {
   const filtres = lireFiltresLieux(new URL(request.url).searchParams);
+  const { langue } = lireLangueRequete(request);
   const ip = lireIpVisiteur(request);
   const reponseVilles = await listerVillesLieux(ip);
   const villes = reponseVilles.ok ? reponseVilles.donnees : [];
@@ -46,23 +51,28 @@ export async function loader({ request }: Route.LoaderArgs) {
     nomVille,
     page,
     etat,
-    cheminCanonique: ecrireAdresseLieux({ ville: identifiantVille, type: filtres.type, page: page?.page ?? filtres.page }),
+    cheminCanonique: ecrireCheminLangue(ecrireAdresseLieux({ ville: identifiantVille, type: filtres.type, page: page?.page ?? filtres.page }), langue),
   } as const;
 }
 
-export function meta({ loaderData }: Route.MetaArgs) {
-  if (!loaderData) return creerMeta({ titre: T.titre, description: T.meta.description(null) });
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const T = choisirTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE, langue);
+  if (!loaderData) return creerMeta({ titre: T.titre, description: T.meta.description(null), langue });
   const { filtres, nomVille, page, etat } = loaderData;
-  const balises = creerMeta({ titre: T.meta.titre(nomVille, filtres.type, page?.page ?? 1), description: T.meta.description(nomVille) });
+  const balises = creerMeta({ titre: T.meta.titre(nomVille, filtres.type, page?.page ?? 1), description: T.meta.description(nomVille), langue });
   const sansIndex = filtres.recherche !== null || etat !== "ok" || (page !== null && page.total === 0);
   return sansIndex ? [...balises, { name: "robots", content: "noindex" }] : balises;
 }
 
 export default function PageLieux({ loaderData }: Route.ComponentProps) {
   const { filtres, villes, villeChoisie, identifiantVille, nomVille, page, etat, cheminCanonique } = loaderData;
+  const T = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const ecranLarge = utiliserEcranLarge();
   const base = { ville: identifiantVille, type: filtres.type, recherche: filtres.recherche };
-  const adresseVille = (identifiant: string) => ecrireAdresseLieux({ ...base, ville: identifiant, vue: filtres.vue });
+  const adresse = (parametres: ParametresAdresseLieux) => lien(ecrireAdresseLieux(parametres));
+  const adresseVille = (identifiant: string) => adresse({ ...base, ville: identifiant, vue: filtres.vue });
 
   if (filtres.vue === "carte") {
     return (
@@ -71,17 +81,17 @@ export default function PageLieux({ loaderData }: Route.ComponentProps) {
         type={filtres.type}
         villes={villes}
         lieuInitial={filtres.lieu}
-        adresseFermer={ecrireAdresseLieux(base)}
-        adresseType={(type) => ecrireAdresseLieux({ ...base, type, vue: "carte" })}
+        adresseFermer={adresse(base)}
+        adresseType={(type) => adresse({ ...base, type, vue: "carte" })}
         adresseVille={adresseVille}
       />
     );
   }
 
-  const accueil = `https://${site.adresse}/`;
+  const origine = `https://${site.adresse}`;
   const filAriane = creerDonneesFilAriane([
-    { nom: T.filAriane.accueil, adresse: accueil },
-    { nom: T.filAriane.lieux, adresse: `${accueil}lieux` },
+    { nom: T.filAriane.accueil, adresse: `${origine}${lien("/")}` },
+    { nom: T.filAriane.lieux, adresse: `${origine}${lien("/lieux")}` },
   ]);
 
   return (
@@ -98,7 +108,7 @@ export default function PageLieux({ loaderData }: Route.ComponentProps) {
         </div>
         <FiltresVilles villes={villes} villeChoisie={villeChoisie} identifiantVille={identifiantVille} type={filtres.type} recherche={filtres.recherche} />
         <FiltresTypes identifiantVille={identifiantVille} type={filtres.type} recherche={filtres.recherche} total={page?.total ?? null} />
-        <ChoixVueLieux vue="liste" adresseListe={ecrireAdresseLieux({ ...base, page: filtres.page })} adresseCarte={ecrireAdresseLieux({ ...base, vue: "carte" })} className="lg:hidden" />
+        <ChoixVueLieux vue="liste" adresseListe={adresse({ ...base, page: filtres.page })} adresseCarte={adresse({ ...base, vue: "carte" })} className="lg:hidden" />
       </div>
       <div className="mx-auto mt-7 flex w-[min(1344px,100%-32px)] items-start gap-8">
         <section id="liste-des-lieux" tabIndex={-1} aria-labelledby="titre-liste-lieux" className="flex min-w-0 flex-1 flex-col gap-7">
@@ -116,7 +126,7 @@ export default function PageLieux({ loaderData }: Route.ComponentProps) {
                   </li>
                 ))}
               </ul>
-              <PaginationLieux page={page.page} pages={page.pages} adressePage={(numero) => ecrireAdresseLieux({ ...base, page: numero })} />
+              <PaginationLieux page={page.page} pages={page.pages} adressePage={(numero) => adresse({ ...base, page: numero })} />
             </>
           )}
         </section>
@@ -127,7 +137,7 @@ export default function PageLieux({ loaderData }: Route.ComponentProps) {
                 ville={nomVille}
                 type={filtres.type}
                 villes={villes}
-                adressePleinEcran={ecrireAdresseLieux({ ...base, vue: "carte" })}
+                adressePleinEcran={adresse({ ...base, vue: "carte" })}
                 adresseVille={adresseVille}
               />
             ) : (

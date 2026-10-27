@@ -1,11 +1,16 @@
 import { data, redirect } from "react-router";
 
 import type { Route } from "./+types/qr-vitrine";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { Bouton } from "~/composants/interface/Bouton";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_QR_VITRINE_PAR_LANGUE } from "~/contenus/qr-vitrine";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { estCodeVitrine } from "~/fonctions/lieux/est-code-vitrine";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { trouverLieuParCode } from "~/services/lieux.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 
@@ -26,23 +31,25 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
   return loaderHeaders;
 }
 
-export function meta() {
-  return [{ title: "Un lieu SOS Miam — SOS Miam" }, { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: choisirTextes(TEXTES_QR_VITRINE_PAR_LANGUE, lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])))).titreMeta }, { name: "robots", content: "noindex" }];
 }
 
 /** La page aimable : le QR mène bien à un lieu SOS Miam, que l'app retrouvera (aucun lien de store : l'app n'est pas encore publiée). */
 export default function PageQrVitrine({ loaderData }: Route.ComponentProps) {
+  const T = utiliserTextes(TEXTES_QR_VITRINE_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   return (
     <Section fond="creme" etroit>
       <div className="text-center">
         <p className="mb-4 text-6xl" aria-hidden="true">🛟</p>
-        <TitreSection principal chapo={lierPonctuation("Ouvre l'app SOS Miam pour le retrouver : il t'y attend, promis.")}>
-          {lierPonctuation("Ce QR mène à un lieu SOS Miam")}
+        <TitreSection principal chapo={lierPonctuation(T.chapo)}>
+          {lierPonctuation(T.titre)}
         </TitreSection>
         {loaderData.indisponible && (
-          <p className="mx-auto mb-8 max-w-md text-gris">{lierPonctuation("Petit souci de notre côté : réessaie dans un instant, la fiche sera peut-être là.")}</p>
+          <p className="mx-auto mb-8 max-w-md text-gris">{lierPonctuation(T.indisponible)}</p>
         )}
-        <Bouton vers="/">{lierPonctuation("Découvrir SOS Miam")}</Bouton>
+        <Bouton vers={lien("/")}>{lierPonctuation(T.decouvrir)}</Bouton>
       </div>
     </Section>
   );

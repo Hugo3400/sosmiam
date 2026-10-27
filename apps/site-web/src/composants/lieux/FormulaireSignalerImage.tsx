@@ -5,11 +5,13 @@ import { LONGUEUR_MAX_EXPLICATION_SIGNALEMENT } from "../../../../../packages/co
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChoixQuelleImage } from "~/composants/lieux/ChoixQuelleImage";
 import { ChoixRaisonImage } from "~/composants/lieux/ChoixRaisonImage";
-import { TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { TEXTES_SIGNALER_IMAGE_PAR_LANGUE } from "~/contenus/signaler-image";
 import type { ReponseSignalerImage } from "~/fonctions/lieux/lire-formulaire-signaler-image";
 import type { ImageSignalable } from "~/fonctions/lieux/lister-images-signalables";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: { id: number; nom: string; banniere: string | null; logo: string | null };
@@ -31,7 +33,8 @@ function trouverChamp(formulaire: HTMLFormElement | null, nom: string): HTMLElem
 }
 
 export function FormulaireSignalerImage({ lieu, images, reponse }: Props) {
-  const T = TEXTES_SIGNALER_IMAGE;
+  const T = utiliserTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const navigation = useNavigation();
   const { pathname } = useLocation();
   const javascriptActif = utiliserJavascriptActif();
@@ -96,7 +99,7 @@ export function FormulaireSignalerImage({ lieu, images, reponse }: Props) {
       </div>
 
       <p className="rounded-xl border-2 border-dashed border-encre bg-creme px-4 py-3 text-sm">{lierPonctuation(T.donnees)}{" "}
-        <Link to="/confidentialite#signaler-image" className="font-semibold underline underline-offset-4">
+        <Link to={lien("/confidentialite#signaler-image")} className="font-semibold underline underline-offset-4">
           {T.donneesLien}
         </Link>
       </p>

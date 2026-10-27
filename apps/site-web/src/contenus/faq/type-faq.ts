@@ -5,10 +5,12 @@ export type QuestionFaq = {
   /** Sert de lien direct vers la question : /faq#faq-prix */
   id: string;
   question: string;
-  reponse: BlocTexte[];
+  reponse: readonly BlocTexte[];
   /** Mots en plus pour la recherche, non affichés (ex. « prix » pour « Combien ça coûte ? ») */
-  motsCles?: string[];
+  motsCles?: readonly string[];
 };
+
+export type ContenuQuestionFaq = Omit<QuestionFaq, "id">;
 
 export type OngletFaq = {
   cle: string;

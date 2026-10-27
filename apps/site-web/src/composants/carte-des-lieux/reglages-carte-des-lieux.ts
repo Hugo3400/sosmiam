@@ -2,6 +2,12 @@ import type { CategorieLieu } from "~/types/lieux";
 
 export const STYLE_FOND_DE_CARTE = "https://tiles.openfreemap.org/styles/liberty";
 
+export const SOURCES_FOND_DE_CARTE = [
+  { texte: "© OpenFreeMap", adresse: "https://openfreemap.org" },
+  { texte: "© OpenMapTiles", adresse: "https://www.openmaptiles.org/" },
+  { texte: "© OpenStreetMap", adresse: "https://www.openstreetmap.org/copyright" },
+] as const;
+
 export const POLICE_CARTE = ["Noto Sans Bold"];
 
 export const COULEURS_EPINGLES: Record<CategorieLieu | "sos", string> = {

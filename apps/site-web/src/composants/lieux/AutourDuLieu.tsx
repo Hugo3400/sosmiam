@@ -1,10 +1,11 @@
 import { CarteLieuAutour } from "~/composants/lieux/CarteLieuAutour";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu, LieuListe } from "~/types/lieux";
 
 export function AutourDuLieu({ lieux, type }: { lieux: LieuListe[]; type: CategorieLieu }) {
-  const T = TEXTES_FICHE_LIEU.autour;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).autour;
   if (lieux.length === 0) return null;
   return (
     <section aria-labelledby="fiche-autour" className="flex flex-col gap-4">

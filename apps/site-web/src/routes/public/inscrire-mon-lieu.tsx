@@ -2,34 +2,40 @@ import { data } from "react-router";
 
 import type { Route } from "./+types/inscrire-mon-lieu";
 
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { FormulaireDemandeLieu, type ReponseDemandeLieu } from "~/composants/pro/FormulaireDemandeLieu";
-import { champsContact, champsLieu, typesDemandeLieu } from "~/contenus/demande-lieu";
+import { STRUCTURE_DEMANDE_LIEU, TEXTES_DEMANDE_LIEU_PAR_LANGUE } from "~/contenus/demande-lieu";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
+import { assemblerDemandeLieu } from "~/fonctions/lieux/assembler-demande-lieu";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { envoyerDemandeLieu } from "~/services/demandes-lieux.server";
+import { lireLangueRequete } from "~/services/langue.server";
 
-const tousLesChamps = [...champsLieu, ...champsContact];
-
-export function meta(_: Route.MetaArgs) {
-  return creerMeta({
-    titre: "Inscrire mon lieu",
-    description: "Resto, pâtisserie, bar ou sortie indépendant, partout en France : inscris ton lieu sur SOS Miam. C'est gratuit, sans abonnement ni commission.",
-  });
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const T = choisirTextes(TEXTES_DEMANDE_LIEU_PAR_LANGUE, langue);
+  return creerMeta({ ...T.meta, langue });
 }
 
 /** Reçoit la demande d'un lieu (avec ou sans JavaScript), la vérifie et l'envoie à l'API. */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseDemandeLieu> {
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
+  const T = choisirTextes(TEXTES_DEMANDE_LIEU_PAR_LANGUE, lireLangueRequete(request).langue);
+  const { champsLieu, champsContact, types } = assemblerDemandeLieu(STRUCTURE_DEMANDE_LIEU, T);
+  const tousLesChamps = [...champsLieu, ...champsContact];
+  const M = T.messages;
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\r\n?/g, "\n").replace(/[ \t]+/g, " ").trim();
 
   const valeurs: Record<string, string> = {};
   for (const c of tousLesChamps) valeurs[c.nom] = lire(c.nom);
   const type = lire("type");
-  valeurs.type = typesDemandeLieu.some((t) => t.valeur === type) ? type : "";
+  valeurs.type = types.some((t) => t.valeur === type) ? type : "";
   // « monlieu.fr » devient « https://monlieu.fr » : l'API attend une adresse complète
   if (valeurs.siteWeb && !/^https?:\/\//i.test(valeurs.siteWeb)) valeurs.siteWeb = `https://${valeurs.siteWeb}`;
 
@@ -46,7 +52,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseDema
   }
   const fautifs = Object.keys(erreurs);
   if (fautifs.length > 0) {
-    const resume = fautifs.length === 1 ? "Un champ est à corriger." : `${fautifs.length} champs sont à corriger.`;
+    const resume = fautifs.length === 1 ? M.unChamp : M.plusieursChamps(fautifs.length);
     return { ok: false, message: resume, champ: fautifs[0], erreurs, valeurs };
   }
 
@@ -55,29 +61,25 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseDema
   if (resultat.ok) {
     return {
       ok: true,
-      message: lierPonctuation("On lit chaque demande. Si tout est bon, on crée la fiche de ton lieu et on t'écrit à l'adresse indiquée."),
+      message: lierPonctuation(M.envoyee),
     };
   }
   if (resultat.erreur === "champ-invalide") {
     const c = tousLesChamps.find((champ) => champ.nom === resultat.champ);
-    if (!c) return { ok: false, message: lierPonctuation("Un champ ne va pas : vérifie le formulaire."), valeurs };
-    return { ok: false, message: "Un champ est à corriger.", champ: c.nom, erreurs: { [c.nom]: lierPonctuation(c.erreur) }, valeurs };
+    if (!c) return { ok: false, message: lierPonctuation(M.champInconnu), valeurs };
+    return { ok: false, message: M.unChamp, champ: c.nom, erreurs: { [c.nom]: lierPonctuation(c.erreur) }, valeurs };
   }
-  const message = resultat.erreur === "trop-de-demandes"
-    ? "Doucement ! Trop de demandes d'affilée : réessaie dans une demi-heure, ou écris-nous à bonjour@sosmiam.fr."
-    : "Oups, ta demande n'est pas passée. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
+  const message = resultat.erreur === "trop-de-demandes" ? M.tropDeDemandes : M.erreur;
   return { ok: false, message: lierPonctuation(message), valeurs };
 }
 
 /** Page /inscrire-mon-lieu : un lieu demande à être sur SOS Miam ; la demande est validée dans le logiciel de gestion. */
 export default function PageInscrireMonLieu() {
+  const T = utiliserTextes(TEXTES_DEMANDE_LIEU_PAR_LANGUE);
   return (
     <Section fond="creme" etroit>
-      <TitreSection
-        principal
-        chapo={lierPonctuation("C'est gratuit, sans abonnement ni commission. Raconte-nous ton lieu : on lit chaque demande et on te répond par e-mail.")}
-      >
-        Inscris ton lieu
+      <TitreSection principal chapo={lierPonctuation(T.chapo)}>
+        {T.titre}
       </TitreSection>
       <FormulaireDemandeLieu />
     </Section>

@@ -1,20 +1,24 @@
 import { data, Link, type ShouldRevalidateFunctionArgs } from "react-router";
 
 import type { Route } from "./+types/signaler-image";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { FormulaireSignalerImage } from "~/composants/lieux/FormulaireSignalerImage";
 import { MerciSignalerImage } from "~/composants/lieux/MerciSignalerImage";
-import { TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { TEXTES_SIGNALER_IMAGE_PAR_LANGUE } from "~/contenus/signaler-image";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
+import { ecrireErreursSignalerImage } from "~/fonctions/lieux/ecrire-erreurs-signaler-image";
 import { lireFormulaireSignalerImage, ORDRE_CHAMPS_SIGNALER_IMAGE, type ReponseSignalerImage } from "~/fonctions/lieux/lire-formulaire-signaler-image";
 import { lireIdLieu } from "~/fonctions/lieux/lire-id-lieu";
 import { listerImagesSignalables } from "~/fonctions/lieux/lister-images-signalables";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { ecrireMessageService } from "~/fonctions/texte/ecrire-message-service";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { chargerFicheLieu } from "~/services/fiche-lieu.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 import { envoyerSignalementImage } from "~/services/signalements.server";
 
-const T = TEXTES_SIGNALER_IMAGE;
 const ENTETES = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex" };
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -33,24 +37,28 @@ export async function action({ request, params }: Route.ActionArgs): Promise<Rep
   if (lieuId === null) throw data(null, { status: 404, headers: ENTETES });
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data(null, { status: 400, headers: ENTETES });
+  const { langue } = lireLangueRequete(request);
+  const T = choisirTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE, langue);
 
   const lecture = lireFormulaireSignalerImage(formulaire, lieuId);
   if (!lecture.ok) {
-    const fautifs = ORDRE_CHAMPS_SIGNALER_IMAGE.filter((champ) => lecture.erreurs[champ]);
+    const fautifs = ORDRE_CHAMPS_SIGNALER_IMAGE.filter((champ) => lecture.codes[champ]);
     const message = fautifs.length > 1 ? T.erreurs.plusieursChamps(fautifs.length) : T.erreurs.unChamp;
-    return { ok: false, message: lierPonctuation(message), champ: fautifs[0], erreurs: lecture.erreurs, valeurs: lecture.valeurs };
+    return { ok: false, message: lierPonctuation(message), champ: fautifs[0], erreurs: ecrireErreursSignalerImage(lecture.codes, langue), valeurs: lecture.valeurs };
   }
   if (lecture.piege) return { ok: true };
 
   const resultat = await envoyerSignalementImage(lecture.signalement, lireIpVisiteur(request));
   if (resultat.ok) return { ok: true };
-  const message = resultat.erreur === "signalement-invalide" ? T.erreurs.refuse : ecrireMessageService(resultat.erreur);
+  const message = resultat.erreur === "signalement-invalide" ? T.erreurs.refuse : ecrireMessageService(resultat.erreur, langue);
   return { ok: false, message: lierPonctuation(message), valeurs: lecture.valeurs };
 }
 
-export function meta({ loaderData }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const T = choisirTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE, langue);
   if (!loaderData) return [{ title: T.meta.introuvable }, { name: "robots", content: "noindex" }];
-  return [...creerMeta({ titre: T.meta.titre(loaderData.lieu.nom), description: T.meta.description }), { name: "robots", content: "noindex" }];
+  return [...creerMeta({ titre: T.meta.titre(loaderData.lieu.nom), description: T.meta.description, langue }), { name: "robots", content: "noindex" }];
 }
 
 export function headers() {
@@ -63,6 +71,7 @@ export function shouldRevalidate({ formMethod, defaultShouldRevalidate }: Should
 
 export default function PageSignalerImage({ loaderData, actionData }: Route.ComponentProps) {
   const { lieu, images } = loaderData;
+  const T = utiliserTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE);
   if (actionData?.ok) return <MerciSignalerImage lieuId={lieu.id} nom={lieu.nom} />;
   return (
     <div className="bg-creme py-9 md:py-14">

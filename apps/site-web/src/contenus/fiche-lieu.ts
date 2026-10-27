@@ -1,3 +1,5 @@
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_FICHE_LIEU_ANGLAIS } from "~/contenus/anglais/fiche-lieu";
 import type { CategorieLieu } from "~/types/lieux";
 
 export const TEXTES_FICHE_LIEU = {
@@ -70,12 +72,14 @@ export const TEXTES_FICHE_LIEU = {
     titre: { carte: "La carte", formules: "Les formules" },
     rubriques: "Rubriques de la carte",
     majLe: (date: string) => `Mise à jour par le lieu le ${date}`,
+    majCarte: (date: string) => `Carte mise à jour par le lieu le ${date}.`,
     voirTout: "Voir toute la carte",
   },
   bonASavoir: {
     titre: "Bon à savoir",
     paiement: (liste: string) => `Paiement : ${liste}`,
   },
+  infosPratiques: "Infos pratiques",
   horaires: "Horaires",
   ouCest: {
     titre: "Où c'est",
@@ -115,7 +119,13 @@ export const TEXTES_FICHE_LIEU = {
   prevention: {
     etiquette: "Prévention",
     besoin: "Besoin d'en parler ? ",
+    service: (nom: string) => `${nom} : `,
     anonyme: " (appel anonyme et non surtaxé) ou ",
     page: "Santé et prévention",
   },
 } as const;
+
+export const TEXTES_FICHE_LIEU_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_FICHE_LIEU>> = {
+  fr: TEXTES_FICHE_LIEU,
+  en: TEXTES_FICHE_LIEU_ANGLAIS,
+};

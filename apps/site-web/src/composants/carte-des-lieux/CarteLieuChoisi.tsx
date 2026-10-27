@@ -2,11 +2,13 @@ import { Link } from "react-router";
 
 import { IconeCarte } from "~/composants/carte-des-lieux/IconeCarte";
 import { PastilleCarteLieu } from "~/composants/lieux/PastilleCarteLieu";
-import { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
+import { TEXTES_CARTE_DES_LIEUX_PAR_LANGUE } from "~/contenus/carte-des-lieux";
 import { creerLienItinerairePosition } from "~/fonctions/carte-des-lieux/creer-lien-itineraire-position";
 import { choisirCouleursLieu } from "~/fonctions/lieux/choisir-couleurs-lieu";
 import { choisirEmojiLieu } from "~/fonctions/lieux/choisir-emoji-lieu";
 import { utiliserApercuLieu } from "~/hooks/utiliser-apercu-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { EpingleLieu } from "~/types/lieux";
 
 type Props = { epingle: EpingleLieu; surFermer: () => void; className?: string };
@@ -14,7 +16,8 @@ type Props = { epingle: EpingleLieu; surFermer: () => void; className?: string }
 const CLASSE_LIEN = "font-bold text-encre underline-offset-4 hover:underline focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
 
 export function CarteLieuChoisi({ epingle, surFermer, className = "" }: Props) {
-  const T = TEXTES_CARTE_DES_LIEUX;
+  const T = utiliserTextes(TEXTES_CARTE_DES_LIEUX_PAR_LANGUE);
+  const langue = utiliserLangue();
   const apercu = utiliserApercuLieu(epingle.id);
   const [debut, fin] = choisirCouleursLieu(apercu?.couleurs ?? []);
   const details = apercu ? [apercu.info, apercu.prix, apercu.quartier || apercu.ville].filter(Boolean).join(" · ") : T.legende[epingle.type];
@@ -46,7 +49,7 @@ export function CarteLieuChoisi({ epingle, surFermer, className = "" }: Props) {
             <IconeCarte nom="fermer" className="size-4" />
           </button>
         </div>
-        <p className="truncate text-[13px] text-gris">{details}</p>
+        <p lang={apercu && langue !== "fr" ? "fr" : undefined} className="truncate text-[13px] text-gris">{details}</p>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <Link to={`/lieux/${epingle.id}`} className={CLASSE_LIEN}>
             {T.lieuChoisi.voirFiche}

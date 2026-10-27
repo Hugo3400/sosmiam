@@ -2,13 +2,15 @@ import { lazy, Suspense, useEffect, useMemo, useReducer, useRef } from "react";
 
 import { CLASSE_LIEN, CLASSE_TITRE_COTE } from "~/composants/lieux/classes-fiche-lieu";
 import { IconeFiche } from "~/composants/lieux/IconeFiche";
-import { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_CARTE_DES_LIEUX_PAR_LANGUE } from "~/contenus/carte-des-lieux";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { avancerCarteMini } from "~/fonctions/carte-des-lieux/avancer-carte-mini";
 import { guetterApproche } from "~/fonctions/carte-des-lieux/guetter-approche";
 import { verifierWebgl } from "~/fonctions/carte-des-lieux/verifier-webgl";
 import { creerLienItineraire } from "~/fonctions/lieux/creer-lien-itineraire";
 import { ecrireAdresseLieu } from "~/fonctions/lieux/ecrire-adresse-lieu";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { EpingleLieu } from "~/types/lieux";
 import type { FichePublique } from "~/types/pro";
 
@@ -20,7 +22,10 @@ const FOND_EMPLACEMENT = {
 };
 
 export function CarteDuLieuMini({ lieu }: { lieu: FichePublique }) {
-  const T = TEXTES_FICHE_LIEU.ouCest;
+  const textes = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const T = textes.ouCest;
+  const carteDesLieux = utiliserTextes(TEXTES_CARTE_DES_LIEUX_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const boite = useRef<HTMLDivElement>(null);
   const [etat, avancer] = useReducer(avancerCarteMini, "repos");
   const { id, nom, type, position } = lieu;
@@ -56,7 +61,7 @@ export function CarteDuLieuMini({ lieu }: { lieu: FichePublique }) {
                   variante="un-seul"
                   epingles={epingles}
                   lieuChoisi={id}
-                  titre={TEXTES_CARTE_DES_LIEUX.titreUnLieu(nom)}
+                  titre={carteDesLieux.titreUnLieu(nom)}
                   gestesCooperatifs
                   classeBoutons="top-3 left-3"
                   surEtat={(etatCarte) => avancer({ type: "carte", etat: etatCarte })}
@@ -66,7 +71,7 @@ export function CarteDuLieuMini({ lieu }: { lieu: FichePublique }) {
             </div>
           )}
           <a
-            href={`/lieux?lieu=${id}&vue=carte`}
+            href={lien(`/lieux?lieu=${id}&vue=carte`)}
             className="absolute top-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border-2 border-encre bg-white px-3.5 py-2 text-sm font-bold text-encre no-underline shadow-brut-petit focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre"
           >
             <IconeFiche nom="agrandir" className="h-4 w-4" />
@@ -80,7 +85,7 @@ export function CarteDuLieuMini({ lieu }: { lieu: FichePublique }) {
         <a href={creerLienItineraire(lieu)} rel="noopener nofollow" className={`self-start text-[15px] ${CLASSE_LIEN}`}>
           {T.itineraire}
           <span aria-hidden="true"> →</span>
-          <span className="sr-only">{TEXTES_FICHE_LIEU.actions.vers(nom)}</span>
+          <span className="sr-only">{textes.actions.vers(nom)}</span>
         </a>
       </div>
     </section>

@@ -16,7 +16,7 @@ export const CarteArticleActus = memo(function CarteArticleActus({ article, T, o
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${T.rubriques[article.rubrique]}. ${article.titre}. ${details}${article.collaboration ? `. ${T.collaboration}` : ""}`}
+      accessibilityLabel={`${T.rubriques[article.rubrique]}. ${article.titre}. ${details}${article.collaboration ? `. ${T.mentionCollaboration}` : ""}`}
       onPress={() => onOuvrir(article.id)}
       className="flex-row gap-3 rounded-[18px] border-2 border-encre bg-carte p-2.5 active:opacity-90"
     >
@@ -27,7 +27,7 @@ export const CarteArticleActus = memo(function CarteArticleActus({ article, T, o
           {article.titre}
         </Text>
         {article.collaboration ? (
-          <Text className="self-start rounded-md border border-gris px-2 py-0.5 font-texte-gras text-[11px] text-gris">{T.collaboration}</Text>
+          <Text className="self-start rounded-md border border-gris px-2 py-0.5 font-texte-gras text-[11px] text-gris">{T.mentionCollaboration}</Text>
         ) : (
           <Text className="font-texte text-xs text-gris">{details}</Text>
         )}

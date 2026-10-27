@@ -98,7 +98,7 @@ test("robots.txt : le plan du site est déclaré en adresse absolue sur chaque h
 
 test("titres : la marque une seule fois, l'accueil dit ce qu'est SOS Miam en 60 caractères au plus", () => {
   assert.equal(creerMeta({ titre: "Questions fréquentes", description: "x" })[0].title, "Questions fréquentes — SOS Miam");
-  const accueil = lire("routes/public/accueil.tsx").match(/titre: "(SOS Miam[^"]*)"/)?.[1];
+  const accueil = lire("contenus/accueil.ts").match(/titre: "(SOS Miam[^"]*)"/)?.[1];
   assert.ok(accueil && accueil.length <= 60 && accueil !== "SOS Miam", accueil);
   assert.equal(creerMeta({ titre: accueil, description: "x" })[0].title, accueil);
 });

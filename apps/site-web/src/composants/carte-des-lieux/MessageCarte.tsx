@@ -1,14 +1,15 @@
 import { Link } from "react-router";
 
-import { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
+import { TEXTES_CARTE_DES_LIEUX_PAR_LANGUE } from "~/contenus/carte-des-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type EtatCarte = "attente" | "chargement" | "prete" | "sans-webgl" | "erreur";
 
 type Props = { etat: EtatCarte; lienListe?: string };
 
 export function MessageCarte({ etat, lienListe }: Props) {
-  const T = TEXTES_CARTE_DES_LIEUX;
+  const T = utiliserTextes(TEXTES_CARTE_DES_LIEUX_PAR_LANGUE);
   const message = etat === "sans-webgl" ? T.etats.sansWebgl : etat === "erreur" ? T.etats.erreur : etat === "chargement" ? T.etats.chargement : null;
   const lien = lienListe ? (
     <Link to={lienListe} className="font-bold underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-encre">

@@ -1,16 +1,18 @@
 import { Link } from "react-router";
 
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
 import { listerPagesVisibles } from "~/fonctions/page-lieux/lister-pages-visibles";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { page: number; pages: number; adressePage: (page: number) => string };
 
 const FOCUS = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
 const ROND = "grid size-11 place-items-center rounded-full";
 const BOUTON = "inline-flex items-center gap-1 rounded-full border-2 px-4 py-2";
+const ELLIPSE = "…";
 
 export function PaginationLieux({ page, pages, adressePage }: Props) {
-  const T = TEXTES_PAGE_LIEUX.pagination;
+  const T = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE).pagination;
   if (pages <= 1) return null;
   return (
     <nav aria-label={T.etiquette} className="flex flex-col items-center gap-3">
@@ -26,7 +28,7 @@ export function PaginationLieux({ page, pages, adressePage }: Props) {
           {listerPagesVisibles(page, pages).map((element, rang) => (
             <li key={element === "ellipse" ? `ellipse-${rang}` : element}>
               {element === "ellipse" ? (
-                <span aria-hidden="true" className="px-1 text-gris">{T.ellipse}</span>
+                <span aria-hidden="true" className="px-1 text-gris">{ELLIPSE}</span>
               ) : element === page ? (
                 <span aria-current="page" className={`${ROND} bg-encre text-jaune`}>
                   <span className="sr-only">{T.page(element)}</span>

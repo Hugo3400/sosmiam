@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { LIBELLES_ACTUS_PAR_LANGUE } from "../../../../../packages/commun/src/contenus/libelles-actus.ts";
 import { AuteurArticleActus } from "~/composants/actus/AuteurArticleActus";
+import { MentionCollaborationActus } from "~/composants/actus/MentionCollaborationActus";
 import { PastilleArticleActus } from "~/composants/actus/PastilleArticleActus";
 import { VisuelArticleActus } from "~/composants/actus/VisuelArticleActus";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/actus";
@@ -32,7 +33,7 @@ export function EnTeteArticleActus({ article }: { article: ArticleActusSite }) {
       <VisuelArticleActus rubrique={article.rubrique} lieux={article.lieux} className="h-[200px] rounded-carte border-2 border-encre text-[64px] shadow-brut md:h-[280px] md:text-[88px]" />
       <div className="flex flex-wrap gap-2">
         <PastilleArticleActus>{L.rubriques[article.rubrique]}</PastilleArticleActus>
-        {article.collaboration && <PastilleArticleActus variante="blanc">{L.collaboration}</PastilleArticleActus>}
+        {article.collaboration && <MentionCollaborationActus />}
         {finLe && <PastilleArticleActus variante="blanc">{A.finLe(finLe)}</PastilleArticleActus>}
       </div>
       <h1 lang="fr" className="text-[clamp(2rem,5vw,3rem)] leading-[1.05] font-extrabold tracking-tight text-balance">{lierPonctuation(article.titre)}</h1>

@@ -1,11 +1,12 @@
 import { CLASSE_TITRE_COTE } from "~/composants/lieux/classes-fiche-lieu";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { creerLienTelephone } from "~/fonctions/lieux/creer-lien-telephone";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FichePublique } from "~/types/pro";
 
 export function BlocCommentReserver({ lieu }: { lieu: FichePublique }) {
-  const T = TEXTES_FICHE_LIEU.commentReserver;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).commentReserver;
   const lienSite = lieu.siteWeb;
   if (!lienSite && !lieu.telephone) return null;
   return (

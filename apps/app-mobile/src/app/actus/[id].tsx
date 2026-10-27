@@ -69,7 +69,7 @@ export default function EcranArticleActus() {
             </Text>
             <Text className="font-texte-moyen text-[17px] leading-6 text-gris">{article.accroche}</Text>
             {article.collaboration ? (
-              <Text className="self-start rounded-md border border-gris px-2 py-0.5 font-texte-gras text-xs text-gris">{T.collaboration}</Text>
+              <Text className="self-start rounded-md border border-gris px-2 py-0.5 font-texte-gras text-xs text-gris">{T.mentionCollaboration}</Text>
             ) : null}
             {article.finLe ? <Text className="font-texte-gras text-sm text-encre">{A.finLe(ecrireDateArticle(article.finLe, langue))}</Text> : null}
             <AuteurArticle auteur={article.auteur} ambassadeur={T.ambassadeur} details={`${villes} · ${date} · ${T.minutesLecture(minutes)}`} />

@@ -2,8 +2,8 @@ import { Link } from "react-router";
 
 import { LIBELLES_ACTUS_PAR_LANGUE } from "../../../../../packages/commun/src/contenus/libelles-actus.ts";
 import { InfosArticleActus } from "~/composants/actus/InfosArticleActus";
+import { MentionCollaborationActus } from "~/composants/actus/MentionCollaborationActus";
 import { PastilleAmbassadeurActus } from "~/composants/actus/PastilleAmbassadeurActus";
-import { PastilleArticleActus } from "~/composants/actus/PastilleArticleActus";
 import { VisuelArticleActus } from "~/composants/actus/VisuelArticleActus";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { ArticleActusSite } from "~/types/actus";
@@ -21,7 +21,7 @@ export function CarteArticleActus({ article }: { article: ArticleActusSite }) {
         <p className="text-xs font-extrabold tracking-[.06em] text-gris uppercase">{L.rubriques[article.rubrique]}</p>
         {article.collaboration && (
           <p>
-            <PastilleArticleActus variante="blanc">{L.collaboration}</PastilleArticleActus>
+            <MentionCollaborationActus />
           </p>
         )}
         <h3 lang="fr" className="text-xl leading-tight font-extrabold">

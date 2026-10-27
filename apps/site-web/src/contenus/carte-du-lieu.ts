@@ -1,17 +1,42 @@
 // Textes de la carte d'un lieu (« Ma carte » de l'espace pro, fiche publique). Les repères ont les mêmes mots que
 // apps/app-mobile/src/contenus/etiquettes-carte.ts (fiche de l'app) : les changer des deux côtés.
 import { LIMITES_CARTE } from "../../../../packages/commun/src/regles/carte-du-lieu.ts";
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
 import type { EtiquetteCarte } from "../types/carte.ts";
+import { TEXTES_CARTE_DU_LIEU_ANGLAIS } from "./anglais/carte-du-lieu.ts";
+
+export const TEXTES_CARTE_DU_LIEU = {
+  gratuit: "Gratuit",
+  reperes: "Repères",
+  specialiteMaison: "Spécialité de la maison",
+  etiquettes: {
+    vege: { libelle: "Végé", lu: "végétarien" },
+    vegan: { libelle: "Vegan", lu: "vegan" },
+    "sans-gluten": { libelle: "Sans gluten", lu: "sans gluten" },
+    epice: { libelle: "Épicé", lu: "épicé" },
+    "fait-maison": { libelle: "Fait maison", lu: "fait maison" },
+    local: { libelle: "Local", lu: "produits locaux" },
+  } satisfies Record<EtiquetteCarte, { libelle: string; lu: string }>,
+};
+
+export const TEXTES_CARTE_DU_LIEU_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_CARTE_DU_LIEU>> = {
+  fr: TEXTES_CARTE_DU_LIEU,
+  en: TEXTES_CARTE_DU_LIEU_ANGLAIS,
+};
+
+export const EMOJIS_ETIQUETTES: Record<EtiquetteCarte, string> = {
+  vege: "🌱",
+  vegan: "🌿",
+  "sans-gluten": "🌾",
+  epice: "🌶️",
+  "fait-maison": "🏠",
+  local: "📍",
+};
 
 /** Repères d'un plat : emoji (caché aux lecteurs d'écran), mot affiché et mot lu */
-export const ETIQUETTES: Record<EtiquetteCarte, { emoji: string; libelle: string; lu: string }> = {
-  vege: { emoji: "🌱", libelle: "Végé", lu: "végétarien" },
-  vegan: { emoji: "🌿", libelle: "Vegan", lu: "vegan" },
-  "sans-gluten": { emoji: "🌾", libelle: "Sans gluten", lu: "sans gluten" },
-  epice: { emoji: "🌶️", libelle: "Épicé", lu: "épicé" },
-  "fait-maison": { emoji: "🏠", libelle: "Fait maison", lu: "fait maison" },
-  local: { emoji: "📍", libelle: "Local", lu: "produits locaux" },
-};
+export const ETIQUETTES = Object.fromEntries(
+  (Object.keys(EMOJIS_ETIQUETTES) as EtiquetteCarte[]).map((cle) => [cle, { emoji: EMOJIS_ETIQUETTES[cle], ...TEXTES_CARTE_DU_LIEU.etiquettes[cle] }]),
+) as Record<EtiquetteCarte, { emoji: string; libelle: string; lu: string }>;
 
 /** Ce qui ne passe pas dans un champ de l'éditeur (validerCarteDuLieu de packages/commun) */
 export const ERREURS_CARTE = {

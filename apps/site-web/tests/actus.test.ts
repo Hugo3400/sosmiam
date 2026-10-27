@@ -58,11 +58,11 @@ const handler = createStaticHandler([
   },
 ]);
 
-async function servir(adresse: string) {
+async function servir(adresse: string, langueChoisie?: "fr" | "en") {
   const contexte = await handler.query(new Request(adresse));
   assert.ok(!(contexte instanceof Response));
   if (contexte.statusCode !== 200) return { statut: contexte.statusCode, html: "" };
-  const langue = new URL(adresse).pathname.startsWith("/en/") ? "en" : "fr";
+  const langue = langueChoisie ?? (new URL(adresse).pathname.startsWith("/en/") ? "en" : "fr");
   const routeur = h(StaticRouterProvider, { router: createStaticRouter(handler.dataRoutes, contexte), context: contexte, hydrate: false });
   const html = renderToString(h(ContexteLangue, { value: { langue, servies: ["fr", "en"] } }, routeur));
   return { statut: 200, html: html.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&") };
@@ -137,10 +137,11 @@ test("filtres : rubrique et ville lues dans l'adresse, combinées, et jamais une
 
 test("jamais d'article sur un bar ou l'alcool, ni d'article non publié, sur aucune page", async () => {
   const base = { alcool: false, titre: "Un portrait", accroche: "Une accroche", citation: null, paragraphes: ["Des crêpes et du chocolat chaud."] };
-  const lieu = { id: 0, nom: "La Crêperie des Miamis", emoji: "🥞", quartier: "Centre", ville: "Lyon", verifie: true };
+  const lieu = { id: 0, nom: "La Crêperie des Miamis", type: "resto" as const, emoji: "🥞", quartier: "Centre", ville: "Lyon", verifie: true };
   assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu] }), false);
   assert.equal(estArticleActusAlcool({ ...base, alcool: true, lieux: [lieu] }), true);
-  for (const emoji of ["🍷", "🍺", "🍸", "🥂", "🍹️"]) assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu, { ...lieu, emoji }] }), true, emoji);
+  assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu, { ...lieu, type: "bar" as const }] }), true);
+  for (const type of ["resto", "patisserie", "sortie"] as const) assert.equal(estArticleActusAlcool({ ...base, lieux: [{ ...lieu, type }] }), false, type);
   assert.equal(estArticleActusAlcool({ ...base, paragraphes: ["Un verre offert au comptoir."], lieux: [lieu] }), true);
   assert.equal(estArticleActusAlcool({ ...base, citation: "« Le meilleur spritz du quartier »", lieux: [lieu] }), true);
   assert.equal(estArticleActusAlcool({ ...base, lieux: [{ ...lieu, nom: "Le Bar à cocktails des Miamis" }] }), true);
@@ -177,8 +178,12 @@ test("« Collaboration commerciale » sur l'article et sa carte quand il l'a, ja
   assert.ok(avecCollaboration.length > 0 && sansCollaboration.length > 0);
   for (const article of avecCollaboration) {
     const { html } = await servir(`https://apercu.sosmiam.fr/actus/${article.id}`);
-    assert.match(html, />Collaboration commerciale</, article.titre);
+    assert.match(html, /<span lang="fr">Collaboration commerciale<\/span><\/span>/, article.titre);
+    assert.doesNotMatch(html, /partnership/);
     assert.match(html, /a reçu quelque chose du lieu pour cet article/);
+    const anglais = await servir(`https://apercu.sosmiam.fr/actus/${article.id}`, "en");
+    assert.match(anglais.html, /<span lang="fr">Collaboration commerciale<\/span> · paid or gifted partnership<\/span>/, article.titre);
+    assert.match(anglais.html, /received something from the place for this story/);
   }
   for (const article of sansCollaboration) {
     const { html } = await servir(`https://apercu.sosmiam.fr/actus/${article.id}`);
@@ -186,7 +191,13 @@ test("« Collaboration commerciale » sur l'article et sa carte quand il l'a, ja
     assert.match(html, /n'a rien reçu du lieu pour l'écrire/);
   }
   const liste = await servir("https://apercu.sosmiam.fr/actus");
-  assert.equal(liste.html.match(/>Collaboration commerciale</g)?.length, avecCollaboration.length);
+  assert.equal(liste.html.match(/<span lang="fr">Collaboration commerciale<\/span><\/span>/g)?.length, avecCollaboration.length);
+  const listeAnglaise = await servir("https://apercu.sosmiam.fr/en/actus");
+  assert.equal(listeAnglaise.html.match(/<span lang="fr">Collaboration commerciale<\/span> · paid or gifted partnership<\/span>/g)?.length, avecCollaboration.length);
+  for (const article of sansCollaboration) {
+    const anglais = await servir(`https://apercu.sosmiam.fr/actus/${article.id}`, "en");
+    assert.doesNotMatch(anglais.html, /Collaboration commerciale|partnership/, article.titre);
+  }
 });
 
 test("un article : une h1, le contenu en français balisé, lecture seule, « Voir la fiche » seulement avec un vrai lieu", async () => {
@@ -196,7 +207,9 @@ test("un article : une h1, le contenu en français balisé, lecture seule, « Vo
   assert.match(html, /<div lang="fr" class="flex flex-col gap-5/);
   assert.match(html, />Ambassadeur·rice</);
   assert.match(html, /Le mot du lieu/);
-  assert.match(html, /<a href="sosmiam:\/\/actus\/1"[^>]*>Lire dans l'app<\/a>/);
+  assert.match(html, /J'aime et commentaires, c'est dans l'app/);
+  assert.match(html, /Pas encore l'app/);
+  assert.doesNotMatch(html, /sosmiam:\/\/|Lire dans l'app/);
   assert.match(html, /href="\/actus"/);
   assert.doesNotMatch(html, /<button|<input|<textarea|href="\/lieux\//);
   assert.equal(estLieuAvecFiche({ id: 0 }), false);

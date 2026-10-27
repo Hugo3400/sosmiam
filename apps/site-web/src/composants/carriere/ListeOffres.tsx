@@ -6,22 +6,25 @@ import { EtatSansOffre } from "~/composants/carriere/EtatSansOffre";
 import { FiltreOffres } from "~/composants/carriere/FiltreOffres";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_CARRIERE_PAR_LANGUE } from "~/contenus/carriere";
 import { choisirTypeOffre } from "~/fonctions/carriere/choisir-type-offre";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function ListeOffres({ offres }: { offres: OffreCarriere[] | null }) {
+  const T = utiliserTextes(TEXTES_CARRIERE_PAR_LANGUE).liste;
   const [parametres] = useSearchParams();
   const type = choisirTypeOffre(parametres.get("type"));
   const affichees = offres?.filter((offre) => !type || offre.type === type) ?? [];
 
   return (
     <Section id="offres" fond="creme">
-      <TitreSection aGauche>Les offres ouvertes</TitreSection>
+      <TitreSection aGauche>{T.titre}</TitreSection>
       {offres === null && <EtatSansOffre cas="indisponible" />}
       {offres !== null && offres.length === 0 && <EtatSansOffre cas="vide" />}
       {offres !== null && offres.length > 0 && (
         <>
           <FiltreOffres offres={offres} type={type} />
-          <p role="status" className="sr-only">{affichees.length === 1 ? "1 offre affichée" : `${affichees.length} offres affichées`}</p>
+          <p role="status" className="sr-only">{T.affichees(affichees.length)}</p>
           {affichees.length === 0 && type ? (
             <EtatSansOffre cas="filtre-vide" type={type} />
           ) : (

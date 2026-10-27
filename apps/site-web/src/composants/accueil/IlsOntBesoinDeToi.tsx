@@ -5,10 +5,12 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { AucunLieu } from "~/composants/lieux/AucunLieu";
 import { CarteLieu } from "~/composants/lieux/CarteLieu";
 import { Section } from "~/composants/mise-en-page/Section";
-import { categoriesLieux } from "~/contenus/categories-lieux";
-import { TEXTES_ILS_ONT_BESOIN_DE_TOI } from "~/contenus/ils-ont-besoin-de-toi";
+import { categoriesLieux, TEXTES_CATEGORIES_LIEUX_PAR_LANGUE } from "~/contenus/categories-lieux";
+import { TEXTES_ILS_ONT_BESOIN_DE_TOI_PAR_LANGUE } from "~/contenus/ils-ont-besoin-de-toi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu, LieuCarte } from "~/types/lieux";
 
 type Props = {
@@ -17,16 +19,19 @@ type Props = {
   tirage: boolean;
 };
 
-const T = TEXTES_ILS_ONT_BESOIN_DE_TOI;
-
 /**
  * Les vrais lieux publiés (lus par l'accueil auprès de l'API), filtrables par catégorie.
  * Aucun lieu inventé : s'il n'y en a pas encore, ou si la liste ne peut pas être lue, on l'affiche franchement.
  */
 export function IlsOntBesoinDeToi({ lieux, nombreLieux, tirage }: Props) {
+  const T = utiliserTextes(TEXTES_ILS_ONT_BESOIN_DE_TOI_PAR_LANGUE);
+  const libelles = utiliserTextes(TEXTES_CATEGORIES_LIEUX_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const [filtre, setFiltre] = useState<CategorieLieu | "tous">("tous");
   const javascriptActif = utiliserJavascriptActif();
-  const presentes = categoriesLieux.filter((categorie) => lieux?.some((lieu) => lieu.type === categorie.valeur));
+  const presentes = categoriesLieux
+    .filter((categorie) => lieux?.some((lieu) => lieu.type === categorie.valeur))
+    .map(({ valeur }) => ({ valeur, libelle: libelles[valeur] }));
   const visibles = (lieux ?? []).filter((lieu) => !javascriptActif || filtre === "tous" || lieu.type === filtre);
   const filtres = [{ valeur: "tous" as const, libelle: T.tout }, ...presentes];
 
@@ -67,7 +72,7 @@ export function IlsOntBesoinDeToi({ lieux, nombreLieux, tirage }: Props) {
 
       <div className="mt-10 flex flex-col items-center gap-3 text-center">
         <Link
-          to="/lieux"
+          to={lien("/lieux")}
           className="inline-flex items-center gap-2.5 rounded-full border-2 border-encre bg-jaune px-[30px] py-[15px] text-[1.05rem] font-bold text-encre shadow-brut transition-[translate,box-shadow] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brut-grand focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre"
         >
           {T.voirTous(nombreLieux)}

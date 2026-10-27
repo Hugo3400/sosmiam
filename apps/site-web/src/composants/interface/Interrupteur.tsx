@@ -7,10 +7,12 @@ type Props = {
   /** Le libellé est ailleurs (titre d'une catégorie…) : son id, et celui de l'explication */
   libelleId: string;
   descriptionId?: string;
+  oui: string;
+  non: string;
 };
 
 /** Interrupteur Oui / Non : une case à cocher (rôle « switch »), dessinée en piste jaune avec son bouton encre. */
-export function Interrupteur({ id, nom, valeur, coche, libelleId, descriptionId }: Props) {
+export function Interrupteur({ id, nom, valeur, coche, libelleId, descriptionId, oui, non }: Props) {
   return (
     <label htmlFor={id} className="inline-flex shrink-0 cursor-pointer items-center gap-2 font-semibold">
       <input
@@ -31,8 +33,8 @@ export function Interrupteur({ id, nom, valeur, coche, libelleId, descriptionId 
           after:absolute after:top-[3px] after:left-[3px] after:size-[18px] after:rounded-full after:bg-encre after:transition-transform
           peer-checked:after:translate-x-5"
       />
-      <span aria-hidden="true" className="w-7 text-sm peer-checked:hidden">Non</span>
-      <span aria-hidden="true" className="hidden w-7 text-sm peer-checked:inline">Oui</span>
+      <span aria-hidden="true" className="w-7 text-sm peer-checked:hidden">{non}</span>
+      <span aria-hidden="true" className="hidden w-7 text-sm peer-checked:inline">{oui}</span>
     </label>
   );
 }

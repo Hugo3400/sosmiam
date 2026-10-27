@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { data } from "react-router";
 
 import type { Route } from "./+types/invitation";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { Bouton } from "~/composants/interface/Bouton";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_INVITATION_PAR_LANGUE } from "~/contenus/invitation";
 import { SCHEMA_APP, STORES_APP } from "~/contenus/liens-app";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { lireCodeInvitation } from "~/fonctions/liens-app/lire-code-invitation";
 import { lirePseudoInvitation } from "~/fonctions/liens-app/lire-pseudo-invitation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Jamais en cache (l'adresse peut porter l'ancien « ?c= »), jamais indexée, et sans « Referer » vers un autre site */
 const ENTETES = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer", "X-Robots-Tag": "noindex" };
@@ -29,15 +34,16 @@ export function headers() {
 }
 
 /** Aucune balise ne reprend l'adresse : le code ne peut pas fuiter par un aperçu de lien */
-export function meta({ loaderData }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const T = choisirTextes(TEXTES_INVITATION_PAR_LANGUE, lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])))).meta;
   const pseudo = loaderData?.pseudo;
-  const titre = pseudo ? `Rejoins la bande de @${pseudo} — SOS Miam` : "Invitation introuvable — SOS Miam";
+  const titre = pseudo ? T.titre(pseudo) : T.introuvable;
   return [
     { title: titre },
     { name: "robots", content: "noindex, nofollow" },
     { name: "referrer", content: "no-referrer" },
     { property: "og:title", content: titre },
-    { property: "og:description", content: "Ouvre SOS Miam pour rejoindre sa bande et sauver des tables ensemble." },
+    { property: "og:description", content: T.description },
   ];
 }
 
@@ -56,16 +62,17 @@ function utiliserLienApp(pseudo: string): string {
 }
 
 function Invitation({ pseudo }: { pseudo: string }) {
+  const T = utiliserTextes(TEXTES_INVITATION_PAR_LANGUE);
   const lienApp = utiliserLienApp(pseudo);
   return (
     <div className="text-center">
       <p className="mb-4 text-6xl" aria-hidden="true">🛟</p>
-      <TitreSection principal chapo={lierPonctuation("Une bande, c'est des potes qui sauvent des tables ensemble. Il ne manque plus que toi à bord.")}>
-        {lierPonctuation(`Ouvre SOS Miam pour rejoindre la bande de @${pseudo}`)}
+      <TitreSection principal chapo={lierPonctuation(T.chapo)}>
+        {lierPonctuation(T.titre(pseudo))}
       </TitreSection>
-      <Bouton href={lienApp}>{lierPonctuation("Ouvrir l'app")}</Bouton>
+      <Bouton href={lienApp}>{lierPonctuation(T.ouvrirApp)}</Bouton>
       <p className="mx-auto mt-8 max-w-md text-gris">
-        {lierPonctuation("Pas encore l'app ? Elle est en développement et arrive bientôt sur les stores. Garde ce lien bien au chaud : il marchera dès qu'elle sera là.")}
+        {lierPonctuation(T.pasEncore)}
       </p>
       <ul className="mx-auto mt-4 flex max-w-md flex-col gap-1 text-gris">
         {STORES_APP.map((store) => (
@@ -73,7 +80,7 @@ function Invitation({ pseudo }: { pseudo: string }) {
             {store.adresse ? (
               <a href={store.adresse} className="underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">{store.nom}</a>
             ) : (
-              lierPonctuation(`${store.nom} : bientôt`)
+              lierPonctuation(T.bientot(store.nom))
             )}
           </li>
         ))}
@@ -84,6 +91,8 @@ function Invitation({ pseudo }: { pseudo: string }) {
 
 /** La page : l'invitation, ou un mot aimable si l'adresse n'est pas celle d'une invitation */
 export default function PageInvitation({ loaderData }: Route.ComponentProps) {
+  const T = utiliserTextes(TEXTES_INVITATION_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   return (
     <Section fond="creme" etroit>
       {loaderData.pseudo ? (
@@ -91,10 +100,10 @@ export default function PageInvitation({ loaderData }: Route.ComponentProps) {
       ) : (
         <div className="text-center">
           <p className="mb-4 text-6xl" aria-hidden="true">🤔</p>
-          <TitreSection principal chapo={lierPonctuation("Ce lien d'invitation a dû prendre l'eau en chemin. Demande à ton pote de te le renvoyer, ou de te montrer son QR code dans l'app.")}>
-            {lierPonctuation("Invitation introuvable")}
+          <TitreSection principal chapo={lierPonctuation(T.introuvable.chapo)}>
+            {lierPonctuation(T.introuvable.titre)}
           </TitreSection>
-          <Bouton vers="/">{lierPonctuation("Découvrir SOS Miam")}</Bouton>
+          <Bouton vers={lien("/")}>{lierPonctuation(T.decouvrir)}</Bouton>
         </div>
       )}
     </Section>

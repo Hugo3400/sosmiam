@@ -1,7 +1,8 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 
 import { ElementCarteDuLieu } from "~/composants/lieux/ElementCarteDuLieu";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { RubriqueCarte } from "~/types/carte";
 
 const DEPLACEMENTS: Record<string, (rang: number, nombre: number) => number> = {
@@ -12,6 +13,7 @@ const DEPLACEMENTS: Record<string, (rang: number, nombre: number) => number> = {
 };
 
 export function OngletsCarte({ rubriques }: { rubriques: RubriqueCarte[] }) {
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
   const [actif, changerActif] = useState(0);
   const onglets = useRef<(HTMLButtonElement | null)[]>([]);
   const rubrique = rubriques[actif] ?? rubriques[0];
@@ -28,7 +30,7 @@ export function OngletsCarte({ rubriques }: { rubriques: RubriqueCarte[] }) {
 
   return (
     <>
-      <div role="tablist" aria-label={TEXTES_FICHE_LIEU.carte.rubriques} className="flex flex-wrap gap-2">
+      <div role="tablist" aria-label={T.carte.rubriques} className="flex flex-wrap gap-2">
         {rubriques.map((uneRubrique, rang) => (
           <button
             key={uneRubrique.id}

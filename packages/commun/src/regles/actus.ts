@@ -9,9 +9,14 @@ export const LIEUX_RUBRIQUE_ACTUS: Record<RubriqueActus, { min: number; max: num
   "recit-sortie": { min: 2, max: 5 },
 };
 
+export const TITRE_ACTUS_MIN = 10;
 export const TITRE_ACTUS_MAX = 70;
+export const ACCROCHE_ACTUS_MIN = 20;
 export const ACCROCHE_ACTUS_MAX = 140;
+export const TEXTE_ACTUS_MIN = 300;
 export const TEXTE_ACTUS_MAX = 3000;
+export const PARAGRAPHES_ACTUS_MAX = 30;
+export const FIN_BON_PLAN_MAX_JOURS = 90;
 export const CITATION_ACTUS_MAX = 200;
 export const PHOTOS_ACTUS_MAX = 4;
 export const REPONSE_LIEU_ACTUS_MAX = 500;

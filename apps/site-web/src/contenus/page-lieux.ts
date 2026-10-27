@@ -1,3 +1,5 @@
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_PAGE_LIEUX_ANGLAIS } from "~/contenus/anglais/page-lieux";
 import type { CategorieLieu } from "~/types/lieux";
 
 const nombreFr = new Intl.NumberFormat("fr-FR");
@@ -63,7 +65,6 @@ export const TEXTES_PAGE_LIEUX = {
     suivants: "Suivants",
     page: (numero: number) => `Page ${numero}`,
     pageSur: (page: number, pages: number) => `Page ${page} sur ${pages}`,
-    ellipse: "…",
     note: "24 lieux par page : de quoi prévoir quelques soirées.",
   },
   vues: {
@@ -105,3 +106,8 @@ export const TEXTES_PAGE_LIEUX = {
     trouvee: (ville: string) => `Direction ${ville} !`,
   },
 } as const;
+
+export const TEXTES_PAGE_LIEUX_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PAGE_LIEUX>> = {
+  fr: TEXTES_PAGE_LIEUX,
+  en: TEXTES_PAGE_LIEUX_ANGLAIS,
+};

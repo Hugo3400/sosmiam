@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
+import { TEXTES_CHAMP_VILLE_OU_REGION_PAR_LANGUE } from "~/contenus/champ-ville-ou-region";
 import { groupesLieux, type Lieu } from "~/contenus/villes";
 import { filtrerLieux } from "~/fonctions/texte/filtrer-lieux";
 import { trouverVilleProposee } from "~/fonctions/texte/trouver-ville-proposee";
 import { utiliserLocalisation } from "~/hooks/utiliser-localisation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   id: string;
@@ -24,6 +26,7 @@ type Props = {
  * Le champ n'est pas « contrôlé » par React : ce qui a été tapé avant la fin du chargement de la page n'est pas perdu.
  */
 export function ChampVilleOuRegion({ id, name, className = "", classeChamp, valeurInitiale = "" }: Props) {
+  const T = utiliserTextes(TEXTES_CHAMP_VILLE_OU_REGION_PAR_LANGUE);
   const [saisie, setSaisie] = useState(valeurInitiale);
   const [ouvert, setOuvert] = useState(false);
   const [actif, setActif] = useState<string | null>(null);
@@ -164,7 +167,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
           autoComplete="off"
           autoCapitalize="words"
           spellCheck={false}
-          placeholder="Ta ville ou ta région"
+          placeholder={T.exemple}
           maxLength={80}
           defaultValue={valeurInitiale}
           onChange={(evenement) => {
@@ -185,7 +188,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
             type="button"
             onClick={localiser}
             aria-disabled={localisation.etat === "recherche"}
-            aria-label="Me localiser pour remplir ce champ"
+            aria-label={T.localiser}
             className="absolute top-1/2 right-2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full text-lg transition-colors
               hover:bg-jaune-clair focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre aria-disabled:cursor-wait aria-disabled:opacity-60"
           >
@@ -198,7 +201,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
           ref={liste}
           id={idListe}
           role="listbox"
-          aria-label="Villes et régions proposées"
+          aria-label={T.suggestions}
           hidden={!visible}
           onMouseDown={(evenement) => evenement.preventDefault()}
           className="absolute top-full left-0 z-30 mt-2 max-h-[min(20rem,50vh)] w-full overflow-y-auto overscroll-contain rounded-2xl border-2 border-encre
@@ -232,7 +235,7 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
                   >
                     <span className="block font-semibold">{lieu.nom}</span>
                     {lieu.type === "region" && (
-                      <span className={`block text-sm ${estActif ? "text-jaune-clair" : "text-gris"}`}>toute la région</span>
+                      <span className={`block text-sm ${estActif ? "text-jaune-clair" : "text-gris"}`}>{T.touteLaRegion}</span>
                     )}
                   </div>
                 );
@@ -252,8 +255,8 @@ export function ChampVilleOuRegion({ id, name, className = "", classeChamp, vale
       <p className="sr-only" aria-live="polite">
         {ouvert && saisie.trim() !== ""
           ? options.length > 0
-            ? `${options.length} suggestion${options.length > 1 ? "s" : ""}`
-            : "Aucune suggestion : tu peux garder ce que tu as tapé."
+            ? T.nombre(options.length)
+            : T.aucune
           : ""}
       </p>
     </div>

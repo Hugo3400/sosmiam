@@ -17,6 +17,9 @@
 //   { nom: "YouTube (Google)", role: "Lit les vidéos intégrées.", politique: "https://policies.google.com/privacy",
 //     domaines: ["www.youtube-nocookie.com"], traceurs: [{ nom: "…", finalite: "…", duree: "…" }] }
 
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_CONSENTEMENT_ANGLAIS } from "~/contenus/anglais/cookies-consentement";
+
 /** Nom du cookie qui garde le choix (strictement nécessaire : il ne sert qu'à respecter la décision) */
 export const NOM_COOKIE_CONSENTEMENT = "sosmiam-consentement";
 
@@ -74,92 +77,17 @@ export type CategorieConsentement = {
 /** Une catégorie qu'on peut accepter ou refuser */
 export type CategorieFacultative = CategorieConsentement & { id: IdCategorieFacultative };
 
-export const categoriesConsentement: CategorieConsentement[] = [
-  {
-    id: "necessaires",
-    nom: "Strictement nécessaires",
-    explication:
-      "Comme le sel dans les pâtes : sans eux, rien ne tient. Ils protègent le site, te gardent connecté et retiennent tes choix. La loi les dispense d'accord, et ils ne servent ni à la pub ni à te suivre.",
-    pourBandeau: "faire marcher le site",
-    active: true,
-    partenaires: [
-      {
-        nom: "SOS Miam",
-        role: "Ta connexion, ton refus des statistiques, tes choix de cookies et ta position dans la page.",
-        domaines: [],
-        traceurs: [
-          { nom: "__Host-sosmiam-session", finalite: "Te garder connecté.", duree: "90 jours au plus" },
-          { nom: "__Host-sosmiam-connexion-externe", finalite: "Vérifier la réponse d'Apple ou de Google.", duree: "10 minutes au plus" },
-          { nom: "__Host-sosmiam-inscription-externe", finalite: "Finir une inscription avec Apple ou Google.", duree: "10 minutes au plus" },
-          { nom: "__Host-sosmiam-confirmation-externe", finalite: "Relier Apple ou Google à un compte sans mot de passe.", duree: "10 minutes au plus" },
-          { nom: "__Host-sosmiam-connexion-qr", finalite: "Attendre que l'app valide « Me connecter avec l'app ».", duree: "2 minutes au plus" },
-          { nom: "sosmiam-sans-statistiques", finalite: "Retenir ton refus d'être compté.", duree: "13 mois" },
-          { nom: NOM_COOKIE_CONSENTEMENT, finalite: "Retenir tes choix de cookies.", duree: "6 mois" },
-          { nom: "react-router-scroll-positions", finalite: "Te ramener où tu étais sur une page (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },
-          { nom: "react-router-manifest-version", finalite: "Recharger une seule fois après une mise à jour (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },
-        ],
-      },
-      {
-        nom: "Cloudflare",
-        role: "Protège le site contre les attaques et les robots.",
-        politique: "https://www.cloudflare.com/privacypolicy/",
-        domaines: [],
-        traceurs: [
-          { nom: "cf_clearance", finalite: "Retenir que tu as passé la vérification anti-robots.", duree: "1 an" },
-          { nom: "__cf_bm", finalite: "Distinguer les humains des robots.", duree: "Environ 30 minutes" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "contenus-externes",
-    nom: "Vidéos et contenus d'autres sites",
-    explication:
-      "Les vidéos YouTube, les cartes et les publications Instagram ou TikTok intégrées dans nos pages. Ces plateformes posent leurs propres cookies dès que leur contenu s'affiche, et peuvent s'en servir pour te reconnaître. Sans ton accord, tu vois une vignette à la place, avec un bouton pour afficher quand même.",
-    pourBandeau: "afficher des vidéos et des contenus d'autres sites (YouTube, Instagram, TikTok…)",
-    active: false,
-    partenaires: [],
-  },
-  {
-    id: "publicite",
-    nom: "Publicité",
-    explication:
-      "La pub qui paie l'addition pour que SOS Miam reste gratuit, toujours signalée comme telle. Avec ton accord, nos partenaires publicitaires posent des cookies pour choisir les pubs et compter leurs affichages. Sans ton accord, aucun cookie publicitaire, et le classement des lieux ne bouge pas d'un millimètre.",
-    pourBandeau: "afficher de la pub qui nous aide à rester gratuits",
-    active: false,
-    partenaires: [],
-  },
-  {
-    id: "mesure-audience",
-    nom: "Mesure d'audience",
-    explication:
-      "Nos statistiques actuelles se passent de cookie : notre serveur compte les visites tout seul, sans rien déposer chez toi, et elles n'ont pas besoin de ton accord. Cette case ne servira que si, un jour, un outil de mesure en a besoin.",
-    pourBandeau: "mesurer l'audience avec un outil extérieur",
-    active: false,
-    partenaires: [],
-  },
-];
-
-/**
- * Aperçu du bandeau (« ?apercu-cookies », ou l'hôte apercu.sosmiam.fr) : la catégorie « publicite » devient active avec
- * ce partenaire fictif. Il n'existe pas, ne charge rien et ne dépose rien.
- */
-export const partenaireApercu: PartenaireConsentement = {
-  nom: "Exemple (aperçu)",
-  role: "Partenaire imaginaire, juste pour voir le bandeau : il ne charge rien et ne dépose rien.",
-  domaines: [],
-  traceurs: [],
-};
-
-/** Les textes du bandeau, du panneau et des vignettes */
-export const textesConsentement = {
+export const TEXTES_CONSENTEMENT = {
   titre: "Des cookies ? Seulement si tu veux 🍪",
-  /** Suivi de la liste des catégories (« Pour afficher de la pub… ») et de la fin de phrase */
+  invitation: (pour: string, plusieurs: boolean) =>
+    `Pour ${pour}, ${plusieurs ? "des partenaires aimeraient" : "un partenaire aimerait"} poser des cookies dans ton navigateur.`,
+  et: " et ",
   sansAccord: "Sans ton accord, rien n'est posé, et SOS Miam marche tout aussi bien.",
-  changerDAvis: "Tu peux changer d'avis quand tu veux avec « Gérer mes cookies », en bas de chaque page.",
+  changerDAvis: (lien: string) => `Tu peux changer d'avis quand tu veux avec « ${lien} », en bas de chaque page.`,
   portee: "Ton choix est gardé 6 mois, pour sosmiam.fr et ses espaces ambassadeur et pro.",
   lienPage: "Tout savoir sur nos cookies",
   apercu: "Aperçu : partenaire imaginaire, rien n'est chargé ni déposé, à part ton choix.",
+  apercuReglages: "Aperçu : le partenaire est imaginaire.",
   toutAccepter: "Tout accepter",
   toutRefuser: "Tout refuser",
   choisir: "Choisir",
@@ -170,6 +98,127 @@ export const textesConsentement = {
   introPanneau: "Tout est décoché au départ : sans ton accord, c'est non. Coche seulement ce que tu veux bien.",
   introGestion: "Voici tes choix actuels. Change ce que tu veux, puis enregistre : retirer un accord est aussi simple que de le donner.",
   toujoursActifs: "Toujours actifs",
-  voirPartenaires: "Qui pose quoi",
+  oui: "Oui",
+  non: "Non",
+  voirPartenaires: (partenaires: number, traceurs: number) =>
+    `Qui pose quoi (${partenaires} ${partenaires > 1 ? "partenaires" : "partenaire"}, ${traceurs} ${traceurs > 1 ? "traceurs" : "traceur"})`,
+  deuxPoints: " : ",
+  politique: "Sa politique de confidentialité",
+  aucunTraceur: "Aucun cookie, aucun traceur.",
   choixEnregistre: "C'est noté, ton choix est enregistré.",
+  choixValable: (debut: string, fin: string) => `Ton choix du ${debut} vaut jusqu'au ${fin} : ensuite, on te reposera la question.`,
+  sansChoix: "Tu n'as encore rien choisi : tant que tu ne dis rien, c'est non.",
+  contenuExterne: {
+    video: { vientDe: (fournisseur: string) => `Cette vidéo vient de ${fournisseur}, qui pose des cookies.`, toujours: "Toujours afficher les vidéos" },
+    carte: { vientDe: (fournisseur: string) => `Cette carte vient de ${fournisseur}, qui pose des cookies.`, toujours: "Toujours afficher les cartes" },
+    publication: {
+      vientDe: (fournisseur: string) => `Cette publication vient de ${fournisseur}, qui pose des cookies.`,
+      toujours: "Toujours afficher les publications",
+    },
+    afficherQuandMeme: "Afficher quand même",
+    voirSur: (fournisseur: string) => `Voir sur ${fournisseur}`,
+    portee: (lien: string) =>
+      ` · « Toujours afficher » vaut pour tous les contenus d'autres sites (vidéos, cartes, publications) ; tu peux changer d'avis dans « ${lien} ».`,
+  },
+  categories: {
+    necessaires: {
+      nom: "Strictement nécessaires",
+      explication:
+        "Comme le sel dans les pâtes : sans eux, rien ne tient. Ils protègent le site, te gardent connecté et retiennent tes choix. La loi les dispense d'accord, et ils ne servent ni à la pub ni à te suivre.",
+      pourBandeau: "faire marcher le site",
+    },
+    "contenus-externes": {
+      nom: "Vidéos et contenus d'autres sites",
+      explication:
+        "Les vidéos YouTube, les cartes et les publications Instagram ou TikTok intégrées dans nos pages. Ces plateformes posent leurs propres cookies dès que leur contenu s'affiche, et peuvent s'en servir pour te reconnaître. Sans ton accord, tu vois une vignette à la place, avec un bouton pour afficher quand même.",
+      pourBandeau: "afficher des vidéos et des contenus d'autres sites (YouTube, Instagram, TikTok…)",
+    },
+    publicite: {
+      nom: "Publicité",
+      explication:
+        "La pub qui paie l'addition pour que SOS Miam reste gratuit, toujours signalée comme telle. Avec ton accord, nos partenaires publicitaires posent des cookies pour choisir les pubs et compter leurs affichages. Sans ton accord, aucun cookie publicitaire, et le classement des lieux ne bouge pas d'un millimètre.",
+      pourBandeau: "afficher de la pub qui nous aide à rester gratuits",
+    },
+    "mesure-audience": {
+      nom: "Mesure d'audience",
+      explication:
+        "Nos statistiques actuelles se passent de cookie : notre serveur compte les visites tout seul, sans rien déposer chez toi, et elles n'ont pas besoin de ton accord. Cette case ne servira que si, un jour, un outil de mesure en a besoin.",
+      pourBandeau: "mesurer l'audience avec un outil extérieur",
+    },
+  },
+  partenaires: {
+    "SOS Miam": { role: "Ta connexion, ton refus des statistiques, tes choix de cookies et ta position dans la page." },
+    Cloudflare: { role: "Protège le site contre les attaques et les robots." },
+    "Exemple (aperçu)": {
+      nom: "Exemple (aperçu)",
+      role: "Partenaire imaginaire, juste pour voir le bandeau : il ne charge rien et ne dépose rien.",
+    },
+  },
+  traceurs: {
+    "__Host-sosmiam-session": { finalite: "Te garder connecté.", duree: "90 jours au plus" },
+    "__Host-sosmiam-connexion-externe": { finalite: "Vérifier la réponse d'Apple ou de Google.", duree: "10 minutes au plus" },
+    "__Host-sosmiam-inscription-externe": { finalite: "Finir une inscription avec Apple ou Google.", duree: "10 minutes au plus" },
+    "__Host-sosmiam-confirmation-externe": { finalite: "Relier Apple ou Google à un compte sans mot de passe.", duree: "10 minutes au plus" },
+    "__Host-sosmiam-connexion-qr": { finalite: "Attendre que l'app valide « Me connecter avec l'app ».", duree: "2 minutes au plus" },
+    "sosmiam-sans-statistiques": { finalite: "Retenir ton refus d'être compté.", duree: "13 mois" },
+    [NOM_COOKIE_CONSENTEMENT]: { finalite: "Retenir tes choix de cookies.", duree: "6 mois" },
+    "react-router-scroll-positions": { finalite: "Te ramener où tu étais sur une page (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },
+    "react-router-manifest-version": { finalite: "Recharger une seule fois après une mise à jour (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },
+    cf_clearance: { finalite: "Retenir que tu as passé la vérification anti-robots.", duree: "1 an" },
+    __cf_bm: { finalite: "Distinguer les humains des robots.", duree: "Environ 30 minutes" },
+  },
+};
+
+export const TEXTES_CONSENTEMENT_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_CONSENTEMENT>> = {
+  fr: TEXTES_CONSENTEMENT,
+  en: TEXTES_CONSENTEMENT_ANGLAIS,
+};
+
+const { categories: CATEGORIES, partenaires: PARTENAIRES } = TEXTES_CONSENTEMENT;
+const traceur = (nom: keyof typeof TEXTES_CONSENTEMENT.traceurs): TraceurConsentement => ({ nom, ...TEXTES_CONSENTEMENT.traceurs[nom] });
+
+export const categoriesConsentement: CategorieConsentement[] = [
+  {
+    id: "necessaires",
+    ...CATEGORIES.necessaires,
+    active: true,
+    partenaires: [
+      {
+        nom: "SOS Miam",
+        ...PARTENAIRES["SOS Miam"],
+        domaines: [],
+        traceurs: [
+          traceur("__Host-sosmiam-session"),
+          traceur("__Host-sosmiam-connexion-externe"),
+          traceur("__Host-sosmiam-inscription-externe"),
+          traceur("__Host-sosmiam-confirmation-externe"),
+          traceur("__Host-sosmiam-connexion-qr"),
+          traceur("sosmiam-sans-statistiques"),
+          traceur(NOM_COOKIE_CONSENTEMENT),
+          traceur("react-router-scroll-positions"),
+          traceur("react-router-manifest-version"),
+        ],
+      },
+      {
+        nom: "Cloudflare",
+        ...PARTENAIRES.Cloudflare,
+        politique: "https://www.cloudflare.com/privacypolicy/",
+        domaines: [],
+        traceurs: [traceur("cf_clearance"), traceur("__cf_bm")],
+      },
+    ],
+  },
+  { id: "contenus-externes", ...CATEGORIES["contenus-externes"], active: false, partenaires: [] },
+  { id: "publicite", ...CATEGORIES.publicite, active: false, partenaires: [] },
+  { id: "mesure-audience", ...CATEGORIES["mesure-audience"], active: false, partenaires: [] },
+];
+
+/**
+ * Aperçu du bandeau (« ?apercu-cookies », ou l'hôte apercu.sosmiam.fr) : la catégorie « publicite » devient active avec
+ * ce partenaire fictif. Il n'existe pas, ne charge rien et ne dépose rien.
+ */
+export const partenaireApercu: PartenaireConsentement = {
+  ...PARTENAIRES["Exemple (aperçu)"],
+  domaines: [],
+  traceurs: [],
 };

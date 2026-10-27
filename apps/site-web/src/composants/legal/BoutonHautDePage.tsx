@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { TEXTES_CADRE_LEGAL_PAR_LANGUE } from "~/contenus/legal/cadre-legal";
 import { defilerVersElement } from "~/fonctions/navigation/defiler-vers-element";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Hauteur défilée à partir de laquelle le bouton apparaît */
 const SEUIL = 900;
@@ -10,6 +12,7 @@ const SEUIL = 900;
  * Il remonte au titre de la page et lui donne le focus (clavier, lecteurs d'écran). Sans JavaScript, il reste caché.
  */
 export function BoutonHautDePage() {
+  const T = utiliserTextes(TEXTES_CADRE_LEGAL_PAR_LANGUE);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -26,7 +29,7 @@ export function BoutonHautDePage() {
       onClick={() => defilerVersElement("haut")}
       className="fixed right-4 bottom-4 z-20 inline-flex items-center gap-1.5 rounded-full border-2 border-encre bg-white px-3 py-2 text-sm font-semibold shadow-brut-petit hover:bg-jaune-clair md:right-6 md:bottom-6"
     >
-      <span aria-hidden="true">↑</span> Haut de page
+      <span aria-hidden="true">↑</span> {T.hautDePage}
     </button>
   );
 }

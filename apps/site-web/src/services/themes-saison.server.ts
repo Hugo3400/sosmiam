@@ -25,7 +25,11 @@ async function demanderThemeApi(ip: string | null, langue: Langue): Promise<Repo
   }
 }
 
-export async function lireThemeSaisonAccueil(ip: string | null, horloge: () => number = Date.now): Promise<ThemeSaisonApi | null> {
-  const reponse = await demanderThemeApi(ip, LANGUE_PAR_DEFAUT);
-  return reponse.ok ? reponse.theme : calculerThemeSaisonLocal(horloge(), LANGUE_PAR_DEFAUT);
+export async function lireThemeSaisonAccueil(
+  ip: string | null,
+  horloge: () => number = Date.now,
+  langue: Langue = LANGUE_PAR_DEFAUT,
+): Promise<ThemeSaisonApi | null> {
+  const reponse = await demanderThemeApi(ip, langue);
+  return reponse.ok ? reponse.theme : calculerThemeSaisonLocal(horloge(), langue);
 }

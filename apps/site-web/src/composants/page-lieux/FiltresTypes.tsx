@@ -1,7 +1,9 @@
 import { PastilleFiltre } from "~/composants/page-lieux/PastilleFiltre";
-import { categoriesLieux } from "~/contenus/categories-lieux";
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
+import { categoriesLieux, TEXTES_CATEGORIES_LIEUX_PAR_LANGUE } from "~/contenus/categories-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
 import { ecrireAdresseLieux } from "~/fonctions/page-lieux/ecrire-adresse-lieux";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu } from "~/types/lieux";
 
 type Props = {
@@ -12,8 +14,10 @@ type Props = {
 };
 
 export function FiltresTypes({ identifiantVille, type, recherche, total }: Props) {
-  const T = TEXTES_PAGE_LIEUX;
-  const adresse = (choix: CategorieLieu | null) => ecrireAdresseLieux({ ville: identifiantVille, type: choix, recherche });
+  const T = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE);
+  const categories = utiliserTextes(TEXTES_CATEGORIES_LIEUX_PAR_LANGUE);
+  const lien = utiliserLienLangue();
+  const adresse = (choix: CategorieLieu | null) => lien(ecrireAdresseLieux({ ville: identifiantVille, type: choix, recherche }));
   return (
     <div className="flex flex-wrap items-center gap-x-2.5 gap-y-3">
       <div role="group" aria-labelledby="filtre-type" className="flex flex-wrap items-center gap-2.5">
@@ -21,7 +25,7 @@ export function FiltresTypes({ identifiantVille, type, recherche, total }: Props
         <PastilleFiltre vers={adresse(null)} actif={type === null}>{T.filtres.tout}</PastilleFiltre>
         {categoriesLieux.map((categorie) => (
           <PastilleFiltre key={categorie.valeur} vers={adresse(categorie.valeur)} actif={type === categorie.valeur}>
-            {categorie.libelle}
+            {categories[categorie.valeur]}
           </PastilleFiltre>
         ))}
       </div>

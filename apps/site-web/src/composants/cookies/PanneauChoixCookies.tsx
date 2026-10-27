@@ -1,8 +1,9 @@
 import { Bouton } from "~/composants/interface/Bouton";
 import { CategorieCookies } from "~/composants/cookies/CategorieCookies";
-import { textesConsentement } from "~/contenus/cookies-consentement";
+import { TEXTES_CONSENTEMENT_PAR_LANGUE } from "~/contenus/cookies-consentement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConsentement } from "~/hooks/utiliser-consentement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** « bandeau » (le panneau « Choisir ») ou « page » (le formulaire de /cookies#mes-choix) : préfixe des id */
@@ -17,13 +18,14 @@ type Props = {
  */
 export function PanneauChoixCookies({ prefixe, Titre }: Props) {
   const { categories, aChoisir, choix } = utiliserConsentement();
+  const T = utiliserTextes(TEXTES_CONSENTEMENT_PAR_LANGUE);
   const necessaires = categories.find((categorie) => categorie.id === "necessaires");
   return (
     <div>
       <Titre id={`${prefixe}-cookies-titre-panneau`} tabIndex={-1} className="pr-10 font-titre text-lg font-extrabold sm:text-xl">
-        {textesConsentement.titrePanneau}
+        {T.titrePanneau}
       </Titre>
-      <p id={`${prefixe}-cookies-intro-panneau`} className="mt-1.5 text-[.95rem] text-gris">{lierPonctuation(choix ? textesConsentement.introGestion : textesConsentement.introPanneau)}</p>
+      <p id={`${prefixe}-cookies-intro-panneau`} className="mt-1.5 text-[.95rem] text-gris">{lierPonctuation(choix ? T.introGestion : T.introPanneau)}</p>
       <ul className="mt-4 grid gap-3">
         {aChoisir.map((categorie) => (
           <li key={categorie.id}>
@@ -38,9 +40,9 @@ export function PanneauChoixCookies({ prefixe, Titre }: Props) {
           prefixe === "bandeau" ? "sticky -bottom-4 -mx-4 -mb-4 border-t-2 border-encre/10 bg-white px-4 pt-3 pb-4 sm:-bottom-6 sm:-mx-6 sm:-mb-6 sm:px-6 sm:pb-6" : ""
         }`}
       >
-        <Bouton type="submit" name="geste" value="enregistrer" petit className="col-span-2 w-full sm:col-span-1">{textesConsentement.enregistrer}</Bouton>
-        <Bouton type="submit" name="geste" value="tout-refuser" petit className="w-full">{textesConsentement.toutRefuser}</Bouton>
-        <Bouton type="submit" name="geste" value="tout-accepter" petit className="w-full">{textesConsentement.toutAccepter}</Bouton>
+        <Bouton type="submit" name="geste" value="enregistrer" petit className="col-span-2 w-full sm:col-span-1">{T.enregistrer}</Bouton>
+        <Bouton type="submit" name="geste" value="tout-refuser" petit className="w-full">{T.toutRefuser}</Bouton>
+        <Bouton type="submit" name="geste" value="tout-accepter" petit className="w-full">{T.toutAccepter}</Bouton>
       </div>
     </div>
   );

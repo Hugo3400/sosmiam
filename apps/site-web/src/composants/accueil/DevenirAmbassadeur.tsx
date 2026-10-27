@@ -5,31 +5,40 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { BadgePalier, type NiveauPalier } from "~/composants/marque/BadgePalier";
 import { Ecusson } from "~/composants/marque/Ecusson";
 import { Section } from "~/composants/mise-en-page/Section";
-import { adresseEspaceAmbassadeur, avantagesAmbassadeurs, missionsAmbassadeurs, paliersAmbassadeurs } from "~/contenus/ambassadeurs";
+import { TEXTES_AMBASSADEURS_PAR_LANGUE } from "~/contenus/ambassadeurs";
+import { TEXTES_DEVENIR_AMBASSADEUR_PAR_LANGUE } from "~/contenus/devenir-ambassadeur";
+import { listerPaliersAmbassadeurs } from "~/fonctions/ambassadeurs/lister-paliers-ambassadeurs";
+import { ecrireAdresseEspaceAmbassadeur } from "~/fonctions/hotes/ecrire-adresse-espace-ambassadeur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-
-const blocs = [
-  { titre: "Ce que tu fais", elements: missionsAmbassadeurs },
-  { titre: "Ce que tu y gagnes", elements: avantagesAmbassadeurs },
-];
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Le programme Ambassadeurs : les paliers, les missions, les avantages, l'appel aux fondateurs, et le bouton vers l'espace
  * ambassadeur (https://ambassadeur.sosmiam.fr, dès 18 ans), où tout est expliqué en détail.
  */
 export function DevenirAmbassadeur() {
+  const T = utiliserTextes(TEXTES_DEVENIR_AMBASSADEUR_PAR_LANGUE);
+  const programme = utiliserTextes(TEXTES_AMBASSADEURS_PAR_LANGUE);
+  const langue = utiliserLangue();
+  const paliers = listerPaliersAmbassadeurs(programme);
+  const blocs = [
+    { titre: T.blocs.missions, elements: programme.missions },
+    { titre: T.blocs.avantages, elements: programme.avantages },
+  ];
+
   return (
     <Section id="ambassadeurs" fond="jaune">
       <div className="text-center">
-        <Badge variante="blanc" className="mb-5">🎖️ Programme Ambassadeurs</Badge>
+        <Badge variante="blanc" className="mb-5">{T.badge}</Badge>
       </div>
       {/* Pas « un grade à chaque lieu » : un lieu accepté rapporte 30 points, et les paliers sont à 100 et 300 points */}
-      <TitreSection chapo={lierPonctuation("Tu connais les pépites du coin avant tout le monde ? Fais-les découvrir : chaque lieu déniché te rapporte des points pour monter en grade.")}>
-        Deviens la voix de ton quartier
+      <TitreSection chapo={lierPonctuation(T.chapo)}>
+        {T.titre}
       </TitreSection>
 
       <ol className="mb-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {paliersAmbassadeurs.map((palier, i) => (
+        {paliers.map((palier, i) => (
           <li key={palier.titre}
             className={`rounded-carte border-2 border-encre px-5 py-6 shadow-brut ${palier.sombre ? "bg-encre text-jaune" : "bg-white"}`}>
             <BadgePalier niveau={(i + 1) as NiveauPalier} className="mb-3 h-16 w-16" />
@@ -53,12 +62,12 @@ export function DevenirAmbassadeur() {
       </div>
 
       <div className="mt-10 flex flex-wrap items-center justify-center gap-5 text-center">
-        <Ecusson ruban="FONDATEUR" className="h-24 w-24 -rotate-6" />
-        <p className="text-lg"><strong>Des fondateurs dans chaque ville</strong>{lierPonctuation(" : 367 places, partout en France.")}</p>
-        <Bouton href={adresseEspaceAmbassadeur} variante="encre">Je deviens ambassadeur</Bouton>
+        <Ecusson ruban={T.ruban} className="h-24 w-24 -rotate-6" />
+        <p className="text-lg"><strong>{T.fondateurs.fort}</strong>{lierPonctuation(T.fondateurs.suite)}</p>
+        <Bouton href={ecrireAdresseEspaceAmbassadeur(langue)} variante="encre">{T.bouton}</Bouton>
       </div>
       <p className="mt-5 text-center text-[.95rem]">
-        {lierPonctuation("Dès 18 ans, sur ambassadeur.sosmiam.fr : crée ton compte, l'équipe le valide, et tu pourras candidater pour être fondateur de ta ville (ou de ton département), tant qu'il y reste des places.")}
+        {lierPonctuation(T.conditions)}
       </p>
     </Section>
   );

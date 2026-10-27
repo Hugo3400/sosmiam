@@ -10,5 +10,6 @@ export const LIBELLES_ACTUS_ANGLAIS: LibellesActus = {
   filtres: { tout: "All", portrait: "Spotlights", "top-quartier": "Tops", "bon-plan": "Deals", "recit-sortie": "Days out" },
   aLaUne: "Top story",
   ambassadeur: "Ambassador",
-  collaboration: "Collaboration commerciale · paid or gifted partnership",
+  collaboration: "Collaboration commerciale",
+  collaborationGlose: "paid or gifted partnership",
 };

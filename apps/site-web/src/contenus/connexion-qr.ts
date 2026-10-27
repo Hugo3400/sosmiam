@@ -1,5 +1,7 @@
 // Les mots du bloc « Me connecter avec l'app » (connexion par QR code, composants/compte/ConnexionParQr.tsx) et de la
 // page /q/:code. Tutoiement, sans jargon.
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { PAGE_Q_ANGLAIS } from "~/contenus/anglais/connexion-qr";
 import type { EtatQrSite } from "~/types/connexion-qr";
 
 export const TITRE_QR = "Me connecter avec l'app";
@@ -28,4 +30,11 @@ export const PAGE_Q = {
   aide: "Pas encore l'app ? Elle arrive bientôt sur les stores. En attendant, connecte-toi avec ton e-mail sur l'écran qui t'a montré ce code.",
   introuvableTitre: "Ce QR code a pris l'eau",
   introuvableChapo: "Il est incomplet ou mal recopié. Fais-en afficher un nouveau sur l'écran de connexion, puis scanne-le avec l'app.",
+  titreMeta: "Connexion avec l'app — SOS Miam",
+  decouvrir: "Découvrir SOS Miam",
+};
+
+export const PAGE_Q_PAR_LANGUE: ParLangue<Traduction<typeof PAGE_Q>> = {
+  fr: PAGE_Q,
+  en: PAGE_Q_ANGLAIS,
 };

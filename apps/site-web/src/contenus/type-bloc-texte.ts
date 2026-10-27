@@ -5,9 +5,9 @@
 export type TableauTexte = {
   /** Phrase qui dit ce que montre le tableau (lue par les lecteurs d'écran) */
   legende: string;
-  colonnes: string[];
-  lignes: string[][];
+  colonnes: readonly string[];
+  lignes: readonly (readonly string[])[];
 };
 
 /** Un paragraphe, une liste (numérotée si `numerotee`) ou un tableau. */
-export type BlocTexte = string | { liste: string[]; numerotee?: boolean } | { tableau: TableauTexte };
+export type BlocTexte = string | { readonly liste: readonly string[]; readonly numerotee?: boolean } | { readonly tableau: TableauTexte };

@@ -1,8 +1,9 @@
 import { Link } from "react-router";
 
 import { IconeFiche } from "~/composants/lieux/IconeFiche";
-import { TEXTES_CARTE_EN_GRAND } from "~/contenus/carte-en-grand";
+import { TEXTES_CARTE_EN_GRAND_PAR_LANGUE } from "~/contenus/carte-en-grand";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { lieuId: number; nom: string; logo: string | null | undefined; titre: string; date: string | null };
 
@@ -10,7 +11,7 @@ const CLASSE_BOUTON =
   "inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-encre px-4 py-2.5 text-[15px] text-encre no-underline focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre";
 
 export function EnTeteCarteEnGrand({ lieuId, nom, logo, titre, date }: Props) {
-  const T = TEXTES_CARTE_EN_GRAND;
+  const T = utiliserTextes(TEXTES_CARTE_EN_GRAND_PAR_LANGUE);
   const javascriptActif = utiliserJavascriptActif();
   return (
     <header className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-6">

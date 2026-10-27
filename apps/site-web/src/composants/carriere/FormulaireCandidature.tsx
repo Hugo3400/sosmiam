@@ -2,10 +2,12 @@ import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type Rea
 import { Form, Link, useActionData, useLocation, useNavigation } from "react-router";
 
 import { Bouton } from "~/composants/interface/Bouton";
-import { champsCandidature, TAILLE_MAX_CV, type ChampCandidature } from "~/contenus/carriere";
+import { LIMITES_CANDIDATURE, TAILLE_MAX_CV, TEXTES_CANDIDATURE_PAR_LANGUE, type ChampCandidature } from "~/contenus/carriere";
 import type { ValeursCandidature } from "~/fonctions/carriere/lire-formulaire-candidature";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type ReponseCandidature =
   | { ok: true; message: string }
@@ -21,16 +23,17 @@ export type ReponseCandidature =
 const classeChamp = "w-full rounded-2xl border-2 border-encre bg-white px-4 py-3 font-medium focus:outline-3 focus:outline-offset-2 focus:outline-encre aria-invalid:border-rouge-texte";
 const classeLibelle = "mb-1.5 block text-sm font-semibold";
 const classeErreur = "mt-1.5 text-sm font-semibold text-rouge-texte";
-const { nom, email, message, lien, cv, majeur } = champsCandidature;
-
-function verifierFichierCv(fichier: File | undefined): string | null {
+function verifierFichierCv(fichier: File | undefined, erreurs: { erreurFormat: string; erreurPoids: string }): string | null {
   if (!fichier) return null;
-  if (fichier.type !== "application/pdf" && !/\.pdf$/i.test(fichier.name)) return lierPonctuation(cv.erreurFormat);
-  if (fichier.size > TAILLE_MAX_CV) return lierPonctuation(cv.erreurPoids);
+  if (fichier.type !== "application/pdf" && !/\.pdf$/i.test(fichier.name)) return lierPonctuation(erreurs.erreurFormat);
+  if (fichier.size > TAILLE_MAX_CV) return lierPonctuation(erreurs.erreurPoids);
   return null;
 }
 
 export function FormulaireCandidature() {
+  const T = utiliserTextes(TEXTES_CANDIDATURE_PAR_LANGUE);
+  const { nom, email, message, lien, cv, majeur } = T.champs;
+  const lienLangue = utiliserLienLangue();
   const reponse = useActionData<ReponseCandidature>();
   const navigation = useNavigation();
   const { pathname } = useLocation();
@@ -54,7 +57,7 @@ export function FormulaireCandidature() {
 
   function choisirCv(evenement: ChangeEvent<HTMLInputElement>) {
     const fichier = evenement.currentTarget.files?.[0];
-    setCvChoisi(fichier ? { nom: fichier.name, erreur: verifierFichierCv(fichier) } : null);
+    setCvChoisi(fichier ? { nom: fichier.name, erreur: verifierFichierCv(fichier, cv) } : null);
   }
 
   function retirerCv() {
@@ -79,7 +82,7 @@ export function FormulaireCandidature() {
     erreurDe(champ) && <p id={`candidature-${champ}-erreur`} className={classeErreur}>{erreurDe(champ)}</p>;
   const libelle = (champ: ChampCandidature, texte: string, facultatif = false): ReactNode => (
     <label htmlFor={`candidature-${champ}`} className={classeLibelle}>
-      {texte}{facultatif && <span className="font-normal text-gris">{" (facultatif)"}</span>}
+      {texte}{facultatif && <span className="font-normal text-gris">{T.facultatif}</span>}
     </label>
   );
   const messageGeneral = refus && !enAttente ? refus.message : "";
@@ -98,31 +101,31 @@ export function FormulaireCandidature() {
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           {libelle("nom", nom.libelle)}
-          <input id="candidature-nom" name="nom" type="text" autoComplete="name" required maxLength={nom.maximum} defaultValue={valeurs?.nom}
+          <input id="candidature-nom" name="nom" type="text" autoComplete="name" required maxLength={LIMITES_CANDIDATURE.nom.maximum} defaultValue={valeurs?.nom}
             aria-invalid={Boolean(erreurDe("nom"))} aria-describedby={decrit("nom")} className={classeChamp} />
           {afficherErreur("nom")}
         </div>
         <div>
           {libelle("email", email.libelle)}
-          <input id="candidature-email" name="email" type="email" autoComplete="email" required maxLength={email.maximum} defaultValue={valeurs?.email}
-            placeholder="ton@email.fr" aria-invalid={Boolean(erreurDe("email"))} aria-describedby={decrit("email")} className={classeChamp} />
+          <input id="candidature-email" name="email" type="email" autoComplete="email" required maxLength={LIMITES_CANDIDATURE.email.maximum} defaultValue={valeurs?.email}
+            placeholder={email.exemple} aria-invalid={Boolean(erreurDe("email"))} aria-describedby={decrit("email")} className={classeChamp} />
           {afficherErreur("email")}
         </div>
         <div className="sm:col-span-2">
           {libelle("message", message.libelle)}
           <p id="candidature-message-aide" className="mb-2 text-sm text-gris">{lierPonctuation(message.aide)}</p>
-          <textarea id="candidature-message" name="message" rows={7} required maxLength={message.maximum} defaultValue={valeurs?.message}
+          <textarea id="candidature-message" name="message" rows={7} required maxLength={LIMITES_CANDIDATURE.message.maximum} defaultValue={valeurs?.message}
             onChange={(evenement) => setLongueurMessage(evenement.currentTarget.value.length)}
             aria-invalid={Boolean(erreurDe("message"))} aria-describedby={decrit("message", "candidature-message-aide", "candidature-message-compteur")}
             className={classeChamp} />
-          <p id="candidature-message-compteur" className="mt-1 text-right text-xs text-gris">{longueurMessage} / {message.maximum} caractères</p>
+          <p id="candidature-message-compteur" className="mt-1 text-right text-xs text-gris">{T.compteur(longueurMessage, LIMITES_CANDIDATURE.message.maximum)}</p>
           {afficherErreur("message")}
         </div>
         <div className="sm:col-span-2">
           {libelle("lien", lien.libelle, true)}
           <p id="candidature-lien-aide" className="mb-2 text-sm text-gris">{lierPonctuation(lien.aide)}</p>
-          <input id="candidature-lien" name="lien" type="url" inputMode="url" autoComplete="url" maxLength={lien.maximum} defaultValue={valeurs?.lien}
-            placeholder="https://monportfolio.fr" aria-invalid={Boolean(erreurDe("lien"))} aria-describedby={decrit("lien", "candidature-lien-aide")}
+          <input id="candidature-lien" name="lien" type="url" inputMode="url" autoComplete="url" maxLength={LIMITES_CANDIDATURE.lien.maximum} defaultValue={valeurs?.lien}
+            placeholder={lien.exemple} aria-invalid={Boolean(erreurDe("lien"))} aria-describedby={decrit("lien", "candidature-lien-aide")}
             className={classeChamp} />
           {afficherErreur("lien")}
         </div>
@@ -134,7 +137,7 @@ export function FormulaireCandidature() {
             <input ref={champCv} id="candidature-cv" name="cv" type="file" accept="application/pdf,.pdf" onChange={choisirCv}
               aria-invalid={Boolean(erreurDe("cv"))} aria-describedby={decrit("cv", "candidature-cv-aide")}
               className="w-full max-w-full rounded-2xl border-2 border-dashed border-encre bg-creme px-4 py-3 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border-2 file:border-encre file:bg-jaune file:px-4 file:py-1.5 file:font-semibold sm:w-auto sm:grow focus:outline-3 focus:outline-offset-2 focus:outline-encre aria-invalid:border-rouge-texte" />
-            {cvChoisi && <Bouton petit variante="blanc" onClick={retirerCv}>Retirer le fichier</Bouton>}
+            {cvChoisi && <Bouton petit variante="blanc" onClick={retirerCv}>{T.retirerFichier}</Bouton>}
           </div>
           {afficherErreur("cv")}
         </div>
@@ -151,17 +154,17 @@ export function FormulaireCandidature() {
       </div>
 
       <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
-        <label htmlFor="candidature-site-web">Ne remplis pas ce champ</label>
+        <label htmlFor="candidature-site-web">{T.piege}</label>
         <input id="candidature-site-web" type="text" name="site_web" tabIndex={-1} autoComplete="off" />
       </div>
 
       <p className="mt-6 rounded-xl border-2 border-dashed border-encre bg-creme px-4 py-3 text-sm">
-        {lierPonctuation("Ta candidature est gardée 6 mois puis effacée ; seule l'équipe la lit. ")}
-        <Link to="/confidentialite#candidatures" className="font-semibold underline underline-offset-2">En savoir plus</Link>
+        {lierPonctuation(T.conservation)}
+        <Link to={lienLangue("/confidentialite#candidatures")} className="font-semibold underline underline-offset-2">{T.enSavoirPlus}</Link>
       </p>
 
       <p role="status" aria-live="polite" className="mt-6 min-h-6 font-semibold text-rouge-texte"><span key={numeroReponse}>{messageGeneral}</span></p>
-      <Bouton type="submit" className="mt-2 w-full sm:w-auto sm:min-w-64">{navigation.state === "submitting" ? "Envoi…" : "Envoyer ma candidature"}</Bouton>
+      <Bouton type="submit" className="mt-2 w-full sm:w-auto sm:min-w-64">{navigation.state === "submitting" ? T.envoi : T.envoyer}</Bouton>
     </Form>
   );
 }

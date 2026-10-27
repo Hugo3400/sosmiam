@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_CARTE_EN_GRAND_ANGLAIS } from "~/contenus/anglais/carte-en-grand";
+
 export const TEXTES_CARTE_EN_GRAND = {
   meta: {
     titre: (nom: string, ville: string) => `La carte de ${nom} à ${ville}`,
@@ -28,3 +31,8 @@ export const TEXTES_CARTE_EN_GRAND = {
   aucunResultat: "Rien ne correspond. Essaie un autre mot ou retire un filtre : la carte a plein d'autres pépites.",
   piedDePage: "Les prix, les plats et les boissons sont ceux que le lieu a mis sur SOS Miam. Allergènes : demande sur place.",
 } as const;
+
+export const TEXTES_CARTE_EN_GRAND_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_CARTE_EN_GRAND>> = {
+  fr: TEXTES_CARTE_EN_GRAND,
+  en: TEXTES_CARTE_EN_GRAND_ANGLAIS,
+};

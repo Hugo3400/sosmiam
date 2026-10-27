@@ -1,12 +1,13 @@
 import { CLASSE_BLOC, CLASSE_TITRE_BLOC } from "~/composants/lieux/classes-fiche-lieu";
 import { SourceDuLieu } from "~/composants/lieux/SourceDuLieu";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { listerSpecialitesCarte } from "~/fonctions/carte/lister-specialites-carte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FichePublique } from "~/types/pro";
 
 export function BlocLeLieu({ lieu }: { lieu: FichePublique }) {
-  const T = TEXTES_FICHE_LIEU.lieu;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).lieu;
   const specialite = lieu.type === "resto" ? listerSpecialitesCarte(lieu.carte, 1)[0] : undefined;
   if (!lieu.texte && !lieu.source && !specialite) return null;
   return (

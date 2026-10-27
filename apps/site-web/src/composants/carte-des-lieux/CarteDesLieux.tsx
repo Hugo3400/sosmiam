@@ -8,14 +8,15 @@ import { mettreEtiquettesEnFrancais } from "~/composants/carte-des-lieux/etiquet
 import { IconeCarte } from "~/composants/carte-des-lieux/IconeCarte";
 import { MessageCarte, type EtatCarte } from "~/composants/carte-des-lieux/MessageCarte";
 import { CENTRE_FRANCE, STYLE_FOND_DE_CARTE, ZOOM_FRANCE, ZOOM_UN_LIEU, ZOOM_ZONE } from "~/composants/carte-des-lieux/reglages-carte-des-lieux";
-import { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
+import { TEXTES_CARTE_DES_LIEUX_PAR_LANGUE } from "~/contenus/carte-des-lieux";
 import { arrondirPosition, type Position } from "~/fonctions/carte-des-lieux/arrondir-position";
 import { calculerCadreEpingles } from "~/fonctions/carte-des-lieux/calculer-cadre-epingles";
 import { creerDonneesGeojson } from "~/fonctions/carte-des-lieux/creer-donnees-geojson";
 import { reecrireAdresseFondDeCarte } from "~/fonctions/carte-des-lieux/reecrire-adresse-fond-de-carte";
 import { verifierWebgl } from "~/fonctions/carte-des-lieux/verifier-webgl";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import type { EpingleLieu } from "~/types/lieux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import type { CategorieLieu, EpingleLieu } from "~/types/lieux";
 
 type Props = {
   epingles: readonly EpingleLieu[];
@@ -39,10 +40,11 @@ type Props = {
 
 type EvenementDeplacement = MapLibreEvent<MouseEvent | TouchEvent | WheelEvent | undefined> & { parPersonne?: boolean };
 
-const T = TEXTES_CARTE_DES_LIEUX;
 const PAR_PERSONNE = { parPersonne: true };
 const DUREE_MESSAGE = 6000;
 const MARGE_CADRE = { top: 110, right: 80, bottom: 70, left: 50 };
+
+const initiale = (mot: string) => mot.charAt(0).toUpperCase();
 
 export function CarteDesLieux({
   epingles,
@@ -63,6 +65,13 @@ export function CarteDesLieux({
   className = "relative",
   children,
 }: Props) {
+  const T = utiliserTextes(TEXTES_CARTE_DES_LIEUX_PAR_LANGUE);
+  const lettres: Record<CategorieLieu, string> = {
+    resto: initiale(T.legende.resto),
+    patisserie: initiale(T.legende.patisserie),
+    bar: initiale(T.legende.bar),
+    sortie: initiale(T.legende.sortie),
+  };
   const conteneur = useRef<HTMLDivElement>(null);
   const carte = useRef<CarteMaplibre | null>(null);
   const [etat, setEtat] = useState<EtatCarte>("attente");
@@ -109,7 +118,7 @@ export function CarteDesLieux({
           if (!styleRecu && !annule) setEtat("erreur");
         });
         nouvelle.on("load", () => {
-          ajouterCouchesLieux(nouvelle, creerDonneesGeojson([], T.lettres), !unSeul);
+          ajouterCouchesLieux(nouvelle, creerDonneesGeojson([], lettres), !unSeul);
           brancherEvenements(nouvelle);
           setEtat("prete");
         });
@@ -131,7 +140,7 @@ export function CarteDesLieux({
   useEffect(() => {
     const instance = carte.current;
     if (!instance || etat !== "prete") return;
-    instance.getSource<GeoJSONSource>(COUCHES_LIEUX.source)?.setData(creerDonneesGeojson(epingles, T.lettres, seulementSos));
+    instance.getSource<GeoJSONSource>(COUCHES_LIEUX.source)?.setData(creerDonneesGeojson(epingles, lettres, seulementSos));
     if (dernieresEpingles.current === epingles) return;
     const premiere = dernieresEpingles.current === null;
     dernieresEpingles.current = epingles;

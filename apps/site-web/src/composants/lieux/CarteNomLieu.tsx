@@ -1,33 +1,27 @@
 import { ActionsFicheLieu } from "~/composants/lieux/ActionsFicheLieu";
 import { BadgeVerifie } from "~/composants/lieux/BadgeVerifie";
 import { EtiquettesLieu } from "~/composants/lieux/EtiquettesLieu";
-import { categoriesLieux } from "~/contenus/categories-lieux";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
-import { nommerJourLangue } from "../../../../../packages/commun/src/fonctions/langue/nommer-jour-langue.ts";
-import { formaterHeureCourte } from "~/fonctions/dates/formater-heure-courte";
+import { TEXTES_CATEGORIES_LIEUX_PAR_LANGUE } from "~/contenus/categories-lieux";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import type { EtatOuverture } from "~/fonctions/lieux/decrire-ouverture";
+import { ecrireOuverture } from "~/fonctions/lieux/ecrire-ouverture";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FichePublique } from "~/types/pro";
 
 type Props = { lieu: FichePublique; ouverture: EtatOuverture | null; adresseFiche: string };
 
-function ecrireOuverture(ouverture: EtatOuverture): string {
-  const T = TEXTES_FICHE_LIEU.ouverture;
-  if (ouverture.heure === null) return T.ouvertSansArret;
-  const heure = ouverture.heure === "00:00" ? T.minuit : formaterHeureCourte(ouverture.heure) ?? ouverture.heure;
-  if (ouverture.ouvert) return T.ouvert(heure);
-  if (ouverture.quand === "aujourdhui") return T.fermeAujourdhui(heure);
-  if (ouverture.quand === "demain") return T.fermeDemain(heure);
-  return T.fermeJour(nommerJourLangue(ouverture.jourSemaine, "fr"), heure);
-}
-
 export function CarteNomLieu({ lieu, ouverture, adresseFiche }: Props) {
-  const T = TEXTES_FICHE_LIEU;
-  const libelle = categoriesLieux.find((uneCategorie) => uneCategorie.valeur === lieu.type)?.libelle;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const categories = utiliserTextes(TEXTES_CATEGORIES_LIEUX_PAR_LANGUE);
+  const langue = utiliserLangue();
+  const libelle: string | undefined = categories[lieu.type];
   const categorie = libelle && normaliserRecherche(libelle).replace(/s$/, "") !== normaliserRecherche(lieu.info).trim() ? libelle : null;
   const ou = [lieu.quartier, lieu.ville].filter(Boolean).join(", ");
   const ligne = [lieu.info, categorie, lieu.prix, ou].filter(Boolean).join(" · ");
+  const suite = [categorie, lieu.prix, ou].filter(Boolean).join(" · ");
   return (
     <header className="flex flex-col gap-[18px] rounded-carte border-2 border-encre bg-white p-5 shadow-brut sm:p-6 md:px-9 md:py-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
@@ -44,7 +38,16 @@ export function CarteNomLieu({ lieu, ouverture, adresseFiche }: Props) {
           <div className="flex min-w-0 flex-col gap-2.5">
             <BadgeVerifie verifie={lieu.estVerifie} />
             <h1 className="text-[clamp(1.9rem,5vw,3.1rem)] font-extrabold tracking-[-1px] [overflow-wrap:anywhere]">{lieu.nom}</h1>
-            <p className="text-[15px] text-gris md:text-lg">{ligne}</p>
+            <p className="text-[15px] text-gris md:text-lg">
+              {langue === "fr" || !lieu.info ? (
+                ligne
+              ) : (
+                <>
+                  <span lang="fr">{lieu.info}</span>
+                  {suite && ` · ${suite}`}
+                </>
+              )}
+            </p>
           </div>
         </div>
         {(ouverture || lieu.decouvertPar) && (
@@ -52,7 +55,7 @@ export function CarteNomLieu({ lieu, ouverture, adresseFiche }: Props) {
             {ouverture && (
               <p className={`font-bold ${ouverture.ouvert ? "text-[#1E7B34]" : "text-rouge-texte"}`}>
                 <span aria-hidden="true">● </span>
-                {ecrireOuverture(ouverture)}
+                {ecrireOuverture(ouverture, langue)}
               </p>
             )}
             {lieu.decouvertPar && <p className="text-sm text-gris">{T.denichePar(lieu.decouvertPar)}</p>}

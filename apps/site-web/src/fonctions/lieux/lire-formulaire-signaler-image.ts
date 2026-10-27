@@ -5,25 +5,30 @@ import {
   RAISONS_AVEC_EXPLICATION_OBLIGATOIRE,
 } from "../../../../../packages/commun/src/regles/signalement.ts";
 import type { SignalementImageLieu } from "../../../../../packages/commun/src/types/signalement.ts";
-import { RAISONS_SIGNALER_IMAGE, TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { RAISONS_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { ecrireErreursSignalerImage } from "~/fonctions/lieux/ecrire-erreurs-signaler-image";
 import type { ImageSignalable } from "~/fonctions/lieux/lister-images-signalables";
-import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 export type ChampSignalerImage = "quelle" | "raison" | "explication";
 
 export type ValeursSignalerImage = { quelle: string; raison: string; precision: string; explication: string };
 
+export type CodeErreurSignalerImage = "quelle" | "raison" | "explicationCourte" | "explicationLongue";
+
 export type LectureSignalerImage =
   | { ok: true; signalement: SignalementImageLieu; piege: string; valeurs: ValeursSignalerImage }
-  | { ok: false; erreurs: Partial<Record<ChampSignalerImage, string>>; valeurs: ValeursSignalerImage };
+  | {
+      ok: false;
+      erreurs: Partial<Record<ChampSignalerImage, string>>;
+      codes: Partial<Record<ChampSignalerImage, CodeErreurSignalerImage>>;
+      valeurs: ValeursSignalerImage;
+    };
 
 export type ReponseSignalerImage =
   | { ok: true }
   | { ok: false; message: string; champ?: ChampSignalerImage; erreurs?: Partial<Record<ChampSignalerImage, string>>; valeurs?: ValeursSignalerImage };
 
 export const ORDRE_CHAMPS_SIGNALER_IMAGE: readonly ChampSignalerImage[] = ["quelle", "raison", "explication"];
-
-const E = TEXTES_SIGNALER_IMAGE.erreurs;
 
 function lireTexte(formulaire: FormData, cle: string): string {
   const valeur = formulaire.get(cle);
@@ -42,14 +47,14 @@ export function lireFormulaireSignalerImage(formulaire: FormData, lieuId: number
   const explication = lireTexte(formulaire, "explication");
   const valeurs: ValeursSignalerImage = { quelle, raison: raison?.cle ?? "", precision: precision ?? "", explication };
 
-  const erreurs: Partial<Record<ChampSignalerImage, string>> = {};
-  if (!estImage(quelle)) erreurs.quelle = lierPonctuation(E.quelle);
-  if (!raison) erreurs.raison = lierPonctuation(E.raison);
-  if (explication.length > LONGUEUR_MAX_EXPLICATION_SIGNALEMENT) erreurs.explication = lierPonctuation(E.explicationLongue);
+  const codes: Partial<Record<ChampSignalerImage, CodeErreurSignalerImage>> = {};
+  if (!estImage(quelle)) codes.quelle = "quelle";
+  if (!raison) codes.raison = "raison";
+  if (explication.length > LONGUEUR_MAX_EXPLICATION_SIGNALEMENT) codes.explication = "explicationLongue";
   else if (raison && RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(raison.cle) && explication.length < LONGUEUR_MIN_EXPLICATION_SIGNALEMENT) {
-    erreurs.explication = lierPonctuation(E.explicationCourte);
+    codes.explication = "explicationCourte";
   }
-  if (!estImage(quelle) || !raison || Object.keys(erreurs).length > 0) return { ok: false, erreurs, valeurs };
+  if (!estImage(quelle) || !raison || Object.keys(codes).length > 0) return { ok: false, erreurs: ecrireErreursSignalerImage(codes, "fr"), codes, valeurs };
 
   const piege = formulaire.get("site_web");
   return {

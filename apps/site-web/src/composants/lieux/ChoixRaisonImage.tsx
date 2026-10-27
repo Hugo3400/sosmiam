@@ -1,5 +1,6 @@
-import { RAISONS_SIGNALER_IMAGE, TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { RAISONS_SIGNALER_IMAGE, TEXTES_RAISONS_SIGNALER_IMAGE_PAR_LANGUE, TEXTES_SIGNALER_IMAGE_PAR_LANGUE } from "~/contenus/signaler-image";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { choisie?: string; precision?: string; erreur?: string };
 
@@ -7,7 +8,8 @@ const ID_ERREUR = "signaler-raison-erreur";
 const FOCUS = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
 
 export function ChoixRaisonImage({ choisie, precision, erreur }: Props) {
-  const T = TEXTES_SIGNALER_IMAGE.raison;
+  const T = utiliserTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE).raison;
+  const raisons = utiliserTextes(TEXTES_RAISONS_SIGNALER_IMAGE_PAR_LANGUE);
   return (
     <fieldset>
       <legend className="mb-2.5 font-titre text-xl font-extrabold">{lierPonctuation(T.legende)}</legend>
@@ -32,15 +34,15 @@ export function ChoixRaisonImage({ choisie, precision, erreur }: Props) {
               <label htmlFor={id} className="cursor-pointer">
                 <span className="font-bold">
                   <span aria-hidden="true">{raison.emoji} </span>
-                  {raison.titre}
+                  {raisons[raison.cle].titre}
                 </span>
-                <span className="block text-sm text-gris">{raison.detail}</span>
+                <span className="block text-sm text-gris">{raisons[raison.cle].detail}</span>
               </label>
               {raison.precisions.length > 0 && (
                 <fieldset className="col-start-2 mt-3 hidden peer-checked:block">
                   <legend className="mb-2 text-sm font-semibold">{T.precision}</legend>
                   <div className="flex flex-wrap gap-2">
-                    {raison.precisions.map((texte) => (
+                    {raison.precisions.map((texte, rang) => (
                       <label key={texte} className="inline-flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-encre bg-white px-3 py-1.5 text-sm has-checked:bg-jaune">
                         <input
                           type="radio"
@@ -49,7 +51,7 @@ export function ChoixRaisonImage({ choisie, precision, erreur }: Props) {
                           defaultChecked={choisie === raison.cle && precision === texte}
                           className={`size-4 shrink-0 accent-encre ${FOCUS}`}
                         />
-                        {texte}
+                        {raisons[raison.cle].precisions[rang] ?? texte}
                       </label>
                     ))}
                   </div>

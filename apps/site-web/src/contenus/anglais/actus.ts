@@ -46,7 +46,6 @@ export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
       titre: "Likes and comments live in the app",
       texte: "To like this story, comment on it or send it to a friend, open it in the SOS Miam app.",
       compteurs: (jaime: number, commentaires: number) => `${jaime} ${accorder(jaime, "en", "like", "likes")} · ${commentaires} ${accorder(commentaires, "en", "comment", "comments")}`,
-      bouton: "Read in the app",
       bientot: "No app yet? It's coming to the stores soon.",
     },
   },

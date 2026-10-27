@@ -1,9 +1,11 @@
 import { Link } from "react-router";
 
 import { PastilleCarteLieu } from "~/composants/lieux/PastilleCarteLieu";
-import { TEXTES_CARTE_LIEU } from "~/contenus/carte-lieu";
+import { TEXTES_CARTE_LIEU_PAR_LANGUE } from "~/contenus/carte-lieu";
 import { choisirCouleursLieu } from "~/fonctions/lieux/choisir-couleurs-lieu";
 import { choisirEmojiLieu } from "~/fonctions/lieux/choisir-emoji-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { LieuCarte } from "~/types/lieux";
 
 type Props = {
@@ -11,13 +13,13 @@ type Props = {
   disposition?: "colonne" | "ligne";
 };
 
-const T = TEXTES_CARTE_LIEU;
-
 /**
  * Carte d'un vrai lieu publié : visuel, nom, ce que c'est, quartier et ville, prix, et qui l'a fait découvrir. Toute la
  * carte mène à sa fiche (/lieux/:id) : le lien est sur le nom, et son ::after couvre la carte (un seul lien, lu une fois).
  */
 export function CarteLieu({ lieu, disposition = "colonne" }: Props) {
+  const T = utiliserTextes(TEXTES_CARTE_LIEU_PAR_LANGUE);
+  const langue = utiliserLangue();
   const [debut, fin] = choisirCouleursLieu(lieu.couleurs);
   const enLigne = disposition === "ligne";
   const bordure = lieu.sos ? "border-rouge-sos shadow-[3px_3px_0_var(--color-rouge-sos)]" : "border-encre shadow-brut-petit";
@@ -49,7 +51,7 @@ export function CarteLieu({ lieu, disposition = "colonne" }: Props) {
             {lieu.nom}
           </Link>
         </h3>
-        <p className="text-sm text-gris">{[lieu.info, lieu.prix].filter(Boolean).join(" · ")}</p>
+        <p lang={langue === "fr" ? undefined : "fr"} className="text-sm text-gris">{[lieu.info, lieu.prix].filter(Boolean).join(" · ")}</p>
         {ou && <p className={`text-sm text-gris ${enLigne ? "truncate" : ""}`}>{ou}</p>}
         {lieu.decouvertPar && (
           <p className="mt-auto pt-2 text-sm font-semibold"><span aria-hidden="true">🛟 </span>{T.denichePar(lieu.decouvertPar)}</p>

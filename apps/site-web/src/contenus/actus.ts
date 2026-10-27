@@ -46,7 +46,6 @@ export const TEXTES_ACTUS = {
       titre: "J'aime et commentaires, c'est dans l'app",
       texte: "Pour aimer cet article, le commenter ou l'envoyer à un pote, ouvre-le dans l'app SOS Miam.",
       compteurs: (jaime: number, commentaires: number) => `${jaime} J'aime · ${commentaires} ${accorder(commentaires, "fr", "commentaire", "commentaires")}`,
-      bouton: "Lire dans l'app",
       bientot: "Pas encore l'app ? Elle arrive bientôt sur les stores.",
     },
   },

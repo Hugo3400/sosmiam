@@ -1,9 +1,10 @@
 import { CLASSE_TITRE_COTE } from "~/composants/lieux/classes-fiche-lieu";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function EncartDansLApp({ lienApp }: { lienApp: string }) {
-  const T = TEXTES_FICHE_LIEU.app;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).app;
   return (
     <section aria-labelledby="fiche-app" className="flex flex-col gap-3 rounded-carte bg-encre p-5 text-creme md:px-[26px] md:py-6">
       <h2 id="fiche-app" className={`${CLASSE_TITRE_COTE} text-jaune`}>{T.titre}</h2>

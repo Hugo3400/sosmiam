@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { IconeFiche } from "~/composants/lieux/IconeFiche";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { titre: string; adresse: string; className: string; classeIcone?: string };
 
@@ -11,7 +12,7 @@ type Etat = "repos" | "copie" | "echec";
 const DUREE_MESSAGE_MS = 3000;
 
 export function BoutonPartager({ titre, adresse, className, classeIcone }: Props) {
-  const T = TEXTES_FICHE_LIEU.actions;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).actions;
   const javascriptActif = utiliserJavascriptActif();
   const [etat, changerEtat] = useState<Etat>("repos");
 

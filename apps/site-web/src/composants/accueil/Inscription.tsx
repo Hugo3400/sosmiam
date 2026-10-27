@@ -5,13 +5,21 @@ import { ChampVilleOuRegion } from "~/composants/accueil/ChampVilleOuRegion";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_INSCRIPTION_NEWSLETTER_PAR_LANGUE } from "~/contenus/inscription-newsletter";
+import { ecrireMessageInscription } from "~/fonctions/texte/ecrire-message-inscription";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Ce qui avait été envoyé, renvoyé en cas de refus pour remplir de nouveau le formulaire (utile sans JavaScript). */
 export type ValeursInscription = { email: string; ville: string; telephone: string; beta: boolean; ambassadeur: boolean };
 
+export type ErreurInscription = "email-invalide" | "telephone-requis" | "trop-de-demandes" | "erreur";
+
 /** Réponse de l'action de la page d'accueil (src/routes/public/accueil.tsx). « champ » : le champ en faute, s'il y en a un. */
-export type ReponseInscription = { ok: boolean; message: string; champ?: "email" | "telephone"; valeurs?: ValeursInscription };
+export type ReponseInscription =
+  | { ok: true; lieu: { nom: string; ou: string } | null; beta: boolean; ambassadeur: boolean }
+  | { ok: false; erreur: ErreurInscription; champ?: "email" | "telephone"; valeurs?: ValeursInscription };
 
 const champ = "rounded-full border-2 border-encre bg-white px-5 py-3.5 font-medium focus:outline-3 focus:outline-offset-2 focus:outline-encre aria-invalid:border-rouge-texte";
 const libelle = "mb-1.5 block px-2 text-left text-sm font-semibold";
@@ -19,12 +27,14 @@ const erreur = "mt-1.5 px-2 text-left text-sm font-semibold text-rouge-texte";
 
 // Pour savoir sur quel store publier l'app en premier, et sur lequel inviter les bêta-testeurs
 const telephones = [
-  { valeur: "iphone", emoji: "🍏", texte: "iPhone (Apple)" },
-  { valeur: "android", emoji: "🤖", texte: "Android (Samsung, Google Pixel ou autre)" },
-];
+  { valeur: "iphone", emoji: "🍏" },
+  { valeur: "android", emoji: "🤖" },
+] as const;
 
 /** Dernier bloc de l'accueil : être prévenu du lancement, dire son téléphone, tester la bêta. Marche aussi sans JavaScript. */
 export function Inscription() {
+  const T = utiliserTextes(TEXTES_INSCRIPTION_NEWSLETTER_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const fetcher = useFetcher<ReponseInscription>();
   // Sans JavaScript (ou envoi avant la fin du chargement), la réponse arrive par l'action de la page.
   // On la garde : le nettoyage du « # » (utiliserAncresSansDiese) est une nouvelle navigation, qui vide useActionData.
@@ -46,6 +56,7 @@ export function Inscription() {
   const envoi = fetcher.state !== "idle";
   // Après un refus sans JavaScript, on remet ce qui avait été tapé
   const erreurSur = reponse && !reponse.ok ? reponse.champ : undefined;
+  const message = reponse ? ecrireMessageInscription(reponse, T) : "";
 
   useEffect(() => {
     if (!reponse) return;
@@ -63,7 +74,7 @@ export function Inscription() {
   const messageEnHaut = !fetcher.data && Boolean(reponseSansJs);
   // Message général (réussite, trop d'essais, panne) ; les erreurs d'un champ s'affichent sous ce champ,
   // et aussi en haut sans JavaScript (sur téléphone, le champ peut être hors de l'écran). Vidé pendant l'envoi.
-  const messageGeneral = !enAttente && reponse && (!erreurSur || messageEnHaut) ? reponse.message : "";
+  const messageGeneral = !enAttente && reponse && (!erreurSur || messageEnHaut) ? message : "";
 
   // Sur téléphone, la confirmation est sous le bouton : on la fait venir dans l'écran une fois affichée
   // (pas dans l'effet [reponse] : l'envoi n'y est pas encore fini, la zone est encore vide)
@@ -83,20 +94,20 @@ export function Inscription() {
     <Section id="inscription" fond="creme">
       <div className="rounded-carte border-2 border-encre bg-jaune px-5 py-12 text-center shadow-brut-grand md:px-12 md:py-16">
         <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24 md:h-28 md:w-28" />
-        <h2 className="text-[clamp(2rem,4.5vw,3.2rem)] font-extrabold tracking-tight">{lierPonctuation("Prêt à sauver ta première table ?")}</h2>
-        <p className="mt-3 mb-8 text-lg">{lierPonctuation("L'app est encore en cuisine : laisse ton e-mail, on te prévient dès qu'elle arrive près de chez toi.")}</p>
+        <h2 className="text-[clamp(2rem,4.5vw,3.2rem)] font-extrabold tracking-tight">{lierPonctuation(T.titre)}</h2>
+        <p className="mt-3 mb-8 text-lg">{lierPonctuation(T.intro)}</p>
         {messageEnHaut && zoneMessage}
 
-        <fetcher.Form key={cleFormulaire} ref={formulaire} method="post" action="/?index#inscription" noValidate onSubmit={() => setEnAttente(true)} className="mx-auto flex max-w-2xl flex-wrap items-start justify-center gap-3">
+        <fetcher.Form key={cleFormulaire} ref={formulaire} method="post" action={lien("/?index#inscription")} noValidate onSubmit={() => setEnAttente(true)} className="mx-auto flex max-w-2xl flex-wrap items-start justify-center gap-3">
           <div className="min-w-0 flex-[1_1_240px]">
-            <label htmlFor="inscription-email" className={libelle}>Ton e-mail</label>
+            <label htmlFor="inscription-email" className={libelle}>{T.email.libelle}</label>
             <input
               ref={champEmail}
               id="inscription-email"
               name="email"
               type="email"
               autoComplete="email"
-              placeholder="ton@email.fr"
+              placeholder={T.email.exemple}
               required
               defaultValue={valeurs?.email}
               aria-invalid={erreurSur === "email"}
@@ -104,10 +115,10 @@ export function Inscription() {
               className={`w-full ${champ}`}
             />
             {/* role="alert" et absent pendant l'envoi : l'erreur est lue à chaque réponse, même quand le focus ne bouge pas */}
-            {erreurSur === "email" && !enAttente && <p id="inscription-email-erreur" role="alert" className={erreur}>{reponse?.message}</p>}
+            {erreurSur === "email" && !enAttente && <p id="inscription-email-erreur" role="alert" className={erreur}>{message}</p>}
           </div>
           <div className="min-w-0 flex-[1_1_220px]">
-            <label htmlFor="inscription-ville" className={libelle}>Ta ville ou ta région <span className="font-normal">(facultatif)</span></label>
+            <label htmlFor="inscription-ville" className={libelle}>{T.ville.libelle} <span className="font-normal">{T.ville.facultatif}</span></label>
             <ChampVilleOuRegion id="inscription-ville" name="ville" classeChamp={champ} valeurInitiale={valeurs?.ville} />
           </div>
 
@@ -118,7 +129,7 @@ export function Inscription() {
             aria-describedby={erreurSur === "telephone" ? "inscription-telephone-erreur" : undefined}
             className="w-full pt-2"
           >
-            <p id="inscription-telephone-titre" className="mb-2.5 font-medium">{lierPonctuation("Ton téléphone (pour savoir sur quel store sortir l'app) :")}</p>
+            <p id="inscription-telephone-titre" className="mb-2.5 font-medium">{lierPonctuation(T.telephone.question)}</p>
             <div className={`flex flex-col gap-2.5 rounded-3xl sm:flex-row sm:flex-wrap sm:justify-center ${erreurSur === "telephone" ? "outline-3 outline-offset-4 outline-rouge-texte" : ""}`}>
               {telephones.map((telephone, position) => (
                 <label key={telephone.valeur} className="group block cursor-pointer">
@@ -136,13 +147,13 @@ export function Inscription() {
                     peer-checked:bg-encre peer-checked:text-jaune peer-checked:hover:bg-encre
                     peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-encre">
                     <span aria-hidden="true" className="hidden group-has-checked:inline">✓ </span>
-                    <span aria-hidden="true">{telephone.emoji}</span> {telephone.texte}
+                    <span aria-hidden="true">{telephone.emoji}</span> {T.telephone[telephone.valeur]}
                   </span>
                 </label>
               ))}
             </div>
             {erreurSur === "telephone" && !enAttente && (
-              <p id="inscription-telephone-erreur" role="alert" className="mt-2 px-2 text-sm font-semibold text-rouge-texte">{reponse?.message}</p>
+              <p id="inscription-telephone-erreur" role="alert" className="mt-2 px-2 text-sm font-semibold text-rouge-texte">{message}</p>
             )}
           </div>
 
@@ -150,10 +161,10 @@ export function Inscription() {
             <div>
               <label className="flex cursor-pointer items-center gap-2.5 font-medium">
                 <input type="checkbox" name="beta" value="oui" defaultChecked={valeurs?.beta ?? false} aria-describedby="inscription-beta-aide" className="h-5 w-5 shrink-0 accent-encre" />
-                <span>Je veux tester l'app avant sa sortie (bêta) <span aria-hidden="true">🧪</span></span>
+                <span>{T.beta.libelle} <span aria-hidden="true">🧪</span></span>
               </label>
               <p id="inscription-beta-aide" className="mt-1 max-w-md pl-7.5 text-sm">
-                {lierPonctuation("Choisis aussi ton téléphone juste au-dessus. Sur Android, ton e-mail doit être celui de ton compte Google (souvent ton Gmail) ; sur iPhone, de préférence celui de ton compte Apple.")}
+                {lierPonctuation(T.beta.aide)}
               </p>
             </div>
             <label className="flex cursor-pointer items-center gap-2.5 font-medium">
@@ -161,13 +172,13 @@ export function Inscription() {
               {/* Pas une candidature « fondateur » : on invite ces inscrits à créer leur compte (dès 18 ans), puis la
                   candidature fondateur se fait depuis l'espace (le logiciel de gestion se sert de ce champ « ambassadeur »).
                   Espaces insécables dans « 18 ans » et avant l'émoji : ils ne partent jamais seuls à la ligne */}
-              <span>Je veux devenir ambassadeur (dès 18&nbsp;ans)&nbsp;<span aria-hidden="true">🎖️</span></span>
+              <span>{T.ambassadeur}{"\u00a0"}<span aria-hidden="true">🎖️</span></span>
             </label>
           </div>
 
           <div className="flex w-full justify-center pt-2">
             <Bouton type="submit" variante="encre" className="w-full sm:w-auto sm:min-w-44">
-              {envoi ? "Envoi…" : "Préviens-moi"}
+              {envoi ? T.envoi : T.bouton}
             </Bouton>
           </div>
           {/* Champ piège : invisible pour les humains et les lecteurs d'écran, les robots le remplissent */}
@@ -176,10 +187,9 @@ export function Inscription() {
 
         {!messageEnHaut && zoneMessage}
         <p className="mt-2 text-sm">
-          D'abord, un mail pour vérifier que l'adresse est bien la tienne&nbsp;: sans ton clic, pas de newsletter. Ensuite, on te
-          prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta,
-          on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app&nbsp;; si tu coches ambassadeur, on t'invite par mail
-          à créer ton compte sur ambassadeur.sosmiam.fr. On ne vend jamais tes données (<Link to="/confidentialite" target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">confidentialité<span className="sr-only">, s'ouvre dans un nouvel onglet</span></Link>).
+          {T.mentions.avant}
+          <Link to={lien("/confidentialite")} target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">{T.mentions.lien}<span className="sr-only">{T.mentions.nouvelOnglet}</span></Link>
+          {T.mentions.apres}
         </p>
       </div>
     </Section>

@@ -2,10 +2,12 @@ import type { KeyboardEvent, Ref } from "react";
 
 import { PanneauChoixCookies } from "~/composants/cookies/PanneauChoixCookies";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { textesConsentement } from "~/contenus/cookies-consentement";
+import { TEXTES_CONSENTEMENT_PAR_LANGUE } from "~/contenus/cookies-consentement";
+import { TEXTES_PAGES_LEGALES_PAR_LANGUE } from "~/contenus/legal/liens-legaux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConsentement } from "~/hooks/utiliser-consentement";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Le panneau « Choisir » est ouvert (à la place de la première couche) */
@@ -31,8 +33,8 @@ const classeBouton = [
 ].join(" ");
 
 /** « a », « a et b », « a, b et c » */
-function joindre(morceaux: string[]): string {
-  return morceaux.length <= 1 ? morceaux.join("") : `${morceaux.slice(0, -1).join(", ")} et ${morceaux.at(-1)}`;
+function joindre(morceaux: string[], et: string): string {
+  return morceaux.length <= 1 ? morceaux.join("") : `${morceaux.slice(0, -1).join(", ")}${et}${morceaux.at(-1)}`;
 }
 
 /**
@@ -43,6 +45,8 @@ function joindre(morceaux: string[]): string {
 export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages, adressePage, onChoisir, onEchap, refDialogue }: Props) {
   const { apercu, aChoisir, actionFormulaire, envoyerFormulaire } = utiliserConsentement();
   const javascript = utiliserJavascriptActif();
+  const T = utiliserTextes(TEXTES_CONSENTEMENT_PAR_LANGUE);
+  const { gererCookies } = utiliserTextes(TEXTES_PAGES_LEGALES_PAR_LANGUE);
   const partenaires = new Set(aChoisir.flatMap((categorie) => categorie.partenaires.map((partenaire) => partenaire.nom))).size;
   const titreId = panneauOuvert ? "bandeau-cookies-titre-panneau" : "bandeau-cookies-titre";
   const texteId = panneauOuvert ? "bandeau-cookies-intro-panneau" : "bandeau-cookies-texte";
@@ -74,8 +78,8 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
           type="submit"
           name="geste"
           value="fermer"
-          aria-label={gestion ? textesConsentement.fermerSansChanger : textesConsentement.fermerSansAccepter}
-          title={gestion ? textesConsentement.fermerSansChanger : textesConsentement.fermerSansAccepter}
+          aria-label={gestion ? T.fermerSansChanger : T.fermerSansAccepter}
+          title={gestion ? T.fermerSansChanger : T.fermerSansAccepter}
           className="absolute top-3 right-3 grid size-9 place-items-center rounded-full border-2 border-encre bg-white text-xl leading-none
             font-bold hover:bg-creme focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre"
         >
@@ -83,7 +87,7 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
         </button>
         {apercu && (
           <p className="mr-10 mb-3 rounded-xl bg-rose-alerte px-3 py-1.5 text-[.8rem] font-semibold text-rouge-texte sm:text-sm">
-            {lierPonctuation(textesConsentement.apercu)}
+            {lierPonctuation(T.apercu)}
           </p>
         )}
         {panneauOuvert ? (
@@ -93,29 +97,27 @@ export function BandeauCookies({ panneauOuvert, gestion, retour, adresseReglages
             <div className="flex items-start gap-4 pr-9">
               <Mascotte expression="clin" className="hidden size-16 shrink-0 sm:block" />
               <div>
-                <h2 id={titreId} className="font-titre text-lg font-extrabold sm:text-xl">{lierPonctuation(textesConsentement.titre)}</h2>
+                <h2 id={titreId} className="font-titre text-lg font-extrabold sm:text-xl">{lierPonctuation(T.titre)}</h2>
                 <div id={texteId} className="mt-1.5 grid gap-1.5 text-sm leading-snug text-gris sm:text-[.95rem] sm:leading-normal">
                   <p>
-                    {lierPonctuation(
-                      `Pour ${joindre(aChoisir.map((categorie) => categorie.pourBandeau))}, ${partenaires > 1 ? "des partenaires aimeraient" : "un partenaire aimerait"} poser des cookies dans ton navigateur. ${textesConsentement.sansAccord}`,
-                    )}
+                    {lierPonctuation(`${T.invitation(joindre(aChoisir.map((categorie) => categorie.pourBandeau), T.et), partenaires > 1)} ${T.sansAccord}`)}
                   </p>
                   <p className="text-[.8rem] sm:text-sm">
-                    {lierPonctuation(`${textesConsentement.changerDAvis} ${textesConsentement.portee}`)}{" "}
+                    {lierPonctuation(`${T.changerDAvis(gererCookies)} ${T.portee}`)}{" "}
                     <a href={adressePage} className="font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2">
-                      {textesConsentement.lienPage}
+                      {T.lienPage}
                     </a>
                   </p>
                 </div>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-2.5">
-              <button type="submit" name="geste" value="tout-accepter" className={classeBouton}>{textesConsentement.toutAccepter}</button>
-              <button type="submit" name="geste" value="tout-refuser" className={classeBouton}>{textesConsentement.toutRefuser}</button>
+              <button type="submit" name="geste" value="tout-accepter" className={classeBouton}>{T.toutAccepter}</button>
+              <button type="submit" name="geste" value="tout-refuser" className={classeBouton}>{T.toutRefuser}</button>
               {javascript ? (
-                <button type="button" onClick={onChoisir} className={classeBouton}>{textesConsentement.choisir}</button>
+                <button type="button" onClick={onChoisir} className={classeBouton}>{T.choisir}</button>
               ) : (
-                <a href={adresseReglages} className={classeBouton}>{textesConsentement.choisir}</a>
+                <a href={adresseReglages} className={classeBouton}>{T.choisir}</a>
               )}
             </div>
           </>

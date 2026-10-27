@@ -1,16 +1,20 @@
 import { useLocation } from "react-router";
 
+import { ecrireDateLangue } from "../../../../../packages/commun/src/fonctions/langue/ecrire-date-langue.ts";
+import type { Langue } from "../../../../../packages/commun/src/regles/langues.ts";
 import { PanneauChoixCookies } from "~/composants/cookies/PanneauChoixCookies";
+import { TEXTES_CONSENTEMENT_PAR_LANGUE } from "~/contenus/cookies-consentement";
 import { calculerFinConsentement } from "~/fonctions/consentement/calculer-fin-consentement";
 import { ecrireRetourConsentement } from "~/fonctions/consentement/ecrire-retour-consentement";
-import { formaterJourEnLettres } from "~/fonctions/dates/formater-jour-en-lettres";
 import { utiliserConsentement } from "~/hooks/utiliser-consentement";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const jourParis = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" });
 
-/** « 14 octobre 2026 » (jour de Paris) */
-function enLettres(date: number): string {
-  return formaterJourEnLettres(jourParis.format(date)) ?? "";
+function enLettres(date: number, langue: Langue): string {
+  const [annee, mois, jour] = jourParis.format(date).split("-").map(Number);
+  return ecrireDateLangue({ annee, mois, jour }, langue);
 }
 
 /**
@@ -21,10 +25,10 @@ function enLettres(date: number): string {
 export function ReglagesCookies() {
   const { aChoisir, choix, actionFormulaire, envoyerFormulaire, apercu } = utiliserConsentement();
   const location = useLocation();
+  const T = utiliserTextes(TEXTES_CONSENTEMENT_PAR_LANGUE);
+  const langue = utiliserLangue();
   if (aChoisir.length === 0) return null;
-  const etat = choix
-    ? `Ton choix du ${enLettres(choix.date)} vaut jusqu'au ${enLettres(calculerFinConsentement(choix.date))} : ensuite, on te reposera la question.`
-    : "Tu n'as encore rien choisi : tant que tu ne dis rien, c'est non.";
+  const etat = choix ? T.choixValable(enLettres(choix.date, langue), enLettres(calculerFinConsentement(choix.date), langue)) : T.sansChoix;
   return (
     <form
       key={choix?.date ?? 0}
@@ -34,7 +38,7 @@ export function ReglagesCookies() {
       className="rounded-carte border-2 border-encre bg-white p-5 text-encre shadow-brut sm:p-6"
     >
       <input type="hidden" name="retour" value={ecrireRetourConsentement(location.pathname, location.search, "#mes-choix")} />
-      {apercu && <p className="mb-3 rounded-xl bg-rose-alerte px-3 py-2 text-sm font-semibold text-rouge-texte">Aperçu : le partenaire est imaginaire.</p>}
+      {apercu && <p className="mb-3 rounded-xl bg-rose-alerte px-3 py-2 text-sm font-semibold text-rouge-texte">{T.apercuReglages}</p>}
       <p role="status" className="mb-4 font-semibold">{etat}</p>
       <PanneauChoixCookies prefixe="page" Titre="h4" />
     </form>

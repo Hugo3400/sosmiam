@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_CARTE_DES_LIEUX_ANGLAIS } from "~/contenus/anglais/carte-des-lieux";
+
 export const TEXTES_CARTE_DES_LIEUX = {
   titre: "Carte des lieux",
   titreUnLieu: (nom: string) => `Carte autour de ${nom}`,
@@ -11,7 +14,6 @@ export const TEXTES_CARTE_DES_LIEUX = {
     sortie: "Sortie",
     sos: "En SOS",
   },
-  lettres: { resto: "R", patisserie: "P", bar: "B", sortie: "S" },
   boutons: {
     pleinEcran: "Carte en plein écran",
     zoomer: "Zoomer",
@@ -32,13 +34,6 @@ export const TEXTES_CARTE_DES_LIEUX = {
     aucuneEpingle: "Aucun lieu à épingler avec ces filtres.",
   },
   voirListe: "Voir la liste des lieux",
-  attribution: {
-    sources: [
-      { texte: "© OpenFreeMap", adresse: "https://openfreemap.org" },
-      { texte: "© OpenMapTiles", adresse: "https://www.openmaptiles.org/" },
-      { texte: "© OpenStreetMap", adresse: "https://www.openstreetmap.org/copyright" },
-    ],
-  },
   lieuChoisi: {
     voirFiche: "Voir la fiche",
     itineraire: "Itinéraire",
@@ -69,3 +64,8 @@ export const TEXTES_CARTE_DES_LIEUX = {
     "CooperativeGesturesHandler.MobileHelpText": "Deux doigts pour déplacer la carte",
   },
 } as const;
+
+export const TEXTES_CARTE_DES_LIEUX_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_CARTE_DES_LIEUX>> = {
+  fr: TEXTES_CARTE_DES_LIEUX,
+  en: TEXTES_CARTE_DES_LIEUX_ANGLAIS,
+};

@@ -4,24 +4,28 @@ import { ListeCoches } from "~/composants/interface/ListeCoches";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { CarteToutGratuit } from "~/composants/pro/CarteToutGratuit";
-import { avantagesPro } from "~/contenus/pros";
+import { TEXTES_PROS_PAR_LANGUE } from "~/contenus/pros";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Section pour les lieux : ce que SOS Miam leur apporte, gratuitement. */
 export function PourLesPros() {
+  const T = utiliserTextes(TEXTES_PROS_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   return (
     <Section id="pros">
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <div>
-          <Badge variante="alerte" className="mb-5">🍽️ Pour les pros</Badge>
+          <Badge variante="alerte" className="mb-5">{T.badge}</Badge>
           <TitreSection aGauche>
-            Ta salle est trop calme ?
+            {T.titre.haut}
             <br />
-            Lance un SOS.
+            {T.titre.bas}
           </TitreSection>
           <div className="mt-8 mb-9">
-            <ListeCoches elements={avantagesPro} />
+            <ListeCoches elements={[...T.avantages]} />
           </div>
-          <Bouton vers="/inscrire-mon-lieu">Inscrire mon lieu</Bouton>
+          <Bouton vers={lien("/inscrire-mon-lieu")}>{T.bouton}</Bouton>
         </div>
 
         <CarteToutGratuit />

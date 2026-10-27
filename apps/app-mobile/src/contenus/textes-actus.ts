@@ -4,6 +4,7 @@ import { TEXTES_ACTUS_ANGLAIS } from "~/contenus/anglais/textes-actus";
 
 export const TEXTES_ACTUS = {
   ...LIBELLES_ACTUS,
+  mentionCollaboration: LIBELLES_ACTUS.collaboration,
   onglet: "Actus",
   filtresLu: "Rubriques des Actus",
   minutes: (n: number) => `${n} min`,

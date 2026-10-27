@@ -2,11 +2,11 @@ import { TexteRiche } from "~/composants/interface/TexteRiche";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { FormulaireSignalement } from "~/composants/securite/FormulaireSignalement";
-import { commentSignaler } from "~/contenus/securite";
+import type { TextesSecurite } from "~/contenus/securite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-export function SignalerFaille() {
-  const { titre, chapo, aideTitre, aides, captures } = commentSignaler;
+export function SignalerFaille({ textes }: { textes: TextesSecurite["signaler"] }) {
+  const { titre, chapo, aideTitre, aides, captures } = textes;
   return (
     <Section id="signaler" fond="creme" etroit>
       <TitreSection aGauche id="signaler-titre" chapo={lierPonctuation(chapo)}>{titre}</TitreSection>

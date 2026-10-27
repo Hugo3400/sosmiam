@@ -1,16 +1,19 @@
 import { Form, Link } from "react-router";
 
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
 import { ecrireAdresseLieux } from "~/fonctions/page-lieux/ecrire-adresse-lieux";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu } from "~/types/lieux";
 
 type Props = { ville: string | null; type: CategorieLieu | null; recherche: string | null };
 
 export function RechercheLieux({ ville, type, recherche }: Props) {
-  const T = TEXTES_PAGE_LIEUX.recherche;
+  const T = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE).recherche;
+  const lien = utiliserLienLangue();
   return (
     <div className="flex w-full flex-col gap-1.5 md:w-[380px]">
-      <Form method="get" action="/lieux" role="search" className="flex items-center gap-2 rounded-full border-2 border-encre bg-white py-1.5 pr-1.5 pl-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-encre">
+      <Form method="get" action={lien("/lieux")} role="search" className="flex items-center gap-2 rounded-full border-2 border-encre bg-white py-1.5 pr-1.5 pl-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-encre">
         {ville && <input type="hidden" name="ville" value={ville} />}
         {type && <input type="hidden" name="type" value={type} />}
         <label htmlFor="recherche-lieux" className="sr-only">{T.etiquette}</label>
@@ -34,7 +37,7 @@ export function RechercheLieux({ ville, type, recherche }: Props) {
       {recherche && (
         <p className="flex flex-wrap gap-x-3 px-4 text-sm text-gris">
           <span>{T.resultat(recherche)}</span>
-          <Link to={ecrireAdresseLieux({ ville, type })} className="font-semibold text-encre underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-encre">{T.effacer}</Link>
+          <Link to={lien(ecrireAdresseLieux({ ville, type }))} className="font-semibold text-encre underline underline-offset-4 focus-visible:outline-3 focus-visible:outline-encre">{T.effacer}</Link>
         </p>
       )}
     </div>

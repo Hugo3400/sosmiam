@@ -1,18 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
+import { TEXTES_LOCALISATION_PAR_LANGUE } from "~/contenus/localisation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type CommuneLocalisee = { commune: string; departement: string; region: string };
 
 export type EtatLocalisation = { etat: "attente" | "recherche" | "trouvee" | "erreur"; message: string };
-
-const messagesErreur = {
-  refus: "Pas de souci : tape simplement ta ville ou ta région.",
-  indisponible: "On n'a pas trouvé ta position. Tape ta ville ou ta région.",
-  "hors-de-france": "Tu sembles être hors de France : tape ta ville ou ta région.",
-  "trop-de-demandes": "Trop d'essais d'affilée : réessaie dans quelques minutes, ou tape ta ville.",
-  erreur: "La recherche de ta commune n'a pas marché. Tape ta ville ou ta région.",
-};
 
 /**
  * Bouton « Me localiser » : demande la position au navigateur (qui demande d'abord l'accord de la personne),
@@ -20,6 +14,8 @@ const messagesErreur = {
  * Une recherche en cours est abandonnée dès qu'on tape, qu'on choisit une suggestion ou que le formulaire est vidé.
  */
 export function utiliserLocalisation(quandTrouvee: (commune: CommuneLocalisee) => void) {
+  const T = utiliserTextes(TEXTES_LOCALISATION_PAR_LANGUE);
+  const messagesErreur = T.erreurs;
   const [possible, setPossible] = useState(false);
   const [localisation, setLocalisation] = useState<EtatLocalisation>({ etat: "attente", message: "" });
   // Numéro de la recherche en cours : une réponse qui arrive après un abandon est ignorée
@@ -47,7 +43,7 @@ export function utiliserLocalisation(quandTrouvee: (commune: CommuneLocalisee) =
       if (resultat?.ok && typeof resultat.commune === "string") {
         quandTrouvee(resultat);
         const precision = resultat.departement && resultat.departement !== resultat.commune ? ` (${resultat.departement})` : "";
-        afficher("trouvee", `Trouvé : ${resultat.commune}${precision}. Tu peux le changer si besoin.`);
+        afficher("trouvee", T.trouvee(`${resultat.commune}${precision}`));
       } else {
         const cle = resultat?.erreur as keyof typeof messagesErreur;
         afficher("erreur", messagesErreur[cle] ?? messagesErreur.erreur);
@@ -60,7 +56,7 @@ export function utiliserLocalisation(quandTrouvee: (commune: CommuneLocalisee) =
   function localiser() {
     if (localisation.etat === "recherche") return;
     const numero = ++tentative.current;
-    afficher("recherche", "Recherche de ta position…");
+    afficher("recherche", T.recherche);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         if (numero === tentative.current) void chercherCommune(coords.latitude, coords.longitude, numero);

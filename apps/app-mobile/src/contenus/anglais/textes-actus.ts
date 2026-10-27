@@ -4,6 +4,7 @@ import type { TEXTES_ACTUS } from "~/contenus/textes-actus";
 
 export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
   ...LIBELLES_ACTUS_ANGLAIS,
+  mentionCollaboration: `${LIBELLES_ACTUS_ANGLAIS.collaboration} · ${LIBELLES_ACTUS_ANGLAIS.collaborationGlose}`,
   onglet: "News",
   filtresLu: "News sections",
   minutes: (n: number) => `${n} min`,

@@ -2,9 +2,11 @@ import type { MouseEvent } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { PastilleFiltre } from "~/composants/page-lieux/PastilleFiltre";
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
 import { ecrireAdresseLieux } from "~/fonctions/page-lieux/ecrire-adresse-lieux";
 import { ecrireIdentifiantVille } from "~/fonctions/page-lieux/ecrire-identifiant-ville";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVilleProche } from "~/hooks/utiliser-ville-proche";
 import type { CategorieLieu, VilleLieux } from "~/types/lieux";
 
@@ -22,9 +24,10 @@ const VILLES_SUR_TELEPHONE = 3;
 const fermerListe = (evenement: MouseEvent<HTMLElement>) => evenement.currentTarget.closest("details")?.removeAttribute("open");
 
 export function FiltresVilles({ villes, villeChoisie, identifiantVille, type, recherche }: Props) {
-  const T = TEXTES_PAGE_LIEUX;
+  const T = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const naviguer = useNavigate();
-  const adresse = (ville: string | null) => ecrireAdresseLieux({ ville, type, recherche });
+  const adresse = (ville: string | null) => lien(ecrireAdresseLieux({ ville, type, recherche }));
   const { possible, etat, chercherPresDeMoi } = utiliserVilleProche(villes, villeChoisie?.ville ?? null, T.presDeMoi, (ville) => {
     naviguer(adresse(ecrireIdentifiantVille(ville.ville)), { preventScrollReset: true });
   });

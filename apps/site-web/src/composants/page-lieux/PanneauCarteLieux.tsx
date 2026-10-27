@@ -4,9 +4,10 @@ import { CarteLieuChoisi } from "~/composants/carte-des-lieux/CarteLieuChoisi";
 import { IconeCarte } from "~/composants/carte-des-lieux/IconeCarte";
 import { LegendeCarte } from "~/composants/carte-des-lieux/LegendeCarte";
 import { BoutonChercherZone } from "~/composants/page-lieux/BoutonChercherZone";
-import { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
+import { TEXTES_CARTE_DES_LIEUX_PAR_LANGUE } from "~/contenus/carte-des-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCarteLieux } from "~/hooks/utiliser-carte-lieux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu, VilleLieux } from "~/types/lieux";
 
 type Props = {
@@ -18,7 +19,7 @@ type Props = {
 };
 
 export function PanneauCarteLieux({ ville, type, villes, adressePleinEcran, adresseVille }: Props) {
-  const T = TEXTES_CARTE_DES_LIEUX;
+  const T = utiliserTextes(TEXTES_CARTE_DES_LIEUX_PAR_LANGUE);
   const carte = utiliserCarteLieux({ ville, type, villes, lieuInitial: null, adresseVille });
   return (
     <section aria-labelledby="titre-carte-lieux" className="sticky top-[88px] h-[calc(100dvh-112px)] max-h-[1040px] min-h-[520px] overflow-hidden rounded-carte border-2 border-encre shadow-brut">

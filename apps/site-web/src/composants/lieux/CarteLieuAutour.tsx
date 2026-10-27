@@ -1,11 +1,15 @@
 import { Link } from "react-router";
 
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { choisirCouleursLieu } from "~/fonctions/lieux/choisir-couleurs-lieu";
 import { choisirEmojiLieu } from "~/fonctions/lieux/choisir-emoji-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { LieuListe } from "~/types/lieux";
 
 export function CarteLieuAutour({ lieu, sansVisuel = false }: { lieu: LieuListe; sansVisuel?: boolean }) {
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).autour;
+  const langue = utiliserLangue();
   const [debut, fin] = choisirCouleursLieu(lieu.couleurs);
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-[18px] border-2 border-encre bg-white shadow-brut-petit transition-transform focus-within:ring-4 focus-within:ring-encre hover:-translate-y-0.5 motion-reduce:hover:translate-y-0">
@@ -24,8 +28,8 @@ export function CarteLieuAutour({ lieu, sansVisuel = false }: { lieu: LieuListe;
             {lieu.nom}
           </Link>
         </h3>
-        <p className="text-[13px] text-gris">{[lieu.info, lieu.prix].filter(Boolean).join(" · ")}</p>
-        {lieu.sos && <p className="text-[13px] font-bold text-rouge-texte">{TEXTES_FICHE_LIEU.autour.sos}</p>}
+        <p lang={langue === "fr" ? undefined : "fr"} className="text-[13px] text-gris">{[lieu.info, lieu.prix].filter(Boolean).join(" · ")}</p>
+        {lieu.sos && <p className="text-[13px] font-bold text-rouge-texte">{T.sos}</p>}
       </div>
     </article>
   );

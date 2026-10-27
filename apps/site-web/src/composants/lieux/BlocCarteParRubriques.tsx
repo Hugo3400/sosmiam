@@ -6,21 +6,24 @@ import { CLASSE_BLOC, CLASSE_TITRE_BLOC } from "~/composants/lieux/classes-fiche
 import { ElementCarteDuLieu } from "~/composants/lieux/ElementCarteDuLieu";
 import { IconeFiche } from "~/composants/lieux/IconeFiche";
 import { OngletsCarte } from "~/composants/lieux/OngletsCarte";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
 import { listerRubriquesCarte } from "~/fonctions/carte/lister-rubriques-carte";
-import { formaterJourEnLettres } from "~/fonctions/dates/formater-jour-en-lettres";
+import { ecrireDateAParisLangue } from "~/fonctions/dates/ecrire-date-a-paris-langue";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CarteLieu } from "~/types/carte";
 import type { CategorieLieu } from "~/types/lieux";
 
 type Props = { carte: CarteLieu; type: CategorieLieu; lieuId: number };
 
 export function BlocCarteParRubriques({ carte, type, lieuId }: Props) {
-  const T = TEXTES_FICHE_LIEU.carte;
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).carte;
+  const langue = utiliserLangue();
   const javascriptActif = utiliserJavascriptActif();
   const rubriques = listerRubriquesCarte(carte);
   if (rubriques.length === 0) return null;
-  const date = carte.majLe ? formaterJourEnLettres(carte.majLe) : null;
+  const date = carte.majLe ? ecrireDateAParisLangue(carte.majLe, langue) : null;
   return (
     <div className="flex flex-col gap-6 md:gap-7">
       <section aria-labelledby="fiche-carte" className={`flex flex-col gap-[18px] ${CLASSE_BLOC}`}>

@@ -1,10 +1,12 @@
-import { TEXTES_CARTE_EN_GRAND } from "~/contenus/carte-en-grand";
+import { TEXTES_CARTE_EN_GRAND_PAR_LANGUE } from "~/contenus/carte-en-grand";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { RubriqueCarte } from "~/types/carte";
 
 export function NavRubriquesCarte({ rubriques }: { rubriques: RubriqueCarte[] }) {
+  const T = utiliserTextes(TEXTES_CARTE_EN_GRAND_PAR_LANGUE);
   if (rubriques.length < 2) return null;
   return (
-    <nav aria-label={TEXTES_CARTE_EN_GRAND.rubriques} className="print:hidden">
+    <nav aria-label={T.rubriques} className="print:hidden">
       <ul lang="fr" className="flex flex-wrap gap-2">
         {rubriques.map((rubrique) => (
           <li key={rubrique.id}>

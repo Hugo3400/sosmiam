@@ -2,20 +2,23 @@ import { Link } from "react-router";
 
 import { PictoCategorie } from "~/composants/marque/PictoCategorie";
 import { categoriesLieux } from "~/contenus/categories-lieux";
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props =
   | { etat: "bientot" | "indisponible"; adresse: string }
   | { etat: "aucun"; recherche: string | null };
 
 export function EtatPageLieux(props: Props) {
-  const T = TEXTES_PAGE_LIEUX.etats;
+  const T = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE).etats;
+  const lien = utiliserLienLangue();
   const textes =
     props.etat === "aucun"
-      ? { titre: T.aucun.titre, texte: T.aucun.texte(props.recherche), lien: T.aucun.lien, vers: "/lieux" }
+      ? { titre: T.aucun.titre, texte: T.aucun.texte(props.recherche), lien: T.aucun.lien, vers: lien("/lieux") }
       : props.etat === "bientot"
-        ? { ...T.bientot, vers: "/#adresses" }
+        ? { ...T.bientot, vers: lien("/#adresses") }
         : { ...T.indisponible, vers: props.adresse };
   return (
     <div className="rounded-carte border-2 border-dashed border-encre/40 bg-white px-6 py-10 text-center md:px-10">

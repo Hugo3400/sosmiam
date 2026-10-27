@@ -2,11 +2,12 @@ import { useEffect, useRef } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { TEXTES_SIGNALER_IMAGE_PAR_LANGUE } from "~/contenus/signaler-image";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function MerciSignalerImage({ lieuId, nom }: { lieuId: number; nom: string }) {
-  const T = TEXTES_SIGNALER_IMAGE.merci;
+  const T = utiliserTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE).merci;
   const titre = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {

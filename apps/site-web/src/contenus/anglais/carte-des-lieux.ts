@@ -1,0 +1,66 @@
+import type { Traduction } from "../../../../../packages/commun/src/types/traduction.ts";
+import type { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
+
+export const TEXTES_CARTE_DES_LIEUX_ANGLAIS: Traduction<typeof TEXTES_CARTE_DES_LIEUX> = {
+  titre: "Map of places",
+  titreUnLieu: (nom: string) => `Map around ${nom}`,
+  titrePleinEcran: "Full-screen map of places",
+  partout: "All of France",
+  legende: {
+    etiquette: "Map key",
+    resto: "Restaurant",
+    patisserie: "Patisserie",
+    bar: "Bar",
+    sortie: "Things to do",
+    sos: "With an SOS",
+  },
+  boutons: {
+    pleinEcran: "Full-screen map",
+    zoomer: "Zoom in",
+    dezoomer: "Zoom out",
+    meSituer: "Find me",
+    fermer: "Close the map",
+    chercherZone: "Search this area",
+    enSos: "SOS tonight",
+    fermerLieu: "Close the place preview",
+    filtres: "Filter the map",
+  },
+  etats: {
+    chargement: "Getting the map ready…",
+    sansJavascript: "The map needs JavaScript to show up. No harm done – the list of places is right here for you.",
+    sansWebgl: "Your browser can't draw this map. No harm done – the list of places is right here for you.",
+    erreur: "The map's having a little nap. Try again in a moment, or have a look at the list.",
+    epinglesIndisponibles: "The pins couldn't land. Try again in a moment.",
+    aucuneEpingle: "No places to pin with these filters.",
+  },
+  voirListe: "See the list of places",
+  lieuChoisi: {
+    voirFiche: "See the place's page",
+    itineraire: "Directions",
+    vers: (nom: string) => ` to ${nom}`,
+    de: (nom: string) => ` (${nom})`,
+    sos: "SOS tonight",
+  },
+  meSituer: {
+    recherche: "Finding your area…",
+    trouve: "There you are, roughly: the map shows your area, never your exact location.",
+    refus: "No worries – move the map yourself, or pick a city.",
+    indisponible: "We couldn't find your location. Move the map yourself.",
+  },
+  zone: {
+    recherche: "Checking which city is around here…",
+    horsDeFrance: "This area is outside France – SOS Miam isn't there yet.",
+    aucune: (commune: string) => `No places around ${commune} yet. Move the map towards a city from the list.`,
+    voisine: (commune: string, ville: string) => `No places here yet (${commune}) – here's ${ville}, the closest one we know.`,
+    dejaLa: (ville: string) => `You're already looking at ${ville}. Move the map towards another city.`,
+    trouvee: (ville: string) => `Off to ${ville}!`,
+    tropDeDemandes: "Too many tries in a row – try again in a few minutes.",
+    erreur: "Finding the city didn't work. Try again in a moment.",
+  },
+  maplibre: {
+    "Map.Title": "Map of places",
+    "CooperativeGesturesHandler.WindowsHelpText": "Use Ctrl + scroll to zoom the map",
+    "CooperativeGesturesHandler.MacHelpText": "Use ⌘ + scroll to zoom the map",
+    "CooperativeGesturesHandler.MobileHelpText": "Use two fingers to move the map",
+  },
+};

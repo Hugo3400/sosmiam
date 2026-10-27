@@ -1,7 +1,9 @@
 import { Link } from "react-router";
 
 import type { OffreCarriere, TypeOffreCarriere } from "../../../../../packages/commun/src/types/carriere.ts";
-import { typesOffre } from "~/contenus/carriere";
+import { TEXTES_CARRIERE_PAR_LANGUE, TYPES_OFFRE } from "~/contenus/carriere";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { offres: OffreCarriere[]; type: TypeOffreCarriere | null };
 
@@ -11,19 +13,21 @@ const classePastille = [
 ].join(" ");
 
 export function FiltreOffres({ offres, type }: Props) {
+  const T = utiliserTextes(TEXTES_CARRIERE_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   const choix = [
-    { valeur: null, libelle: "Toutes", nombre: offres.length },
-    ...typesOffre.map((t) => ({ valeur: t.valeur, libelle: t.libelle, nombre: offres.filter((offre) => offre.type === t.valeur).length })),
+    { valeur: null, libelle: T.liste.toutes, nombre: offres.length },
+    ...TYPES_OFFRE.map((valeur) => ({ valeur, libelle: T.types[valeur].libelle, nombre: offres.filter((offre) => offre.type === valeur).length })),
   ];
   return (
-    <nav aria-label="Filtrer les offres" className="mt-6">
+    <nav aria-label={T.liste.filtrer} className="mt-6">
       <ul className="flex flex-wrap gap-2.5">
         {choix.map((un) => {
           const actif = un.valeur === type;
           return (
             <li key={un.libelle}>
               <Link
-                to={un.valeur ? `/carriere?type=${un.valeur}#offres` : "/carriere#offres"}
+                to={lien(un.valeur ? `/carriere?type=${un.valeur}#offres` : "/carriere#offres")}
                 replace
                 preventScrollReset
                 aria-current={actif ? "true" : undefined}
@@ -32,7 +36,7 @@ export function FiltreOffres({ offres, type }: Props) {
                 {actif && <span aria-hidden="true">✓</span>}
                 {un.libelle}
                 <span className={`rounded-full px-2 text-sm ${actif ? "bg-jaune text-encre" : "bg-jaune-clair"}`}>
-                  {un.nombre}<span className="sr-only">{un.nombre > 1 ? " offres" : " offre"}</span>
+                  {un.nombre}<span className="sr-only">{T.liste.nombreOffres(un.nombre)}</span>
                 </span>
               </Link>
             </li>

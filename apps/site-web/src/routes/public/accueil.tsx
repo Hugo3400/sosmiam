@@ -2,6 +2,7 @@ import { data, type ShouldRevalidateFunctionArgs } from "react-router";
 
 import type { Route } from "./+types/accueil";
 
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { BandeauThemeSaison } from "~/composants/accueil/BandeauThemeSaison";
 import { CommentCaMarche } from "~/composants/accueil/CommentCaMarche";
 import { DevenirAmbassadeur } from "~/composants/accueil/DevenirAmbassadeur";
@@ -11,36 +12,31 @@ import { Inscription, type ReponseInscription } from "~/composants/accueil/Inscr
 import { PourLesPros } from "~/composants/accueil/PourLesPros";
 import { BigSosEnBref } from "~/composants/big-sos/BigSosEnBref";
 import { DonneesStructurees } from "~/composants/mise-en-page/DonneesStructurees";
+import { TEXTES_ACCUEIL_PAR_LANGUE } from "~/contenus/accueil";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerDonneesOrganisation } from "~/fonctions/seo/creer-donnees-organisation";
 import { creerDonneesSite } from "~/fonctions/seo/creer-donnees-site";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
-import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { trouverLieuPropose } from "~/fonctions/texte/trouver-lieu-propose";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
-import { inscrireNewsletter, type ResultatInscription } from "~/services/inscriptions.server";
+import { inscrireNewsletter } from "~/services/inscriptions.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { listerLieuxAccueil, listerVillesLieux } from "~/services/page-lieux.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 import { lireThemeSaisonAccueil } from "~/services/themes-saison.server";
 
-const messagesErreur: Record<Exclude<ResultatInscription, "ok">, string> = {
-  "email-invalide": "Oups, cette adresse e-mail ne semble pas valide.",
-  "trop-de-demandes": "Doucement ! Trop d'essais d'affilée : réessaie dans quelques minutes.",
-  erreur: "Oups, ton inscription n'est pas passée. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.",
-};
-
-export function meta(_: Route.MetaArgs) {
+export function meta({ matches }: Route.MetaArgs) {
   // Le titre dit ce qu'est SOS Miam dès le résultat de recherche (un livre jeunesse porte un nom proche) : 60 et 155 caractères au plus
-  return creerMeta({
-    titre: "SOS Miam : restos, bars et pâtisseries de ton quartier",
-    description:
-      "Trouve les restos, bars et pâtisseries indépendants près de chez toi, et donne un coup de main aux lieux en SOS. Gratuit, partout en France.",
-  });
+  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const T = choisirTextes(TEXTES_ACCUEIL_PAR_LANGUE, langue);
+  return creerMeta({ ...T.meta, langue });
 }
 
 /** Les vrais lieux publiés, lus à chaque affichage de l'accueil : aucun lieu inventé sur le site. */
 export async function loader({ request }: Route.LoaderArgs) {
   const ip = lireIpVisiteur(request);
-  const [accueil, villes, themeSaison] = await Promise.all([listerLieuxAccueil(ip), listerVillesLieux(ip), lireThemeSaisonAccueil(ip)]);
+  const { langue } = lireLangueRequete(request);
+  const [accueil, villes, themeSaison] = await Promise.all([listerLieuxAccueil(ip), listerVillesLieux(ip), lireThemeSaisonAccueil(ip, Date.now, langue)]);
   const nombreLieux = villes.ok ? villes.donnees.reduce((total, ville) => total + ville.nombre, 0) : null;
   return { lieux: accueil.lieux, tirage: accueil.tirage, nombreLieux, themeSaison };
 }
@@ -70,11 +66,11 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
   const valeurs = { email, ville, telephone: telephone ?? "", beta, ambassadeur };
 
   if (!verifierEmail(email)) {
-    return { ok: false, message: "Oups, cette adresse e-mail ne semble pas valide.", champ: "email", valeurs };
+    return { ok: false, erreur: "email-invalide", champ: "email", valeurs };
   }
   // Pour inviter quelqu'un à la bêta, il faut savoir sur quel store : App Store (iPhone) ou Play Store (Android)
   if (beta && !telephone) {
-    return { ok: false, message: "Pour la bêta, dis-nous si tu as un iPhone ou un Android.", champ: "telephone", valeurs };
+    return { ok: false, erreur: "telephone-requis", champ: "telephone", valeurs };
   }
 
   // Un lieu proposé reconnu (« beziers ») est enregistré sous son vrai nom (« Béziers »), le reste tel que tapé
@@ -85,18 +81,9 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
     request.headers.get("x-real-ip"),
   );
   if (resultat !== "ok") {
-    return { ok: false, message: lierPonctuation(messagesErreur[resultat]), champ: resultat === "email-invalide" ? "email" : undefined, valeurs };
+    return { ok: false, erreur: resultat, champ: resultat === "email-invalide" ? "email" : undefined, valeurs };
   }
-
-  // Espace insécable avant chaque émoji : il ne part jamais seul à la ligne
-  const ou = lieu?.ou ?? "près de chez toi";
-  const suites = [
-    beta ? "On t'invite à tester la bêta dès qu'elle est prête.\u00a0🧪" : "",
-    // Pas de promesse « fondateur » : on invite à créer un compte (dès 18 ans), la candidature se fait depuis l'espace
-    ambassadeur ? "On t'écrira aussi pour t'inviter dans l'espace ambassadeur (dès 18\u00a0ans).\u00a0🎖️" : "",
-  ].filter(Boolean);
-  const confirmation = `Presque fini ! Un lien de confirmation t'attend dans ta boîte mail (jette un œil aux spams) : un clic, et on te prévient dès que SOS Miam arrive ${ou}.\u00a0🛟`;
-  return { ok: true, message: lierPonctuation([confirmation, ...suites].join(" ")) };
+  return { ok: true, lieu: lieu ? { nom: lieu.nom, ou: lieu.ou } : null, beta, ambassadeur };
 }
 
 /** Page d'accueil : la promesse, le principe, les lieux, le BIG SOS, les pros, les ambassadeurs et l'inscription. */

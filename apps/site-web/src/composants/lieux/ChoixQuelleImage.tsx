@@ -1,6 +1,7 @@
 import { VignetteImageLieu } from "~/composants/lieux/VignetteImageLieu";
-import { TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
+import { TEXTES_SIGNALER_IMAGE_PAR_LANGUE } from "~/contenus/signaler-image";
 import type { ImageSignalable } from "~/fonctions/lieux/lister-images-signalables";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   sources: Record<ImageSignalable, string | null | undefined>;
@@ -12,7 +13,7 @@ type Props = {
 const ID_ERREUR = "signaler-quelle-erreur";
 
 export function ChoixQuelleImage({ sources, images, choisie, erreur }: Props) {
-  const T = TEXTES_SIGNALER_IMAGE.quelle;
+  const T = utiliserTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE).quelle;
   const [seule] = images;
   if (images.length === 1 && seule) {
     return (

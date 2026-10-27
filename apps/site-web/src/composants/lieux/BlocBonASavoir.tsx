@@ -1,12 +1,16 @@
+import type { Traduction } from "../../../../../packages/commun/src/types/traduction.ts";
 import { CLASSE_BLOC, CLASSE_TITRE_BLOC } from "~/composants/lieux/classes-fiche-lieu";
 import { IconeFiche, type NomIcone } from "~/composants/lieux/IconeFiche";
-import { TEXTES_FICHE_LIEU } from "~/contenus/fiche-lieu";
-import { INFOS_OUI_NON, LIBELLES_ANIMAUX, LIBELLES_PAIEMENT, LIBELLES_RESERVATION } from "~/contenus/infos-pratiques";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/fiche-lieu";
+import { TEXTES_INFOS_PRATIQUES_PAR_LANGUE, type ChampOuiNon, type TEXTES_INFOS_PRATIQUES } from "~/contenus/infos-pratiques";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { InfosPratiquesLieu } from "~/types/pro";
 
 type Info = { cle: string; icone: NomIcone; texte: string; oui: boolean };
 
-const ICONES_OUI_NON: Record<(typeof INFOS_OUI_NON)[number]["champ"], NomIcone> = {
+type TextesInfos = Traduction<typeof TEXTES_INFOS_PRATIQUES>;
+
+const ICONES_OUI_NON: Record<ChampOuiNon, NomIcone> = {
   accessible: "accessible",
   terrasse: "terrasse",
   wifi: "wifi",
@@ -14,27 +18,28 @@ const ICONES_OUI_NON: Record<(typeof INFOS_OUI_NON)[number]["champ"], NomIcone> 
   parking: "parking",
 };
 
-function listerInfos(infos: InfosPratiquesLieu): Info[] {
+function listerInfos(infos: InfosPratiquesLieu, T: TextesInfos, paiement: (liste: string) => string): Info[] {
   const liste: Info[] = [];
-  for (const info of INFOS_OUI_NON) {
-    const valeur = infos[info.champ];
-    if (valeur === true || valeur === false) liste.push({ cle: info.champ, icone: valeur ? ICONES_OUI_NON[info.champ] : "non", texte: valeur ? info.oui : info.non, oui: valeur });
+  for (const champ of Object.keys(ICONES_OUI_NON) as ChampOuiNon[]) {
+    const valeur = infos[champ];
+    if (valeur === true || valeur === false) liste.push({ cle: champ, icone: valeur ? ICONES_OUI_NON[champ] : "non", texte: valeur ? T.ouiNon[champ].oui : T.ouiNon[champ].non, oui: valeur });
   }
-  if (infos.animaux) liste.push({ cle: "animaux", icone: infos.animaux === "non" ? "non" : "animaux", texte: LIBELLES_ANIMAUX[infos.animaux].texte, oui: infos.animaux !== "non" });
+  if (infos.animaux) liste.push({ cle: "animaux", icone: infos.animaux === "non" ? "non" : "animaux", texte: T.animaux[infos.animaux], oui: infos.animaux !== "non" });
   if (infos.paiements.length > 0) {
-    const moyens = infos.paiements.map((code) => LIBELLES_PAIEMENT[code]).join(", ");
-    liste.push({ cle: "paiements", icone: "paiement", texte: TEXTES_FICHE_LIEU.bonASavoir.paiement(moyens), oui: true });
+    const moyens = infos.paiements.map((code) => T.paiement[code]).join(", ");
+    liste.push({ cle: "paiements", icone: "paiement", texte: paiement(moyens), oui: true });
   }
-  if (infos.reservation) liste.push({ cle: "reservation", icone: "reserver", texte: LIBELLES_RESERVATION[infos.reservation], oui: true });
+  if (infos.reservation) liste.push({ cle: "reservation", icone: "reserver", texte: T.reservation[infos.reservation], oui: true });
   return liste;
 }
 
 export function BlocBonASavoir({ infos }: { infos: InfosPratiquesLieu }) {
-  const liste = listerInfos(infos);
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).bonASavoir;
+  const liste = listerInfos(infos, utiliserTextes(TEXTES_INFOS_PRATIQUES_PAR_LANGUE), T.paiement);
   if (liste.length === 0) return null;
   return (
     <section aria-labelledby="fiche-bon-a-savoir" className={`flex flex-col gap-4 ${CLASSE_BLOC}`}>
-      <h2 id="fiche-bon-a-savoir" className={CLASSE_TITRE_BLOC}>{TEXTES_FICHE_LIEU.bonASavoir.titre}</h2>
+      <h2 id="fiche-bon-a-savoir" className={CLASSE_TITRE_BLOC}>{T.titre}</h2>
       <ul className="grid gap-3 sm:grid-cols-2">
         {liste.map((info) => (
           <li key={info.cle} className="flex items-center gap-2.5 rounded-[14px] bg-creme px-3.5 py-3">

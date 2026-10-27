@@ -7,7 +7,7 @@ import {
   ADRESSE_REGLAGES_COOKIES,
   EVENEMENT_CONSENTEMENT,
   PARAMETRE_APERCU_COOKIES,
-  textesConsentement,
+  TEXTES_CONSENTEMENT_PAR_LANGUE,
 } from "~/contenus/cookies-consentement";
 import { aConsenti } from "~/fonctions/consentement/a-consenti";
 import { calculerVersionConsentement } from "~/fonctions/consentement/calculer-version-consentement";
@@ -20,7 +20,10 @@ import { ecrireRetourConsentement } from "~/fonctions/consentement/ecrire-retour
 import { lireChoixConsentement } from "~/fonctions/consentement/lire-choix-consentement";
 import { lireFormulaireConsentement } from "~/fonctions/consentement/lire-formulaire-consentement";
 import { listerCategoriesAChoisir } from "~/fonctions/consentement/lister-categories-a-choisir";
+import { traduireCategoriesConsentement } from "~/fonctions/consentement/traduire-categories-consentement";
 import { ContexteConsentement, type ValeurConsentement } from "~/hooks/utiliser-consentement";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { EtatConsentementServeur, ReponsesConsentement } from "~/types/consentement";
 
 type Props = {
@@ -49,9 +52,12 @@ function lireEnvoi(evenement: FormEvent<HTMLFormElement>): FormData {
 export function GestionnaireConsentement({ etat, children }: Props) {
   const { apercu } = etat;
   const location = useLocation();
-  const categories = useMemo(() => choisirCategoriesConsentement(apercu), [apercu]);
+  const T = utiliserTextes(TEXTES_CONSENTEMENT_PAR_LANGUE);
+  const lien = utiliserLienLangue();
+  const declarees = useMemo(() => choisirCategoriesConsentement(apercu), [apercu]);
+  const version = useMemo(() => calculerVersionConsentement(declarees), [declarees]);
+  const categories = useMemo(() => traduireCategoriesConsentement(declarees, T), [declarees, T]);
   const aChoisir = useMemo(() => listerCategoriesAChoisir(categories), [categories]);
-  const version = useMemo(() => calculerVersionConsentement(categories), [categories]);
   const [choix, setChoix] = useState(etat.choix);
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const [annonce, setAnnonce] = useState("");
@@ -109,7 +115,7 @@ export function GestionnaireConsentement({ etat, children }: Props) {
       return;
     }
     setChoix(nouveau);
-    setAnnonce(textesConsentement.choixEnregistre);
+    setAnnonce(T.choixEnregistre);
     window.dispatchEvent(new CustomEvent(EVENEMENT_CONSENTEMENT));
     fermerPanneau();
   }
@@ -154,8 +160,8 @@ export function GestionnaireConsentement({ etat, children }: Props) {
           panneauOuvert={panneauOuvert}
           gestion={!bandeau}
           retour={ecrireRetourConsentement(location.pathname, location.search)}
-          adresseReglages={ADRESSE_REGLAGES_COOKIES.replace("#", `${suffixeApercu}#`)}
-          adressePage={`/cookies${suffixeApercu}`}
+          adresseReglages={lien(ADRESSE_REGLAGES_COOKIES).replace("#", `${suffixeApercu}#`)}
+          adressePage={lien(`/cookies${suffixeApercu}`)}
           onChoisir={() => setPanneauOuvert(true)}
           onEchap={fermerAvecEchap}
           refDialogue={refDialogue}

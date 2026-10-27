@@ -3,7 +3,7 @@ import { TexteRiche } from "~/composants/interface/TexteRiche";
 import type { BlocTexte } from "~/contenus/type-bloc-texte";
 
 /** Affiche des blocs de texte : paragraphes, listes et tableaux, avec **gras** et [liens](/adresse). */
-export function BlocsTexte({ blocs }: { blocs: BlocTexte[] }) {
+export function BlocsTexte({ blocs }: { blocs: readonly BlocTexte[] }) {
   return blocs.map((bloc, i) => {
     if (typeof bloc === "string") return <p key={i}><TexteRiche texte={bloc} /></p>;
     if ("tableau" in bloc) return <TableauTexte key={i} tableau={bloc.tableau} />;

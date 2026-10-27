@@ -8,6 +8,7 @@ export type LibellesActus = {
   aLaUne: string;
   ambassadeur: string;
   collaboration: string;
+  collaborationGlose: string | null;
 };
 
 export const LIBELLES_ACTUS: LibellesActus = {
@@ -21,6 +22,7 @@ export const LIBELLES_ACTUS: LibellesActus = {
   aLaUne: "À la une",
   ambassadeur: "Ambassadeur·rice",
   collaboration: "Collaboration commerciale",
+  collaborationGlose: null,
 };
 
 export const LIBELLES_ACTUS_PAR_LANGUE: ParLangue<LibellesActus> = { fr: LIBELLES_ACTUS, en: LIBELLES_ACTUS_ANGLAIS };

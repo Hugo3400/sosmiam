@@ -1,5 +1,7 @@
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../../packages/commun/src/regles/langues.ts";
 import type { NouvelleCandidature } from "../../../../../packages/commun/src/types/carriere.ts";
-import { champsCandidature, type ChampCandidature } from "~/contenus/carriere";
+import { LIMITES_CANDIDATURE as LIMITES, TEXTES_CANDIDATURE_PAR_LANGUE, type ChampCandidature } from "~/contenus/carriere";
 import { convertirCvEnBase64 } from "~/fonctions/carriere/convertir-cv-en-base64";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
@@ -10,9 +12,8 @@ export type LectureCandidature =
   | { ok: true; candidature: NouvelleCandidature; piege: string }
   | { ok: false; erreurs: Partial<Record<ChampCandidature, string>>; valeurs: ValeursCandidature; cvEnvoye: boolean };
 
-const { nom, email, message, lien, cv, majeur } = champsCandidature;
-
-export async function lireFormulaireCandidature(formulaire: FormData): Promise<LectureCandidature> {
+export async function lireFormulaireCandidature(formulaire: FormData, langue: Langue = LANGUE_PAR_DEFAUT): Promise<LectureCandidature> {
+  const { nom, email, message, lien, cv, majeur } = choisirTextes(TEXTES_CANDIDATURE_PAR_LANGUE, langue).champs;
   const lire = (cle: string) => {
     const valeur = formulaire.get(cle);
     return typeof valeur === "string" ? valeur.replace(/\r\n?/g, "\n").trim() : "";
@@ -27,10 +28,10 @@ export async function lireFormulaireCandidature(formulaire: FormData): Promise<L
   if (valeurs.lien && !/^[a-z][a-z0-9+.-]*:/i.test(valeurs.lien)) valeurs.lien = `https://${valeurs.lien}`;
 
   const erreurs: Partial<Record<ChampCandidature, string>> = {};
-  if (valeurs.nom.length < nom.minimum || valeurs.nom.length > nom.maximum) erreurs.nom = nom.erreur;
-  if (valeurs.email.length > email.maximum || !verifierEmail(valeurs.email)) erreurs.email = email.erreur;
-  if (valeurs.message.length < message.minimum || valeurs.message.length > message.maximum) erreurs.message = message.erreur;
-  if (valeurs.lien && (valeurs.lien.length > lien.maximum || !/^https:\/\/[^\s/?#]+\.[^\s]+$/i.test(valeurs.lien))) erreurs.lien = lien.erreur;
+  if (valeurs.nom.length < LIMITES.nom.minimum || valeurs.nom.length > LIMITES.nom.maximum) erreurs.nom = nom.erreur;
+  if (valeurs.email.length > LIMITES.email.maximum || !verifierEmail(valeurs.email)) erreurs.email = email.erreur;
+  if (valeurs.message.length < LIMITES.message.minimum || valeurs.message.length > LIMITES.message.maximum) erreurs.message = message.erreur;
+  if (valeurs.lien && (valeurs.lien.length > LIMITES.lien.maximum || !/^https:\/\/[^\s/?#]+\.[^\s]+$/i.test(valeurs.lien))) erreurs.lien = lien.erreur;
   if (!valeurs.majeur) erreurs.majeur = majeur.erreur;
 
   const fichier = formulaire.get("cv");

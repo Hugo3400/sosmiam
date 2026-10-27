@@ -1,4 +1,5 @@
 import type { ArticleActus, AuteurActus, LieuCiteActus, StatutArticleActus } from "../../../../packages/commun/src/types/actus.ts";
+import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
 
 export type ArticleActusExemple = ArticleActus<null> & { statut: StatutArticleActus };
 
@@ -7,21 +8,21 @@ const MALO: AuteurActus = { id: 9102, prenom: "malo.matelot", avatar: "miami:bin
 const INES: AuteurActus = { id: 9103, prenom: "ines.papilles", avatar: "miami:chantilly", ambassadeur: true };
 const SAMI: AuteurActus = { id: 9104, prenom: "sami.tartine", avatar: "miami:bob", ambassadeur: true };
 
-const lieu = (nom: string, emoji: string, quartier: string, ville: string, verifie = true): LieuCiteActus => ({ id: 0, nom, emoji, quartier, ville, verifie });
+const lieu = (nom: string, type: TypeLieu, emoji: string, quartier: string, ville: string, verifie = true): LieuCiteActus => ({ id: 0, nom, type, emoji, quartier, ville, verifie });
 
-const CAPITAINE = lieu("Restaurant du Capitaine Bouiboui", "🐟", "Écusson", "Montpellier");
-const PATISSERIE_BRIGADE = lieu("Pâtisserie de la Brigade", "🧁", "Comédie", "Montpellier");
-const FOURNEE_MIAMIS = lieu("La Fournée des Miamis", "🥖", "Comédie", "Montpellier");
-const CANTINE_MIAMIS = lieu("La Cantine des Miamis", "🍲", "Comédie", "Montpellier", false);
-const COMPTOIR_MIAMIS = lieu("Le Comptoir des Miamis", "🍷", "Écusson", "Montpellier");
-const BISCUITS_BRIGADE = lieu("Les Biscuits de la Brigade", "🍪", "Le Canal", "Sète");
-const PEDALOS_BRIGADE = lieu("Les Pédalos de la Brigade", "🚣", "Le Canal", "Sète", false);
-const CREPERIE_CAPITAINE = lieu("La Crêperie du Capitaine Bouiboui", "🥞", "Quartier haut", "Sète");
-const GLACIER_MIAMIS = lieu("Le Glacier des Miamis", "🍦", "Corniche", "Sète");
-const TARTINES_MIAMIS = lieu("Les Tartines des Miamis", "🥪", "Croix-Rousse", "Lyon");
-const SALON_CHANTILLY = lieu("Le Salon Chantilly des Miamis", "🍰", "Croix-Rousse", "Lyon");
-const RAVIOLIS_BRIGADE = lieu("Les Raviolis de la Brigade", "🥟", "Croix-Rousse", "Lyon", false);
-const BOWLING_BRIGADE = lieu("Le Bowling de la Brigade", "🎳", "Gerland", "Lyon");
+const CAPITAINE = lieu("Restaurant du Capitaine Bouiboui", "resto", "🐟", "Écusson", "Montpellier");
+const PATISSERIE_BRIGADE = lieu("Pâtisserie de la Brigade", "patisserie", "🧁", "Comédie", "Montpellier");
+const FOURNEE_MIAMIS = lieu("La Fournée des Miamis", "patisserie", "🥖", "Comédie", "Montpellier");
+const CANTINE_MIAMIS = lieu("La Cantine des Miamis", "resto", "🍲", "Comédie", "Montpellier", false);
+const COMPTOIR_MIAMIS = lieu("Le Comptoir des Miamis", "bar", "🍷", "Écusson", "Montpellier");
+const BISCUITS_BRIGADE = lieu("Les Biscuits de la Brigade", "patisserie", "🍪", "Le Canal", "Sète");
+const PEDALOS_BRIGADE = lieu("Les Pédalos de la Brigade", "sortie", "🚣", "Le Canal", "Sète", false);
+const CREPERIE_CAPITAINE = lieu("La Crêperie du Capitaine Bouiboui", "resto", "🥞", "Quartier haut", "Sète");
+const GLACIER_MIAMIS = lieu("Le Glacier des Miamis", "patisserie", "🍦", "Corniche", "Sète");
+const TARTINES_MIAMIS = lieu("Les Tartines des Miamis", "resto", "🥪", "Croix-Rousse", "Lyon");
+const SALON_CHANTILLY = lieu("Le Salon Chantilly des Miamis", "patisserie", "🍰", "Croix-Rousse", "Lyon");
+const RAVIOLIS_BRIGADE = lieu("Les Raviolis de la Brigade", "resto", "🥟", "Croix-Rousse", "Lyon", false);
+const BOWLING_BRIGADE = lieu("Le Bowling de la Brigade", "sortie", "🎳", "Gerland", "Lyon");
 
 const SANS_SUITE: Pick<ArticleActusExemple, "couverture" | "photos" | "collaboration" | "alcool" | "finLe" | "aLaUne" | "reponseLieu"> = {
   couverture: null,
@@ -42,7 +43,7 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     titre: "Le Capitaine nous a ouvert sa cuisine",
     accroche: "Poisson du matin, soupe du soir : visite d'un bistrot de la mer qui ne triche pas.",
     paragraphes: [
-      "Il est 9 h, la criée vient de passer par l'Écusson. Derrière le comptoir, le Capitaine trie la pêche arrivée à l'aube et me tend une première bouchée : « Goûte, c'est elle qui décide du menu du midi. »",
+      "Il est 9 h, la criée vient de passer par l'Écusson. Derrière le comptoir, le Capitaine trie la pêche arrivée à l'aube et me tend une première bouchée : « Goûte, c'est elle qui décide du menu du midi. »",
       "Ici, pas de carte longue comme le bras : six plats, ce que la mer a donné, et une soupe de poissons qui fait revenir les habitués chaque jeudi. Le pain vient de la boulangerie d'à côté, le beurre est salé comme il faut.",
       "Mon conseil : viens tôt le jeudi, et garde de la place pour la crème brûlée maison. Et si la salle est calme un soir, le Capitaine lance un SOS : c'est le moment.",
     ],
@@ -68,7 +69,7 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     accroche: "Trois adresses, une seule règle : ne jamais repartir sans avoir goûté.",
     paragraphes: [
       "Numéro 1 : la Pâtisserie de la Brigade, à deux pas de la place. Ses tartelettes citron-thym ont un équilibre parfait, ni trop sucrées ni trop sages.",
-      "Numéro 2 : La Fournée des Miamis. Les chouquettes sortent du four toutes les heures, et la vitrine sent le beurre dès 7 h du matin.",
+      "Numéro 2 : La Fournée des Miamis. Les chouquettes sortent du four toutes les heures, et la vitrine sent le beurre dès 7 h du matin.",
       "Numéro 3 : le riz au lait de La Cantine des Miamis. Oui, c'est une cantine, mais ce dessert mérite largement sa place dans ce top.",
     ],
     citation: null,
@@ -87,7 +88,7 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     accroche: "Tout le mois de novembre, le plat du jour et son dessert à petit prix, du lundi au vendredi.",
     paragraphes: [
       "À midi, La Cantine des Miamis se remplit vite : des étudiants, des voisins, des collègues qui ont décidé de bien manger sans y passer l'après-midi.",
-      "Jusqu'à fin novembre, la formule plat et dessert passe à prix doux. Le plat change chaque jour et s'annonce sur l'ardoise dès 11 h.",
+      "Jusqu'à fin novembre, la formule plat et dessert passe à prix doux. Le plat change chaque jour et s'annonce sur l'ardoise dès 11 h.",
       "La cantine m'a invitée à goûter la formule, d'où la mention en haut de l'article. Mon avis reste le mien : le gratin du mardi vaut le détour.",
     ],
     citation: null,
@@ -186,7 +187,7 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     statut: "publie",
     rubrique: "bon-plan",
     titre: "Le goûter tout doux du Salon Chantilly des Miamis",
-    accroche: "Jusqu'au 20 décembre, une part de gâteau et un chocolat chaud à prix réduit, en semaine après 16 h.",
+    accroche: "Jusqu'au 20 décembre, une part de gâteau et un chocolat chaud à prix réduit, en semaine après 16 h.",
     paragraphes: [
       "Le Salon Chantilly des Miamis a eu une jolie idée pour l'hiver : un goûter à prix doux, en semaine, quand la salle est plus calme.",
       "Au menu : la part de gâteau du jour et un chocolat chaud maison. Le gâteau change tous les jours, et la tarte aux pommes du jeudi vaut à elle seule le déplacement.",

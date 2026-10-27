@@ -1,4 +1,6 @@
 import { PictoCategorie } from "~/composants/marque/PictoCategorie";
+import { TEXTES_HERO_PAR_LANGUE } from "~/contenus/hero";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu } from "~/types/lieux";
 
 // Deux cartes de lieu « à venir » : la forme de l'app, sans faux noms ni faux chiffres (lignes grisées à la place)
@@ -9,12 +11,13 @@ const cartes: { categorie: CategorieLieu; degrade: string }[] = [
 
 /** Téléphone du haut de l'accueil : la forme de l'app, encore en développement. Aucun lieu inventé. */
 export function MaquetteTelephone() {
+  const T = utiliserTextes(TEXTES_HERO_PAR_LANGUE).maquette;
   return (
     <figure className="justify-self-center">
       <div aria-hidden="true" className="w-[290px] rotate-0 rounded-[44px] bg-encre p-3 shadow-telephone lg:rotate-[4deg] lg:animate-flotte">
         <div className="flex min-h-[520px] flex-col gap-3.5 rounded-[34px] bg-creme px-4 py-5">
           <div className="flex items-center justify-between text-sm font-semibold">
-            <span>📍 Près de chez toi</span>
+            <span>{T.pres}</span>
             <span className="rounded-lg bg-tomate px-2.5 py-0.5 font-titre text-[.85rem] font-extrabold text-white">SOS</span>
           </div>
           {cartes.map((carte) => (
@@ -29,10 +32,10 @@ export function MaquetteTelephone() {
               </div>
             </div>
           ))}
-          <span className="mt-auto rounded-full border-2 border-encre bg-jaune py-3 text-center text-[.95rem] font-bold">À la rescousse !</span>
+          <span className="mt-auto rounded-full border-2 border-encre bg-jaune py-3 text-center text-[.95rem] font-bold">{T.rescousse}</span>
         </div>
       </div>
-      <figcaption className="mt-6 text-center text-sm font-semibold text-gris">📱 Aperçu de l'app, encore en développement</figcaption>
+      <figcaption className="mt-6 text-center text-sm font-semibold text-gris">{T.legende}</figcaption>
     </figure>
   );
 }

@@ -8,12 +8,13 @@ import { LegendeCarte } from "~/composants/carte-des-lieux/LegendeCarte";
 import { BoutonChercherZone } from "~/composants/page-lieux/BoutonChercherZone";
 import { ChoixVueLieux } from "~/composants/page-lieux/ChoixVueLieux";
 import { PastilleFiltre } from "~/composants/page-lieux/PastilleFiltre";
-import { categoriesLieux } from "~/contenus/categories-lieux";
-import { TEXTES_CARTE_DES_LIEUX } from "~/contenus/carte-des-lieux";
-import { TEXTES_PAGE_LIEUX } from "~/contenus/page-lieux";
+import { categoriesLieux, TEXTES_CATEGORIES_LIEUX_PAR_LANGUE } from "~/contenus/categories-lieux";
+import { TEXTES_CARTE_DES_LIEUX_PAR_LANGUE } from "~/contenus/carte-des-lieux";
+import { TEXTES_PAGE_LIEUX_PAR_LANGUE } from "~/contenus/page-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCarteLieux } from "~/hooks/utiliser-carte-lieux";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CategorieLieu, VilleLieux } from "~/types/lieux";
 
 type Props = {
@@ -29,7 +30,9 @@ type Props = {
 const FOCUS = "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
 
 export function CarteLieuxPleinEcran({ ville, type, villes, lieuInitial, adresseFermer, adresseType, adresseVille }: Props) {
-  const T = TEXTES_CARTE_DES_LIEUX;
+  const T = utiliserTextes(TEXTES_CARTE_DES_LIEUX_PAR_LANGUE);
+  const textesPage = utiliserTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE);
+  const categories = utiliserTextes(TEXTES_CATEGORIES_LIEUX_PAR_LANGUE);
   const dialogue = useRef<HTMLDialogElement>(null);
   const titre = useRef<HTMLHeadingElement>(null);
   const naviguer = useNavigate();
@@ -94,10 +97,10 @@ export function CarteLieuxPleinEcran({ ville, type, villes, lieuInitial, adresse
         <ChoixVueLieux vue="carte" adresseListe={adresseFermer} adresseCarte={adresseType(type)} className="shadow-brut-petit lg:hidden" />
         <div role="group" aria-label={T.boutons.filtres} className="flex items-center gap-2 overflow-x-auto rounded-[18px] border-2 border-encre bg-white p-2 shadow-brut lg:flex-wrap lg:overflow-visible lg:p-2.5">
           <p className="hidden px-2 font-titre text-xl font-extrabold lg:block">{ville ?? T.partout}</p>
-          <PastilleFiltre vers={adresseType(null)} actif={type === null}>{TEXTES_PAGE_LIEUX.filtres.tout}</PastilleFiltre>
+          <PastilleFiltre vers={adresseType(null)} actif={type === null}>{textesPage.filtres.tout}</PastilleFiltre>
           {categoriesLieux.map((categorie) => (
             <PastilleFiltre key={categorie.valeur} vers={adresseType(categorie.valeur)} actif={type === categorie.valeur}>
-              {categorie.libelle}
+              {categories[categorie.valeur]}
             </PastilleFiltre>
           ))}
           {javascriptActif && (

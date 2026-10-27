@@ -1,11 +1,11 @@
 import { TexteRiche } from "~/composants/interface/TexteRiche";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
-import { engagementsSecurite } from "~/contenus/securite";
+import type { TextesSecurite } from "~/contenus/securite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-export function EngagementsSecurite() {
-  const { titre, chapo, engagements, promesse } = engagementsSecurite;
+export function EngagementsSecurite({ textes }: { textes: TextesSecurite["engagements"] }) {
+  const { titre, chapo, engagements, promesse } = textes;
   return (
     <Section id="engagements">
       <TitreSection aGauche chapo={lierPonctuation(chapo)}>{titre}</TitreSection>

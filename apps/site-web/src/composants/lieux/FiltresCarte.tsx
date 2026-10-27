@@ -1,6 +1,7 @@
 import { IconeFiche } from "~/composants/lieux/IconeFiche";
-import { TEXTES_CARTE_EN_GRAND } from "~/contenus/carte-en-grand";
-import { ETIQUETTES } from "~/contenus/carte-du-lieu";
+import { TEXTES_CARTE_DU_LIEU_PAR_LANGUE } from "~/contenus/carte-du-lieu";
+import { TEXTES_CARTE_EN_GRAND_PAR_LANGUE } from "~/contenus/carte-en-grand";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FiltreCarte } from "~/types/carte";
 
 type Props = {
@@ -14,7 +15,8 @@ type Props = {
 };
 
 export function FiltresCarte({ recherche, changerRecherche, filtres, disponibles, basculerFiltre, toutAfficher, nombre }: Props) {
-  const T = TEXTES_CARTE_EN_GRAND;
+  const T = utiliserTextes(TEXTES_CARTE_EN_GRAND_PAR_LANGUE);
+  const etiquettes = utiliserTextes(TEXTES_CARTE_DU_LIEU_PAR_LANGUE).etiquettes;
   const actif = recherche.trim() !== "" || filtres.length > 0;
   return (
     <div className="flex flex-col gap-3 print:hidden">
@@ -38,7 +40,7 @@ export function FiltresCarte({ recherche, changerRecherche, filtres, disponibles
             onClick={() => basculerFiltre(filtre)}
             className="min-h-10 rounded-full border-2 border-encre bg-white px-3.5 py-2 text-sm font-semibold hover:bg-jaune-clair focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre aria-pressed:bg-encre aria-pressed:text-jaune"
           >
-            {filtre === "sans-alcool" ? T.filtres.sansAlcool : ETIQUETTES[filtre].libelle}
+            {filtre === "sans-alcool" ? T.filtres.sansAlcool : etiquettes[filtre].libelle}
           </button>
         ))}
         {actif && (

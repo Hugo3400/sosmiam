@@ -1,4 +1,6 @@
 import type { RaisonSignalement } from "../../../../packages/commun/src/types/signalement.ts";
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_RAISONS_SIGNALER_IMAGE_ANGLAIS, TEXTES_SIGNALER_IMAGE_ANGLAIS } from "~/contenus/anglais/signaler-image";
 
 export type ChoixRaisonImage = {
   cle: RaisonSignalement;
@@ -8,71 +10,76 @@ export type ChoixRaisonImage = {
   precisions: readonly string[];
 };
 
-export const RAISONS_SIGNALER_IMAGE: readonly ChoixRaisonImage[] = [
-  {
-    cle: "faux-lieu",
-    emoji: "🏚️",
+export const TEXTES_RAISONS_SIGNALER_IMAGE = {
+  "faux-lieu": {
     titre: "Ce n'est pas ce lieu",
     detail: "L'image montre un autre endroit, ou trompe sur le lieu",
     precisions: ["L'image ne montre pas ce lieu", "Ce n'est pas son logo", "L'image trompe sur le lieu"],
   },
-  {
-    cle: "pub-cachee",
-    emoji: "📣",
+  "pub-cachee": {
     titre: "Pub cachée ou spam",
     detail: "Pub pour autre chose que le lieu, texte racoleur",
     precisions: ["Pub pour autre chose que le lieu", "Partenariat pas indiqué", "Texte ou lien publicitaire"],
   },
-  {
-    cle: "arnaque",
-    emoji: "💸",
+  arnaque: {
     titre: "Arnaque",
     detail: "Faux jeu concours, QR code ou lien douteux",
     precisions: ["Faux jeu concours", "QR code ou lien douteux", "Demande d'argent ou de coordonnées bancaires"],
   },
-  {
-    cle: "haine",
-    emoji: "🤬",
+  haine: {
     titre: "Haine ou harcèlement",
     detail: "Insultes, moqueries, symboles ou propos haineux",
     precisions: ["Propos ou symboles haineux", "Moquerie ou harcèlement", "Menaces"],
   },
-  {
-    cle: "choquant",
-    emoji: "🔞",
+  choquant: {
     titre: "Violence ou contenu sexuel",
     detail: "Image violente, nudité, image dérangeante",
     precisions: ["Violence ou cruauté", "Nudité ou contenu sexuel", "Image choquante ou dérangeante"],
   },
-  {
-    cle: "danger",
-    emoji: "⚠️",
+  danger: {
     titre: "Danger ou produit interdit",
     detail: "Drogue, arme, défi dangereux, pub pour l'alcool",
     precisions: ["Drogue", "Arme", "Pub pour l'alcool (loi Évin)", "Défi ou comportement dangereux"],
   },
-  {
-    cle: "vie-privee",
-    emoji: "🔒",
+  "vie-privee": {
     titre: "Vie privée",
     detail: "Quelqu'un montré sans son accord, infos personnelles",
     precisions: ["J'apparais sans mon accord", "Quelqu'un d'autre apparaît sans son accord", "Des infos personnelles sont visibles"],
   },
-  {
-    cle: "vol-contenu",
-    emoji: "©️",
+  "vol-contenu": {
     titre: "Image volée",
     detail: "Photo ou logo repris sans l'accord de son auteur",
     precisions: ["C'est mon image", "C'est l'image de quelqu'un d'autre"],
   },
-  {
-    cle: "autre",
-    emoji: "💬",
+  autre: {
     titre: "Autre chose",
     detail: "Dis-nous avec tes mots ce qui ne va pas",
     precisions: [],
   },
-];
+} satisfies Record<RaisonSignalement, { titre: string; detail: string; precisions: readonly string[] }>;
+
+export const TEXTES_RAISONS_SIGNALER_IMAGE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_RAISONS_SIGNALER_IMAGE>> = {
+  fr: TEXTES_RAISONS_SIGNALER_IMAGE,
+  en: TEXTES_RAISONS_SIGNALER_IMAGE_ANGLAIS,
+};
+
+const EMOJIS_RAISONS: Record<RaisonSignalement, string> = {
+  "faux-lieu": "🏚️",
+  "pub-cachee": "📣",
+  arnaque: "💸",
+  haine: "🤬",
+  choquant: "🔞",
+  danger: "⚠️",
+  "vie-privee": "🔒",
+  "vol-contenu": "©️",
+  autre: "💬",
+};
+
+export const RAISONS_SIGNALER_IMAGE: readonly ChoixRaisonImage[] = (Object.keys(EMOJIS_RAISONS) as RaisonSignalement[]).map((cle) => ({
+  cle,
+  emoji: EMOJIS_RAISONS[cle],
+  ...TEXTES_RAISONS_SIGNALER_IMAGE[cle],
+}));
 
 export const TEXTES_SIGNALER_IMAGE = {
   meta: {
@@ -122,3 +129,8 @@ export const TEXTES_SIGNALER_IMAGE = {
     retourDe: (nom: string) => ` de ${nom}`,
   },
 } as const;
+
+export const TEXTES_SIGNALER_IMAGE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_SIGNALER_IMAGE>> = {
+  fr: TEXTES_SIGNALER_IMAGE,
+  en: TEXTES_SIGNALER_IMAGE_ANGLAIS,
+};

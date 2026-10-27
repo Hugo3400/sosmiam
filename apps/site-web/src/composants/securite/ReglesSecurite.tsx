@@ -1,11 +1,11 @@
 import { TexteRiche } from "~/composants/interface/TexteRiche";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
-import { reglesSecurite } from "~/contenus/securite";
+import type { TextesSecurite } from "~/contenus/securite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-export function ReglesSecurite() {
-  const { titre, chapo, regles, neCompteTitre, neCompteChapo, neCompte } = reglesSecurite;
+export function ReglesSecurite({ textes }: { textes: TextesSecurite["regles"] }) {
+  const { titre, chapo, regles, neCompteTitre, neCompteChapo, neCompte } = textes;
   return (
     <Section id="regles" fond="creme">
       <TitreSection aGauche chapo={lierPonctuation(chapo)}>{titre}</TitreSection>
