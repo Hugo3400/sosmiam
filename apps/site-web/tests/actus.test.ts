@@ -106,16 +106,16 @@ test("estHoteDEssai : l'aperçu et les machines de développement, jamais le vra
   for (const hote of ["sosmiam.fr", "www.sosmiam.fr", "ambassadeur.sosmiam.fr", "pro.sosmiam.fr", "apercu.sosmiam.fr.exemple.com", "exemple.fr"]) assert.ok(!estHoteDEssai(hote), hote);
 });
 
-test("garde : 404 sur sosmiam.fr et ses espaces, 200 sur l'aperçu et en développement", async () => {
-  for (const hote of ["sosmiam.fr", "www.sosmiam.fr", "ambassadeur.sosmiam.fr", "pro.sosmiam.fr"]) {
-    for (const chemin of ["/actus", "/en/actus", "/actus?rubrique=portrait", "/actus/1"]) assert.equal((await servir(`https://${hote}${chemin}`)).statut, 404, `${hote}${chemin}`);
+test("ouvert : /actus et ses articles répondent sur sosmiam.fr comme sur l'aperçu et en développement", async () => {
+  for (const hote of ["sosmiam.fr", "www.sosmiam.fr"]) {
+    for (const chemin of ["/actus", "/actus?rubrique=portrait", "/actus/1"]) assert.equal((await servir(`https://${hote}${chemin}`)).statut, 200, `${hote}${chemin}`);
   }
   for (const origine of ["https://apercu.sosmiam.fr", "http://localhost:5190", "http://127.0.0.1:5344"]) {
     for (const chemin of ["/actus", "/en/actus", "/actus/1"]) assert.equal((await servir(`${origine}${chemin}`)).statut, 200, `${origine}${chemin}`);
   }
 });
 
-test("/actus : les articles publiés, une seule h1, noindex, les filtres en liens et la ville en formulaire GET", async () => {
+test("/actus : les articles publiés, une seule h1, indexable, les filtres en liens et la ville en formulaire GET", async () => {
   const { html } = await servir("https://apercu.sosmiam.fr/actus");
   assert.equal(html.match(/<h1/g)?.length, 1);
   assert.match(html, /<h1[^>]*>Actus des Miamis<\/h1>/);
@@ -133,9 +133,9 @@ test("/actus : les articles publiés, une seule h1, noindex, les filtres en lien
   assert.match(html, /<a [^>]*href="https:\/\/ambassadeur\.sosmiam\.fr\/programme"[^>]*>Devenir ambassadeur<\/a>/);
   assert.match(html, /href="\/actus\/1"/);
   const balises = pageActus.meta({ loaderData: { langue: "fr" } } as never) as { name?: string; content?: string }[];
-  assert.ok(balises.some((balise) => balise.name === "robots" && balise.content === "noindex"));
-  assert.deepEqual(pageActus.headers(), { "X-Robots-Tag": "noindex" });
-  assert.deepEqual(pageArticle.headers(), { "X-Robots-Tag": "noindex" });
+  assert.ok(!balises.some((balise) => balise.name === "robots"));
+  assert.ok(!("headers" in pageActus));
+  assert.ok(!("headers" in pageArticle));
 });
 
 test("filtres : rubrique et ville lues dans l'adresse, combinées, et jamais une valeur inconnue", async () => {
@@ -253,7 +253,7 @@ test("un article : une h1, le contenu en français balisé, lecture seule, « Vo
   assert.equal(estLieuAvecFiche({ id: 1.5 }), false);
   assert.equal(estLieuAvecFiche({ id: 12 }), true);
   const balises = pageArticle.meta({ loaderData: { article: ((await chargerArticleActus(1, null)) as { donnees: unknown }).donnees } } as never) as { name?: string; content?: string; title?: string }[];
-  assert.ok(balises.some((balise) => balise.name === "robots" && balise.content === "noindex"));
+  assert.ok(!balises.some((balise) => balise.name === "robots"));
   assert.ok(balises.some((balise) => balise.title === "Le Capitaine nous a ouvert sa cuisine — SOS Miam"));
 });
 

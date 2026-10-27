@@ -17,6 +17,7 @@ export const TEXTES_PIED_DE_PAGE = {
   liens: {
     accueil: "Accueil",
     faq: "Questions fréquentes",
+    actus: "Actus des Miamis",
     inscrireLieu: "J'inscris mon lieu",
     carriere: "On recrute",
     securite: "Chasse aux bugs",

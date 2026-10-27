@@ -23,7 +23,7 @@ const classeBoutonContour =
 
 /**
  * En-tête des pages publiques de sosmiam.fr, collant en haut de l'écran (une ombre légère dès qu'il est collé).
- * Grands écrans : le logo, cinq liens au milieu (la section de l'accueil qu'on lit ou la page où l'on est en jaune), puis
+ * Grands écrans : le logo, six liens au milieu (la section de l'accueil qu'on lit ou la page où l'on est en jaune), puis
  * « Mon compte » et « Préviens-moi » (la newsletter). Sous 1024 px : le logo, « Préviens-moi » dès 768 px, et le bouton
  * « Menu » qui ouvre MenuMobile par-dessus la page (MenuSansJavascript quand JavaScript est coupé).
  */

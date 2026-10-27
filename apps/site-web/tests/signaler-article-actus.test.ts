@@ -215,11 +215,8 @@ test("page : la réponse d'un lieu (?lieu=), son nom dans l'intro, et le formula
   assert.ok(trouverBalise(html, "form", { method: "post", action: "/actus/6/signaler?lieu=-11#signaler-actus" }));
 });
 
-test("garde et 404 : sosmiam.fr, article inconnu, caché ou mal écrit, réponse absente ; rien ne part à l'API", async () => {
-  for (const hote of ["sosmiam.fr", "www.sosmiam.fr"]) {
-    assert.equal((await interroger("/actus/1/signaler", undefined, { hote })).statusCode, 404, hote);
-    assert.equal((await interroger("/actus/1/signaler", { raison: "haine" }, { hote })).statusCode, 404, hote);
-  }
+test("ouvert sur sosmiam.fr ; 404 pour un article inconnu, caché ou mal écrit, ou une réponse absente ; rien ne part à l'API", async () => {
+  for (const hote of ["sosmiam.fr", "www.sosmiam.fr"]) assert.equal((await interroger("/actus/1/signaler", undefined, { hote })).statusCode, 200, hote);
   for (const adresse of ["/actus/99/signaler", "/actus/9/signaler", "/actus/10/signaler", "/actus/12/signaler", "/actus/abc/signaler", "/actus/1/signaler?lieu=abc", "/actus/1/signaler?lieu=-6", "/actus/2/signaler?lieu=-2"]) {
     assert.equal((await interroger(adresse)).statusCode, 404, adresse);
     assert.equal((await interroger(adresse, { raison: "haine" })).statusCode, 404, `POST ${adresse}`);

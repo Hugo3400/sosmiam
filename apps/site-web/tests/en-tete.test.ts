@@ -76,6 +76,7 @@ const PROS = "https://pro.sosmiam.fr/bienvenue";
 const BARRE = [
   ["L'app", "/#comment"],
   ["Les lieux", "/lieux"],
+  ["Actus", "/actus"],
   ["BIG SOS", "/#big-sos"],
   ["Ambassadeurs", AMBASSADEURS],
   ["Pros", PROS],
@@ -83,6 +84,7 @@ const BARRE = [
 const MENU = [
   ["L'app", "/#comment"],
   ["Les lieux", "/lieux"],
+  ["Actus", "/actus"],
   ["BIG SOS", "/#big-sos"],
   ["FAQ", "/faq"],
   ["Ambassadeurs", AMBASSADEURS],
@@ -90,7 +92,7 @@ const MENU = [
   ["Mon compte", "/mon-compte"],
 ];
 
-test("grands écrans : le logo, cinq liens au milieu, puis « Mon compte » et « Préviens-moi » (la newsletter)", () => {
+test("grands écrans : le logo, six liens au milieu, puis « Mon compte » et « Préviens-moi » (la newsletter)", () => {
   const { enTete, barre } = decouper(rendre("/"));
   assert.match(enTete, /^<header class="sticky top-0/, "collant en haut");
   assert.match(barre, /^<nav aria-label="Menu principal"/);

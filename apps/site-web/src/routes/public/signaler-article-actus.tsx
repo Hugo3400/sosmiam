@@ -13,7 +13,6 @@ import {
 } from "~/fonctions/actus/lire-formulaire-signaler-article-actus";
 import { ecrireErreursSignalerArticleActus } from "~/fonctions/actus/ecrire-erreurs-signaler-article-actus";
 import { lireIdArticleActus } from "~/fonctions/actus/lire-id-article-actus";
-import { estHoteDEssai } from "~/fonctions/hotes/est-hote-d-essai";
 import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { ecrireMessageService } from "~/fonctions/texte/ecrire-message-service";
@@ -28,7 +27,6 @@ const ENTETES = { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex
 
 async function chargerCible(request: Request, idTexte: string | undefined) {
   const adresse = new URL(request.url);
-  if (!estHoteDEssai(adresse.host)) throw data(null, { status: 404, headers: ENTETES });
   const id = lireIdArticleActus(idTexte);
   const cible = lireCibleSignalementActus(adresse.searchParams);
   if (id === null || cible === null) throw data(null, { status: 404, headers: ENTETES });

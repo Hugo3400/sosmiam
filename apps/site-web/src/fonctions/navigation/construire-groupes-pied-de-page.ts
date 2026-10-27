@@ -26,6 +26,7 @@ export function construireGroupesPiedDePage(textes: TextesPied, legaux: TextesLe
       liens: [
         ici(L.accueil, "/"),
         ici(L.faq, "/faq"),
+        ici(L.actus, "/actus"),
         ici(L.inscrireLieu, "/inscrire-mon-lieu"),
         ici(L.carriere, "/carriere"),
         ici(L.securite, "/securite"),

@@ -10,7 +10,6 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/actus";
 import { lireFiltresActus } from "~/fonctions/actus/lire-filtres-actus";
-import { estHoteDEssai } from "~/fonctions/hotes/est-hote-d-essai";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
@@ -23,7 +22,6 @@ const PAGE_VIDE: PageActus = { articles: [], villes: [], suivant: null };
 
 export async function loader({ request }: Route.LoaderArgs) {
   const adresse = new URL(request.url);
-  if (!estHoteDEssai(adresse.host)) throw data(null, { status: 404 });
   const filtres = lireFiltresActus(adresse.searchParams);
   const { langue } = lireLangueRequete(request);
   const page = await listerArticlesActus(filtres, lireIpVisiteur(request));
@@ -31,14 +29,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { filtres, ...page.donnees, indisponible: false, langue };
 }
 
-export function headers() {
-  return { "X-Robots-Tag": "noindex" };
-}
-
 export function meta({ loaderData }: Route.MetaArgs) {
   const langue = loaderData?.langue ?? LANGUE_PAR_DEFAUT;
   const T = choisirTextes(TEXTES_ACTUS_PAR_LANGUE, langue);
-  return [...creerMeta({ titre: T.meta.titre, description: T.meta.description, langue }), { name: "robots", content: "noindex" }];
+  return creerMeta({ titre: T.meta.titre, description: T.meta.description, langue });
 }
 
 export default function PageActus({ loaderData }: Route.ComponentProps) {

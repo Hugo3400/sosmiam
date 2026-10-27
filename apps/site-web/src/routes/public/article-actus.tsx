@@ -13,7 +13,6 @@ import { MotsDesLieuxActus } from "~/composants/actus/MotsDesLieuxActus";
 import { PhotosArticleActus } from "~/composants/actus/PhotosArticleActus";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/actus";
 import { lireIdArticleActus } from "~/fonctions/actus/lire-id-article-actus";
-import { estHoteDEssai } from "~/fonctions/hotes/est-hote-d-essai";
 import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { chargerArticleActus } from "~/services/actus.server";
@@ -23,7 +22,6 @@ import type { ArticleActusSite } from "~/types/actus";
 const NON_INDEXEE = { name: "robots", content: "noindex" };
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  if (!estHoteDEssai(new URL(request.url).host)) throw data(null, { status: 404 });
   const id = lireIdArticleActus(params.id);
   if (id === null) throw data(null, { status: 404 });
   const reponse = await chargerArticleActus(id, lireIpVisiteur(request));
@@ -32,17 +30,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return data({ article: null as ArticleActusSite | null, id }, { status: 503 });
 }
 
-export function headers() {
-  return { "X-Robots-Tag": "noindex" };
-}
-
 export function meta({ loaderData, matches }: Route.MetaArgs) {
   const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_ACTUS_PAR_LANGUE, langue);
   const article = loaderData?.article;
   if (!loaderData) return [{ title: `${T.article.introuvable} — SOS Miam` }, NON_INDEXEE];
   if (!article) return [...creerMeta({ titre: T.indisponible.titre, description: T.meta.description, langue }), NON_INDEXEE];
-  return [...creerMeta({ titre: article.titre, description: article.accroche, langue }), NON_INDEXEE];
+  return creerMeta({ titre: article.titre, description: article.accroche, langue });
 }
 
 export default function PageArticleActus({ loaderData }: Route.ComponentProps) {

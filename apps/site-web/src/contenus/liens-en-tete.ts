@@ -16,6 +16,7 @@ export const TEXTES_EN_TETE = {
   liens: {
     app: { texte: "L'app", detail: "Comment ça marche, en quatre gestes" },
     lieux: { texte: "Les lieux", detail: "Des pépites qui méritent plus de monde" },
+    actus: { texte: "Actus", detail: "Les lieux racontés par les ambassadeurs" },
     bigSos: { texte: "BIG SOS", detail: "Un coup dur ? La Brigade à la rescousse" },
     faq: { texte: "FAQ", detail: "Tes questions, même les plus farfelues" },
     ambassadeurs: { texte: "Ambassadeurs", detail: "Fais découvrir tes pépites, dès 18 ans" },

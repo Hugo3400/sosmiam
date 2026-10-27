@@ -4,6 +4,7 @@
 export const pagesIndexees = [
   "/",
   "/lieux",
+  "/actus",
   "/faq",
   "/inscrire-mon-lieu",
   "/carriere",

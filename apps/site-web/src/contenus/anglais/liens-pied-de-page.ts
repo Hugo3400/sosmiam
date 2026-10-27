@@ -6,6 +6,7 @@ export const TEXTES_PIED_DE_PAGE_ANGLAIS: Traduction<typeof TEXTES_PIED_DE_PAGE>
   liens: {
     accueil: "Home",
     faq: "FAQ",
+    actus: "News from the Miamis",
     inscrireLieu: "List my venue",
     carriere: "Get involved",
     securite: "Bug hunt",

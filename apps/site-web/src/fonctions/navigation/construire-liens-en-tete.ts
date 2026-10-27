@@ -9,6 +9,7 @@ type CleLien = keyof TextesEnTete["liens"];
 const ADRESSES: Record<CleLien, Omit<LienEnTete, "texte" | "detail">> = {
   app: { adresse: "/#comment", site: "principal", section: "comment" },
   lieux: { adresse: "/lieux", site: "principal" },
+  actus: { adresse: "/actus", site: "principal" },
   bigSos: { adresse: "/#big-sos", site: "principal", section: "big-sos" },
   faq: { adresse: "/faq", site: "principal" },
   ambassadeurs: { adresse: "/programme", site: "ambassadeur" },
@@ -29,9 +30,9 @@ export function construireLiensEnTete(textes: TextesEnTete, langue: Langue): Lie
     return { ...textes.liens[cle], ...reste, adresse: ecrireCheminLangue(adresse, langue) };
   };
   return {
-    liensBarre: [lien("app"), lien("lieux"), lien("bigSos"), lien("ambassadeurs"), lien("pros")],
+    liensBarre: [lien("app"), lien("lieux"), lien("actus"), lien("bigSos"), lien("ambassadeurs"), lien("pros")],
     groupesMenu: [
-      { titre: textes.groupes.decouvrir, liens: [lien("app"), lien("lieux"), lien("bigSos"), lien("faq")] },
+      { titre: textes.groupes.decouvrir, liens: [lien("app"), lien("lieux"), lien("actus"), lien("bigSos"), lien("faq")] },
       { titre: textes.groupes.rejoindre, liens: [lien("ambassadeurs"), lien("pros"), lien("monCompte")] },
     ],
     lienMonCompte: lien("monCompte"),
