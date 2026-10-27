@@ -10,6 +10,7 @@ import { appliquerDecisionCommunaute } from "../communaute-moderation.ts";
 import { creerStockageMediasChat } from "../stockage-medias-chat.ts";
 import { retirerImageLieuModeree } from "../images-lieu.ts";
 import { enregistrerSignalementImageLieu, lireCibleImageLieu, type SignalementImageLieuRecu } from "../images-lieu-signalements.ts";
+import { enregistrerSignalementActus, type SignalementActusRecu } from "../actus-signalements.ts";
 import { listerActusARelire } from "./actus-a-relire.ts";
 import { lireActusGestion } from "./actus-gestion.ts";
 import { CIBLES_AVIS, CIBLES_COMMUNAUTE } from "./cibles-moderation.ts";
@@ -121,10 +122,9 @@ export async function deciderSignalement(
     if (avis && decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible) && Number.isSafeInteger(idAvis)) {
       retabli = signalement.cible === "avis" ? await avis.retablirAvisDans(transaction, idAvis, maintenant) : await avis.retablirReponseAvisDans(transaction, idAvis, maintenant);
     }
-    const actus = decision === "rejete" && reexamen ? lireActusGestion() : null;
+    const actus = signalement.cible === "article-actu" || signalement.cible === "reponse-actu" ? lireActusGestion() : null;
     const idActu = Number(signalement.cibleId);
-    if (actus && signalement.cible === "article-actu" && Number.isSafeInteger(idActu)) await actus.retablirArticleDans(transaction, idActu);
-    if (actus && signalement.cible === "reponse-actu" && Number.isSafeInteger(idActu)) await actus.retablirReponseDans(transaction, idActu);
+    if (actus && Number.isSafeInteger(idActu)) await actus.appliquerDecisionDans(transaction, signalement, decision, reexamen);
     await prendre(transaction);
     const idPublication = Number(signalement.cibleId);
     if (signalement.cible === "publication" && Number.isInteger(idPublication)) {
@@ -207,13 +207,17 @@ export type SignalementPublicationRecu = {
   masquageAutorise: boolean;
 };
 
-export type SignalementRecu = SignalementPublicationRecu | SignalementImageLieuRecu;
+export type SignalementRecu = SignalementPublicationRecu | SignalementImageLieuRecu | SignalementActusRecu;
 
 /**
  * Enregistre un signalement envoyé depuis l'app (déjà vérifié par le contrôleur). Pour une raison grave
  * (RAISONS_AVEC_MASQUAGE_IMMEDIAT), la publication est suspendue pour tout le monde dès ce premier signalement.
  */
 export async function enregistrerSignalement(signalement: SignalementRecu) {
+  if (signalement.cible === "article-actu" || signalement.cible === "reponse-actu") {
+    await enregistrerSignalementActus(signalement);
+    return;
+  }
   if (signalement.cible === "image-lieu") {
     const issue = await enregistrerSignalementImageLieu(signalement);
     if (issue === "chiffrement-indisponible") console.error("Signalement d'une image de lieu : clé des données absente, rien n'est gardé");

@@ -22,6 +22,22 @@ export function creerControleurSignalement(enregistrer: (signalement: Signalemen
       explication.length <= EXPLICATION_MAX &&
       (!RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(String(s.raison)) || explication.length >= EXPLICATION_MIN_SI_OBLIGATOIRE);
     const compte = reponse.locals.compte as CompteSession | undefined;
+    if (s.cible === "article-actu" || s.cible === "reponse-actu") {
+      const articleValide = typeof s.articleId === "number" && Number.isSafeInteger(s.articleId) && s.articleId > 0;
+      const lieuValide = s.cible === "article-actu" || (typeof s.lieuId === "number" && Number.isSafeInteger(s.lieuId) && s.lieuId > 0);
+      if (!raisonValide || !articleValide || !lieuValide) return reponse.status(400).json({ ok: false, erreur: "signalement-invalide" });
+      await enregistrer({
+        cible: s.cible,
+        articleId: s.articleId as number,
+        lieuId: s.cible === "reponse-actu" ? (s.lieuId as number) : null,
+        raison: s.raison as string,
+        precision: typeof s.precision === "string" && s.precision.trim() ? s.precision.trim() : null,
+        explication,
+        signaleParId: compte?.id ?? null,
+        source: s.source === "site" ? "site" : "app",
+      });
+      return reponse.status(201).json({ ok: true });
+    }
     if (s.cible === "image-lieu") {
       const valideImage = raisonValide && typeof s.lieuId === "number" && Number.isSafeInteger(s.lieuId) && s.lieuId > 0 && (s.quelle === "banniere" || s.quelle === "logo");
       if (!valideImage) return reponse.status(400).json({ ok: false, erreur: "signalement-invalide" });

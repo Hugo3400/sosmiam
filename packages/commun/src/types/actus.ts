@@ -2,7 +2,7 @@ import type { MotifModeration } from "../contenus/motifs-moderation.ts";
 import type { RubriqueActus } from "../regles/actus.ts";
 import type { TypeLieu } from "./lieu.ts";
 
-export type StatutArticleActus = "en-relecture" | "a-retoucher" | "publie" | "refuse";
+export type StatutArticleActus = "en-relecture" | "a-retoucher" | "publie" | "refuse" | "retire";
 
 export type LieuCiteActus = { id: number; nom: string; type: TypeLieu; emoji: string; quartier: string; ville: string; verifie: boolean };
 
@@ -76,7 +76,7 @@ export type MonArticleActus<Image = string> = {
   lieuARepondu: boolean;
 };
 
-export type StatutReponseLieuActus = "en-relecture" | "publie" | "refuse";
+export type StatutReponseLieuActus = "en-relecture" | "publie" | "refuse" | "retire";
 
 export type ArticleCitantLieuActus<Image = string> = {
   id: number;

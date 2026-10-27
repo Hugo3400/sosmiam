@@ -145,12 +145,20 @@ export function creerActusGestion({ ajouterPointsDans, cloche, base = baseDeDonn
       return articles + reponses;
     },
 
-    async retablirArticleDans(tx: Prisma.TransactionClient, id: number): Promise<boolean> {
-      return (await tx.articleActus.updateMany({ where: { id, statut: "refuse" }, data: { statut: "en-relecture" } })).count === 1;
-    },
-
-    async retablirReponseDans(tx: Prisma.TransactionClient, id: number): Promise<boolean> {
-      return (await tx.reponseLieuActus.updateMany({ where: { id, statut: "refuse" }, data: { statut: "en-relecture", refusMotif: null } })).count === 1;
+    async appliquerDecisionDans(
+      tx: Prisma.TransactionClient, signalement: { cible: string; cibleId: string; raison: string }, decision: "retenu" | "rejete", reexamen: boolean,
+    ): Promise<void> {
+      const id = Number(signalement.cibleId);
+      const table = signalement.cible === "article-actu" ? tx.articleActus : signalement.cible === "reponse-actu" ? tx.reponseLieuActus : null;
+      if (!table || !Number.isSafeInteger(id)) return;
+      const changer = (de: string, vers: string, enPlus: Record<string, unknown> = {}) =>
+        (table as typeof tx.articleActus).updateMany({ where: { id, statut: de }, data: { statut: vers, ...enPlus } });
+      if (signalement.raison === "relecture") {
+        if (decision === "rejete" && reexamen) await changer("refuse", "en-relecture", signalement.cible === "reponse-actu" ? { refusMotif: null } : {});
+        return;
+      }
+      if (decision === "retenu") await changer("publie", "retire", signalement.cible === "article-actu" ? { aLaUne: false } : {});
+      else if (reexamen) await changer("retire", "publie");
     },
   };
 }

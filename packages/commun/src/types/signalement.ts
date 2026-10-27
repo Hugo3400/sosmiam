@@ -92,3 +92,7 @@ export type SignalementImageLieu = {
   precision: string | null;
   explication: string;
 };
+
+export type SignalementArticleActus =
+  | { cible: "article-actu"; articleId: number; raison: RaisonSignalement; precision: string | null; explication: string }
+  | { cible: "reponse-actu"; articleId: number; lieuId: number; raison: RaisonSignalement; precision: string | null; explication: string };
