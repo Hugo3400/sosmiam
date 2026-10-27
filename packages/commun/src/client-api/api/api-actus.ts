@@ -23,5 +23,8 @@ export function creerActusApi(client: ClientHttp): ServiceActus {
     retoucher: (id, corps) => client.demander("PUT", `/app/actus/miens/${id}`, { corps }),
     articlesDuLieu: (lieuId) => client.demander("GET", `/pro/comptoir/lieux/${lieuId}/actus`),
     repondre: (lieuId, articleId, texte) => client.demander("POST", `/pro/comptoir/lieux/${lieuId}/actus/${articleId}/reponse`, { corps: { texte } }),
+    commentaires: (articleId, apres) => client.demander("GET", `/app/actus/${articleId}/commentaires${apres ? `?apres=${apres}` : ""}`),
+    commenter: (articleId, texte, reponseA) => client.demander("POST", `/app/actus/${articleId}/commentaires`, { corps: { texte, reponseA } }),
+    supprimerCommentaire: (commentaireId) => client.demander("DELETE", `/app/actus/commentaires/${commentaireId}`),
   };
 }

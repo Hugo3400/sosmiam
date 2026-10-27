@@ -65,6 +65,7 @@ import { brancherSignalementsImagesLieu, creerSignalementsImagesLieu } from "./s
 import { creerStockagesImagesLieu } from "./services/stockage-images-lieu.ts";
 import { creerStockagePhotosAvis } from "./services/stockage-photos-avis.ts";
 import { creerActusAuteur } from "./services/actus-auteur.ts";
+import { creerActusCommentaires } from "./services/actus-commentaires.ts";
 import { creerActusLecture } from "./services/actus-lecture.ts";
 import { creerActusPro } from "./services/actus-pro.ts";
 import { DOSSIER_PHOTOS_ACTUS } from "./services/actus-regles.ts";
@@ -309,7 +310,7 @@ const serveur = creerApplication({
   avisApp: { depot: depotAvis, chiffrement, reevaluerDefis: (id, le) => defis.reevaluer(id, le), tirer: (max) => randomInt(max), verifierPhoto: photosAvis.verifier, photos: photosAvis },
   // Défis du moment (liste gérée dans le logiciel de gestion), avancée recomptée à chaque lecture
   defisApp: { services: defis },
-  actusApp: { lecture: creerActusLecture(), auteur: creerActusAuteur(photosActus), photos: photosActus },
+  actusApp: { lecture: creerActusLecture(), auteur: creerActusAuteur(photosActus), photos: photosActus, commentaires: creerActusCommentaires() },
   // Connexion par QR code, comme Discord : le site ou un nouveau téléphone affiche le QR, l'app connectée valide
   connexionQr: { services: servicesConnexionQr },
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)

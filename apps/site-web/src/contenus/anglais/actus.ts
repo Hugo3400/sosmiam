@@ -39,6 +39,7 @@ export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
     voirFicheLu: (nom: string) => `See the listing for ${nom}`,
     motDuLieu: "A word from the place",
     reponseRelue: "Reply from the place, checked by the Brigade",
+    signaler: { article: "Report this story", reponse: "Report this reply", reponseDe: (nom: string) => ` from ${nom}` },
     relu: (date: string) => `Checked by the Brigade and published on ${date}.`,
     collaborationOui: (prenom: string) => `${prenom} received something from the place for this story: it's a paid or gifted partnership.`,
     collaborationNon: (prenom: string) => `${prenom} received nothing from the place to write it.`,

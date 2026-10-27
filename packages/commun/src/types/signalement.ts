@@ -43,7 +43,7 @@ export type CibleSignalementSocial = "commentaire" | "message" | "liste" | "prof
  * relecture (décision du 15/10/2026). Un avis ne se signale pas par l'app comme un contenu social : il n'est pas dans
  * CibleSignalementSocial.
  */
-export type CibleDecisionModeration = CibleSignalementSocial | "avis" | "reponse-avis" | "image-lieu" | "article-actu" | "reponse-actu";
+export type CibleDecisionModeration = CibleSignalementSocial | "avis" | "reponse-avis" | "image-lieu" | "article-actu" | "reponse-actu" | "comment-actu";
 
 /**
  * Un signalement de commentaire, de message (lieu envoyé compris, avec son petit mot), de liste, de profil, de sortie ou de
@@ -95,4 +95,5 @@ export type SignalementImageLieu = {
 
 export type SignalementArticleActus =
   | { cible: "article-actu"; articleId: number; raison: RaisonSignalement; precision: string | null; explication: string }
-  | { cible: "reponse-actu"; articleId: number; lieuId: number; raison: RaisonSignalement; precision: string | null; explication: string };
+  | { cible: "reponse-actu"; articleId: number; lieuId: number; raison: RaisonSignalement; precision: string | null; explication: string }
+  | { cible: "comment-actu"; articleId: number; commentaireId: number; raison: RaisonSignalement; precision: string | null; explication: string };

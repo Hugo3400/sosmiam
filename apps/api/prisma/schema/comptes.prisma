@@ -152,6 +152,7 @@ model Compte {
   articlesActusEcrits            ArticleActus[]                 @relation("ArticlesActusEcrits")
   jaimesArticlesActus            JaimeArticleActus[]
   reponsesActusEcrites           ReponseLieuActus[]             @relation("ReponsesActusEcrites")
+  commentairesActusEcrits        CommentaireArticleActus[]      @relation("CommentairesActusEcrits")
   langue                String    @default("fr") @db.VarChar(5)
   @@index([derniereConnexion])
   @@map("comptes")

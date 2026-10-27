@@ -7,7 +7,7 @@ import type { RaisonPoints } from "../comptes.ts";
 import type { NouvelleNotificationCloche } from "../effets-sociaux-regles.ts";
 import { listerActusARelire } from "./actus-a-relire.ts";
 
-type BaseActusGestion = Pick<typeof baseDeDonnees, "$transaction" | "articleActus" | "reponseLieuActus" | "rattachementLieu" | "signalement">;
+type BaseActusGestion = Pick<typeof baseDeDonnees, "$transaction" | "articleActus" | "reponseLieuActus" | "rattachementLieu" | "signalement" | "commentaireArticleActus">;
 
 export type DependancesActusGestion = {
   ajouterPointsDans: (tx: Prisma.TransactionClient, compteId: number, points: number, raison: RaisonPoints, detail?: string) => Promise<unknown>;
@@ -149,6 +149,12 @@ export function creerActusGestion({ ajouterPointsDans, cloche, base = baseDeDonn
       tx: Prisma.TransactionClient, signalement: { cible: string; cibleId: string; raison: string }, decision: "retenu" | "rejete", reexamen: boolean,
     ): Promise<void> {
       const id = Number(signalement.cibleId);
+      if (signalement.cible === "comment-actu") {
+        if (!Number.isSafeInteger(id)) return;
+        if (decision === "retenu") await tx.commentaireArticleActus.updateMany({ where: { id, retireLe: null }, data: { retireLe: new Date(horloge()) } });
+        else if (reexamen) await tx.commentaireArticleActus.updateMany({ where: { id, retireLe: { not: null } }, data: { retireLe: null } });
+        return;
+      }
       const table = signalement.cible === "article-actu" ? tx.articleActus : signalement.cible === "reponse-actu" ? tx.reponseLieuActus : null;
       if (!table || !Number.isSafeInteger(id)) return;
       const changer = (de: string, vers: string, enPlus: Record<string, unknown> = {}) =>

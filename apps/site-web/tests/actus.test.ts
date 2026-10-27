@@ -38,7 +38,7 @@ const { MESSAGE_SANITAIRE_ALCOOL } = await import("../src/contenus/legal/prevent
 
 const { createElement: h } = await import("react");
 const { renderToString } = await import("react-dom/server");
-const { createStaticHandler, createStaticRouter, Outlet, StaticRouterProvider, useLoaderData } = await import("react-router");
+const { createStaticHandler, createStaticRouter, MemoryRouter, Outlet, StaticRouterProvider, useLoaderData } = await import("react-router");
 const pageActus = await import("../src/routes/public/actus.tsx");
 const pageArticle = await import("../src/routes/public/article-actus.tsx");
 const { CorpsArticleActus } = await import("../src/composants/actus/CorpsArticleActus.tsx");
@@ -154,7 +154,7 @@ test("jamais d'article sur un bar ou l'alcool, ni d'article non publié, sur auc
   const { articles } = await listerArticlesActus({ rubrique: null, ville: null });
   assert.ok(articles.every((article) => !estArticleActusAlcool(article) && !article.alcool));
   const cachees = ARTICLES_ACTUS_EXEMPLE.filter((article) => article.statut !== "publie" || estArticleActusAlcool(article));
-  assert.ok(cachees.some((article) => article.alcool) && cachees.some((article) => article.statut === "en-relecture") && cachees.some((article) => article.statut === "refuse"));
+  assert.ok(cachees.some((article) => article.alcool) && cachees.some((article) => article.statut === "en-relecture") && cachees.some((article) => article.statut === "refuse") && cachees.some((article) => article.statut === "retire"));
   for (const article of cachees) {
     assert.equal(await lireArticleActus(article.id), null, article.titre);
     assert.equal((await servir(`https://apercu.sosmiam.fr/actus/${article.id}`)).statut, 404, article.titre);
@@ -250,10 +250,11 @@ test("le mot des lieux : une réponse par bloc, dans l'ordre des lieux de l'arti
   assert.deepEqual(triees.map((un) => [un.lieuId, un.texte]), [[21, "Mot de Chez Nous (21)"], [22, "Mot de Chez Nous (22)"]]);
   const lieuHomonyme = { nom: "Chez Nous", type: "resto" as const, emoji: "🍲", quartier: "Centre", ville: "Lyon", verifie: true };
   const rendu = renderToString(
-    h(MotsDesLieuxActus, { article: { lieux: [{ ...lieuHomonyme, id: 21 }, { ...lieuHomonyme, id: 22 }], reponsesLieux: [reponse(22, "Chez Nous"), reponse(21, "Chez Nous")] } }),
+    h(MemoryRouter, null, h(MotsDesLieuxActus, { article: { id: 4, lieux: [{ ...lieuHomonyme, id: 21 }, { ...lieuHomonyme, id: 22 }], reponsesLieux: [reponse(22, "Chez Nous"), reponse(21, "Chez Nous")] } })),
   );
   assert.equal(rendu.match(/Le mot du lieu/g)?.length, 2);
   assert.ok(rendu.indexOf("Mot de Chez Nous (21)") > 0 && rendu.indexOf("Mot de Chez Nous (21)") < rendu.indexOf("Mot de Chez Nous (22)"));
+  assert.ok(rendu.indexOf('href="/actus/4/signaler?lieu=21"') < rendu.indexOf('href="/actus/4/signaler?lieu=22"'));
   const avecDeux = ARTICLES_ACTUS_EXEMPLE.find((article) => article.statut === "publie" && article.reponsesLieux.length > 1);
   assert.ok(avecDeux && avecDeux.rubrique === "top-quartier");
   const { html } = await servir(`https://apercu.sosmiam.fr/actus/${avecDeux.id}`);

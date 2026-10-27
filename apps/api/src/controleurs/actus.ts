@@ -6,13 +6,14 @@ import { lireCurseurActus } from "../fonctions/actus/lire-curseur-actus.ts";
 import { lireIdentifiant } from "../middlewares/proteger-pro.ts";
 import type { CompteSession } from "../middlewares/proteger-comptes.ts";
 import type { ActusAuteur } from "../services/actus-auteur.ts";
+import type { ActusCommentaires } from "../services/actus-commentaires.ts";
 import type { ActusLecture } from "../services/actus-lecture.ts";
 import type { EchecActus } from "../services/actus-regles.ts";
 import { ATTENTE_STOCKAGE_PLEIN_PHOTOS_AVIS_SECONDES, type RefusPhotoAvis } from "../services/photos-avis-regles.ts";
 import type { PhotosActus } from "../services/photos-actus.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 
-export type DependancesActus = { lecture: ActusLecture; auteur: ActusAuteur; photos: PhotosActus };
+export type DependancesActus = { lecture: ActusLecture; auteur: ActusAuteur; photos: PhotosActus; commentaires: ActusCommentaires };
 
 const STATUTS: Partial<Record<EchecActus["erreur"], number>> = {
   introuvable: 404, "lieu-inconnu": 404, "role-requis": 403, "membre-du-lieu": 403,

@@ -12,6 +12,7 @@ import { presenterArticleActus } from "../src/fonctions/actus/presenter-article-
 import type { ProtectionComptes } from "../src/middlewares/proteger-comptes.ts";
 import { creerRoutesActus } from "../src/routes/actus.ts";
 import type { ActusAuteur } from "../src/services/actus-auteur.ts";
+import type { ActusCommentaires } from "../src/services/actus-commentaires.ts";
 import type { ActusLecture, FiltresActus } from "../src/services/actus-lecture.ts";
 import type { LigneArticleActus } from "../src/services/actus-regles.ts";
 import type { PhotosActus } from "../src/services/photos-actus.ts";
@@ -59,6 +60,7 @@ test("actus : un article se présente sans l'identifiant de l'auteur, avec ses l
       { lieu: { id: 2, nom: "Fermé", type: "resto", emoji: "🍝", quartier: "Q", ville: "V", statut: "brouillon", _count: { rattachements: 1 } } },
     ],
     reponses: [{ lieuId: 1, texte: "Merci !", decideLe: new Date("2026-10-28T08:00:00Z"), lieu: { nom: "Ouvert" } }],
+    _count: { commentaires: 4 },
   } as unknown as LigneArticleActus;
   const article = presenterArticleActus(ligne, 3, false);
   assert.deepEqual(article.paragraphes, ["Un.", "Deux."]);
@@ -68,6 +70,7 @@ test("actus : un article se présente sans l'identifiant de l'auteur, avec ses l
   assert.equal(article.finLe, "2026-11-30");
   assert.deepEqual(article.reponsesLieux, [{ lieuId: 1, nomLieu: "Ouvert", texte: "Merci !", repondueLe: "2026-10-28T08:00:00.000Z" }]);
   assert.equal(article.aime, false);
+  assert.equal(article.commentaires, 4);
   assert.equal("aime" in presenterArticleActus(ligne, 3), false);
 });
 
@@ -89,6 +92,7 @@ const auteur = {
   retoucher: async () => ({ ok: true }),
 } as unknown as ActusAuteur;
 const photos = { lirePublique: async () => null, lireDuCompte: async () => null, deposer: async () => ({ ok: true, photo: NOM }) } as unknown as PhotosActus;
+const commentaires = { lister: async () => null, commenter: async () => ({ ok: false, erreur: "introuvable" }), supprimer: async () => ({ ok: false, erreur: "introuvable" }) } as unknown as ActusCommentaires;
 
 const ouvrir = (ambassadeur: boolean) => async (requete: Request, reponse: Response, suite: NextFunction) => {
   const jeton = requete.get("authorization");
@@ -102,7 +106,7 @@ const protection = { exigerCompte: ouvrir(false), exigerAmbassadeurActif: ouvrir
 let adresse = "";
 let fermer: () => void = () => {};
 before(async () => {
-  const app = express().use(express.json()).use("/app/actus", creerRoutesActus({ lecture, auteur, photos }, protection, (_q, _r, suite) => suite()));
+  const app = express().use(express.json()).use("/app/actus", creerRoutesActus({ lecture, auteur, photos, commentaires }, protection, (_q, _r, suite) => suite()));
   const serveur = app.listen(0);
   await new Promise((fait) => serveur.once("listening", fait));
   adresse = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;

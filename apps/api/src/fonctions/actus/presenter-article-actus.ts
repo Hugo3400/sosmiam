@@ -28,7 +28,7 @@ export function presenterArticleActus(ligne: LigneArticleActus, jaime: number, a
     publieLe: (ligne.publieLe ?? new Date(0)).toISOString(),
     aLaUne: ligne.aLaUne,
     jaime,
-    commentaires: 0,
+    commentaires: ligne._count.commentaires,
     reponsesLieux: ligne.reponses.map((r) => ({ lieuId: r.lieuId, nomLieu: r.lieu.nom, texte: r.texte, repondueLe: (r.decideLe ?? new Date(0)).toISOString() })),
     ...(aime === undefined ? {} : { aime }),
   };

@@ -20,6 +20,8 @@ export const FIN_BON_PLAN_MAX_JOURS = 90;
 export const CITATION_ACTUS_MAX = 200;
 export const PHOTOS_ACTUS_MAX = 4;
 export const REPONSE_LIEU_ACTUS_MAX = 500;
+export const COMMENTAIRE_ACTUS_MAX = 500;
+export const COMMENTAIRES_ACTUS_PAR_PAGE = 50;
 
 export const ARTICLES_ACTUS_PAR_SEMAINE = 3;
 export const ARTICLES_ACTUS_PAR_PAGE = 20;

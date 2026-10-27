@@ -39,6 +39,7 @@ export const TEXTES_ACTUS = {
     voirFicheLu: (nom: string) => `Voir la fiche de ${nom}`,
     motDuLieu: "Le mot du lieu",
     reponseRelue: "Réponse du lieu, relue par la Brigade",
+    signaler: { article: "Signaler cet article", reponse: "Signaler cette réponse", reponseDe: (nom: string) => ` de ${nom}` },
     relu: (date: string) => `Relu par la Brigade et publié le ${date}.`,
     collaborationOui: (prenom: string) => `${prenom} a reçu quelque chose du lieu pour cet article : c'est une collaboration commerciale.`,
     collaborationNon: (prenom: string) => `${prenom} n'a rien reçu du lieu pour l'écrire.`,

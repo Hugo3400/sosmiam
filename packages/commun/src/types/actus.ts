@@ -10,7 +10,16 @@ export type AuteurActus = { id: number; prenom: string; avatar: string | null; a
 
 export type ReponseLieuActus = { lieuId: number; nomLieu: string; texte: string; repondueLe: string };
 
-export type CommentaireActus = { id: number; auteur: AuteurActus; texte: string; ecritLe: string };
+export type CommentaireActus = {
+  id: number;
+  auteur: AuteurActus;
+  texte: string;
+  ecritLe: string;
+  reponseA: number | null;
+  plume: boolean;
+  supprime: boolean;
+  mien?: boolean;
+};
 
 export type ArticleActus<Image = string> = {
   id: number;
@@ -138,3 +147,5 @@ export type CorpsArticleActus = {
 };
 
 export type BrouillonRetoucheActus = CorpsArticleActus & { adresses: { couverture: string; photos: string[] }; retouche: string | null };
+
+export type CommentaireActusSignale = { id: number; articleId: number; titreArticle: string; auteur: string; texte: string; ecritLe: string; retire: boolean; supprime: boolean };

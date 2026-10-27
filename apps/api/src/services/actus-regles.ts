@@ -44,6 +44,7 @@ export const SELECTION_ARTICLE_ACTUS = {
     },
   },
   reponses: { where: { statut: "publie" }, orderBy: { id: "asc" }, select: { lieuId: true, texte: true, decideLe: true, lieu: { select: { nom: true } } } },
+  _count: { select: { commentaires: { where: { supprimeLe: null, retireLe: null } } } },
 } satisfies Prisma.ArticleActusSelect;
 
 export type LigneArticleActus = Prisma.ArticleActusGetPayload<{ select: typeof SELECTION_ARTICLE_ACTUS }>;

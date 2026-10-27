@@ -1,10 +1,10 @@
 import type { MotifModeration } from "../../../../../packages/commun/src/contenus/motifs-moderation.ts";
 import { CHEMIN_MEDIAS_ACTUS_GESTION, type RubriqueActus } from "../../../../../packages/commun/src/regles/actus.ts";
-import type { ActusARelire, StatutArticleActus, StatutReponseLieuActus } from "../../../../../packages/commun/src/types/actus.ts";
+import type { ActusARelire, CommentaireActusSignale, StatutArticleActus, StatutReponseLieuActus } from "../../../../../packages/commun/src/types/actus.ts";
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
 import { listerLieuxCitesActus } from "../../fonctions/actus/lister-lieux-cites-actus.ts";
 
-type BaseActusARelire = Pick<typeof baseDeDonnees, "articleActus" | "reponseLieuActus" | "signalement">;
+type BaseActusARelire = Pick<typeof baseDeDonnees, "articleActus" | "reponseLieuActus" | "signalement" | "commentaireArticleActus">;
 
 const ARTICLES_MAX = 300;
 const REPONSES_MAX = 300;
@@ -91,4 +91,16 @@ export async function listerActusARelire(base: BaseActusARelire = baseDeDonnees,
       statut: r.statut as StatutReponseLieuActus,
     })),
   };
+}
+
+export async function listerCommentairesActusSignales(ids: number[], base: BaseActusARelire = baseDeDonnees): Promise<CommentaireActusSignale[]> {
+  if (ids.length === 0) return [];
+  const lignes = await base.commentaireArticleActus.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, articleId: true, texte: true, creeLe: true, retireLe: true, supprimeLe: true, auteur: { select: { prenom: true } }, article: { select: { titre: true } } },
+  });
+  return lignes.map((c) => ({
+    id: c.id, articleId: c.articleId, titreArticle: c.article.titre, auteur: c.auteur.prenom, texte: c.texte, ecritLe: c.creeLe.toISOString(),
+    retire: c.retireLe !== null, supprime: c.supprimeLe !== null,
+  }));
 }

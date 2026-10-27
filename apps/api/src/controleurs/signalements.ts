@@ -22,14 +22,15 @@ export function creerControleurSignalement(enregistrer: (signalement: Signalemen
       explication.length <= EXPLICATION_MAX &&
       (!RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(String(s.raison)) || explication.length >= EXPLICATION_MIN_SI_OBLIGATOIRE);
     const compte = reponse.locals.compte as CompteSession | undefined;
-    if (s.cible === "article-actu" || s.cible === "reponse-actu") {
-      const articleValide = typeof s.articleId === "number" && Number.isSafeInteger(s.articleId) && s.articleId > 0;
-      const lieuValide = s.cible === "article-actu" || (typeof s.lieuId === "number" && Number.isSafeInteger(s.lieuId) && s.lieuId > 0);
-      if (!raisonValide || !articleValide || !lieuValide) return reponse.status(400).json({ ok: false, erreur: "signalement-invalide" });
+    if (s.cible === "article-actu" || s.cible === "reponse-actu" || s.cible === "comment-actu") {
+      const estId = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
+      const precisionValide = s.cible === "article-actu" || (s.cible === "reponse-actu" ? estId(s.lieuId) : estId(s.commentaireId));
+      if (!raisonValide || !estId(s.articleId) || !precisionValide) return reponse.status(400).json({ ok: false, erreur: "signalement-invalide" });
       await enregistrer({
         cible: s.cible,
         articleId: s.articleId as number,
         lieuId: s.cible === "reponse-actu" ? (s.lieuId as number) : null,
+        commentaireId: s.cible === "comment-actu" ? (s.commentaireId as number) : null,
         raison: s.raison as string,
         precision: typeof s.precision === "string" && s.precision.trim() ? s.precision.trim() : null,
         explication,

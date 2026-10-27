@@ -3,6 +3,7 @@ import { data } from "react-router";
 import type { Route } from "./+types/article-actus";
 import { CorpsArticleActus } from "~/composants/actus/CorpsArticleActus";
 import { EnTeteArticleActus } from "~/composants/actus/EnTeteArticleActus";
+import { LienSignalerArticleActus } from "~/composants/actus/LienSignalerArticleActus";
 import { LieuxArticleActus } from "~/composants/actus/LieuxArticleActus";
 import { LireDansLAppActus } from "~/composants/actus/LireDansLAppActus";
 import { MentionsArticleActus } from "~/composants/actus/MentionsArticleActus";
@@ -44,6 +45,7 @@ export default function PageArticleActus({ loaderData }: Route.ComponentProps) {
         <MotsDesLieuxActus article={article} />
         <MentionsArticleActus article={article} />
         <LireDansLAppActus article={article} />
+        <LienSignalerArticleActus articleId={article.id} />
       </div>
     </article>
   );

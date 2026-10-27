@@ -76,12 +76,15 @@ async function signalerActus(corps: Record<string, unknown>) {
 
 test("signaler un article des Actus ou la réponse d'un lieu : la forme est vérifiée, la source gardée", async () => {
   assert.equal((await signalerActus({ cible: "article-actu", articleId: 12, source: "site" })).status, 201);
-  assert.deepEqual(recus.at(-1), { cible: "article-actu", articleId: 12, lieuId: null, raison: "vie-privee", precision: null, explication: "", signaleParId: null, source: "site" });
+  assert.deepEqual(recus.at(-1), { cible: "article-actu", articleId: 12, lieuId: null, commentaireId: null, raison: "vie-privee", precision: null, explication: "", signaleParId: null, source: "site" });
   assert.equal((await signalerActus({ cible: "reponse-actu", articleId: 12, lieuId: 3 })).status, 201);
-  assert.deepEqual(recus.at(-1), { cible: "reponse-actu", articleId: 12, lieuId: 3, raison: "vie-privee", precision: null, explication: "", signaleParId: null, source: "app" });
+  assert.deepEqual(recus.at(-1), { cible: "reponse-actu", articleId: 12, lieuId: 3, commentaireId: null, raison: "vie-privee", precision: null, explication: "", signaleParId: null, source: "app" });
+  assert.equal((await signalerActus({ cible: "comment-actu", articleId: 12, commentaireId: 8 })).status, 201);
+  assert.equal((recus.at(-1) as { commentaireId?: number }).commentaireId, 8);
   const avant = recus.length;
   assert.equal((await signalerActus({ cible: "article-actu", articleId: "12" })).status, 400);
   assert.equal((await signalerActus({ cible: "reponse-actu", articleId: 12 })).status, 400);
+  assert.equal((await signalerActus({ cible: "comment-actu", articleId: 12 })).status, 400);
   assert.equal((await signalerActus({ cible: "article-actu", articleId: 12, raison: "pas-une-raison" })).status, 400);
   assert.equal(recus.length, avant);
 });

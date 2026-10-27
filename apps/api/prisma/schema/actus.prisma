@@ -25,6 +25,7 @@ model ArticleActus {
   lieux           LieuArticleActus[]
   jaimes          JaimeArticleActus[]
   reponses        ReponseLieuActus[]
+  commentaires    CommentaireArticleActus[]
 
   @@index([statut, publieLe])
   @@index([auteurId, envoyeLe])
@@ -73,4 +74,24 @@ model ReponseLieuActus {
   @@unique([articleId, lieuId])
   @@index([statut, envoyeLe])
   @@map("reponses_lieux_actus")
+}
+
+model CommentaireArticleActus {
+  id         Int                       @id @default(autoincrement())
+  articleId  Int                       @map("article_id")
+  article    ArticleActus              @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  auteurId   Int                       @map("auteur_id")
+  auteur     Compte                    @relation("CommentairesActusEcrits", fields: [auteurId], references: [id], onDelete: Cascade)
+  texte      String                    @db.VarChar(500)
+  reponseAId Int?                      @map("reponse_a_id")
+  reponseA   CommentaireArticleActus?  @relation("ReponsesCommentairesActus", fields: [reponseAId], references: [id], onDelete: SetNull)
+  reponses   CommentaireArticleActus[] @relation("ReponsesCommentairesActus")
+  creeLe     DateTime                  @default(now()) @map("cree_le") @db.Timestamptz(3)
+  supprimeLe DateTime?                 @map("supprime_le") @db.Timestamptz(0)
+  retireLe   DateTime?                 @map("retire_le") @db.Timestamptz(0)
+
+  @@index([articleId, id])
+  @@index([auteurId])
+  @@index([reponseAId])
+  @@map("commentaires_articles_actus")
 }

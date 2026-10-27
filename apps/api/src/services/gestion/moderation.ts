@@ -11,7 +11,7 @@ import { creerStockageMediasChat } from "../stockage-medias-chat.ts";
 import { retirerImageLieuModeree } from "../images-lieu.ts";
 import { enregistrerSignalementImageLieu, lireCibleImageLieu, type SignalementImageLieuRecu } from "../images-lieu-signalements.ts";
 import { enregistrerSignalementActus, type SignalementActusRecu } from "../actus-signalements.ts";
-import { listerActusARelire } from "./actus-a-relire.ts";
+import { listerActusARelire, listerCommentairesActusSignales } from "./actus-a-relire.ts";
 import { lireActusGestion } from "./actus-gestion.ts";
 import { CIBLES_AVIS, CIBLES_COMMUNAUTE } from "./cibles-moderation.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
@@ -70,6 +70,7 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     : { articles: [], reponses: [] };
   const articlesParId = new Map(actus.articles.map((a) => [String(a.id), a]));
   const reponsesParId = new Map(actus.reponses.map((r) => [String(r.id), r]));
+  const commentairesParId = new Map((await listerCommentairesActusSignales(idsDe("comment-actu"))).map((c) => [String(c.id), c]));
   const instantanes = new Map(signalements.map((s) => [s.id, lireInstantane(social, s)]));
   const [lieux, signaleurs] = await Promise.all([
     lireLieuxDesInstantanes([...instantanes.values()].map((i) => (i?.etat === "lu" ? i.contenu : undefined))),
@@ -82,6 +83,7 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     avis: (CIBLES_AVIS as readonly string[]).includes(signalement.cible) ? avisParId.get(signalement.cibleId) ?? null : null,
     article: signalement.cible === "article-actu" ? articlesParId.get(signalement.cibleId) ?? null : null,
     reponseActus: signalement.cible === "reponse-actu" ? reponsesParId.get(signalement.cibleId) ?? null : null,
+    commentaireActus: signalement.cible === "comment-actu" ? commentairesParId.get(signalement.cibleId) ?? null : null,
     instantane: instantanes.get(signalement.id) ?? null,
     avecMedia: fichierMedia !== null || (signalement.cible === "profil" && avatarEnPhoto(instantanes.get(signalement.id))),
     signaleur: signalement.signaleParId ? signaleurs[signalement.signaleParId] ?? null : null,
@@ -122,7 +124,7 @@ export async function deciderSignalement(
     if (avis && decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible) && Number.isSafeInteger(idAvis)) {
       retabli = signalement.cible === "avis" ? await avis.retablirAvisDans(transaction, idAvis, maintenant) : await avis.retablirReponseAvisDans(transaction, idAvis, maintenant);
     }
-    const actus = signalement.cible === "article-actu" || signalement.cible === "reponse-actu" ? lireActusGestion() : null;
+    const actus = ["article-actu", "reponse-actu", "comment-actu"].includes(signalement.cible) ? lireActusGestion() : null;
     const idActu = Number(signalement.cibleId);
     if (actus && Number.isSafeInteger(idActu)) await actus.appliquerDecisionDans(transaction, signalement, decision, reexamen);
     await prendre(transaction);

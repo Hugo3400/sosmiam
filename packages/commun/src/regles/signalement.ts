@@ -30,7 +30,7 @@ export const CIBLES_SIGNALEMENT_SOCIAL = ["commentaire", "message", "liste", "pr
  * Ne sert jamais à valider ce qu'on signale par l'app (c'est CIBLES_SIGNALEMENT_SOCIAL).
  */
 export const CIBLES_DECISION_MODERATION = [
-  ...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis", "image-lieu", "article-actu", "reponse-actu",
+  ...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis", "image-lieu", "article-actu", "reponse-actu", "comment-actu",
 ] as const satisfies readonly CibleDecisionModeration[];
 
 /**

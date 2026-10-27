@@ -1,11 +1,13 @@
-import type { SignalementImageLieu } from "../../../../packages/commun/src/types/signalement.ts";
+import type { SignalementArticleActus, SignalementImageLieu } from "../../../../packages/commun/src/types/signalement.ts";
 import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 
-export type ResultatSignalementImage = { ok: true } | { ok: false; erreur: "signalement-invalide" | "trop-de-demandes" | "erreur-serveur" };
+export type ResultatSignalement = { ok: true } | { ok: false; erreur: "signalement-invalide" | "trop-de-demandes" | "erreur-serveur" };
 
-export async function envoyerSignalementImage(signalement: SignalementImageLieu, ipVisiteur: string | null): Promise<ResultatSignalementImage> {
+export type ResultatSignalementImage = ResultatSignalement;
+
+export async function envoyerSignalement(signalement: SignalementImageLieu | SignalementArticleActus, ipVisiteur: string | null): Promise<ResultatSignalement> {
   try {
     const reponse = await fetch(`${ADRESSE_API}/signalements`, {
       method: "POST",
@@ -22,4 +24,8 @@ export async function envoyerSignalementImage(signalement: SignalementImageLieu,
   } catch {
     return { ok: false, erreur: "erreur-serveur" };
   }
+}
+
+export function envoyerSignalementImage(signalement: SignalementImageLieu, ipVisiteur: string | null): Promise<ResultatSignalementImage> {
+  return envoyerSignalement(signalement, ipVisiteur);
 }
