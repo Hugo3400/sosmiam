@@ -126,7 +126,7 @@ test("routes : chaque page doublée a sa jumelle /en (id « en/… »), et /en n
 });
 
 const dossierAnglais = `${dossierSrc}contenus/anglais/`;
-const IDENTIQUES_PERMIS = new Set(["BIG SOS", "FAQ", "Menu", "Instagram", "TikTok", "Discord", "Facebook", "Contact", "Halloween", "Cookies", "Bars", "iPhone (Apple)"]);
+const IDENTIQUES_PERMIS = new Set(["BIG SOS", "FAQ", "Menu", "Instagram", "TikTok", "Discord", "Facebook", "Contact", "Halloween", "Cookies", "Bars", "iPhone (Apple)", "Bar", "Wi-Fi", "Vegan", "vegan", "Local"]);
 
 function comparer(francais: unknown, anglais: unknown, chemin: string, identiques: string[]) {
   if (typeof francais === "string") {

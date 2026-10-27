@@ -14,11 +14,12 @@ type Props = Omit<TextInputProps, "value" | "onChangeText" | "className" | "styl
   aide?: string;
   /** Message d'erreur sous le champ (remplace l'aide, bord rouge) */
   erreur?: string | null;
+  hauteurMin?: number;
   ref?: Ref<TextInput>;
 };
 
 /** Champ de saisie SOS Miam : libellé visible, bord noir arrondi, ombre décalée quand on écrit dedans, aide ou erreur dessous. */
-export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erreur, ref, onFocus, onBlur, ...autres }: Props) {
+export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erreur, hauteurMin, ref, onFocus, onBlur, ...autres }: Props) {
   const couleurs = utiliserCouleurs();
   const [actif, setActif] = useState(false);
   const message = erreur ?? aide;
@@ -56,6 +57,7 @@ export function ChampTexte({ libelle, mention, valeur, onChangeTexte, aide, erre
             onBlur?.(evenement);
           }}
           placeholderTextColor={couleurs.gris}
+          style={hauteurMin ? { minHeight: hauteurMin } : undefined}
           selectionColor={couleurs.encre}
           cursorColor={couleurs.encre}
           className={`relative min-h-[52px] rounded-2xl border-2 bg-carte px-4 py-3 font-texte text-[17px] text-encre

@@ -187,9 +187,9 @@ export function Inscription() {
 
         {!messageEnHaut && zoneMessage}
         <p className="mt-2 text-sm">
-          {T.mentions.avant}
+          {T.mentions.avant}{" ("}
           <Link to={lien("/confidentialite")} target="_blank" rel="noopener" className="font-semibold underline underline-offset-2">{T.mentions.lien}<span className="sr-only">{T.mentions.nouvelOnglet}</span></Link>
-          {T.mentions.apres}
+          {")."}
         </p>
       </div>
     </Section>

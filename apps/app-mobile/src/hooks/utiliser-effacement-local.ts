@@ -10,6 +10,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
+import { effacerBrouillonActus } from "~/stockage/brouillon-actus";
 import { effacerBrouillonsChat } from "~/stockage/brouillons-chat";
 import { effacerEnviesMiamis } from "~/stockage/envies-miamis";
 import { effacerModeApp } from "~/stockage/mode-app";
@@ -47,6 +48,7 @@ export function utiliserEffacementLocal() {
       await communaute.effacer();
       await conversations.effacer();
       await effacerBrouillonsChat();
+      await effacerBrouillonActus();
       // Avant le profil : sans lui, la démo des abonnés et des notifications ne se recrée pas
       await suivisPersonnes.effacer();
       await notifications.effacer();

@@ -20,10 +20,9 @@ export const TEXTES_INSCRIPTION_NEWSLETTER = {
   bouton: "Préviens-moi",
   mentions: {
     avant:
-      "D'abord, un mail pour vérifier que l'adresse est bien la tienne : sans ton clic, pas de newsletter. Ensuite, on te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta, on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app ; si tu coches ambassadeur, on t'invite par mail à créer ton compte sur ambassadeur.sosmiam.fr. On ne vend jamais tes données (",
+      "D'abord, un mail pour vérifier que l'adresse est bien la tienne : sans ton clic, pas de newsletter. Ensuite, on te prévient du lancement, puis on t'envoie la newsletter (un mail suffit pour te désinscrire). Si tu coches la bêta, on transmet ton adresse à Google ou à Apple pour t'inviter à tester l'app ; si tu coches ambassadeur, on t'invite par mail à créer ton compte sur ambassadeur.sosmiam.fr. On ne vend jamais tes données",
     lien: "confidentialité",
     nouvelOnglet: ", s'ouvre dans un nouvel onglet",
-    apres: ").",
   },
   erreurs: {
     "email-invalide": "Oups, cette adresse e-mail ne semble pas valide.",

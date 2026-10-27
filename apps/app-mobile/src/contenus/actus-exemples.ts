@@ -1,4 +1,6 @@
-import type { AuteurActus, CommentaireActus } from "@sos-miam/commun/types/actus";
+import type { ImageSourcePropType } from "react-native";
+
+import type { AuteurActus, CommentaireActus, MonArticleActus } from "@sos-miam/commun/types/actus";
 import type { ArticleActusAffiche } from "~/contenus/type-article-actus";
 
 const ZOE: AuteurActus = { id: 9001, prenom: "Zoé", avatar: "miami:beret", ambassadeur: true };
@@ -144,3 +146,64 @@ export const commentairesActusExemples: Record<number, CommentaireActus[]> = {
   ],
   2: [{ id: 3, auteur: SAMI, texte: "Le numéro 1 mérite sa place. Je valide à 100 %.", ecritLe: "2026-10-25T10:00:00+02:00" }],
 };
+
+export const mesArticlesActusExemples: MonArticleActus<ImageSourcePropType>[] = [
+  {
+    id: 4,
+    rubrique: "recit-sortie",
+    titre: "Un dimanche entre paddle et huîtres",
+    couverture: require("../../assets/medias-demo/lieu-12-affiche.jpg"),
+    statut: "en-relecture",
+    envoyeLe: "2026-10-26T18:40:00+01:00",
+    publieLe: null,
+    retouche: null,
+    refus: null,
+    jaime: 0,
+    commentaires: 0,
+    lieuARepondu: false,
+  },
+  {
+    id: 3,
+    rubrique: "bon-plan",
+    titre: "Les zézettes de Ginette, la fournée du dimanche",
+    couverture: require("../../assets/medias-demo/lieu-10-1.jpg"),
+    statut: "a-retoucher",
+    envoyeLe: "2026-10-25T09:00:00+02:00",
+    publieLe: null,
+    retouche: { message: "Tu écris que le lieu t'a fait goûter la fournée. Coche « Oui » dans « Le lieu t'a offert quelque chose ? », et c'est bon pour nous.", le: "2026-10-25T15:20:00+02:00" },
+    refus: null,
+    jaime: 0,
+    commentaires: 0,
+    lieuARepondu: false,
+  },
+  {
+    id: 1,
+    rubrique: "portrait",
+    titre: "La Cabane d'Émile, les huîtres les pieds dans l'étang",
+    couverture: require("../../assets/medias-demo/lieu-13-1.jpg"),
+    statut: "publie",
+    envoyeLe: "2026-10-24T20:00:00+02:00",
+    publieLe: "2026-10-25T09:30:00+02:00",
+    retouche: null,
+    refus: null,
+    jaime: 128,
+    commentaires: 14,
+    lieuARepondu: true,
+  },
+  {
+    id: 6,
+    rubrique: "portrait",
+    titre: "Le café où tout le monde se parle",
+    couverture: require("../../assets/medias-demo/lieu-1-2.jpg"),
+    statut: "refuse",
+    envoyeLe: "2026-10-20T11:00:00+02:00",
+    publieLe: null,
+    retouche: null,
+    refus: { motif: "vie-privee", motivation: "Le texte nomme une serveuse et parle d'elle sans son accord. Tu peux en écrire un nouveau, sans la nommer.", le: "2026-10-21T10:00:00+02:00" },
+    jaime: 0,
+    commentaires: 0,
+    lieuARepondu: false,
+  },
+];
+
+export const ARTICLES_ENVOYES_SEMAINE_EXEMPLE = 1;

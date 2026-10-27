@@ -86,7 +86,7 @@ async function servirAccueilAnglais() {
   return html.replace(/<!-- -->/g, "").replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
 }
 
-const metaDe = (langue: string) => accueil.meta({ matches: [{ id: "root", loaderData: { langue } }] } as never) as Record<string, string>[];
+const metaDe = (langue: string) => accueil.meta({ matches: [{ id: "root", loaderData: { langue } }] } as never) as unknown as Record<string, string>[];
 
 test("meta : titre et description en anglais sur /en, le français intact sinon", () => {
   const anglais = metaDe("en");
@@ -103,7 +103,7 @@ test("accueil en anglais : le thème de saison demandé en anglais, le h1, les s
   assert.match(html, /Halloween · 31 October/);
   assert.match(html, /Sweets or a burger\?/);
   assert.match(html, /<h1[^>]*>Rescue a table,<br\/><mark[^>]*>treat yourself\.<\/mark><\/h1>/);
-  assert.match(html, /Miam \(say “mee-yam”\) is French for yum!/);
+  assert.match(html, /Miam \(say “mee\u2011yam”\) is French for yum!/);
   assert.match(html, /They'd love to see you/);
   assert.match(html, /See all 2,791 places on the map/);
   assert.match(html, /Going through a tough time\? The whole neighbourhood to the rescue\./);

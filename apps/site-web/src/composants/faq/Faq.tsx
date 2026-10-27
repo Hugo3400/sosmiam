@@ -5,14 +5,17 @@ import { OngletsFaq } from "~/composants/faq/OngletsFaq";
 import { Question } from "~/composants/faq/Question";
 import { RechercheFaq } from "~/composants/faq/RechercheFaq";
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_PAGE_FAQ_PAR_LANGUE } from "~/contenus/faq/page-faq";
 import type { OngletFaq } from "~/contenus/faq/type-faq";
 import { defilerVersElement } from "~/fonctions/navigation/defiler-vers-element";
 import { convertirBlocsEnTexte } from "~/fonctions/texte/convertir-blocs-en-texte";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
 import type { EtatAncre } from "~/hooks/utiliser-ancres-sans-diese";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** La FAQ complète : onglets par thème, recherche dans toutes les questions, liens directs vers une question (/faq#faq-prix). */
 export function Faq({ onglets }: { onglets: OngletFaq[] }) {
+  const T = utiliserTextes(TEXTES_PAGE_FAQ_PAR_LANGUE);
   const [actif, setActif] = useState(onglets[0].cle);
   const [recherche, setRecherche] = useState("");
   const [ancre, setAncre] = useState<{ id: string; defiler: boolean } | null>(null);
@@ -79,17 +82,15 @@ export function Faq({ onglets }: { onglets: OngletFaq[] }) {
       </div>
 
       {enRecherche && trouvees.size === 0 && (
-        <p className="mt-2 text-center text-gris">Rien trouvé pour « {recherche.trim()} ». Pose-nous ta question juste en dessous 👇</p>
+        <p className="mt-2 text-center text-gris">{T.rienTrouve(recherche.trim())}</p>
       )}
       <p className="sr-only" role="status" aria-live="polite">
-        {enRecherche && (trouvees.size
-          ? `${trouvees.size} question${trouvees.size > 1 ? "s" : ""} trouvée${trouvees.size > 1 ? "s" : ""}`
-          : "Aucune question trouvée")}
+        {enRecherche && (trouvees.size ? T.trouvees(trouvees.size) : T.aucuneTrouvee)}
       </p>
 
       <div className="mt-9 flex flex-wrap items-center justify-between gap-4 rounded-carte border-2 border-dashed border-encre bg-white px-6 py-5">
-        <p className="flex-[1_1_280px]"><strong>Pas trouvé ta réponse ?</strong> Pose-nous ta question, on lit tous les messages.</p>
-        <Bouton href="mailto:bonjour@sosmiam.fr">Écris-nous</Bouton>
+        <p className="flex-[1_1_280px]"><strong>{T.pasTrouve.titre}</strong> {T.pasTrouve.texte}</p>
+        <Bouton href="mailto:bonjour@sosmiam.fr">{T.ecrisNous}</Bouton>
       </div>
     </>
   );

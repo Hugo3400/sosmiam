@@ -1,6 +1,8 @@
 import { useRef, type KeyboardEvent } from "react";
 
+import { TEXTES_PAGE_FAQ_PAR_LANGUE } from "~/contenus/faq/page-faq";
 import type { OngletFaq } from "~/contenus/faq/type-faq";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   onglets: OngletFaq[];
@@ -19,6 +21,7 @@ function couleurs(onglet: OngletFaq, estActif: boolean) {
 
 /** Les thèmes de la FAQ. Flèches gauche/droite, Début et Fin pour passer d'un onglet à l'autre. */
 export function OngletsFaq({ onglets, actif, attenues, onChoisir }: Props) {
+  const T = utiliserTextes(TEXTES_PAGE_FAQ_PAR_LANGUE);
   const boutons = useRef<(HTMLButtonElement | null)[]>([]);
 
   function naviguerAuClavier(e: KeyboardEvent<HTMLDivElement>) {
@@ -32,7 +35,7 @@ export function OngletsFaq({ onglets, actif, attenues, onChoisir }: Props) {
   }
 
   return (
-    <div role="tablist" aria-label="Thèmes des questions" onKeyDown={naviguerAuClavier}
+    <div role="tablist" aria-label={T.themes} onKeyDown={naviguerAuClavier}
       className="mb-7 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap sm:justify-center">
       {onglets.map((onglet, i) => {
         const estActif = onglet.cle === actif;

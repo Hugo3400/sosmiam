@@ -1,3 +1,4 @@
+import type { MotifModeration } from "../contenus/motifs-moderation.ts";
 import type { RubriqueActus } from "../regles/actus.ts";
 import type { TypeLieu } from "./lieu.ts";
 
@@ -68,7 +69,7 @@ export type MonArticleActus<Image = string> = {
   envoyeLe: string;
   publieLe: string | null;
   retouche: { message: string; le: string } | null;
-  refus: { motif: string; motivation: string; le: string } | null;
+  refus: { motif: MotifModeration; motivation: string; le: string } | null;
   jaime: number;
   commentaires: number;
   lieuARepondu: boolean;

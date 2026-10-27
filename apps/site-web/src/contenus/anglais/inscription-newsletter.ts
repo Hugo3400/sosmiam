@@ -20,10 +20,9 @@ export const TEXTES_INSCRIPTION_NEWSLETTER_ANGLAIS: Traduction<typeof TEXTES_INS
   bouton: "Keep me posted",
   mentions: {
     avant:
-      "First, an email to check the address really is yours – no click, no newsletter. Then we'll let you know when we launch, and after that we'll send you the newsletter (one email is all it takes to unsubscribe). If you tick the beta, we'll pass your address to Google or Apple so they can invite you to test the app; if you tick ambassador, we'll email you an invitation to create your account on ambassadeur.sosmiam.fr. We never sell your data (",
+      "First, an email to check the address really is yours – no click, no newsletter. Then we'll let you know when we launch, and after that we'll send you the newsletter (one email is all it takes to unsubscribe). If you tick the beta, we'll pass your address to Google or Apple so they can invite you to test the app; if you tick ambassador, we'll email you an invitation to create your account on ambassadeur.sosmiam.fr. We never sell your data",
     lien: "privacy",
     nouvelOnglet: ", opens in a new tab",
-    apres: ").",
   },
   erreurs: {
     "email-invalide": "Oops, that email address doesn't look right.",

@@ -24,7 +24,7 @@ export function meta(_: Route.MetaArgs) {
 /** Les questions du programme, aussi affichées dans la page (QuestionsProgramme) */
 const donneesFaq = creerDonneesFaq([
   { cle: "programme", emoji: "🎖️", titre: "Programme Ambassadeurs", titreGroupe: "Programme Ambassadeurs", questions: questionsProgramme },
-]);
+], "fr");
 
 /**
  * « Et dans ta ville ? » : la recherche de l'adresse (?ville=… tapée, ou ?commune=CODE choisie), faite ici pour que la
