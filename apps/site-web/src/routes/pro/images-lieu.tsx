@@ -1,19 +1,22 @@
 import type { Route } from "./+types/images-lieu";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { Section } from "~/composants/mise-en-page/Section";
 import { GestionImagesLieu } from "~/composants/pro/GestionImagesLieu";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { lireImageLieu } from "~/fonctions/lieux/lire-image-lieu";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
 import { lireFichePublique } from "~/services/pro.server";
 
-const T = TEXTES_IMAGES_LIEU;
-
-export function meta({ loaderData }: Route.MetaArgs) {
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE, langue);
   return [
-    ...creerMeta({ titre: loaderData ? T.meta.titre(loaderData.lieu.nom) : T.meta.titreParDefaut, description: T.meta.description }),
+    ...creerMeta({ titre: loaderData ? T.meta.titre(loaderData.lieu.nom) : T.meta.titreParDefaut, description: T.meta.description, langue }),
     { name: "robots", content: "noindex" },
   ];
 }
@@ -32,6 +35,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function PageImagesLieu({ loaderData }: Route.ComponentProps) {
   const { lieu, peutModifier, images } = loaderData;
+  const T = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE);
   const modifiable = peutModifier && lieu.estVerifie;
   const note = !lieu.estVerifie ? T.etats.nonVerifie : !peutModifier ? T.etats.equipe : null;
   const remarque = !modifiable ? null : lieu.statut !== "publie" ? T.etats.nonPubliee : images === null ? T.etats.illisibles : null;

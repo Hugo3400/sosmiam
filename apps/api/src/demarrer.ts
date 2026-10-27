@@ -64,6 +64,12 @@ import { brancherImagesLieu } from "./services/images-lieu.ts";
 import { brancherSignalementsImagesLieu, creerSignalementsImagesLieu } from "./services/images-lieu-signalements.ts";
 import { creerStockagesImagesLieu } from "./services/stockage-images-lieu.ts";
 import { creerStockagePhotosAvis } from "./services/stockage-photos-avis.ts";
+import { creerActusAuteur } from "./services/actus-auteur.ts";
+import { creerActusLecture } from "./services/actus-lecture.ts";
+import { creerActusPro } from "./services/actus-pro.ts";
+import { DOSSIER_PHOTOS_ACTUS } from "./services/actus-regles.ts";
+import { brancherActusGestion, creerActusGestion } from "./services/gestion/actus-gestion.ts";
+import { creerPhotosActus } from "./services/photos-actus.ts";
 import { creerVisitesGestion } from "./services/visites-gestion.ts";
 import { brancherApercusPush, creerApercusPush } from "./services/notifications/apercus-push.ts";
 import { prevenirCompte, prevenirCompteEtCompter } from "./services/notifications/prevenir-compte.ts";
@@ -189,6 +195,9 @@ const photosProfil = creerPhotosProfil({
 });
 brancherPhotosProfil(photosProfil);
 brancherImagesLieu(imagesLieu);
+const photosActus = creerPhotosActus(creerStockagePhotosAvis(DOSSIER_PHOTOS_ACTUS));
+const actusGestion = creerActusGestion({ ajouterPointsDans, cloche: socialApp.cloche });
+brancherActusGestion(actusGestion);
 brancherSignalementsImagesLieu(creerSignalementsImagesLieu({ depot: creerDepotSignalementsImagesLieu(), stockages: creerStockagesImagesLieu(), chiffrement: socialApp.chiffrement, medias: socialApp.medias }));
 const carriere = brancherCarriere(chiffrement);
 const securite = brancherSecurite(chiffrement);
@@ -219,6 +228,7 @@ const serveur = creerApplication({
     visites: creerVisitesGestion({ depot: creerDepotVisites(), chiffrement, ajouterPoints: ajouterPointsEtDefis, prevenirCompte }),
     // Relecture des avis : publier ou masquer (statut, points de la photo, défis : logique de la session App)
     avis: creerAvisGestion({ depot: depotAvis, reevaluerDefis: (id, le) => defis.reevaluer(id, le) }),
+    actus: { gestion: actusGestion, photos: photosActus },
     // Limitation d'un compte : limiter, lever, réexaminer (services de la session Site)
     limitations },
   // Espace ambassadeur (ambassadeur.sosmiam.fr) : comptes, sessions gardées dans la base, missions et messages de l'équipe
@@ -289,6 +299,7 @@ const serveur = creerApplication({
     depot: creerDepotVisites(), chiffrement, signerQr: creerSignatureQr(randomBytes(32)), tirer: (max) => randomInt(max),
     lireRole: (compteId, lieuId) => servicesPro.lireRole(compteId, lieuId), ajouterPoints: ajouterPointsEtDefis, moment: creerMomentLieu(),
     statistiques: creerStatistiquesLieu(), evenements, avis: { depot: depotAvis }, prevenirCompte, imagesLieu,
+    actus: (roleDe) => creerActusPro(roleDe),
   },
   // Vues des fiches dans l'app : un compteur par lieu et par jour ; les visiteurs ne sont reconnus qu'en mémoire, jusqu'à minuit
   vuesLieux: { services: creerVuesLieux() },
@@ -298,6 +309,7 @@ const serveur = creerApplication({
   avisApp: { depot: depotAvis, chiffrement, reevaluerDefis: (id, le) => defis.reevaluer(id, le), tirer: (max) => randomInt(max), verifierPhoto: photosAvis.verifier, photos: photosAvis },
   // Défis du moment (liste gérée dans le logiciel de gestion), avancée recomptée à chaque lecture
   defisApp: { services: defis },
+  actusApp: { lecture: creerActusLecture(), auteur: creerActusAuteur(photosActus), photos: photosActus },
   // Connexion par QR code, comme Discord : le site ou un nouveau téléphone affiche le QR, l'app connectée valide
   connexionQr: { services: servicesConnexionQr },
   // Désinscription de la newsletter par le lien signé des mails (page /desinscription du site, « un clic » des messageries)

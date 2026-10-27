@@ -1,7 +1,10 @@
 import { Bouton } from "~/composants/interface/Bouton";
 import { CarteMaquetteKit } from "~/composants/kit-media/CarteMaquetteKit";
 import { SectionKit } from "~/composants/kit-media/SectionKit";
-import { groupesMaquettes, listerMaquettesKit, zipsMaquettes, type KitMaquettes } from "~/contenus/maquettes-kits";
+import {
+  TEXTES_MAQUETTES_KITS_PAR_LANGUE, assemblerMaquettesKits, assemblerZipsMaquettes, listerMaquettesKit, type KitMaquettes,
+} from "~/contenus/maquettes-kits";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   kit: KitMaquettes;
@@ -17,7 +20,10 @@ type Props = {
  * avec le zip de tout le groupe quand il y en a un. Rien n'apparaît pour un groupe vide dans ce kit.
  */
 export function SectionsMaquettesKit({ kit, miamSafe = true, prefixe, poids }: Props) {
-  const maquettes = listerMaquettesKit(kit, miamSafe);
+  const T = utiliserTextes(TEXTES_MAQUETTES_KITS_PAR_LANGUE);
+  const maquettes = listerMaquettesKit(kit, miamSafe, assemblerMaquettesKits(T));
+  const zipsMaquettes = assemblerZipsMaquettes(T);
+  const groupesMaquettes = (["affiches", "imprimes", "reseaux"] as const).map((groupe) => ({ groupe, ...T.groupes[groupe] }));
   return (
     <>
       {groupesMaquettes.map(({ groupe, titre, texte }) => {
@@ -29,7 +35,7 @@ export function SectionsMaquettesKit({ kit, miamSafe = true, prefixe, poids }: P
             {zip ? (
               <div className="mb-6">
                 <Bouton href={`${prefixe}/${zip.nom}`} variante="blanc">
-                  Tout télécharger ({poids[zip.nom] ? `ZIP, ${poids[zip.nom]}` : "ZIP"})
+                  {T.boutons.toutTelecharger(poids[zip.nom])}
                   <span className="sr-only">&nbsp;: {zip.taille}</span>
                 </Bouton>
               </div>

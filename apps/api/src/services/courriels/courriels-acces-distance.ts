@@ -22,7 +22,7 @@ export async function prevenirAccesDistance(courriel: string, alerte: AlerteAcce
     const textes = COURRIELS_ACCES_DISTANCE.bloque;
     return envoyerToutDeSuite("acces-distance-bloque", courriel, {
       objet: textes.objet,
-      ...habillerCourriel({ titre: textes.titre, paragraphes: textes.paragraphes({ jusquA: HEURE.format(alerte.jusquA) }), pied }),
+      ...habillerCourriel({ titre: textes.titre, paragraphes: textes.paragraphes({ jusquA: HEURE.format(alerte.jusquA) }), pied, langue: "fr" }),
       relancer: true,
     });
   }
@@ -35,7 +35,7 @@ export async function prevenirAccesDistance(courriel: string, alerte: AlerteAcce
   });
   return envoyerToutDeSuite("acces-distance-poste", courriel, {
     objet: textes.objet(alerte.nom),
-    ...habillerCourriel({ titre: textes.titre, paragraphes, pied }),
+    ...habillerCourriel({ titre: textes.titre, paragraphes, pied, langue: "fr" }),
     relancer: true,
   });
 }

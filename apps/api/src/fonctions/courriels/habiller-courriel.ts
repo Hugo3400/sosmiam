@@ -1,3 +1,5 @@
+import { TEXTES_COURRIELS_COMPTES_PAR_LANGUE } from "../../../../../packages/commun/src/contenus/courriels-comptes.ts";
+import type { Langue } from "../../../../../packages/commun/src/regles/langues.ts";
 import { echapperHtml } from "./echapper-html.ts";
 
 const POLICE = "font-family:Inter,Arial,Helvetica,sans-serif";
@@ -17,13 +19,14 @@ export type ContenuCourriel = {
   bouton?: { texte: string; adresse: string };
   /** Petite ligne du bas : pourquoi la personne reçoit ce mail */
   pied: string;
+  langue: Langue;
 };
 
 /**
  * Un mail de SOS Miam (compte, ambassadeur…) aux couleurs de la newsletter : bandeau jaune, texte, bouton, pied de page.
  * Rend aussi la version texte, pour les messageries qui n'affichent pas le HTML.
  */
-export function habillerCourriel({ titre, paragraphes, bouton, pied }: ContenuCourriel): { html: string; texte: string } {
+export function habillerCourriel({ titre, paragraphes, bouton, pied, langue }: ContenuCourriel): { html: string; texte: string } {
   const corps = paragraphes
     .map((p) => `<p style="${POLICE};font-size:16px;line-height:1.6;color:#1A1A1A;margin:0 0 16px">${enrichir(echapperHtml(p))}</p>`)
     .join("\n");
@@ -31,7 +34,7 @@ export function habillerCourriel({ titre, paragraphes, bouton, pied }: ContenuCo
     ? `<p style="margin:8px 0 20px"><a href="${echapperHtml(bouton.adresse)}" style="${POLICE};display:inline-block;background:#FFD60A;color:#1A1A1A;font-weight:800;font-size:16px;text-decoration:none;padding:12px 22px;border:2px solid #1A1A1A;border-radius:999px">${echapperHtml(bouton.texte)}</a></p>`
     : "";
   const html = `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${echapperHtml(titre ?? "SOS Miam")}</title></head>
+<html lang="${langue}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${echapperHtml(titre ?? "SOS Miam")}</title></head>
 <body style="margin:0;padding:0;background:#FFF8E7">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8E7"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#FFFFFF;border:2px solid #1A1A1A;border-radius:20px">
@@ -43,6 +46,6 @@ ${lienBouton}
 <tr><td style="padding:20px 28px;border-top:1px solid #EDE6D3;${POLICE};font-size:13px;line-height:1.5;color:#5C5A55">${echapperHtml(pied)}</td></tr>
 </table></td></tr></table>
 </body></html>`;
-  const texte = [...(titre ? [titre, ""] : []), ...paragraphes.flatMap((p) => [p, ""]), ...(bouton ? [`${bouton.texte} : ${bouton.adresse}`, ""] : []), "—", pied].join("\n");
+  const texte = [...(titre ? [titre, ""] : []), ...paragraphes.flatMap((p) => [p, ""]), ...(bouton ? [TEXTES_COURRIELS_COMPTES_PAR_LANGUE[langue].bouton(bouton.texte, bouton.adresse), ""] : []), "—", pied].join("\n");
   return { html, texte };
 }

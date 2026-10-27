@@ -10,9 +10,9 @@ import { EnTeteEcranActus } from "~/composants/actus/EnTeteEcranActus";
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/textes-actus";
 import { ADRESSE_PROGRAMME_AMBASSADEUR, TEXTES_ECRIRE_ACTUS_PAR_LANGUE } from "~/contenus/textes-ecrire-actus";
-import { utiliserActus } from "~/hooks/utiliser-actus";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserMesArticlesActus } from "~/hooks/utiliser-mes-articles-actus";
 import { utiliserPeutEcrireActus } from "~/hooks/utiliser-peut-ecrire-actus";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { lireBrouillonActusGarde } from "~/stockage/brouillon-actus";
@@ -24,7 +24,7 @@ export default function EcranChoixRubriqueActus() {
   const T = utiliserTextes(TEXTES_ECRIRE_ACTUS_PAR_LANGUE);
   const TA = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE);
   const peutEcrire = utiliserPeutEcrireActus();
-  const { envoyesCetteSemaine } = utiliserActus();
+  const { envoyesCetteSemaine } = utiliserMesArticlesActus();
   const restants = Math.max(0, ARTICLES_ACTUS_PAR_SEMAINE - envoyesCetteSemaine);
   const [rubriqueBrouillon, setRubriqueBrouillon] = useState<RubriqueActus | null>(null);
 

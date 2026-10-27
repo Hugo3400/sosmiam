@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { Link } from "react-router";
 
 import type { Route } from "./+types/kit";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ReglesKit } from "~/composants/kit-media/ReglesKit";
 import { SectionKit } from "~/composants/kit-media/SectionKit";
@@ -12,36 +13,38 @@ import { SectionsMaquettesKit } from "~/composants/kit-media/SectionsMaquettesKi
 import { Section } from "~/composants/mise-en-page/Section";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
 // Les textes et la liste des fichiers seulement : jamais les dessins (composants/kit-media-lieux/), servis en PNG et en PDF
+import { TEXTES_KIT_LIEU_PRO, TEXTES_KIT_LIEU_PRO_PAR_LANGUE } from "~/contenus/kit-lieu-pro";
 import {
-  DOSSIER_KIT_MEDIA_LIEUX, NOM_ZIP_KIT_MEDIA_LIEUX, ecrireTextesKitLieux, fichiersKitMediaLieux, groupesKitMediaLieux, reglesKitMediaLieux,
-  texteMiamSafeKitLieux, visuelsKitMediaLieux, type IdVisuelKitLieux, type VisuelKitLieux,
+  DOSSIER_KIT_MEDIA_LIEUX, NOM_ZIP_KIT_MEDIA_LIEUX, TEXTES_KIT_MEDIA_LIEUX_PAR_LANGUE, fichiersKitMediaLieux, groupesKitMediaLieux,
+  visuelsKitMediaLieux, type IdVisuelKitLieux, type VisuelKitLieux,
 } from "~/contenus/kit-media-lieux";
+import { ecrirePoidsFichier } from "~/fonctions/kits/ecrire-poids-fichier";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { lireLangueRequete } from "~/services/langue.server";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
 import { lirePoidsMaquettes } from "~/services/maquettes-kits.server";
 import { lireCharteMiamSafe } from "~/services/pro.server";
 
-export function meta({ loaderData }: Route.MetaArgs) {
-  return [...creerMeta({ titre: loaderData ? `Kit média · ${loaderData.lieu.nom}` : "Kit média", description: "Le kit média de ton lieu sur SOS Miam." }), { name: "robots", content: "noindex" }];
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_KIT_LIEU_PRO_PAR_LANGUE, langue).meta;
+  return [...creerMeta({ titre: loaderData ? T.titre(loaderData.lieu.nom) : T.titreParDefaut, description: T.description, langue }), { name: "robots", content: "noindex" }];
 }
 
-const nombres = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
-
-/** « 160 Ko », « 1,1 Mo » : le poids d'un fichier, pour savoir ce qu'on télécharge (sur mobile surtout). */
-function lirePoids(octets: number): string {
-  return octets < 1_000_000 ? `${Math.max(1, Math.round(octets / 1000))} Ko` : `${nombres.format(octets / 1_000_000)} Mo`;
-}
 
 /** Le lieu, s'il a signé la charte Miam Safe (null : pas pu être lu), et le poids de chaque fichier lu sur le disque. */
 export async function loader({ request, params }: Route.LoaderArgs) {
   const { jeton, ip, lieu } = await exigerLieuPro(request, params.id);
+  const langue = lireLangueRequete(request).langue;
   const [charte, maquettes, ...lus] = await Promise.all([
     lireCharteMiamSafe(jeton, ip, lieu.id),
-    lirePoidsMaquettes("lieux", true),
+    lirePoidsMaquettes("lieux", true, langue),
     ...fichiersKitMediaLieux.map(async (fichier) => {
       const infos = await stat(join(process.cwd(), DOSSIER_KIT_MEDIA_LIEUX, fichier.chemin)).catch(() => null);
-      return [fichier.nom, infos ? lirePoids(infos.size) : null] as const;
+      return [fichier.nom, infos ? ecrirePoidsFichier(infos.size, langue, " ") : null] as const;
     }),
   ]);
   return {
@@ -52,17 +55,19 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 /** Les cartes de la page : une story et un post vont ensemble ; le reste a sa propre carte. */
-type CarteKit = { titre: string; texte: string; ids: IdVisuelKitLieux[]; fondSombre?: boolean };
+type CarteKit = { cle: keyof typeof TEXTES_KIT_LIEU_PRO.cartes; ids: IdVisuelKitLieux[]; fondSombre?: boolean };
 
 const cartes: CarteKit[] = [
-  { titre: "On est sur SOS Miam", texte: "La mascotte gourmande sur fond jaune : pour dire à tes clients qu'ils te retrouvent sur SOS Miam.", ids: ["story-on-est-sur-sos-miam", "post-on-est-sur-sos-miam"] },
-  { titre: "Ici, on est Miam Safe", texte: "Pour dire que ton équipe a signé la charte, avec la phrase à dire au comptoir.", ids: ["story-lieu-miam-safe", "post-lieu-miam-safe"] },
-  { titre: "Autocollant « On est sur SOS Miam »", texte: "Un rond jaune de 10 cm pour ta vitrine ou ta caisse.", ids: ["autocollant-sos-miam"] },
-  { titre: "Autocollant « Lieu Miam Safe »", texte: "Un rond noir de 10 cm, avec la phrase « Le Capitaine est là ? ».", ids: ["autocollant-miam-safe"] },
-  { titre: "Mémo d'équipe Miam Safe", texte: "La phrase, l'écran à reconnaître et les quatre gestes, en A5, pour l'arrière du comptoir.", ids: ["memo-equipe-miam-safe"] },
-  { titre: "Logo pour fond clair", texte: "Pour ton site, tes menus ou tes réseaux, sur un fond clair.", ids: ["logo-fond-clair"] },
-  { titre: "Logo pour fond sombre", texte: "La même chose, « SOS » en crème, pour un fond sombre.", ids: ["logo-fond-sombre"], fondSombre: true },
+  { cle: "onEstSur", ids: ["story-on-est-sur-sos-miam", "post-on-est-sur-sos-miam"] },
+  { cle: "miamSafe", ids: ["story-lieu-miam-safe", "post-lieu-miam-safe"] },
+  { cle: "autocollantSosMiam", ids: ["autocollant-sos-miam"] },
+  { cle: "autocollantMiamSafe", ids: ["autocollant-miam-safe"] },
+  { cle: "memo", ids: ["memo-equipe-miam-safe"] },
+  { cle: "logoClair", ids: ["logo-fond-clair"] },
+  { cle: "logoSombre", ids: ["logo-fond-sombre"], fondSombre: true },
 ];
+
+const PAGES_A_TON_NOM = ["vitrine", "chevalet", "affichette"] as const;
 
 const classeLien = "font-semibold underline decoration-jaune decoration-[3px] underline-offset-4 hover:decoration-encre";
 
@@ -72,28 +77,31 @@ const classeLien = "font-semibold underline decoration-jaune decoration-[3px] un
  */
 export default function PageKitLieu({ loaderData }: Route.ComponentProps) {
   const { lieu, miamSafe, poids } = loaderData;
+  const T = utiliserTextes(TEXTES_KIT_LIEU_PRO_PAR_LANGUE);
+  const K = utiliserTextes(TEXTES_KIT_MEDIA_LIEUX_PAR_LANGUE);
   const poidsZip = poids[NOM_ZIP_KIT_MEDIA_LIEUX];
   const visible = (visuel: VisuelKitLieux) => miamSafe || !visuel.miamSafe;
-  const textes = ecrireTextesKitLieux(lieu.nom, `https://sosmiam.fr/lieux/${lieu.id}`).filter((t) => miamSafe || !t.miamSafe);
+  const traduireVisuel = (visuel: VisuelKitLieux): VisuelKitLieux => ({ ...visuel, ...K.visuels[visuel.id] });
+  const textes = K.ecrireTextes(lieu.nom, `https://sosmiam.fr/lieux/${lieu.id}`).filter((t) => miamSafe || !t.miamSafe);
   return (
     <Section fond="creme" className="!pt-10 md:!pt-14">
       <TitreLieuPro
         lieu={lieu}
-        page="Kit média"
-        chapo={lierPonctuation("De quoi dire que ton lieu est sur SOS Miam : des visuels pour tes réseaux, des autocollants pour ta vitrine, des textes prêts à poster. Tout est gratuit.")}
+        page={T.page}
+        chapo={lierPonctuation(T.chapo)}
       />
 
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-carte border-2 border-encre bg-jaune p-5 shadow-brut">
-        <p className="flex-1 basis-60 font-semibold">{lierPonctuation("Tout le kit d'un coup : les visuels, les autocollants, les logos, les textes et les règles, dans un seul fichier.")}</p>
+        <p className="flex-1 basis-60 font-semibold">{lierPonctuation(T.toutLeKit)}</p>
         <Bouton href={`/kit-media-lieux/${NOM_ZIP_KIT_MEDIA_LIEUX}`} variante="blanc">
-          Tout télécharger{poidsZip ? ` (ZIP, ${poidsZip})` : " (ZIP)"}
+          {T.toutTelecharger(poidsZip ?? null)}
         </Bouton>
       </div>
 
       {!miamSafe && (
         <p role="note" className="mt-8 rounded-2xl border-2 border-dashed border-encre bg-white px-5 py-4 font-semibold">
-          🛡 {lierPonctuation(texteMiamSafeKitLieux.pasSignee)}{" "}
-          <Link to={`/lieu/${lieu.id}/miam-safe`} className={classeLien}>Voir la charte Miam Safe</Link>
+          🛡 {lierPonctuation(K.miamSafe.pasSignee)}{" "}
+          <Link to={`/lieu/${lieu.id}/miam-safe`} className={classeLien}>{T.voirCharte}</Link>
         </p>
       )}
 
@@ -104,14 +112,14 @@ export default function PageKitLieu({ loaderData }: Route.ComponentProps) {
         });
         if (cartesGroupe.length === 0) return null;
         return (
-          <SectionKit key={groupe.groupe} id={groupe.groupe} titre={groupe.titre} texte={groupe.texte}>
+          <SectionKit key={groupe.groupe} id={groupe.groupe} titre={K.groupes[groupe.groupe].titre} texte={K.groupes[groupe.groupe].texte}>
             <ul className="grid gap-5 md:grid-cols-2">
               {cartesGroupe.map((carte) => (
                 <CarteFichiersKitLieux
-                  key={carte.titre}
-                  titre={carte.titre}
-                  texte={carte.texte}
-                  visuels={carte.ids.map((id) => visuelsKitMediaLieux.find((v) => v.id === id)!)}
+                  key={carte.cle}
+                  titre={T.cartes[carte.cle].titre}
+                  texte={T.cartes[carte.cle].texte}
+                  visuels={carte.ids.map((id) => traduireVisuel(visuelsKitMediaLieux.find((v) => v.id === id)!))}
                   fichiers={fichiersKitMediaLieux.filter((f) => f.visuel !== null && carte.ids.includes(f.visuel))}
                   poids={poids}
                   fondSombre={carte.fondSombre}
@@ -122,18 +130,14 @@ export default function PageKitLieu({ loaderData }: Route.ComponentProps) {
         );
       })}
 
-      <SectionKit id="a-ton-nom" titre="À ton nom, à imprimer" texte="Avec le nom de ton lieu et un QR vers ta fiche : la page s'imprime telle quelle, ou s'enregistre en PDF pour l'imprimeur.">
+      <SectionKit id="a-ton-nom" titre={T.aTonNom.titre} texte={T.aTonNom.texte}>
         <ul className="grid gap-5 md:grid-cols-3">
-          {[
-            { lien: "vitrine", titre: "L'affiche de vitrine", texte: "En A4, A3 ou 40 × 60 cm, avec la pastille Miam Safe si tu as signé la charte." },
-            { lien: "chevalet", titre: "Le chevalet de table", texte: "Deux faces A6 à plier, qui tiennent debout sur la table." },
-            { lien: "affichette", titre: "L'affichette de table", texte: "Une seule face A6, à poser sur le comptoir." },
-          ].map((page) => (
+          {PAGES_A_TON_NOM.map((lien) => ({ lien, ...T.aTonNom.pages[lien] })).map((page) => (
             <li key={page.lien} className="flex flex-col gap-3 rounded-carte border-2 border-encre bg-white p-5 shadow-brut">
               <h3 className="text-lg leading-tight font-extrabold">{lierPonctuation(page.titre)}</h3>
               <p className="text-gris">{lierPonctuation(page.texte)}</p>
               <Link to={`/lieu/${lieu.id}/${page.lien}`} className={`mt-auto ${classeLien}`}>
-                Ouvrir et imprimer<span className="sr-only">&nbsp;: {page.titre}</span>
+                {T.aTonNom.ouvrir}<span className="sr-only">{T.avantTitre}{page.titre}</span>
               </Link>
             </li>
           ))}
@@ -143,14 +147,14 @@ export default function PageKitLieu({ loaderData }: Route.ComponentProps) {
       {/* Les maquettes validées : affiches pour ta vitrine et ta salle (A4, A3, 40 × 60 cm), stickers */}
       <SectionsMaquettesKit kit="lieux" miamSafe={miamSafe} prefixe="/kit-media-lieux" poids={poids} />
 
-      <SectionKit id="textes" titre="Des textes prêts à poster" texte="Copie, adapte avec tes mots, et poste avec un visuel. Le lien mène à la fiche de ton lieu sur sosmiam.fr.">
+      <SectionKit id="textes" titre={T.textes.titre} texte={T.textes.texte}>
         <ul className="grid gap-5 lg:grid-cols-2">
           {textes.map((t) => <TexteAPoster key={t.titre} titre={t.titre} texte={t.texte} />)}
         </ul>
       </SectionKit>
 
-      <SectionKit id="regles" titre="Les règles du kit" texte="Quelques règles pour que ça reste juste, pour tes clients comme pour les autres lieux.">
-        <ReglesKit regles={reglesKitMediaLieux} />
+      <SectionKit id="regles" titre={T.regles.titre} texte={T.regles.texte}>
+        <ReglesKit regles={{ peux: [...K.regles.peux], peuxPas: [...K.regles.peuxPas] }} />
       </SectionKit>
     </Section>
   );

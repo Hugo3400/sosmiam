@@ -2,20 +2,26 @@ import { useEffect, useRef } from "react";
 import { data } from "react-router";
 
 import type { Route } from "./+types/missions";
+
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { CarteMission } from "~/composants/ambassadeur/CarteMission";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE } from "~/contenus/missions-ambassadeur";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { listerMissions, terminerMission } from "~/services/espace-ambassadeur.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { exigerAmbassadeurActif, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
 
-const messageTropCourt = "Écris quelques mots sur ce que tu as fait (5 à 2000 caractères).";
-
-export function meta(_: Route.MetaArgs) {
-  return [...creerMeta({ titre: "Mes missions", description: "Les missions de ton espace ambassadeur SOS Miam." }), { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE, langue);
+  return [...creerMeta({ ...T.meta, langue }), { name: "robots", content: "noindex" }];
 }
 
 /** Les missions de l'ambassadeur : à faire d'abord, puis les dernières faites ou annulées. */
@@ -32,6 +38,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 /** Termine une mission avec son compte rendu. */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseFormulaire> {
   const { jeton } = await exigerAmbassadeurActif(request);
+  const { messages } = choisirTextes(TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE, lireLangueRequete(request).langue);
+  const messageTropCourt = messages.tropCourt;
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   const id = Number(formulaire.get("missionId"));
@@ -48,14 +56,13 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (reponse.ok) return { ok: true, formulaire: nom };
   await redirigerSiSessionFermee(request, reponse.erreur);
   if (reponse.erreur === "compte-rendu-trop-court") return { ok: false, formulaire: nom, erreurs: { compteRendu: messageTropCourt }, valeurs };
-  const message = reponse.erreur === "introuvable"
-    ? "Cette mission n'est plus à faire : l'équipe l'a peut-être annulée."
-    : "Oups, ton compte rendu n'est pas passé. Réessaie dans un instant.";
+  const message = reponse.erreur === "introuvable" ? messages.introuvable : messages.panne;
   return { ok: false, formulaire: nom, message: lierPonctuation(message), valeurs };
 }
 
 /** Page /espace/missions : les coups de main proposés par l'équipe, à faire à son rythme. */
 export default function PageMissions({ loaderData, actionData }: Route.ComponentProps) {
+  const T = utiliserTextes(TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE);
   const { missions } = loaderData;
   const aFaire = missions.filter((mission) => mission.statut === "a-faire");
   const faites = missions.filter((mission) => mission.statut === "faite");
@@ -69,26 +76,26 @@ export default function PageMissions({ loaderData, actionData }: Route.Component
   }, [actionData]);
 
   const groupes = [
-    { id: "a-faire", titre: "À faire", missions: aFaire },
-    { id: "faites", titre: "Terminées", missions: faites },
-    { id: "annulees", titre: "Annulées", missions: annulees },
+    { id: "a-faire", titre: T.groupes["a-faire"], missions: aFaire },
+    { id: "faites", titre: T.groupes.faites, missions: faites },
+    { id: "annulees", titre: T.groupes.annulees, missions: annulees },
   ].filter((groupe) => groupe.missions.length > 0);
 
   return (
     <Section fond="creme" etroit>
       <TitreSection
         principal
-        chapo={lierPonctuation("Des coups de main proposés par l'équipe, à faire à ton rythme : ni horaires, ni objectifs. Une date est parfois indiquée : c'est un souhait, pas une obligation.")}
+        chapo={lierPonctuation(T.chapo)}
       >
-        Mes missions
+        {T.titre}
       </TitreSection>
       <p ref={bravo} tabIndex={-1} className={reussite ? "mb-8 rounded-2xl border-2 border-encre bg-jaune px-5 py-4 text-center font-semibold" : ""}>
-        {reussite && <><span aria-hidden="true">🎉 </span>{lierPonctuation("Mission terminée, bravo ! Merci pour ton compte rendu.")}</>}
+        {reussite && <><span aria-hidden="true">🎉 </span>{lierPonctuation(T.bravo)}</>}
       </p>
       {groupes.length === 0 ? (
         <div className="rounded-carte border-2 border-encre bg-white px-6 py-10 text-center shadow-brut">
           <Mascotte expression="clin" className="mx-auto mb-5 h-20 w-20" />
-          <p className="text-lg">{lierPonctuation("Pas de mission pour l'instant. Quand l'équipe t'en confie une, elle arrive ici.")}</p>
+          <p className="text-lg">{lierPonctuation(T.aucune)}</p>
         </div>
       ) : (
         groupes.map((groupe) => (

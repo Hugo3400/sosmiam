@@ -1,6 +1,8 @@
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_KIT_LIEU_PRO_PAR_LANGUE } from "~/contenus/kit-lieu-pro";
 import type { FichierKitLieux, VisuelKitLieux } from "~/contenus/kit-media-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   titre: string;
@@ -15,11 +17,11 @@ type Props = {
 };
 
 /** Ce que dit un bouton : « le PDF à imprimer », « le PNG de la story »… */
-function decrireFichier(fichier: FichierKitLieux): string {
-  if (fichier.format === "PDF") return "le PDF à imprimer";
-  if (fichier.nom.startsWith("story-")) return "le PNG de la story";
-  if (fichier.nom.startsWith("post-")) return "le PNG du post";
-  return "le PNG";
+function choisirBouton(fichier: FichierKitLieux): "pdf" | "story" | "post" | "png" {
+  if (fichier.format === "PDF") return "pdf";
+  if (fichier.nom.startsWith("story-")) return "story";
+  if (fichier.nom.startsWith("post-")) return "post";
+  return "png";
 }
 
 /**
@@ -27,6 +29,7 @@ function decrireFichier(fichier: FichierKitLieux): string {
  * fichier arrive en téléchargement (Content-Disposition), JavaScript ou pas.
  */
 export function CarteFichiersKitLieux({ titre, texte, visuels, fichiers, poids, fondSombre = false }: Props) {
+  const T = utiliserTextes(TEXTES_KIT_LIEU_PRO_PAR_LANGUE);
   return (
     <li className="flex flex-col overflow-hidden rounded-carte border-2 border-encre bg-white shadow-brut">
       <div className={`flex h-72 items-center justify-center gap-4 border-b-2 border-encre p-4 ${fondSombre ? "bg-encre" : "bg-creme"}`}>
@@ -51,8 +54,8 @@ export function CarteFichiersKitLieux({ titre, texte, visuels, fichiers, poids, 
           {fichiers.map((fichier) => (
             <li key={fichier.nom} className="flex flex-col items-start gap-1.5">
               <Bouton href={`/kit-media-lieux/${fichier.nom}`} petit>
-                Télécharger {decrireFichier(fichier)}
-                <span className="sr-only">&nbsp;: {lierPonctuation(titre)}</span>
+                {T.fichiers[choisirBouton(fichier)]}
+                <span className="sr-only">{T.avantTitre}{lierPonctuation(titre)}</span>
               </Bouton>
               <span className="text-sm text-gris">{[fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}</span>
             </li>

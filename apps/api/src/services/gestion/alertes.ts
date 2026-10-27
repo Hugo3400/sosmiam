@@ -11,7 +11,7 @@ import { compterSurveillance } from "./surveillance-visites.ts";
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees, ideesARelire, candidaturesNouvelles, failles] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees, ideesARelire, candidaturesNouvelles, failles, articlesActus, reponsesActus] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -43,6 +43,8 @@ export async function lireAlertes(maintenant = new Date()) {
     baseDeDonnees.ideeCommunaute.count({ where: { statut: "en-relecture", retireeLe: null } }),
     baseDeDonnees.candidatureCarriere.count({ where: { statut: "nouvelle" } }),
     baseDeDonnees.signalementSecurite.count({ where: { statut: "nouveau" } }),
+    baseDeDonnees.articleActus.count({ where: { statut: "en-relecture" } }),
+    baseDeDonnees.reponseLieuActus.count({ where: { statut: "en-relecture" } }),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
@@ -57,6 +59,7 @@ export async function lireAlertes(maintenant = new Date()) {
     communaute: { ideesARelire },
     carriere: { nouvelles: candidaturesNouvelles },
     securite: { nouveaux: failles },
+    actus: articlesActus + reponsesActus,
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },
   };

@@ -3,11 +3,12 @@ import { useCallback, useState } from "react";
 import { BadgeVerifie } from "~/composants/lieux/BadgeVerifie";
 import { ImageLieuEnLigne } from "~/composants/pro/ImageLieuEnLigne";
 import { ToileRecadrage } from "~/composants/pro/ToileRecadrage";
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
 import { choisirCouleursLieu } from "~/fonctions/lieux/choisir-couleurs-lieu";
 import { choisirEmojiLieu } from "~/fonctions/lieux/choisir-emoji-lieu";
 import { recentrerCadre } from "~/fonctions/pro/recentrer-cadre";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { LieuApercuImages, VisuelImageLieu } from "~/types/images-lieu";
 import { BANNIERE_LIEU, LOGO_LIEU } from "../../../../../packages/commun/src/regles/images-lieu.ts";
 
@@ -18,7 +19,7 @@ const LOGO_APERCU = 256;
 const RAPPORT_TELEPHONE = BANNIERE_TELEPHONE.largeur / BANNIERE_TELEPHONE.hauteur;
 
 export function ApercuFicheImages({ lieu, banniere, logo, emplacementLogo }: Props) {
-  const T = TEXTES_IMAGES_LIEU.apercu;
+  const T = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE).apercu;
   const [panne, setPanne] = useState(false);
   const signalerPanne = useCallback(() => setPanne(true), []);
   const [debut, fin] = choisirCouleursLieu(lieu.couleurs);

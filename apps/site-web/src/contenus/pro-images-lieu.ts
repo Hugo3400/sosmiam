@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_IMAGES_LIEU_ANGLAIS } from "./anglais/pro-images-lieu.ts";
+
 export const TEXTES_IMAGES_LIEU = {
   meta: {
     titre: (nom: string) => `Bannière et logo · ${nom}`,
@@ -110,3 +113,8 @@ export const TEXTES_IMAGES_LIEU = {
     compteLimite: "Compte limité",
   },
 } as const;
+
+export const TEXTES_IMAGES_LIEU_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_IMAGES_LIEU>> = {
+  fr: TEXTES_IMAGES_LIEU,
+  en: TEXTES_IMAGES_LIEU_ANGLAIS,
+};

@@ -1,6 +1,8 @@
 import { use, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { ContexteFormulaire } from "~/composants/compte/FormulaireCompte";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nom: string;
@@ -30,6 +32,7 @@ const classeChamp = `w-full rounded-2xl border-2 border-encre bg-white px-4 py-3
  * JavaScript) et qui le masque de nouveau à l'envoi.
  */
 export function ChampTexte({ nom, libelle, type = "text", autoComplete, aide, facultatif, valeur, maximum, lignes, exemple, inputMode, className = "" }: Props) {
+  const T = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   const { prefixe, erreurs, valeurs, focusAuChargement } = use(ContexteFormulaire);
   const id = `${prefixe}-${nom}`;
   const erreur = erreurs[nom];
@@ -73,13 +76,13 @@ export function ChampTexte({ nom, libelle, type = "text", autoComplete, aide, fa
       {/* L'espace va DANS le span : une espace seule entre deux morceaux de texte serait perdue par Chrome pour les
           lecteurs d'écran (« Ton quartier(facultatif) »), à cause du commentaire que glisse le rendu serveur de React */}
       <label htmlFor={id} className="mb-1.5 block text-sm font-semibold">
-        {libelle}{facultatif && <span className="font-normal text-gris">{" (facultatif)"}</span>}
+        {libelle}{facultatif && <span className="font-normal text-gris">{T.facultatif}</span>}
       </label>
       {aide && <p id={`${id}-aide`} className="mb-2 text-sm text-gris">{aide}</p>}
       {lignes ? (
         <>
           <textarea ref={champ} {...proprietes} rows={lignes} maxLength={maximum} onChange={(evenement) => setLongueur(evenement.currentTarget.value.length)} className={classeChamp} />
-          {maximum && <p id={`${id}-compteur`} className="mt-1 text-right text-xs text-gris">{longueur} / {maximum} caractères</p>}
+          {maximum && <p id={`${id}-compteur`} className="mt-1 text-right text-xs text-gris">{T.compteur(longueur, maximum)}</p>}
         </>
       ) : (
         <div className="relative">
@@ -98,11 +101,11 @@ export function ChampTexte({ nom, libelle, type = "text", autoComplete, aide, fa
               type="button"
               onClick={() => setVisible(!visible)}
               aria-controls={id}
-              aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              aria-label={visible ? T.masquerMotDePasse : T.afficherMotDePasse}
               className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full px-3 py-1.5 text-sm font-semibold underline decoration-jaune decoration-[3px]
                 underline-offset-4 hover:decoration-encre focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre"
             >
-              {visible ? "Masquer" : "Afficher"}
+              {visible ? T.masquer : T.afficher}
             </button>
           )}
         </div>

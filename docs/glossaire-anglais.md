@@ -884,5 +884,5 @@ Anglais britannique, « you » chaleureux, mêmes règles de ton que le françai
   - Neutre en anglais ; en français, le genre reste privé, d'où la forme inclusive.
 - **À la une** → **Top story** · traduit
   - Où : premier article de la liste
-- **Premier reportage / Reporter de la Brigade / Grand reporter** → **First Scoop / Brigade Reporter / Star Reporter** · adapté
+- **Premier reportage / Reporter du quartier / Grand reporter** → **First Scoop / Neighbourhood Reporter / Star Reporter** · adapté
   - Où : badges des Actus, « Mes articles »

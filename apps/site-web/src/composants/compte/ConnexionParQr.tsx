@@ -1,7 +1,8 @@
 import { Bouton } from "~/composants/interface/Bouton";
-import { BOUTON_QR, BOUTON_REFAIRE_QR, INTRO_QR, LIEN_SANS_JS_QR, MESSAGES_QR, PRUDENCE_QR, TITRE_QR } from "~/contenus/connexion-qr";
+import { TEXTES_CONNEXION_QR_PAR_LANGUE } from "~/contenus/connexion-qr";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConnexionQr } from "~/hooks/utiliser-connexion-qr";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { PageDepart } from "~/types/connexion-externe";
 import type { QrAffiche } from "~/types/connexion-qr";
 
@@ -22,17 +23,18 @@ const classeLien = "font-semibold text-encre underline decoration-jaune decorati
  * d'écran). Sans JavaScript : le bouton recharge la page avec le QR, et « J'ai validé sur mon téléphone » fait la suite.
  */
 export function ConnexionParQr({ depart, retour = null, initial }: Props) {
+  const T = utiliserTextes(TEXTES_CONNEXION_QR_PAR_LANGUE);
   const { bloc, demander } = utiliserConnexionQr(initial);
   const avecQr = bloc.svg !== null && (bloc.etat === "attente" || bloc.etat === "scanne" || bloc.etat === "accepte");
-  const message = bloc.etat === "ferme" || bloc.etat === "chargement" ? null : MESSAGES_QR[bloc.etat];
+  const message = bloc.etat === "ferme" || bloc.etat === "chargement" ? null : T.messages[bloc.etat];
   return (
     <section id="connexion-qr" aria-labelledby="titre-connexion-qr" className="mt-8 rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-8">
-      <h2 id="titre-connexion-qr" className="text-xl font-extrabold"><span aria-hidden="true">📱 </span>{TITRE_QR}</h2>
-      <p className="mt-2 text-gris">{lierPonctuation(INTRO_QR)}</p>
+      <h2 id="titre-connexion-qr" className="text-xl font-extrabold"><span aria-hidden="true">📱 </span>{T.titre}</h2>
+      <p className="mt-2 text-gris">{lierPonctuation(T.intro)}</p>
       {avecQr && (
         <div className="mt-5 flex flex-col items-center gap-3">
           <div className="w-56 max-w-full rounded-2xl border-2 border-encre bg-white p-2" dangerouslySetInnerHTML={{ __html: bloc.svg ?? "" }} />
-          <a href="/connexion/qr/attente" className={`text-sm ${classeLien}`}>{lierPonctuation(LIEN_SANS_JS_QR)}</a>
+          <a href="/connexion/qr/attente" className={`text-sm ${classeLien}`}>{lierPonctuation(T.lienSansJs)}</a>
         </div>
       )}
       <p role="status" aria-live="polite" className={message ? "mt-4 rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-3 text-center font-semibold" : "sr-only"}>
@@ -49,11 +51,11 @@ export function ConnexionParQr({ depart, retour = null, initial }: Props) {
           <input type="hidden" name="depart" value={depart} />
           {retour && <input type="hidden" name="retour" value={retour} />}
           <Bouton type="submit" variante="blanc" className="w-full">
-            {bloc.etat === "chargement" ? "Un instant…" : bloc.etat === "ferme" ? BOUTON_QR : BOUTON_REFAIRE_QR}
+            {bloc.etat === "chargement" ? T.unInstant : bloc.etat === "ferme" ? T.bouton : T.boutonRefaire}
           </Bouton>
         </form>
       )}
-      <p className="mt-4 text-sm text-gris">{lierPonctuation(PRUDENCE_QR)}</p>
+      <p className="mt-4 text-sm text-gris">{lierPonctuation(T.prudence)}</p>
     </section>
   );
 }

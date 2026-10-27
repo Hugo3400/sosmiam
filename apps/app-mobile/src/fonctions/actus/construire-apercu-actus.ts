@@ -22,6 +22,6 @@ export function construireApercuActus(brouillon: BrouillonActusSaisi, lieux: Lie
     aLaUne: false,
     jaime: 0,
     commentaires: 0,
-    reponseLieu: null,
+    reponsesLieux: [],
   };
 }

@@ -1,21 +1,29 @@
 import { data, Link, redirect } from "react-router";
 
 import type { Route } from "./+types/rattacher";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { PictoCategorie } from "~/composants/marque/PictoCategorie";
 import { Section } from "~/composants/mise-en-page/Section";
 import { FormulaireRattachement } from "~/composants/pro/FormulaireRattachement";
 import { RechercheLieu } from "~/composants/pro/RechercheLieu";
+import { TEXTES_RATTACHER_LIEU_PAR_LANGUE, type CodeRechercheLieu } from "~/contenus/rattacher-lieu";
+import { ecrireAdresseSitePrincipal } from "~/fonctions/hotes/ecrire-adresse-site-principal";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { lireLangueRequete } from "~/services/langue.server";
 import { chercherLieux, demanderRattachement, lireFichePublique } from "~/services/pro.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
-export function meta(_: Route.MetaArgs) {
-  return [...creerMeta({ titre: "Rattacher mon lieu", description: "Dis-nous que ce lieu est à toi pour gérer sa fiche." }), { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  return [...creerMeta({ ...choisirTextes(TEXTES_RATTACHER_LIEU_PAR_LANGUE, langue).meta, langue }), { name: "robots", content: "noindex" }];
 }
 
 /**
@@ -34,18 +42,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     if (!fiche.ok && fiche.erreur !== "lieu-inconnu") throw data("Espace pro momentanément indisponible", { status: 503 });
     const lieu = fiche.ok
       ? { id, nom: fiche.lieu.nom, ville: fiche.lieu.ville, type: fiche.lieu.type }
-      : { id, nom: (parametres.get("nom") ?? "").slice(0, 80) || `Lieu n° ${id}`, ville: (parametres.get("ville") ?? "").slice(0, 80), type: null };
+      : { id, nom: (parametres.get("nom") ?? "").slice(0, 80), ville: (parametres.get("ville") ?? "").slice(0, 80), type: null };
     const deja = compte.pro?.lieux.find((rattache) => rattache.lieuId === id && rattache.statut !== "refuse") ?? null;
     return { recherche: null, lieu, deja: deja?.statut ?? null };
   }
   const texte = (parametres.get("texte") ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
-  if (texte.length < 2) return { recherche: { texte, trouves: null, message: texte ? "Tape au moins 2 lettres." : null }, lieu: null, deja: null };
+  if (texte.length < 2) return { recherche: { texte, trouves: null, code: texte ? ("trop-court" as const) : null }, lieu: null, deja: null };
   const reponse = await chercherLieux(texte, jeton, ip);
   if (!reponse.ok) await redirigerSiSessionFermee(request, reponse.erreur);
-  const message = !reponse.ok
-    ? reponse.erreur === "trop-de-demandes" ? "Beaucoup de recherches d'un coup : réessaie dans quelques minutes." : "La recherche ne répond pas. Réessaie dans un instant."
-    : reponse.lieux.length === 0 ? "Aucun lieu trouvé. Essaie avec un autre mot, ou inscris ton lieu." : null;
-  return { recherche: { texte, trouves: reponse.ok ? reponse.lieux : null, message }, lieu: null, deja: null };
+  const code: CodeRechercheLieu | null = !reponse.ok
+    ? reponse.erreur === "trop-de-demandes" ? "trop-de-demandes" : "panne"
+    : reponse.lieux.length === 0 ? "aucun" : null;
+  return { recherche: { texte, trouves: reponse.ok ? reponse.lieux : null, code }, lieu: null, deja: null };
 }
 
 /** Envoie la demande : l'équipe vérifie, puis le lieu s'ouvre dans le tableau. */
@@ -58,11 +66,12 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   const siretTape = String(formulaire.get("siret") ?? "").trim();
   const siret = siretTape.replace(/[\s.]/g, "");
   const valeurs = { gerant: formulaire.get("gerant") === "oui" ? "oui" : "", preuve, siret: siretTape };
+  const E = choisirTextes(TEXTES_RATTACHER_LIEU_PAR_LANGUE, lireLangueRequete(request).langue).erreurs;
 
   const erreurs: Record<string, string> = {};
-  if (!valeurs.gerant) erreurs.gerant = "Coche la case : seul le gérant peut demander la fiche (il invitera son équipe ensuite).";
-  if (preuve.length < 1 || preuve.length > 600) erreurs.preuve = "Dis-nous en quelques mots comment vérifier (600 caractères au plus).";
-  if (siret && !/^\d{14}$/.test(siret)) erreurs.siret = "Un SIRET, c'est 14 chiffres. Pas sous la main ? Laisse vide.";
+  if (!valeurs.gerant) erreurs.gerant = E.gerant;
+  if (preuve.length < 1 || preuve.length > 600) erreurs.preuve = E.preuve;
+  if (siret && !/^\d{14}$/.test(siret)) erreurs.siret = E.siret;
   for (const nom of Object.keys(erreurs)) erreurs[nom] = lierPonctuation(erreurs[nom]);
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: "rattacher", erreurs, valeurs };
 
@@ -71,59 +80,62 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (reponse.ok) throw redirect("/tableau?rattachement=envoye");
   await redirigerSiSessionFermee(request, reponse.erreur);
   if (reponse.erreur === "champ-invalide" && (reponse.champ === "preuve" || reponse.champ === "siret")) {
-    const messageChamp = reponse.champ === "siret" ? "Ce SIRET ne semble pas juste : vérifie les 14 chiffres, ou laisse vide." : "Dis-nous en quelques mots comment vérifier (600 caractères au plus).";
+    const messageChamp = reponse.champ === "siret" ? E.siretRefuse : E.preuve;
     return { ok: false, formulaire: "rattacher", erreurs: { [reponse.champ]: lierPonctuation(messageChamp) }, valeurs };
   }
   const message = reponse.erreur === "deja-demande"
-    ? "Tu as déjà demandé ce lieu : l'équipe regarde ta demande. Tu la retrouves dans ton tableau."
+    ? E.dejaDemande
     : reponse.erreur === "trop-de-demandes"
-      ? "Ça fait beaucoup de demandes d'un coup : réessaie demain, ou écris-nous à bonjour@sosmiam.fr."
+      ? E.tropDeDemandes
       : reponse.erreur === "lieu-inconnu"
-      ? "Ce lieu n'est plus sur SOS Miam. Cherche-le de nouveau, ou inscris-le."
+      ? E.lieuInconnu
         : reponse.erreur === "champ-invalide"
-          ? "Un champ ne va pas : vérifie le formulaire."
-          : "Oups, ta demande n'est pas partie. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
+          ? E.champInvalide
+          : E.panne;
   return { ok: false, formulaire: "rattacher", message: lierPonctuation(message), valeurs };
 }
 
 /** Page /rattacher : chercher son lieu, puis dire qu'il est à soi. */
 export default function PageRattacher({ loaderData }: Route.ComponentProps) {
   const { recherche, lieu, deja } = loaderData;
+  const T = utiliserTextes(TEXTES_RATTACHER_LIEU_PAR_LANGUE);
+  const P = T.page;
+  const langue = utiliserLangue();
   return (
     <>
       <Section fond="creme" etroit className="!pt-10 md:!pt-14">
-        <TitreSection principal aGauche chapo={lierPonctuation("Trouve ton lieu sur SOS Miam, dis-nous qu'il est à toi : l'équipe vérifie, et sa fiche s'ouvre dans ton tableau.")}>
-          Rattacher mon lieu
+        <TitreSection principal aGauche chapo={lierPonctuation(T.chapo)}>
+          {T.titre}
         </TitreSection>
         {lieu ? (
           <>
             <div className="mb-6 flex items-center gap-4 rounded-carte border-2 border-encre bg-jaune p-5 shadow-brut">
               {lieu.type && <PictoCategorie type={lieu.type} className="h-12 w-12 shrink-0" />}
               <div className="min-w-0">
-                <p className="font-titre text-2xl font-extrabold [overflow-wrap:anywhere]">{lieu.nom}</p>
+                <p className="font-titre text-2xl font-extrabold [overflow-wrap:anywhere]">{lieu.nom || T.lieuNumero(lieu.id)}</p>
                 {lieu.ville && <p className="font-medium">{lieu.ville}</p>}
               </div>
             </div>
             {deja ? (
               <p role="status" className="rounded-2xl border-2 border-encre bg-white px-5 py-4 font-semibold">
-                {lierPonctuation(deja === "valide" ? "Ce lieu est déjà à toi ! " : "Tu as déjà demandé ce lieu : l'équipe regarde. ")}
-                <Link to="/tableau" className={classeLien}>Retour au tableau</Link>
+                {lierPonctuation(deja === "valide" ? P.dejaValide : P.dejaDemande)}
+                <Link to="/tableau" className={classeLien}>{P.retourTableau}</Link>
               </p>
             ) : (
               <FormulaireRattachement lieuId={lieu.id} />
             )}
             <p className="mt-6 text-gris">
-              {lierPonctuation("Pas le bon ? ")}
-              <Link to="/rattacher" className={classeLien}>Chercher un autre lieu</Link>
+              {lierPonctuation(P.pasLeBon)}
+              <Link to="/rattacher" className={classeLien}>{P.autreLieu}</Link>
             </p>
           </>
         ) : (
-          <RechercheLieu texte={recherche?.texte ?? ""} trouves={recherche?.trouves ?? null} message={recherche?.message ?? null} />
+          <RechercheLieu texte={recherche?.texte ?? ""} trouves={recherche?.trouves ?? null} code={recherche?.code ?? null} />
         )}
         <p className="mt-8 text-gris">
-          {lierPonctuation("Ton lieu n'est pas encore sur SOS Miam ? ")}
-          <a href="https://sosmiam.fr/inscrire-mon-lieu" className={classeLien}>Inscris-le gratuitement</a>
-          {lierPonctuation(" : l'équipe crée sa fiche, puis tu reviens ici.")}
+          {lierPonctuation(P.pasEncore)}
+          <a href={ecrireAdresseSitePrincipal("/inscrire-mon-lieu", langue)} className={classeLien}>{P.inscrisLe}</a>
+          {lierPonctuation(P.inscrisSuite)}
         </p>
       </Section>
     </>

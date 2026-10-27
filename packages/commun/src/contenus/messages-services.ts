@@ -12,6 +12,7 @@ import { MESSAGES_RESERVATIONS } from "./messages-reservations.ts";
 import { MESSAGES_SERVICES_COMMUNAUTE } from "./messages-services-communaute.ts";
 import { MESSAGES_CARRIERE } from "./messages-carriere.ts";
 import { MESSAGES_SECURITE } from "./messages-securite.ts";
+import { MESSAGES_ACTUS } from "./messages-actus.ts";
 import { MESSAGES_IMAGES_LIEU } from "./messages-images-lieu.ts";
 
 export type MessageService = { emoji: string; titre: string; texte: string };
@@ -478,6 +479,7 @@ export const MESSAGES_SERVICE: Readonly<Record<ErreurService, MessageService>> =
   ...MESSAGES_CARRIERE,
   ...MESSAGES_SECURITE,
   ...MESSAGES_IMAGES_LIEU,
+  ...MESSAGES_ACTUS,
 };
 
 export const MESSAGES_SERVICE_PAR_LANGUE: ParLangue<Readonly<Record<ErreurService, MessageService>>> = { fr: MESSAGES_SERVICE, en: MESSAGES_SERVICE_ANGLAIS };

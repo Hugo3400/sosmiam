@@ -81,9 +81,9 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
           <p className="text-sm text-gris">Contenu introuvable ({premier.cible} n° {premier.cibleId}) : il a peut-être été supprimé.</p>
         ) : premier.cible === "avis" || premier.cible === "reponse-avis" ? (
           <AvisSignale avis={premier.avis} reponse={premier.cible === "reponse-avis"} />
-        ) : premier.cible === "article-actus" && premier.article ? (
+        ) : premier.cible === "article-actu" && premier.article ? (
           <ApercuArticleActus article={premier.article} />
-        ) : premier.cible === "reponse-actus" && premier.reponseActus ? (
+        ) : premier.cible === "reponse-actu" && premier.reponseActus ? (
           <ApercuReponseLieuActus reponse={premier.reponseActus} />
         ) : (
           <InstantaneSignale signalement={premier} lieux={lieux} />

@@ -1,6 +1,8 @@
+import type { Traduction } from "../../../../../packages/commun/src/types/traduction.ts";
 import { Bouton } from "~/composants/interface/Bouton";
-import type { FichierKitPro } from "~/contenus/kit-media-pro";
+import { TEXTES_KIT_MEDIA_PRO_PAR_LANGUE, type FichierKitPro, type TEXTES_KIT_MEDIA_PRO } from "~/contenus/kit-media-pro";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Un aperçu de la carte : un PNG du kit, servi par la route protégée (?apercu=1 : affiché, pas téléchargé). */
 export type ApercuKitPro = { nom: string; description: string; largeur: number; hauteur: number };
@@ -15,10 +17,10 @@ type Props = {
 };
 
 /** Ce que dit un bouton : « le PDF A4 à imprimer », « le PNG du recto »… */
-function decrireFichier(fichier: FichierKitPro): string {
-  if (fichier.format === "PNG") return `le PNG${fichier.nom.includes("recto") ? " du recto" : fichier.nom.includes("verso") ? " du verso" : ""}`;
-  if (fichier.nom.includes("planche")) return "le PDF, 4 par feuille A4";
-  return "le PDF à imprimer";
+function decrireFichier(fichier: FichierKitPro, T: Traduction<typeof TEXTES_KIT_MEDIA_PRO>["fichiers"]): string {
+  if (fichier.format === "PNG") return fichier.nom.includes("recto") ? T.pngRecto : fichier.nom.includes("verso") ? T.pngVerso : T.png;
+  if (fichier.nom.includes("planche")) return T.planche;
+  return T.pdf;
 }
 
 /**
@@ -26,6 +28,7 @@ function decrireFichier(fichier: FichierKitPro): string {
  * fichier. Des liens simples : le fichier arrive en téléchargement (Content-Disposition), JavaScript ou pas.
  */
 export function CarteFichiersKitPro({ titre, texte, apercus, fichiers, poids }: Props) {
+  const T = utiliserTextes(TEXTES_KIT_MEDIA_PRO_PAR_LANGUE).fichiers;
   return (
     <li className="flex flex-col overflow-hidden rounded-carte border-2 border-encre bg-white shadow-brut">
       <div className="flex h-72 justify-center gap-4 border-b-2 border-encre bg-creme p-4">
@@ -50,7 +53,7 @@ export function CarteFichiersKitPro({ titre, texte, apercus, fichiers, poids }: 
           {fichiers.map((fichier) => (
             <li key={fichier.nom} className="flex flex-col items-start gap-1.5">
               <Bouton href={`/kit-media-pro/${fichier.nom}`} petit>
-                Télécharger {decrireFichier(fichier)}
+                {T.telecharger(decrireFichier(fichier, T))}
                 <span className="sr-only">&nbsp;: {lierPonctuation(titre)}</span>
               </Bouton>
               <span className="text-sm text-gris">{[fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}</span>

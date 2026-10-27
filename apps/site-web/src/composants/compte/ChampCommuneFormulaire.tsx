@@ -2,7 +2,9 @@ import { use, useState } from "react";
 
 import { ContexteFormulaire } from "~/composants/compte/FormulaireCompte";
 import { ChampCommune } from "~/composants/fondateurs/ChampCommune";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CommuneFondateurs } from "~/types/compte";
 
 type Props = {
@@ -19,6 +21,7 @@ type Props = {
  * cherche le texte côté serveur, et s'il correspond à plusieurs communes, elles reviennent ici en boutons radio.
  */
 export function ChampCommuneFormulaire({ libelle, aide, choix }: Props) {
+  const T = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   const { prefixe, erreurs, valeurs, focusAuChargement } = use(ContexteFormulaire);
   const id = `${prefixe}-ville`;
   const [code, setCode] = useState(valeurs.communeCode ?? "");
@@ -64,13 +67,13 @@ export function ChampCommuneFormulaire({ libelle, aide, choix }: Props) {
       )}
       {retenue && !erreur && (
         <p id={`${id}-retenue`} className="mt-1.5 text-sm font-semibold">
-          <span aria-hidden="true">✓ </span>{lierPonctuation(`Commune choisie : ${retenue}`)}
+          <span aria-hidden="true">✓ </span>{lierPonctuation(T.communeChoisie(retenue))}
         </p>
       )}
       {erreur && <p id={`${id}-erreur`} className="mt-1.5 text-sm font-semibold text-rouge-texte">{lierPonctuation(erreur)}</p>}
       {listeChoix && (
         <fieldset className="mt-3">
-          <legend className="mb-2 text-sm font-semibold">Ta commune</legend>
+          <legend className="mb-2 text-sm font-semibold">{T.taCommune}</legend>
           <input type="hidden" name="communeTexte" value={valeurs.ville ?? ""} />
           <div className="grid gap-2.5 sm:grid-cols-2">
             {listeChoix.map((commune) => (

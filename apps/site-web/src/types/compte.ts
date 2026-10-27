@@ -107,7 +107,7 @@ export type CommuneFondateurs = {
 export type ResultatRecherche =
   | { etat: "zone"; commune: CommuneFondateurs; zone: ZoneFondateurs }
   | { etat: "choix"; communes: CommuneFondateurs[] }
-  | { etat: "message"; message: string }
+  | { etat: "message"; code: "commune-inconnue" | "panne" | "trop-court" | "introuvable"; recherche: string }
   | { etat: "vide" };
 
 /**

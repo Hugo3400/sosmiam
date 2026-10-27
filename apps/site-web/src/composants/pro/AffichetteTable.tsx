@@ -4,6 +4,7 @@ import { QrCode } from "~/composants/kit-media-pro/QrCode";
 
 type Props = {
   nom: string;
+  lang?: string;
   /** Adresse complète de la fiche publique, vers laquelle mène le QR */
   lien: string;
 };
@@ -13,9 +14,10 @@ type Props = {
  * un aperçu à la même proportion ; à l'impression, la page A6 entière (voir routes/pro/affichette.tsx, règle @page).
  * Les couleurs sont imprimées telles quelles (print-color-adjust), le fond jaune compris.
  */
-export function AffichetteTable({ nom, lien }: Props) {
+export function AffichetteTable({ nom, lien, lang }: Props) {
   return (
     <div
+      lang={lang}
       className="relative mx-auto flex aspect-[105/148] w-full max-w-[360px] flex-col items-center overflow-hidden rounded-carte border-2 border-encre bg-jaune
         px-[7%] pt-[8%] pb-[6%] text-center text-encre shadow-brut-grand [print-color-adjust:exact]
         print:m-0 print:h-[148mm] print:w-[105mm] print:max-w-none print:rounded-none print:border-0 print:shadow-none"

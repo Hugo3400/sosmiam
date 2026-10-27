@@ -1,30 +1,32 @@
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
-import { gainsAmbassadeur } from "~/contenus/programme-ambassadeur";
+import { EMOJIS_GAINS_AMBASSADEUR, TEXTES_PROGRAMME_AMBASSADEUR_PAR_LANGUE } from "~/contenus/programme-ambassadeur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Ce que tu y gagnes : badges, « Déniché par toi » et points. Rien de plus (pas de rémunération). */
 export function GainsProgramme() {
+  const T = utiliserTextes(TEXTES_PROGRAMME_AMBASSADEUR_PAR_LANGUE).gains;
   return (
     <Section id="ce-que-tu-y-gagnes" fond="creme">
-      <TitreSection chapo={lierPonctuation("Pas d'argent : c'est une aventure de passionnés. Mais il y a quand même de quoi être fier :")}>
-        Ce que tu y gagnes
+      <TitreSection chapo={lierPonctuation(T.chapo)}>
+        {T.titre}
       </TitreSection>
       <ul className="grid gap-5 md:grid-cols-3">
-        {gainsAmbassadeur.map((gain) => (
+        {T.liste.map((gain, i) => (
           <li key={gain.titre} className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut">
-            <span aria-hidden="true" className="mb-3 block text-4xl leading-none">{gain.emoji}</span>
+            <span aria-hidden="true" className="mb-3 block text-4xl leading-none">{EMOJIS_GAINS_AMBASSADEUR[i]}</span>
             <h3 className="mb-2 text-xl font-extrabold">{lierPonctuation(gain.titre)}</h3>
             <p className="text-gris">{lierPonctuation(gain.texte)}</p>
           </li>
         ))}
       </ul>
       <p className="mt-8 text-center text-lg">
-        {"Et si tu deviens l'un des "}
+        {T.finDebut}
         <a href="#fondateurs" className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-          fondateurs de ta ville
+          {T.finLien}
         </a>
-        , il y a encore plus.
+        {T.finSuite}
       </p>
     </Section>
   );

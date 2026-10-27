@@ -1,14 +1,17 @@
 import { redirect } from "react-router";
 
 import type { Route } from "./+types/deconnexion";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { BoutonDeconnexion } from "~/composants/compte/BoutonDeconnexion";
+import { TEXTES_CONNEXION_COMPTE_PAR_LANGUE } from "~/contenus/connexion-compte";
 import { site } from "~/contenus/legal/informations-legales";
 import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { deconnecterCompte } from "~/services/comptes.server";
 import { effacerCookieSession, lireIpVisiteur, lireJetonSession } from "~/services/session-compte.server";
 
-export function meta(_: Route.MetaArgs) {
-  return [{ title: "Déconnexion — SOS Miam" }, { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  return [{ title: choisirTextes(TEXTES_CONNEXION_COMPTE_PAR_LANGUE, lireLangueMeta(matches)).titreDeconnexion }, { name: "robots", content: "noindex" }];
 }
 
 /**

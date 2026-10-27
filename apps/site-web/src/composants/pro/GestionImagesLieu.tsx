@@ -2,10 +2,11 @@ import { useState } from "react";
 
 import { ApercuFicheImages } from "~/composants/pro/ApercuFicheImages";
 import { EditeurImageLieu } from "~/composants/pro/EditeurImageLieu";
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
 import { calculerCadreRecadrage } from "~/fonctions/pro/calculer-cadre-recadrage";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserJavascriptActif } from "~/hooks/utiliser-javascript-actif";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { BrouillonImageLieu, ImagesDuLieu, LieuApercuImages, VisuelImageLieu } from "~/types/images-lieu";
 import { IMAGES_LIEU, REGLES_IMAGES_LIEU, type ImageLieu } from "../../../../../packages/commun/src/regles/images-lieu.ts";
 
@@ -24,7 +25,7 @@ export function GestionImagesLieu({ lieuId, lieu, images, modifiable }: Props) {
   const [actuelles, setActuelles] = useState<ImagesDuLieu>(images ?? AUCUNE);
   const [connues, setConnues] = useState<Record<ImageLieu, boolean>>({ banniere: images !== null, logo: images !== null });
   const [brouillons, setBrouillons] = useState(SANS_BROUILLON);
-  const T = TEXTES_IMAGES_LIEU.etats.sansJavascript;
+  const T = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE).etats.sansJavascript;
 
   const visuel = (quelle: ImageLieu): VisuelImageLieu => {
     const brouillon = brouillons[quelle];

@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import type { TEXTES_ECRIRE_ACTUS } from "~/contenus/textes-ecrire-actus";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserSourceImageActus } from "~/hooks/utiliser-source-image-actus";
 
 type Props = {
   uri: string | null;
@@ -15,11 +16,12 @@ type Props = {
 
 export function ChampCouvertureActus({ uri, preparation, erreur, T, onChoisir }: Props) {
   const couleurs = utiliserCouleurs();
+  const source = utiliserSourceImageActus(uri);
   return (
     <View className="gap-2">
       <Text className="font-texte-semi text-base text-encre">{T.couverture}</Text>
       <View className={`h-48 overflow-hidden rounded-[18px] border-2 bg-jaune-clair ${erreur ? "border-rouge-texte" : "border-encre"}`}>
-        {uri ? <Image source={{ uri }} accessible accessibilityLabel={T.couvertureLue} contentFit="cover" style={{ width: "100%", height: "100%" }} /> : null}
+        {source ? <Image source={source} accessible accessibilityLabel={T.couvertureLue} contentFit="cover" style={{ width: "100%", height: "100%" }} /> : null}
         <View className="absolute inset-0 items-center justify-center">
           {preparation ? (
             <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.preparation} />

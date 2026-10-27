@@ -4,7 +4,9 @@ import { EnTetePro } from "~/composants/pro/EnTetePro";
 import { LienCanonique } from "~/composants/mise-en-page/LienCanonique";
 import { LienEvitement } from "~/composants/mise-en-page/LienEvitement";
 import { PiedDePage } from "~/composants/mise-en-page/PiedDePage";
+import { TEXTES_CADRE_PRO_PAR_LANGUE } from "~/contenus/cadre-pro";
 import { HOTE_PRO } from "~/fonctions/hotes/choisir-redirection-hote";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   connecte: boolean;
@@ -18,6 +20,7 @@ type Props = {
  * l'impression (affichette), seul le contenu reste.
  */
 export function CadrePro({ connecte, lieuMenu = null, children }: Props) {
+  const T = utiliserTextes(TEXTES_CADRE_PRO_PAR_LANGUE);
   return (
     <div className="flex min-h-screen flex-col bg-creme print:block print:min-h-0 print:bg-white">
       <LienCanonique site={`https://${HOTE_PRO}`} />
@@ -27,7 +30,7 @@ export function CadrePro({ connecte, lieuMenu = null, children }: Props) {
         {children}
       </main>
       <div className="print:hidden">
-        <PiedDePage espace="pro" accroche="SOS Miam pro : ta fiche, ton équipe, tes gourmands. Gratuit, pour toujours." />
+        <PiedDePage espace="pro" accroche={T.accroche} />
       </div>
     </div>
   );

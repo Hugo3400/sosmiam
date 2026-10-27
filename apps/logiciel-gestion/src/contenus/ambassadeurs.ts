@@ -25,6 +25,7 @@ export const RAISONS_POINTS: Record<string, string> = {
   "avis-photo": "Avis avec photo",
   "proposer-lieu": "Lieu proposé et accepté",
   "corriger-fiche": "Fiche corrigée",
+  "article-actus": "Article publié dans les Actus",
   "premier-sauveteur": "Premier sauveteur",
   rescousse: "Rescousse",
   defi: "Défi",

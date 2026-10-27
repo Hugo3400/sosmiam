@@ -6,8 +6,11 @@ import { ContexteFormulaire, type EtatFormulaire } from "~/composants/compte/For
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonGesteCarte } from "~/composants/pro/BoutonGesteCarte";
 import { SectionEditeurCarte } from "~/composants/pro/SectionEditeurCarte";
+import { TEXTES_EDITEUR_CARTE_PAR_LANGUE } from "~/contenus/editeur-carte";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
 import { ecrireValeursBrouillon } from "~/fonctions/carte/ecrire-valeurs-brouillon";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { BrouillonCarte, FocusCarte } from "~/types/carte";
 
 /** Réponse de l'action de « Ma carte » (routes/pro/ma-carte.tsx) : le brouillon à réafficher, avec ou sans erreurs. */
@@ -32,6 +35,8 @@ export type ReponseCarte = {
  * (ou sur le champ ou le bouton qui suit le geste), aria-invalid.
  */
 export function EditeurCarte({ depart }: { depart: BrouillonCarte }) {
+  const T = utiliserTextes(TEXTES_EDITEUR_CARTE_PAR_LANGUE).editeur;
+  const F = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   const donnees = useActionData<ReponseCarte>();
   const reponse = donnees?.formulaire === "carte" ? donnees : undefined;
   // Réponse déjà là au premier affichage : envoi sans JavaScript (page rechargée), le message passe en haut
@@ -52,7 +57,7 @@ export function EditeurCarte({ depart }: { depart: BrouillonCarte }) {
   };
   const boutonFocus = focus && "bouton" in focus ? focus.bouton : null;
   const plats = brouillon.sections.reduce((somme, section) => somme + section.elements.length, 0);
-  const resume = nombreErreurs === 1 ? "Un champ est à corriger." : `${nombreErreurs} champs sont à corriger.`;
+  const resume = nombreErreurs === 1 ? F.unChamp : F.plusieursChamps(nombreErreurs);
   const message = enregistrement ? "" : [reponse?.message, nombreErreurs > 0 ? resume : ""].filter(Boolean).join(" ");
 
   const zoneMessage = (
@@ -66,9 +71,9 @@ export function EditeurCarte({ depart }: { depart: BrouillonCarte }) {
       <ContexteFormulaire value={etat}>
         {sansJs && zoneMessage}
         {/* Bouton par défaut : Entrée dans un champ enregistre (et ne déclenche jamais « Supprimer ») */}
-        <button type="submit" name="geste" value="enregistrer" tabIndex={-1} aria-hidden="true" className="sr-only">Enregistrer ma carte</button>
+        <button type="submit" name="geste" value="enregistrer" tabIndex={-1} aria-hidden="true" className="sr-only">{T.enregistrer}</button>
         <p className="text-sm font-semibold text-gris">
-          {`${brouillon.sections.length} / ${LIMITES_CARTE.sections} sections · ${plats} / ${LIMITES_CARTE.elements} plats`}
+          {T.compteur(brouillon.sections.length, plats)}
         </p>
         <div key={reponse?.version ?? "depart"} className="grid gap-6">
           {brouillon.sections.map((section, i) => (
@@ -83,21 +88,21 @@ export function EditeurCarte({ depart }: { depart: BrouillonCarte }) {
           ))}
           {brouillon.sections.length === 0 && (
             <p className="rounded-2xl border-2 border-dashed border-encre bg-white px-5 py-4 font-semibold">
-              {lierPonctuation("Ta carte est vide. Commence par une section (« Les plats », « À boire »…), puis ajoute tes plats.")}
+              {lierPonctuation(T.vide)}
             </p>
           )}
           <div>
             {brouillon.sections.length < LIMITES_CARTE.sections ? (
-              <BoutonGesteCarte geste="ajouter-section" focus={boutonFocus} emoji="+" ajout>Ajouter une section</BoutonGesteCarte>
+              <BoutonGesteCarte geste="ajouter-section" focus={boutonFocus} emoji="+" ajout>{T.ajouterSection}</BoutonGesteCarte>
             ) : (
-              <p className="text-sm font-semibold text-gris">{lierPonctuation(`Ta carte a déjà ${LIMITES_CARTE.sections} sections : c'est le maximum.`)}</p>
+              <p className="text-sm font-semibold text-gris">{lierPonctuation(T.maxSections)}</p>
             )}
           </div>
         </div>
         {!sansJs && zoneMessage}
         <div>
           <Bouton type="submit" name="geste" value="enregistrer" className="w-full sm:w-auto sm:min-w-52">
-            {enregistrement ? "Enregistrement…" : "Enregistrer ma carte"}
+            {enregistrement ? T.enregistrement : T.enregistrer}
           </Bouton>
         </div>
       </ContexteFormulaire>

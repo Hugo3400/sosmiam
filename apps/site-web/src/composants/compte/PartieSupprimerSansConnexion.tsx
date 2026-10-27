@@ -1,9 +1,10 @@
 import { PartieCompte } from "~/composants/compte/PartieCompte";
 import { Bouton } from "~/composants/interface/Bouton";
 import { site } from "~/contenus/legal/informations-legales";
-import { DELAI_REPONSE, mailSuppression, RESTE_APRES_SUPPRESSION } from "~/contenus/mon-compte";
+import { TEXTES_MON_COMPTE_PAR_LANGUE } from "~/contenus/mon-compte";
 import { ecrireAdresseMail } from "~/fonctions/texte/ecrire-adresse-mail";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
 
@@ -13,25 +14,27 @@ const classeLien = "font-semibold text-encre underline decoration-jaune decorati
  * demander la suppression de son compte et de ses données.
  */
 export function PartieSupprimerSansConnexion() {
+  const T = utiliserTextes(TEXTES_MON_COMPTE_PAR_LANGUE);
+  const S = T.sansConnexion;
   return (
-    <PartieCompte id="supprimer-sans-connexion" titre="Supprimer mon compte sans me connecter">
+    <PartieCompte id="supprimer-sans-connexion" titre={S.titre}>
       <p className="mb-4">
-        {lierPonctuation("Plus l'app, pas de mot de passe, ou juste pas envie de te connecter ? Pas de souci, un mail suffit :")}
+        {lierPonctuation(S.intro)}
       </p>
       <ol className="mb-5 grid list-decimal gap-2 pl-6">
         <li>
-          {lierPonctuation("Écris à ")}
+          {lierPonctuation(S.ecrisA)}
           <a href={`mailto:${site.emailContact}`} className={classeLien}>{site.emailContact}</a>
-          {lierPonctuation(" depuis l'adresse e-mail de ton compte.")}
+          {lierPonctuation(S.depuisAdresse)}
         </li>
-        <li>{lierPonctuation(`Objet : « ${mailSuppression.objet} ». Dans le mail, dis simplement que tu veux supprimer ton compte et tes données.`)}</li>
-        <li>{lierPonctuation(`On efface ton compte et tout ce qui y est rattaché, et on te répond ${DELAI_REPONSE}.`)}</li>
+        <li>{lierPonctuation(S.objet(T.mailSuppression.objet))}</li>
+        <li>{lierPonctuation(S.onEfface(T.delaiReponse))}</li>
       </ol>
-      <Bouton href={ecrireAdresseMail(site.emailContact, mailSuppression)} variante="blanc">Écrire le mail tout prêt</Bouton>
+      <Bouton href={ecrireAdresseMail(site.emailContact, T.mailSuppression)} variante="blanc">{T.mesDonnees.mailToutPret}</Bouton>
       <p className="mt-5 text-gris">
-        {lierPonctuation("Tu ne peux pas écrire depuis cette adresse (adresse masquée par Apple, boîte fermée…) ? Écris-nous quand même en la donnant : on vérifie juste que c'est bien toi avant d'effacer quoi que ce soit.")}
+        {lierPonctuation(S.adresseImpossible)}
       </p>
-      <p className="mt-3 text-gris">{lierPonctuation(RESTE_APRES_SUPPRESSION)}</p>
+      <p className="mt-3 text-gris">{lierPonctuation(T.resteApresSuppression)}</p>
     </PartieCompte>
   );
 }

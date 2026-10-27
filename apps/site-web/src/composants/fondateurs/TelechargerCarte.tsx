@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 
+import { TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE } from "~/contenus/candidature-fondateur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** « Fondateur n° 3 de Lyon · n° 147 en France » : pour décrire l'aperçu */
@@ -19,6 +21,7 @@ const classeBouton = `inline-flex items-center justify-center rounded-full borde
  * un second bouton la convertit en PNG dans le navigateur (pour les réseaux qui refusent le SVG).
  */
 export function TelechargerCarte({ numero }: Props) {
+  const T = utiliserTextes(TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE).carte;
   const [titre, setTitre] = useState<Titre>("fondateur");
   const [pret, setPret] = useState(false);
   const [etatPng, setEtatPng] = useState<"" | "en-cours" | "erreur">("");
@@ -51,18 +54,18 @@ export function TelechargerCarte({ numero }: Props) {
 
   return (
     <section aria-labelledby="carte-titre" className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
-      <h2 id="carte-titre" className="text-2xl font-extrabold">Ta carte de fondateur</h2>
-      <p className="mt-1.5 text-gris">{lierPonctuation("À garder, à imprimer ou à partager. Une vraie carte t'arrivera par la poste plus tard.")}</p>
+      <h2 id="carte-titre" className="text-2xl font-extrabold">{T.titre}</h2>
+      <p className="mt-1.5 text-gris">{lierPonctuation(T.texte)}</p>
       <img
         src={apercu}
-        alt={`Aperçu de ta carte : ${numero}`}
+        alt={T.apercu(numero)}
         width={1200}
         height={750}
         className="mt-5 h-auto w-full rounded-2xl"
       />
       <form method="get" action={ADRESSE_CARTE} className="mt-6">
         <fieldset>
-          <legend className="mb-2 text-sm font-semibold">Sur ta carte, il est écrit</legend>
+          <legend className="mb-2 text-sm font-semibold">{T.legende}</legend>
           <div className="flex flex-wrap gap-x-6 gap-y-2.5">
             {(["fondateur", "fondatrice"] as const).map((choix) => (
               <label key={choix} className="flex cursor-pointer items-center gap-3 font-medium">
@@ -74,21 +77,21 @@ export function TelechargerCarte({ numero }: Props) {
                   onChange={() => setTitre(choix)}
                   className="h-5 w-5 shrink-0 cursor-pointer accent-encre"
                 />
-                {choix === "fondateur" ? "Fondateur" : "Fondatrice"}
+                {choix === "fondateur" ? T.fondateur : T.fondatrice}
               </label>
             ))}
           </div>
         </fieldset>
         <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-          <button type="submit" className={`${classeBouton} bg-jaune shadow-brut`}>Télécharger ma carte</button>
+          <button type="submit" className={`${classeBouton} bg-jaune shadow-brut`}>{T.telecharger}</button>
           {pret && (
             <button type="button" onClick={telechargerPng} aria-disabled={etatPng === "en-cours"} className={`${classeBouton} bg-white shadow-brut`}>
-              {etatPng === "en-cours" ? "Préparation…" : "En image PNG"}
+              {etatPng === "en-cours" ? T.preparation : T.png}
             </button>
           )}
         </div>
         <p role="status" className="mt-3 text-sm font-semibold text-rouge-texte">
-          {etatPng === "erreur" ? lierPonctuation("Le PNG n'a pas pu être préparé : télécharge la carte en SVG, ou réessaie.") : ""}
+          {etatPng === "erreur" ? lierPonctuation(T.erreurPng) : ""}
         </p>
       </form>
     </section>

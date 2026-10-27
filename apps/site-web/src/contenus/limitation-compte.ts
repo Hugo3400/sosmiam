@@ -2,10 +2,11 @@
 // permis (décision de Hugo du 15 octobre 2026, docs/decisions.md, « Modération des avis et limitation d'un compte »), et
 // la contestation. Listes « coupe » et « reste » reprises mot pour mot de l'app (apps/app-mobile/src/contenus/limitation-compte.ts,
 // TEXTES_LIMITATION, liste finale de la session App du 15/10). Les mêmes listes que les CGU (contenus/legal/cgu-moderation.ts) : à garder en phase.
-// Aucun import ici : le test (tests/limitation-compte.test.ts) lance ce fichier directement avec Node. Les « {…} » se
-// remplissent avec remplirModele (packages/commun/src/fonctions/texte/remplir-modele.ts).
+// Les « {…} » se remplissent avec remplirModele (packages/commun/src/fonctions/texte/remplir-modele.ts).
+import type { ParLangue, Traduction } from "../../../../packages/commun/src/types/traduction.ts";
+import { TEXTES_LIMITATION_ANGLAIS } from "./anglais/limitation-compte.ts";
 
-export const textesLimitation = {
+export const TEXTES_LIMITATION = {
   titre: "Ton compte est limité",
   titreAVenir: "Ton compte va être limité",
   /** {fin} : « jusqu'au 22 octobre 2026 à 12 h » ou « jusqu'à nouvel ordre » */
@@ -36,4 +37,10 @@ export const textesLimitation = {
   dejaConteste: "Tu as déjà contesté cette limitation : une seule contestation, et elle est bien arrivée.",
   plusDeLimitation: "Ta limitation est finie ou levée : il n'y a plus rien à contester. Bon retour parmi les Miamis !",
   texteInvalide: "Écris entre 10 et 1 000 caractères.",
+  regle: (regle: string) => ` : « ${regle} ».`,
+};
+
+export const TEXTES_LIMITATION_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_LIMITATION>> = {
+  fr: TEXTES_LIMITATION,
+  en: TEXTES_LIMITATION_ANGLAIS,
 };

@@ -22,11 +22,15 @@ export const PHOTOS_ACTUS_MAX = 4;
 export const REPONSE_LIEU_ACTUS_MAX = 500;
 
 export const ARTICLES_ACTUS_PAR_SEMAINE = 3;
+export const ARTICLES_ACTUS_PAR_PAGE = 20;
+export const CHEMIN_IMAGES_ACTUS = "/app/actus/images";
+export const CHEMIN_MES_MEDIAS_ACTUS = "/app/actus/miens/medias";
+export const CHEMIN_MEDIAS_ACTUS_GESTION = "/api-gestion/actus/medias";
 export const POINTS_ARTICLE_ACTUS = 20;
 export const MOTS_LUS_PAR_MINUTE = 200;
 
 export const BADGES_ACTUS = [
   { id: "premier-reportage", objectif: 1 },
-  { id: "reporter-de-la-brigade", objectif: 5 },
+  { id: "reporter-du-quartier", objectif: 5 },
   { id: "grand-reporter", objectif: 20 },
 ] as const;

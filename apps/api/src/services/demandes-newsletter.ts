@@ -1,4 +1,6 @@
 import { resumerErreur } from "../fonctions/comptes/resumer-erreur.ts";
+import { lireLangue } from "../../../../packages/commun/src/fonctions/langue/lire-langue.ts";
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../packages/commun/src/regles/langues.ts";
 import { lireLangueDemande } from "../middlewares/poser-langue.ts";
 import { choisirEnvoiConfirmation } from "../fonctions/newsletter/choisir-envoi-confirmation.ts";
 import { calculerEmpreinteJeton } from "../fonctions/securite/calculer-empreinte-jeton.ts";
@@ -10,7 +12,7 @@ import type { NouvelleInscription } from "./inscriptions.ts";
 
 type ResultatEnvoi = { ok: boolean; erreur?: string };
 
-export type EnvoyerLienConfirmation = (email: string, lien: string, expireLe: Date, source: string) => Promise<ResultatEnvoi>;
+export type EnvoyerLienConfirmation = (email: string, lien: string, expireLe: Date, source: string, langue: Langue) => Promise<ResultatEnvoi>;
 
 export type DependancesDemandesNewsletter = {
   depot: DepotConfirmationsNewsletter;
@@ -41,7 +43,7 @@ export function creerDemandesNewsletter({ depot, envoyerLien, estDesinscrit, hor
     };
     const ecrite = attente ? await depot.remplacerAttente(attente.jetonEmpreinte, nouvelle) : await depot.creerAttente(nouvelle);
     if (!ecrite) return;
-    void envoyerLien(email, `${PAGE_CONFIRMATION_NEWSLETTER}?jeton=${jeton}`, nouvelle.expireLe, source)
+    void envoyerLien(email, `${PAGE_CONFIRMATION_NEWSLETTER}?jeton=${jeton}`, nouvelle.expireLe, source, lireLangue(nouvelle.langue) ?? LANGUE_PAR_DEFAUT)
       .then((resultat) => {
         if (!resultat.ok) noterEchec(resultat.erreur ?? "refusé");
       })

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { data, useActionData } from "react-router";
 
 import type { Route } from "./+types/verifier-email";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { FORMULAIRE_RENVOI } from "~/composants/compte/BandeauVerificationEmail";
 import { FormulaireVerificationEmail } from "~/composants/compte/FormulaireVerificationEmail";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
@@ -9,23 +10,27 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_MESSAGES_COMPTE_PAR_LANGUE } from "~/contenus/messages-compte";
+import { TEXTES_VERIFICATION_EMAIL_PAR_LANGUE } from "~/contenus/verification-email";
+import { ecrireAttente } from "~/fonctions/compte/ecrire-attente";
 import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { extraireJeton } from "~/fonctions/texte/extraire-jeton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { confirmerEmail, decrireAttente } from "~/services/comptes.server";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { confirmerEmail } from "~/services/comptes.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { lireCompteConnecte, lireIpVisiteur } from "~/services/session-compte.server";
 import { traiterRenvoiVerification } from "~/services/verification-email.server";
 
 const nom = "verifier-email";
-const messages = {
-  jeton: "Colle le code reçu par mail : la suite de lettres et de chiffres après « jeton= ».",
-  jetonInvalide: "Ce lien ne marche plus : il a déjà servi, ou il a plus de 7 jours.",
-};
 
-export function meta(_: Route.MetaArgs) {
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_VERIFICATION_EMAIL_PAR_LANGUE, langue);
   return [
-    ...creerMeta({ titre: "Confirmer mon e-mail", description: "Confirme l'adresse e-mail de ton compte SOS Miam." }),
+    ...creerMeta({ titre: T.titre, description: T.description, langue }),
     { name: "robots", content: "noindex" },
   ];
 }
@@ -43,16 +48,16 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   if (formulaire.get("formulaire") === FORMULAIRE_RENVOI) return traiterRenvoiVerification(request);
 
+  const { langue } = lireLangueRequete(request);
+  const M = choisirTextes(TEXTES_MESSAGES_COMPTE_PAR_LANGUE, langue);
   const jeton = extraireJeton(String(formulaire.get("jeton") ?? ""));
-  if (!jeton) return { ok: false, formulaire: nom, erreurs: { jeton: lierPonctuation(messages.jeton) } };
+  if (!jeton) return { ok: false, formulaire: nom, erreurs: { jeton: lierPonctuation(M.jeton) } };
   const reponse = await confirmerEmail(jeton, lireIpVisiteur(request));
   if (reponse.ok) return { ok: true, formulaire: nom };
   if (reponse.erreur === "jeton-invalide" || reponse.erreur === "champ-invalide") {
-    return { ok: false, formulaire: nom, erreurs: { jeton: lierPonctuation(messages.jetonInvalide) } };
+    return { ok: false, formulaire: nom, erreurs: { jeton: lierPonctuation(choisirTextes(TEXTES_VERIFICATION_EMAIL_PAR_LANGUE, langue).jetonInvalide) } };
   }
-  const message = reponse.erreur === "trop-de-demandes"
-    ? `Trop d'essais : réessaie dans ${decrireAttente(reponse.attente)}.`
-    : "Oups, ça n'a pas marché. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
+  const message = reponse.erreur === "trop-de-demandes" ? M.tropDEssais(ecrireAttente(reponse.attente, langue)) : M.panne;
   return { ok: false, formulaire: nom, message: lierPonctuation(message) };
 }
 
@@ -61,6 +66,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
  * avec JavaScript, l'adresse est confirmée dès l'ouverture ; sans, un champ « Code reçu par mail » et un bouton.
  */
 export default function PageVerifierEmail({ loaderData }: Route.ComponentProps) {
+  const T = utiliserTextes(TEXTES_VERIFICATION_EMAIL_PAR_LANGUE);
   const reponse = useActionData<ReponseFormulaire>();
   const titreReussite = useRef<HTMLHeadingElement>(null);
   const reussi = reponse?.formulaire === nom && reponse.ok;
@@ -70,18 +76,18 @@ export default function PageVerifierEmail({ loaderData }: Route.ComponentProps) 
 
   return (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo={lierPonctuation("Un clic pour nous dire que cette adresse est bien la tienne.")}>Confirmer mon e-mail</TitreSection>
+      <TitreSection principal chapo={lierPonctuation(T.chapo)}>{T.titre}</TitreSection>
       {reussi || (loaderData.dejaVerifie && reponse?.formulaire !== nom) ? (
         <div className="rounded-carte border-2 border-encre bg-jaune px-6 py-10 text-center shadow-brut-grand md:px-12">
           <Mascotte expression="clin" className="mx-auto mb-5 h-24 w-24" />
           <h2 ref={titreReussite} tabIndex={-1} className="text-3xl font-extrabold">
-            {lierPonctuation(reussi ? "C'est confirmé !" : "Ton adresse est déjà confirmée")}
+            {lierPonctuation(reussi ? T.confirme : T.dejaConfirmee)}
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-lg">
-            {lierPonctuation("Merci ! L'équipe voit maintenant que ton adresse est bien la tienne.")}
+            {lierPonctuation(T.merci)}
           </p>
           <Bouton vers={loaderData.connecte ? loaderData.accueil : "/connexion"} variante="encre" className="mt-7">
-            {loaderData.connecte ? "Aller dans mon espace" : "Me connecter"}
+            {loaderData.connecte ? T.allerEspace : T.meConnecter}
           </Bouton>
         </div>
       ) : (

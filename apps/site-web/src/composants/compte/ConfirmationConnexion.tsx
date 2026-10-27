@@ -3,8 +3,11 @@ import { Form } from "react-router";
 import { BoutonFournisseur } from "~/composants/compte/BoutonFournisseur";
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { FormulaireCompte } from "~/composants/compte/FormulaireCompte";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { TEXTES_MES_CONNEXIONS_PAR_LANGUE } from "~/contenus/mes-connexions";
 import { construireAdresseDepart } from "~/fonctions/connexion-externe/construire-adresse-depart";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FournisseurExterne } from "~/types/connexion-externe";
 import type { MesConnexions } from "~/types/mes-connexions";
 
@@ -24,31 +27,28 @@ type Props = {
  * arrive sans le cookie de session : c'est ce bouton, envoyé depuis notre page, qui termine avec la session.
  */
 export function ConfirmationConnexion({ intention, fournisseur, confirme, connexions }: Props) {
+  const T = utiliserTextes(TEXTES_MES_CONNEXIONS_PAR_LANGUE);
+  const C = T.confirmation;
+  const { champs } = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   const relier = intention === "relier";
   const nom = noms[fournisseur];
   const autreFournisseur = autre[fournisseur];
   const nomAutre = noms[autreFournisseur];
   const cible = relier ? nom : nomAutre;
   const attendAutre = relier && !connexions.motDePasse && !confirme;
-  const texte = !relier
-    ? `${nom} a confirmé que c'est bien toi. Tu ne pourras plus te connecter avec ${cible} ; ${nom} restera ta façon de te connecter.`
-    : connexions.motDePasse
-      ? `${nom} a dit oui. Dernière vérification avant d'ajouter cette clé : ton mot de passe. Ensuite, tu pourras te connecter à SOS Miam avec ${nom}, en plus de tes autres façons. Ton adresse e-mail SOS Miam ne change pas.`
-      : `${nom} et ${nomAutre} ont confirmé que c'est bien toi. Tu pourras te connecter à SOS Miam avec ${nom}, en plus de ${nomAutre}. Ton adresse e-mail SOS Miam ne change pas.`;
+  const texte = !relier ? C.delier(nom, cible) : connexions.motDePasse ? C.relierAvecMotDePasse(nom) : C.relierConfirme(nom, nomAutre);
   const annuler = (
     <button type="submit" form="annuler-connexion" className="font-semibold underline decoration-2 underline-offset-2 hover:decoration-jaune">
-      Non merci
+      {C.nonMerci}
     </button>
   );
   return (
     <div className="mb-6 rounded-2xl border-2 border-encre bg-jaune-clair p-5">
-      <h3 className="mb-2 text-xl font-extrabold">{relier ? `Relier ton compte ${nom} ?` : `Délier ton compte ${cible} ?`}</h3>
+      <h3 className="mb-2 text-xl font-extrabold">{relier ? C.titreRelier(nom) : C.titreDelier(cible)}</h3>
       {attendAutre ? (
         <>
           <p className="mb-4">
-            {lierPonctuation(connexions.actifs[autreFournisseur]
-              ? `${nom} a dit oui. Ton compte n'a pas de mot de passe : pour vérifier que c'est bien toi, reconnecte-toi avec ${nomAutre}, ta clé actuelle. Après, un seul bouton et c'est relié !`
-              : `${nom} a dit oui, mais ton compte n'a pas de mot de passe, et ${nomAutre} ne se lance pas ici pour confirmer. Ajoute d'abord un mot de passe (juste en dessous), puis reviens relier ${nom}.`)}
+            {lierPonctuation(connexions.actifs[autreFournisseur] ? C.attendAutre(nom, nomAutre) : C.autreIndisponible(nom, nomAutre))}
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
             {connexions.actifs[autreFournisseur] && (
@@ -62,13 +62,13 @@ export function ConfirmationConnexion({ intention, fournisseur, confirme, connex
       ) : (
         <FormulaireCompte
           nom={relier ? "relier-externe" : "delier-externe"}
-          bouton={relier ? `Oui, relier ${nom}` : `Oui, délier ${cible}`}
-          boutonEnvoi={relier ? "On relie…" : "On délie…"}
+          bouton={relier ? C.ouiRelier(nom) : C.ouiDelier(cible)}
+          boutonEnvoi={relier ? T.enCoursRelier : T.enCoursDelier}
           apres={annuler}
         >
           <p className="mb-2">{lierPonctuation(texte)}</p>
           {relier && connexions.motDePasse && (
-            <ChampTexte nom="motDePasse" libelle="Ton mot de passe, pour confirmer" type="password" autoComplete="current-password" />
+            <ChampTexte nom="motDePasse" libelle={champs.motDePasseConfirmer} type="password" autoComplete="current-password" />
           )}
         </FormulaireCompte>
       )}

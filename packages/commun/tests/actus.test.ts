@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { calculerMinutesLecture } from "../src/fonctions/actus/calculer-minutes-lecture.ts";
+import { calculerDernierLundiParis } from "../src/fonctions/temps/calculer-dernier-lundi-paris.ts";
 import { BADGES_ACTUS, LIEUX_RUBRIQUE_ACTUS, RUBRIQUES_ACTUS } from "../src/regles/actus.ts";
 import type { BrouillonArticleActus } from "../src/types/actus.ts";
 import { validerArticleActus } from "../src/validation/valider-article-actus.ts";
@@ -72,4 +73,10 @@ test("actus : un bon plan a une date de fin après aujourd'hui, dans les 90 jour
 test("actus : la date de fin d'une autre rubrique est ignorée", () => {
   const resultat = validerArticleActus({ ...BROUILLON, finLe: "2026-11-30" }, "2026-10-27");
   assert.equal(resultat.ok && resultat.article.finLe, null);
+});
+
+test("actus : la semaine des 3 articles commence le lundi à minuit, heure de Paris", () => {
+  assert.equal(new Date(calculerDernierLundiParis(Date.parse("2026-10-27T10:00:00Z"))).toISOString(), "2026-10-25T23:00:00.000Z");
+  assert.equal(new Date(calculerDernierLundiParis(Date.parse("2026-10-25T23:00:00Z"))).toISOString(), "2026-10-25T23:00:00.000Z");
+  assert.equal(new Date(calculerDernierLundiParis(Date.parse("2026-10-25T22:59:00Z"))).toISOString(), "2026-10-18T22:00:00.000Z");
 });

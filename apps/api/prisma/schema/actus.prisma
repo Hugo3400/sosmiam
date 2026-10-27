@@ -1,0 +1,76 @@
+model ArticleActus {
+  id              Int                 @id @default(autoincrement())
+  auteurId        Int                 @map("auteur_id")
+  auteur          Compte              @relation("ArticlesActusEcrits", fields: [auteurId], references: [id], onDelete: Cascade)
+  rubrique        String              @db.VarChar(16)
+  titre           String              @db.VarChar(70)
+  accroche        String              @db.VarChar(140)
+  texte           String              @db.VarChar(3000)
+  citation        String?             @db.VarChar(200)
+  couverture      String              @db.VarChar(64)
+  photos          String[]            @db.VarChar(64)
+  collaboration   Boolean
+  alcool          Boolean             @default(false)
+  finLe           DateTime?           @map("fin_le") @db.Date
+  statut          String              @default("en-relecture") @db.VarChar(12)
+  aLaUne          Boolean             @default(false) @map("a_la_une")
+  renvoye         Boolean             @default(false)
+  retoucheMessage String?             @map("retouche_message") @db.VarChar(1000)
+  retoucheLe      DateTime?           @map("retouche_le") @db.Timestamptz(0)
+  refusMotif      String?             @map("refus_motif") @db.VarChar(16)
+  refusMotivation String?             @map("refus_motivation") @db.VarChar(1000)
+  refusLe         DateTime?           @map("refus_le") @db.Timestamptz(0)
+  envoyeLe        DateTime            @default(now()) @map("envoye_le") @db.Timestamptz(0)
+  publieLe        DateTime?           @map("publie_le") @db.Timestamptz(0)
+  lieux           LieuArticleActus[]
+  jaimes          JaimeArticleActus[]
+  reponses        ReponseLieuActus[]
+
+  @@index([statut, publieLe])
+  @@index([auteurId, envoyeLe])
+  @@map("articles_actus")
+}
+
+model LieuArticleActus {
+  articleId Int          @map("article_id")
+  article   ArticleActus @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  lieuId    Int          @map("lieu_id")
+  lieu      Lieu         @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  rang      Int          @db.SmallInt
+
+  @@id([articleId, lieuId])
+  @@index([lieuId])
+  @@map("lieux_articles_actus")
+}
+
+model JaimeArticleActus {
+  compteId  Int          @map("compte_id")
+  compte    Compte       @relation(fields: [compteId], references: [id], onDelete: Cascade)
+  articleId Int          @map("article_id")
+  article   ArticleActus @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  creeLe    DateTime     @default(now()) @map("cree_le") @db.Timestamptz(0)
+
+  @@id([compteId, articleId])
+  @@index([articleId])
+  @@map("jaimes_articles_actus")
+}
+
+model ReponseLieuActus {
+  id         Int          @id @default(autoincrement())
+  articleId  Int          @map("article_id")
+  article    ArticleActus @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  lieuId     Int          @map("lieu_id")
+  lieu       Lieu         @relation(fields: [lieuId], references: [id], onDelete: Cascade)
+  ecritParId Int?         @map("ecrit_par_id")
+  ecritPar   Compte?      @relation("ReponsesActusEcrites", fields: [ecritParId], references: [id], onDelete: SetNull)
+  texte      String       @db.VarChar(500)
+  statut     String       @default("en-relecture") @db.VarChar(12)
+  reecrite   Boolean      @default(false)
+  refusMotif String?      @map("refus_motif") @db.VarChar(16)
+  envoyeLe   DateTime     @default(now()) @map("envoye_le") @db.Timestamptz(0)
+  decideLe   DateTime?    @map("decide_le") @db.Timestamptz(0)
+
+  @@unique([articleId, lieuId])
+  @@index([statut, envoyeLe])
+  @@map("reponses_lieux_actus")
+}

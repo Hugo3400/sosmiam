@@ -3,13 +3,15 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ChoixFichierImage } from "~/composants/pro/ChoixFichierImage";
 import { MessageImageLieu, type EtatMessageImageLieu } from "~/composants/pro/MessageImageLieu";
 import { RecadrageImage } from "~/composants/pro/RecadrageImage";
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
 import { appelerRouteImageLieu } from "~/fonctions/pro/appeler-route-image-lieu";
 import { calculerCadreRecadrage } from "~/fonctions/pro/calculer-cadre-recadrage";
 import { choisirMessageImageLieu } from "~/fonctions/pro/choisir-message-image-lieu";
 import { exporterImageLieu } from "~/fonctions/pro/exporter-image-lieu";
 import { ouvrirImageLocale, POIDS_MAX_IMAGE_SOURCE } from "~/fonctions/pro/ouvrir-image-locale";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { BrouillonImageLieu, ReponseImageLieu } from "~/types/images-lieu";
 import { REGLES_IMAGES_LIEU, type ImageLieu } from "../../../../../packages/commun/src/regles/images-lieu.ts";
 
@@ -31,7 +33,8 @@ const classeBouton = "inline-flex items-center justify-center rounded-full borde
 const classeLien = "font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-encre";
 
 export function EditeurImageLieu({ lieuId, quelle, actuelle, connue, brouillon, onBrouillon, onEnregistree }: Props) {
-  const T = TEXTES_IMAGES_LIEU;
+  const langue = utiliserLangue();
+  const T = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE);
   const TI = T.images[quelle];
   const regle = REGLES_IMAGES_LIEU[quelle];
   const [occupation, setOccupation] = useState<Occupation | null>(null);
@@ -66,7 +69,7 @@ export function EditeurImageLieu({ lieuId, quelle, actuelle, connue, brouillon, 
   }, [confirmation]);
 
   const signalerEchec = (reponse: Extract<ReponseImageLieu, { ok: false }>) =>
-    setMessage({ ok: false, ...choisirMessageImageLieu(reponse.erreur, reponse.jusqua), connexion: reponse.erreur === "session-expiree" });
+    setMessage({ ok: false, ...choisirMessageImageLieu(reponse.erreur, reponse.jusqua, langue), connexion: reponse.erreur === "session-expiree" });
 
   async function choisir(fichier: File) {
     setMessage(null);

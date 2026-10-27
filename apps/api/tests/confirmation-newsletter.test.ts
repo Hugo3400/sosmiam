@@ -15,14 +15,14 @@ const banc = { horloge: Date.parse("2026-10-22T10:00:00Z"), envoiEnPanne: false 
 const horloge = () => banc.horloge;
 const memoire = creerConfirmationsNewsletterEnMemoire();
 const desinscrits = new Set<string>();
-const envois: { email: string; lien: string; expireLe: Date; source: string }[] = [];
+const envois: { email: string; lien: string; expireLe: Date; source: string; langue?: string }[] = [];
 
 const demandes = creerDemandesNewsletter({
   depot: memoire.depot,
   horloge,
   estDesinscrit: async (email) => desinscrits.has(email),
-  envoyerLien: async (email, lien, expireLe, source) => {
-    envois.push({ email, lien, expireLe, source });
+  envoyerLien: async (email, lien, expireLe, source, langue) => {
+    envois.push({ email, lien, expireLe, source, langue });
     return banc.envoiEnPanne ? { ok: false, erreur: "envoi-refuse" } : { ok: true };
   },
 });
@@ -84,13 +84,13 @@ test("choisirEnvoiConfirmation : nouvelle sans attente ou après expiration, rie
 
 test("le mail : objet sans « newsletter SOS Miam » ni « désinscri » (lus par recuperer-inscrits.py), lien et échéance, pied selon l'origine", () => {
   const lien = "https://sosmiam.fr/confirmer-newsletter?jeton=AbCdEfGhIjKlMnOpQrStUvWxYz0123456789_-abcd";
-  const site = composerCourrielConfirmation({ lien, expireLe: new Date("2026-10-29T10:00:00Z"), source: "site" });
+  const site = composerCourrielConfirmation({ lien, expireLe: new Date("2026-10-29T10:00:00Z"), source: "site", langue: "fr" });
   assert.doesNotMatch(site.objet, /newsletter SOS Miam|d[ée]sinscri|unsubscribe/i);
   assert.ok(site.html.includes(lien) && site.texte.includes(`Je confirme mon inscription : ${lien}`));
   assert.match(site.texte, /29 octobre à 11:00, une seule fois/);
   assert.match(site.texte, /formulaire « Préviens-moi »/);
   assert.match(site.texte, /Miamis/);
-  const app = composerCourrielConfirmation({ lien, expireLe: new Date("2026-10-29T10:00:00Z"), source: "app" });
+  const app = composerCourrielConfirmation({ lien, expireLe: new Date("2026-10-29T10:00:00Z"), source: "app", langue: "fr" });
   assert.match(app.texte, /création d'un compte SOS Miam/);
 });
 
@@ -261,3 +261,28 @@ test("langue : celle de la demande est gardée avec l'attente, puis recopiée à
   await inscrire({ email: "lou@exemple.fr", ville: "Nice" });
   assert.equal(memoire.attentes.get("lou@exemple.fr")?.langue, "fr");
 });
+
+test("la langue de la demande suit jusqu'au mail de confirmation, et le mail anglais dit la même chose en anglais", async () => {
+  for (const [entete, attendue] of [["en", "en"], [undefined, "fr"]] as const) {
+    envois.length = 0;
+    const reponse = await fetch(`${adresse}/inscriptions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-IP-Visiteur": `198.51.100.${++visiteur % 250}`, ...(entete ? { "X-Langue": entete } : {}) },
+      body: JSON.stringify({ email: `langue-${attendue}@exemple.fr`, ville: "Lyon", source: "site" }),
+    });
+    assert.ok(reponse.status < 300, String(reponse.status));
+    await laisserPasser();
+    assert.equal(envois[0]?.langue, attendue);
+  }
+  const lien = "https://sosmiam.fr/confirmer-newsletter?jeton=abc";
+  const anglais = composerCourrielConfirmation({ lien, expireLe: new Date("2026-10-29T10:00:00Z"), source: "site", langue: "en" });
+  assert.equal(anglais.objet, "One little click to confirm your newsletter 🛟");
+  assert.match(anglais.html, /<html lang="en">/);
+  assert.match(anglais.texte, /The link works until 29 October at 11:00, just once\./);
+  assert.match(anglais.texte, /Confirm my sign-up: https:\/\/sosmiam\.fr\/confirmer-newsletter\?jeton=abc/);
+  assert.match(anglais.texte, /“Keep me posted” form on sosmiam\.fr/);
+  const francais = composerCourrielConfirmation({ lien, expireLe: new Date("2026-10-29T10:00:00Z"), source: "site", langue: "fr" });
+  assert.match(francais.html, /<html lang="fr">/);
+  assert.match(francais.texte, /Je confirme mon inscription : https:\/\/sosmiam\.fr/);
+});
+

@@ -1,6 +1,9 @@
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { FormulaireCompte, type ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { TEXTES_MOT_DE_PASSE_PAR_LANGUE } from "~/contenus/mot-de-passe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   email: string;
@@ -14,17 +17,19 @@ type Props = {
  * L'e-mail, caché et jamais envoyé, dit aux gestionnaires de mots de passe à quel compte rattacher le nouveau.
  */
 export function FormulaireChangerMotDePasse({ email, confirmation }: Props) {
+  const T = utiliserTextes(TEXTES_MOT_DE_PASSE_PAR_LANGUE).changer;
+  const { champs } = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   return (
-    <FormulaireCompte nom="mot-de-passe" bouton="Changer mon mot de passe" viderApresReussite reponseParDefaut={confirmation}>
+    <FormulaireCompte nom="mot-de-passe" bouton={T.bouton} viderApresReussite reponseParDefaut={confirmation}>
       <input type="email" autoComplete="username" value={email} readOnly hidden />
       <div className="grid gap-5">
-        <ChampTexte nom="actuel" libelle="Ton mot de passe actuel" type="password" autoComplete="current-password" />
+        <ChampTexte nom="actuel" libelle={champs.motDePasseActuel} type="password" autoComplete="current-password" />
         <ChampTexte
           nom="nouveau"
-          libelle="Ton nouveau mot de passe"
+          libelle={champs.nouveauMotDePasse}
           type="password"
           autoComplete="new-password"
-          aide={lierPonctuation("12 caractères au moins (16 si ce ne sont que des chiffres). Astuce : une petite phrase marche très bien.")}
+          aide={lierPonctuation(champs.aideMotDePasse)}
         />
       </div>
     </FormulaireCompte>

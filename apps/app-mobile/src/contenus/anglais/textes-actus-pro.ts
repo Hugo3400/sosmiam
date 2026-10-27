@@ -28,4 +28,5 @@ export const TEXTES_ACTUS_PRO_ANGLAIS: Traduction<typeof TEXTES_ACTUS_PRO> = {
     pasMaintenant: "Not now",
   },
   envoyee: "Reply sent: the Brigade will check it before it goes live.",
+  echec: "Your reply didn't go through. Check your connection or your text, and try again.",
 };

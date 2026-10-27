@@ -23,7 +23,9 @@ import { creerRoutesVuesLieux } from "./routes/vues-lieux.ts";
 import type { DependancesVuesLieux } from "./controleurs/vues-lieux.ts";
 import { creerRoutesEvenementsApp } from "./routes/evenements.ts";
 import type { DependancesEvenementsApp } from "./controleurs/evenements-app.ts";
+import { creerRoutesActus } from "./routes/actus.ts";
 import { creerRoutesAvisApp } from "./routes/avis.ts";
+import type { DependancesActus } from "./controleurs/actus.ts";
 import type { DependancesAvis } from "./controleurs/avis.ts";
 import type { DependancesVisites } from "./controleurs/visites.ts";
 import type { DependancesContenuApp } from "./controleurs/contenu-app.ts";
@@ -117,6 +119,7 @@ type Dependances = {
   /** L'app : avis des lieux (routes /app/avis : avis d'un lieu sans session, le reste avec session, relecture pour un
    * ambassadeur actif) ; seulement avec `comptes`. Les avis du comptoir passent par `visitesApp.avis` */
   avisApp?: DependancesAvis;
+  actusApp?: DependancesActus;
   /** Désinscription de la newsletter par le lien signé des mails (routes /newsletter, sans session ; absentes si non fourni) */
   newsletter?: DependancesNewsletterPublic;
   /** Téléphones inscrits aux notifications push (routes /app/appareils ; seulement avec `comptes`) */
@@ -148,7 +151,7 @@ export function creerApplication({
   enregistrerDemandeLieu, bot, gestion,
   listerLieuxDuPlan, lieuxSite, imagesLieuPro,
   comptes, espaceAmbassadeur, zones, miamSafe,
-  app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp,
+  app, contenuApp, activiteApp, visitesApp, vuesLieux, evenementsApp, avisApp, actusApp,
   newsletter, appareilsApp, annoncesApp,
   defisApp,
   connexionQr,
@@ -169,6 +172,7 @@ export function creerApplication({
   if (comptes) application.use(PREFIXES_COMPTES, interdireCache, express.json({ limit: "16kb" }));
   // Un avis peut faire 1 000 caractères pleins d'accents ou d'emojis : un peu plus de marge
   if (comptes && avisApp) application.use("/app/avis", express.json({ limit: "8kb" }));
+  if (comptes && actusApp) application.use("/app/actus", express.json({ limit: "16kb" }));
   if (carriere) application.use("/carriere", creerRoutesCarriere(carriere));
   if (securite) application.use("/securite", creerRoutesSecurite(securite));
   application.use(express.json({ limit: "4kb" }));
@@ -233,6 +237,7 @@ export function creerApplication({
     // session), avant le routeur /app de l'heure et de la version
     if (evenementsApp) application.use("/app/evenements", creerRoutesEvenementsApp(evenementsApp, protection, limiteConnectee, comptes.horloge ?? Date.now));
     if (avisApp) application.use("/app/avis", creerRoutesAvisApp(avisApp, protection, limiteConnectee, comptes.horloge ?? Date.now, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
+    if (actusApp) application.use("/app/actus", creerRoutesActus(actusApp, protection, limiteConnectee, creerRefuserSiLimite(comptes.limitations?.estLimite, comptes.horloge)));
     // Téléphones inscrits aux notifications (session facultative : le compte vient d'elle si elle est valable)
     if (appareilsApp) application.use("/app/appareils", creerRoutesAppareils(appareilsApp, protection));
     if (annoncesApp) application.use("/app/annonces", creerRoutesAnnoncesApp(annoncesApp, protection));

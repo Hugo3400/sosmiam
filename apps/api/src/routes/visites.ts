@@ -2,6 +2,7 @@ import { Router, type RequestHandler } from "express";
 
 import { lireCompteId } from "../controleurs/comptes-champs.ts";
 import { creerControleursComptoir } from "../controleurs/comptoir.ts";
+import { creerControleursActusPro } from "../controleurs/actus-pro.ts";
 import { creerControleursAvisPro } from "../controleurs/avis-pro.ts";
 import { creerControleursEvenementsPro } from "../controleurs/evenements-pro.ts";
 import { creerControleursMomentLieu } from "../controleurs/moment-lieu.ts";
@@ -94,6 +95,7 @@ export function creerRoutesVisites(
     evenements: d.evenements ? creerControleursEvenementsPro(d.evenements, roleDe, horloge, refuserSiLimite) : null,
     avis: d.avis ? creerControleursAvisPro(d.avis, roleDe, horloge) : null,
     imagesLieu: d.imagesLieu ?? null,
+    actus: d.actus ? creerControleursActusPro(d.actus(roleDe)) : null,
   };
   const avantComptoir = exigerMajeur ? [...avant, exigerMajeur] : avant;
   const comptoir = creerControleursComptoir(c.comptoir, d.ajouterPoints, refuserSiLimite);

@@ -1,5 +1,6 @@
 // La cloche de l'app : les notifications DANS l'app, telles que l'API les rend. Le texte est écrit par l'app : l'API ne
 // donne que le type, qui agit et sur quoi. Les types sont listés dans regles/cloche.ts (TYPES_CLOCHE).
+import type { TypeClocheActus } from "./actus.ts";
 import type { CibleClocheCommunaute, TypeClocheCommunaute } from "./communaute.ts";
 import type { PersonneResume } from "./social.ts";
 
@@ -11,9 +12,10 @@ export type TypeCloche =
   | "nouvel-abonne" | "demande-acceptee" | "bande-ajout" | "bande-acceptee" | "lien-renouvele" | "invitation-sortie"
   | "sortie-lieu-choisi" | "sortie-annulee" | "invitation-groupe" | "liste-coauteur" | "mention" | "reponse-commentaire"
   | "contenu-masque" | "contenu-retire" | "signalement-decide" | "compte-limite"
-  | TypeClocheCommunaute;
+  | TypeClocheCommunaute
+  | TypeClocheActus;
 
-export type CibleCloche = "sortie" | "conversation" | "liste" | "publication" | "commentaire" | "signalement" | "limitation" | CibleClocheCommunaute;
+export type CibleCloche = "sortie" | "conversation" | "liste" | "publication" | "commentaire" | "signalement" | "limitation" | "article-actu" | CibleClocheCommunaute;
 
 export type NotificationClocheApi = {
   id: string;

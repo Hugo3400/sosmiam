@@ -8,11 +8,11 @@ export const RUBRIQUES_ACTUS_GESTION: Record<RubriqueActus, { libelle: string; e
 };
 
 export const VERIFICATIONS_ACTUS = [
-  "Photos : à l'auteur ou autorisées, pas de visage sans accord",
-  "Lieux cités publiés, et vraiment ceux du texte",
-  "Cadeau du lieu : la mention « Collaboration commerciale » si besoin",
-  "Alcool : jamais d'incitation (le message sanitaire s'ajoute seul)",
-  "Personne visée ou nommée sans accord, propos blessants",
+  { cle: "photos", texte: "Photos : à l'auteur ou autorisées, pas de visage sans accord" },
+  { cle: "lieux", texte: "Lieux cités publiés, et vraiment ceux du texte" },
+  { cle: "collaboration", texte: "Cadeau du lieu : la mention « Collaboration commerciale » si besoin" },
+  { cle: "alcool", texte: "Alcool : jamais d'incitation (le message sanitaire s'ajoute seul)" },
+  { cle: "personnes", texte: "Personne visée ou nommée sans accord, propos blessants" },
 ] as const;
 
 export const VUES_ACTUS = [
@@ -29,7 +29,6 @@ export const TEXTES_ACTUS = {
   titre: "Actus à relire",
   sousTitre: "Chaque article des Miamis passe par la Brigade avant d'être publié. Coche ce que tu as vérifié, puis publie, demande une retouche ou refuse avec un motif.",
   actualiser: "Actualiser",
-  exemple: "Données d'exemple : les vrais articles arriveront ici quand l'API des Actus sera branchée. Tes décisions ne partent nulle part pour l'instant.",
   vides: {
     "a-relire": { emoji: "🎉", titre: "Rien à relire : la Brigade est à jour" },
     reponses: { emoji: "💬", titre: "Aucune réponse de lieu à relire" },
@@ -60,6 +59,11 @@ export const TEXTES_ACTUS = {
   aVerifier: "À vérifier",
   publier: "Publier",
   aidePublier: (points: number) => `Coche les 5 points pour publier. L'auteur gagne ${points} points.`,
+  aLaUne: "Mettre à la une",
+  aideALaUne: "Un seul article à la une : celui-ci remplacera l'actuel.",
+  caseAlcool: "Ajouter le message sanitaire",
+  aideAlcool: "Si l'article parle d'alcool sans que le serveur l'ait repéré.",
+  alcoolRepere: "Déjà ajouté : l'article cite un bar ou parle d'alcool.",
   messageRetouche: "Message à l'auteur (pour « À retoucher »)",
   placeholderRetouche: "Ce qu'il faut changer, avec gentillesse.",
   retoucher: "À retoucher",
@@ -86,8 +90,13 @@ export const TEXTES_ACTUS = {
     annuler: "Annuler",
     confirmer: "Refuser",
   },
+  erreurs: {
+    "deja-decide": "Déjà décidé depuis un autre poste : la liste vient d'être actualisée.",
+    "article-introuvable": "Cet article n'existe plus : la liste vient d'être actualisée.",
+    introuvable: "Cette réponse n'existe plus : la liste vient d'être actualisée.",
+  },
   fait: {
-    publie: (titre: string) => `« ${titre} » est publié.`,
+    publie: (titre: string, aLaUne: boolean) => `« ${titre} » est publié${aLaUne ? ", à la une" : ""}.`,
     retouche: (titre: string) => `« ${titre} » est renvoyé à son auteur pour une retouche.`,
     refuse: (titre: string) => `« ${titre} » est refusé.`,
     reponsePubliee: (lieu: string) => `La réponse de ${lieu} est publiée sous l'article.`,

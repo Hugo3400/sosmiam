@@ -1,7 +1,9 @@
 import { Form, Link, useNavigate } from "react-router";
 
 import { ChampCommune } from "~/composants/fondateurs/ChampCommune";
+import { TEXTES_RECHERCHE_COMMUNE_PAR_LANGUE } from "~/contenus/recherche-commune";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CommuneFondateurs } from "~/types/compte";
 
 type Props = {
@@ -36,7 +38,8 @@ const classeLien = "font-semibold underline decoration-jaune decoration-[3px] un
  * montre la zone (une seule commune trouvée) ou une liste de choix (des liens ?commune=CODE). Avec JavaScript, le champ
  * propose les communes au fil de la frappe et en choisir une ouvre directement ses places, sans recharger la page.
  */
-export function RechercheCommune({ id, page, ancre, libelle, nomChamp = "recherche", aide, valeurInitiale = "", choix, message, bouton = "Chercher", garder = {}, clair = false, autoFocus = false }: Props) {
+export function RechercheCommune({ id, page, ancre, libelle, nomChamp = "recherche", aide, valeurInitiale = "", choix, message, bouton, garder = {}, clair = false, autoFocus = false }: Props) {
+  const T = utiliserTextes(TEXTES_RECHERCHE_COMMUNE_PAR_LANGUE);
   const navigate = useNavigate();
   const adresseChoix = (code: string) => `${page}?${new URLSearchParams({ ...garder, commune: code })}`;
   const idChamp = `${id}-recherche`;
@@ -44,7 +47,7 @@ export function RechercheCommune({ id, page, ancre, libelle, nomChamp = "recherc
 
   return (
     <div>
-      <Form method="get" action={`${page}#${ancre}`} preventScrollReset role="search" aria-label={`Chercher ${libelle.toLowerCase()}`}>
+      <Form method="get" action={`${page}#${ancre}`} preventScrollReset role="search" aria-label={T.rechercher(libelle)}>
         {Object.entries(garder).map(([nom, valeur]) => <input key={nom} type="hidden" name={nom} value={valeur} />)}
         <label htmlFor={idChamp} className={`mb-1.5 block text-sm font-semibold ${clair ? "text-creme" : ""}`}>{libelle}</label>
         {aide && <p id={`${id}-aide`} className={`mb-2 text-sm ${clair ? "text-creme/80" : "text-gris"}`}>{lierPonctuation(aide)}</p>}
@@ -66,14 +69,14 @@ export function RechercheCommune({ id, page, ancre, libelle, nomChamp = "recherc
                 ? "border-creme bg-jaune text-encre shadow-[4px_4px_0_#fff] focus-visible:outline-jaune"
                 : "border-encre bg-jaune text-encre shadow-brut focus-visible:outline-encre"}`}
           >
-            {bouton}
+            {bouton ?? T.chercher}
           </button>
         </div>
       </Form>
       {message && <p id={`${id}-message`} className={`mt-3 font-semibold ${clair ? "text-jaune" : "text-rouge-texte"}`}>{lierPonctuation(message)}</p>}
       {choix && choix.length > 0 && (
         <div className="mt-5">
-          <p id={`${id}-choix`} className="mb-2 font-semibold">{lierPonctuation("Plusieurs communes correspondent : choisis la tienne.")}</p>
+          <p id={`${id}-choix`} className="mb-2 font-semibold">{lierPonctuation(T.plusieurs)}</p>
           <ul aria-labelledby={`${id}-choix`} className="grid gap-2 sm:grid-cols-2">
             {choix.map((commune) => (
               <li key={commune.code}>

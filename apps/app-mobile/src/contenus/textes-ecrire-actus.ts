@@ -33,6 +33,9 @@ export const TEXTES_ECRIRE_ACTUS = {
   formulaire: {
     retour: "Retour",
     brouillonGarde: "Brouillon gardé sur ton téléphone",
+    retouche: "Retouche demandée par la Brigade",
+    brigade: "La Brigade :",
+    envoiEnCours: "Envoi en cours…",
     couverture: "Photo de couverture",
     couvertureChoisir: "Choisir la photo",
     couvertureChanger: "Changer la photo",

@@ -1,5 +1,9 @@
 import { Form, useNavigation } from "react-router";
 
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { TEXTES_TABLEAU_PRO_PAR_LANGUE } from "~/contenus/tableau-pro";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 /** Nom du formulaire (champ caché « formulaire ») : l'action de /tableau y répond. */
 export const FORMULAIRE_RATTACHEMENT = "rattachement";
 
@@ -21,6 +25,8 @@ type Props = {
  * quitter un lieu (« retirer »). Formulaire POST : marche sans JavaScript.
  */
 export function BoutonRattachement({ rattachementId, geste, texte, precision, principal = false }: Props) {
+  const T = utiliserTextes(TEXTES_TABLEAU_PRO_PAR_LANGUE);
+  const envoi = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE).envoi;
   const navigation = useNavigation();
   const enCours = navigation.state !== "idle" && navigation.formData?.get("id") === String(rattachementId) && navigation.formData?.get("geste") === geste;
   const classe = principal
@@ -34,7 +40,7 @@ export function BoutonRattachement({ rattachementId, geste, texte, precision, pr
       <input type="hidden" name="formulaire" value={FORMULAIRE_RATTACHEMENT} />
       <input type="hidden" name="id" value={rattachementId} />
       <button type="submit" name="geste" value={geste} className={classe}>
-        {enCours ? "Envoi…" : <>{texte}<span className="sr-only">{` : ${precision}`}</span></>}
+        {enCours ? envoi : <>{texte}<span className="sr-only">{T.precision(precision)}</span></>}
       </button>
     </Form>
   );

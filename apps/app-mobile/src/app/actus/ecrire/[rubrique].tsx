@@ -31,6 +31,7 @@ import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
 import { formaterSaisieDate } from "~/fonctions/dates/formater-saisie-date";
 import { lireDateSaisie } from "~/fonctions/dates/lire-date-saisie";
 import { utiliserBrouillonActus } from "~/hooks/utiliser-brouillon-actus";
+import { utiliserEnvoiActus } from "~/hooks/utiliser-envoi-actus";
 import { utiliserChoixPhotoActus } from "~/hooks/utiliser-choix-photo-actus";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
@@ -38,6 +39,7 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserPeutEcrireActus } from "~/hooks/utiliser-peut-ecrire-actus";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserRetoucheActus } from "~/hooks/utiliser-retouche-actus";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const AUCUNE_ERREUR: ReadonlySet<ChampArticleActus> = new Set();
@@ -50,10 +52,13 @@ export default function EcranEcrireArticleActus() {
   const T = utiliserTextes(TEXTES_ECRIRE_ACTUS_PAR_LANGUE);
   const F = T.formulaire;
   const TA = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE);
-  const { rubrique: brute } = useLocalSearchParams<{ rubrique: string }>();
+  const { rubrique: brute, retouche: retoucheBrute } = useLocalSearchParams<{ rubrique: string; retouche?: string }>();
   const rubrique = RUBRIQUES_ACTUS.find((r) => r === brute) ?? "portrait";
+  const retoucheId = retoucheBrute && /^[1-9]\d{0,8}$/.test(retoucheBrute) ? Number(retoucheBrute) : null;
   const peutEcrire = utiliserPeutEcrireActus();
-  const { brouillon, changer, terminer } = utiliserBrouillonActus(rubrique);
+  const retouche = utiliserRetoucheActus(retoucheId);
+  const { brouillon, changer, terminer } = utiliserBrouillonActus(rubrique, retoucheId === null ? undefined : retouche.brouillon);
+  const envoi = utiliserEnvoiActus();
   const { profil, avatar } = utiliserProfil();
   const { modesOuverts } = utiliserModes();
   const { lieux } = utiliserLieux();
@@ -98,14 +103,14 @@ export default function EcranEcrireArticleActus() {
     setApercu(construireApercuActus(brouillon, lieuxCites, auteur));
   }
 
-  function envoyer() {
+  const annoncer = (texte: string) => setAnnonce((avant) => ({ texte, numero: (avant?.numero ?? 0) + 1 }));
+
+  async function envoyer() {
     setTente(true);
-    if (!validation.ok) {
-      const texte = F.aRevoir(validation.champs.length);
-      setAnnonce((avant) => ({ texte, numero: (avant?.numero ?? 0) + 1 }));
-      return;
-    }
-    void terminer();
+    if (!validation.ok) return annoncer(F.aRevoir(validation.champs.length));
+    const r = await envoi.envoyer(brouillon, retoucheId);
+    if (!r.ok) return annoncer(r.message);
+    await terminer();
     setEnvoye(true);
   }
 
@@ -129,11 +134,17 @@ export default function EcranEcrireArticleActus() {
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       <BarreEtatTheme />
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <EnTeteEcranActus titre={TA.rubriques[rubrique]} detail={F.brouillonGarde} retour={F.retour} onRetour={fermer} />
+        <EnTeteEcranActus titre={TA.rubriques[rubrique]} detail={retoucheId === null ? F.brouillonGarde : F.retouche} retour={F.retour} onRetour={fermer} />
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-6 px-5 pb-10 pt-2">
           {peutEcrire ? null : (
             <EncartReserveAmbassadeurs titre={T.rubrique.reserveTitre} texte={T.rubrique.reserveTexte} bouton={T.rubrique.devenir} adresse={ADRESSE_PROGRAMME_AMBASSADEUR} />
           )}
+          {retouche.message ? (
+            <Text className="rounded-[18px] border-2 border-encre bg-jaune-clair p-4 font-texte text-sm leading-5 text-encre">
+              <Text className="font-texte-gras">{`${F.brigade} `}</Text>
+              {retouche.message}
+            </Text>
+          ) : null}
           <ChampCouvertureActus
             uri={brouillon.couverture}
             preparation={photo.preparation && cible === "couverture"}
@@ -218,7 +229,7 @@ export default function EcranEcrireArticleActus() {
             </Text>
           ) : null}
           <View className="gap-3">
-            <Bouton libelle={F.envoyer} desactive={!peutEcrire} onPress={envoyer} />
+            <Bouton libelle={envoi.enCours ? F.envoiEnCours : F.envoyer} desactive={!peutEcrire || envoi.enCours || retouche.chargement} onPress={() => void envoyer()} />
             <Bouton libelle={F.apercu} variante="blanc" onPress={montrerApercu} />
             <Text className="text-center font-texte text-[13px] text-gris">{F.cloche}</Text>
           </View>

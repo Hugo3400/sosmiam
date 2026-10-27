@@ -1,7 +1,9 @@
 // Comptes de l'espace ambassadeur : appels à l'API, côté serveur uniquement (l'API n'écoute qu'en local, 127.0.0.1:5192).
 // Le jeton de session voyage dans l'en-tête X-Session-Compte, jamais dans une adresse ; l'IP du visiteur (X-IP-Visiteur)
 // ne sert qu'à limiter les essais. Contrat des adresses : apps/api/src/routes/comptes.ts.
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../packages/commun/src/regles/langues.ts";
 import type { CandidatureFondateur, CompteConnecte, NouvelleCandidature, PropositionLieu } from "~/types/compte";
+import { ecrireAttente } from "../fonctions/compte/ecrire-attente.ts";
 import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
@@ -46,20 +48,12 @@ const CODES = new Set<string>([
   "compte-limite", "aucune-limitation", "deja-conteste",
 ]);
 
-/** Ce que disent les pages quand l'API répond « occupe » (trop de mots de passe à vérifier en même temps). */
-export const MESSAGE_OCCUPE = "Il y a beaucoup de monde en ce moment : réessaie dans un instant.";
-
 /**
  * L'attente imposée après des mots de passe faux (« trop-de-demandes », en secondes) dite en mots : « 2 minutes »,
  * « 1 heure et 4 minutes », « 2 heures » (2 heures au plus) ; « quelques minutes » si l'API ne l'a pas donnée.
  */
-export function decrireAttente(secondes?: number): string {
-  if (!secondes || secondes <= 0) return "quelques minutes";
-  const minutes = Math.ceil(secondes / 60);
-  const ecrire = (nombre: number, unite: string) => `${nombre} ${unite}${nombre > 1 ? "s" : ""}`;
-  if (minutes < 60) return ecrire(minutes, "minute");
-  const reste = minutes % 60;
-  return reste ? `${ecrire(Math.floor(minutes / 60), "heure")} et ${ecrire(reste, "minute")}` : ecrire(minutes / 60, "heure");
+export function decrireAttente(secondes?: number, langue: Langue = LANGUE_PAR_DEFAUT): string {
+  return ecrireAttente(secondes, langue);
 }
 
 /** Réponse de l'API : les données demandées, ou un code d'erreur (avec le champ en faute, ou l'attente en secondes). */

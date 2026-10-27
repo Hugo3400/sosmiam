@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton.tsx";
 import { TEXTES_ACTUS } from "~/contenus/actus.ts";
-import type { ReponseLieuARelire } from "~/services/actus.ts";
+import type { RefusActus, ReponseLieuARelire } from "~/services/actus.ts";
 import { ApercuReponseLieuActus } from "./ApercuReponseLieuActus.tsx";
 import { ModaleRefusActus } from "./ModaleRefusActus.tsx";
 
@@ -11,11 +11,12 @@ const T = TEXTES_ACTUS.reponses;
 
 type Props = {
   reponses: ReponseLieuARelire[];
+  enCours: boolean;
   onPublier: (reponse: ReponseLieuARelire) => void;
-  onRefuser: (reponse: ReponseLieuARelire, refus: { motif: string; motivation: string }) => void;
+  onRefuser: (reponse: ReponseLieuARelire, refus: RefusActus) => void;
 };
 
-export function ReponsesLieuxActus({ reponses, onPublier, onRefuser }: Props) {
+export function ReponsesLieuxActus({ reponses, enCours, onPublier, onRefuser }: Props) {
   const [aRefuser, setARefuser] = useState<ReponseLieuARelire | null>(null);
 
   return (
@@ -26,8 +27,8 @@ export function ReponsesLieuxActus({ reponses, onPublier, onRefuser }: Props) {
           <li key={reponse.id} className="grid gap-3 rounded-carte border border-ligne bg-white p-5 lg:grid-cols-[minmax(0,1fr)_auto]">
             <ApercuReponseLieuActus reponse={reponse} />
             <div className="grid content-start gap-2 lg:w-56">
-              <Bouton variante="principal" icone={Send} onClick={() => onPublier(reponse)}>{T.publier}</Bouton>
-              <Bouton variante="danger" icone={Ban} onClick={() => setARefuser(reponse)}>{T.refuser}</Bouton>
+              <Bouton variante="principal" icone={Send} desactive={enCours} onClick={() => onPublier(reponse)}>{T.publier}</Bouton>
+              <Bouton variante="danger" icone={Ban} desactive={enCours} onClick={() => setARefuser(reponse)}>{T.refuser}</Bouton>
             </div>
           </li>
         ))}

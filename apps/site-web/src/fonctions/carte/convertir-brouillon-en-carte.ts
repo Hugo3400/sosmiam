@@ -1,6 +1,8 @@
 import { validerCarteDuLieu } from "../../../../../packages/commun/src/validation/valider-carte-du-lieu.ts";
 import { validerElementCarte } from "../../../../../packages/commun/src/validation/valider-element-carte.ts";
-import { ERREURS_CARTE } from "../../contenus/carte-du-lieu.ts";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../../packages/commun/src/regles/langues.ts";
+import { TEXTES_EDITEUR_CARTE_PAR_LANGUE } from "../../contenus/editeur-carte.ts";
 import type { BrouillonCarte, CarteLieu } from "../../types/carte.ts";
 import { lirePrixSaisi } from "./lire-prix-saisi.ts";
 import { nommerChampCarte } from "./nommer-champ-carte.ts";
@@ -20,7 +22,8 @@ export type CarteConvertie =
  * (validerElementCarte et validerCarteDuLieu de packages/commun, les mêmes que l'API et l'app) : TOUS les champs en faute
  * d'un coup, pas seulement le premier. Une carte sans section devient null (la carte est effacée).
  */
-export function convertirBrouillonEnCarte(brouillon: BrouillonCarte): CarteConvertie {
+export function convertirBrouillonEnCarte(brouillon: BrouillonCarte, langue: Langue = LANGUE_PAR_DEFAUT): CarteConvertie {
+  const ERREURS_CARTE = choisirTextes(TEXTES_EDITEUR_CARTE_PAR_LANGUE, langue).erreurs;
   const erreurs: Record<string, string> = {};
   const sections = brouillon.sections.map((section, i) => {
     const titre = section.titre.trim();

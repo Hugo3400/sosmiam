@@ -1,9 +1,10 @@
 import { Bouton } from "~/composants/interface/Bouton";
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function EncartImagesLieu({ lieuId, gerant }: { lieuId: number; gerant: boolean }) {
-  const T = TEXTES_IMAGES_LIEU.encartFiche;
+  const T = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE).encartFiche;
   return (
     <div className="mb-8 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl border-2 border-encre bg-white px-5 py-4 shadow-brut-petit">
       <div className="flex min-w-0 items-start gap-3">

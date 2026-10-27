@@ -1,5 +1,5 @@
 import { RotateCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import type { StatutArticleActus } from "../../../../../packages/commun/src/types/actus.ts";
 import { Bouton } from "~/composants/interface/Bouton.tsx";
@@ -9,8 +9,17 @@ import { MessageErreur } from "~/composants/interface/MessageErreur.tsx";
 import { Onglets } from "~/composants/interface/Onglets.tsx";
 import { EnTeteEcran } from "~/composants/mise-en-page/EnTeteEcran.tsx";
 import { TEXTES_ACTUS as T, VUES_ACTUS, type VueActus } from "~/contenus/actus.ts";
+import { expliquerErreur } from "~/fonctions/texte/expliquer-erreur.ts";
 import { utiliserChargement } from "~/hooks/utiliser-chargement.ts";
-import { lireFileActus, type ArticleARelire, type ReponseLieuARelire } from "~/services/actus.ts";
+import {
+  lireFileActus,
+  publierArticleActus,
+  publierReponseActus,
+  refuserArticleActus,
+  refuserReponseActus,
+  retoucherArticleActus,
+} from "~/services/actus.ts";
+import { ErreurApi } from "~/services/client-gestion.ts";
 import { ApercuArticleActus } from "./ApercuArticleActus.tsx";
 import { ListeArticlesActus } from "./ListeArticlesActus.tsx";
 import { PanneauRelectureActus } from "./PanneauRelectureActus.tsx";
@@ -24,47 +33,54 @@ const STATUT_DE_LA_VUE: Record<Exclude<VueActus, "reponses">, StatutArticleActus
   refuses: "refuse",
 };
 
-export function EcranActus() {
+export function EcranActus({ onDecision }: { onDecision: () => void }) {
   const { donnees, erreur, chargement, recharger } = utiliserChargement(lireFileActus, []);
-  const [articles, setArticles] = useState<ArticleARelire[]>([]);
-  const [reponses, setReponses] = useState<ReponseLieuARelire[]>([]);
   const [vue, setVue] = useState<VueActus>("a-relire");
   const [choisi, setChoisi] = useState<number | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!donnees) return;
-    setArticles(donnees.articles);
-    setReponses(donnees.reponses);
-  }, [donnees]);
+  const [retour, setRetour] = useState<{ texte: string; erreur: boolean } | null>(null);
+  const [enCours, setEnCours] = useState(false);
 
   if (!donnees) return chargement ? <Chargement /> : <MessageErreur erreur={erreur} reessayer={recharger} />;
 
+  const { articles, reponses } = donnees;
   const aRelire = reponses.filter((reponse) => reponse.statut === "en-relecture");
   const liste = vue === "reponses" ? [] : articles.filter((article) => article.statut === STATUT_DE_LA_VUE[vue]);
   const actuel = liste.find((article) => article.id === choisi) ?? liste[0] ?? null;
   const compteur = (valeur: VueActus) =>
     valeur === "reponses" ? aRelire.length : valeur === "a-relire" ? articles.filter((article) => article.statut === "en-relecture").length : undefined;
-  const maintenant = () => new Date().toISOString();
 
-  function changerArticle(article: ArticleARelire, modification: Partial<ArticleARelire>, texte: string) {
-    setArticles((avant) => avant.map((a) => (a.id === article.id ? { ...a, ...modification } : a)));
-    setChoisi(null);
-    setMessage(texte);
-  }
-
-  function changerReponse(reponse: ReponseLieuARelire, statut: ReponseLieuARelire["statut"], texte: string) {
-    setReponses((avant) => avant.map((r) => (r.id === reponse.id ? { ...r, statut } : r)));
-    setMessage(texte);
+  async function decider(action: () => Promise<unknown>, texte: string) {
+    setEnCours(true);
+    setRetour(null);
+    try {
+      await action();
+      setChoisi(null);
+      setRetour({ texte, erreur: false });
+      recharger();
+      onDecision();
+    } catch (probleme) {
+      const code = probleme instanceof ErreurApi ? probleme.code : null;
+      const connue = code === "deja-decide" || code === "article-introuvable" || code === "introuvable";
+      setRetour({ texte: connue ? T.erreurs[code] : expliquerErreur(probleme instanceof ErreurApi ? probleme : null), erreur: true });
+      if (connue) {
+        recharger();
+        onDecision();
+      }
+    } finally {
+      setEnCours(false);
+    }
   }
 
   const vide = T.vides[vue];
 
   return (
     <>
-      <EnTeteEcran titre={T.titre} sousTitre={T.sousTitre} actions={<Bouton icone={RotateCw} onClick={recharger}>{T.actualiser}</Bouton>} />
-      {donnees.exemple && <p className="mb-4 rounded-xl bg-jaune-clair px-4 py-2 text-sm">{T.exemple}</p>}
-      {message && <p role="status" className="mb-4 rounded-xl bg-vert-clair px-4 py-2 text-sm font-semibold text-vert">{message}</p>}
+      <EnTeteEcran titre={T.titre} sousTitre={T.sousTitre} actions={<Bouton icone={RotateCw} chargement={chargement} onClick={recharger}>{T.actualiser}</Bouton>} />
+      {retour && (
+        <p role={retour.erreur ? "alert" : "status"} className={`mb-4 rounded-xl px-4 py-2 text-sm font-semibold ${retour.erreur ? "bg-rose-alerte text-rouge-texte" : "bg-vert-clair text-vert"}`}>
+          {retour.texte}
+        </p>
+      )}
       <Onglets
         libelle={T.titre}
         valeur={vue}
@@ -72,7 +88,7 @@ export function EcranActus() {
         onChange={(valeur) => {
           setVue(valeur);
           setChoisi(null);
-          setMessage(null);
+          setRetour(null);
         }}
       />
       <div className="mt-5">
@@ -80,8 +96,9 @@ export function EcranActus() {
           aRelire.length === 0 ? <EtatVide emoji={vide.emoji} titre={vide.titre} /> : (
             <ReponsesLieuxActus
               reponses={aRelire}
-              onPublier={(reponse) => changerReponse(reponse, "publie", T.fait.reponsePubliee(reponse.lieu.nom))}
-              onRefuser={(reponse) => changerReponse(reponse, "refuse", T.fait.reponseRefusee(reponse.lieu.nom))}
+              enCours={enCours}
+              onPublier={(reponse) => decider(() => publierReponseActus(reponse.id), T.fait.reponsePubliee(reponse.lieu.nom))}
+              onRefuser={(reponse, refus) => decider(() => refuserReponseActus(reponse.id, refus), T.fait.reponseRefusee(reponse.lieu.nom))}
             />
           )
         ) : !actuel ? <EtatVide emoji={vide.emoji} titre={vide.titre} /> : (
@@ -91,9 +108,11 @@ export function EcranActus() {
             {actuel.statut === "en-relecture" ? (
               <PanneauRelectureActus
                 key={actuel.id}
-                onPublier={() => changerArticle(actuel, { statut: "publie", publieLe: maintenant() }, T.fait.publie(actuel.titre))}
-                onRetoucher={(texte) => changerArticle(actuel, { statut: "a-retoucher", renvoye: false, retouche: { message: texte, le: maintenant() } }, T.fait.retouche(actuel.titre))}
-                onRefuser={(refus) => changerArticle(actuel, { statut: "refuse", refus: { ...refus, le: maintenant(), contestation: null } }, T.fait.refuse(actuel.titre))}
+                alcoolRepere={actuel.alcool}
+                enCours={enCours}
+                onPublier={(publication) => decider(() => publierArticleActus(actuel.id, publication), T.fait.publie(actuel.titre, publication.aLaUne))}
+                onRetoucher={(message) => decider(() => retoucherArticleActus(actuel.id, message), T.fait.retouche(actuel.titre))}
+                onRefuser={(refus) => decider(() => refuserArticleActus(actuel.id, refus), T.fait.refuse(actuel.titre))}
               />
             ) : <SuiviArticleActus article={actuel} />}
           </div>

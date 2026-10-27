@@ -5,9 +5,9 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BADGES } from "@sos-miam/commun/contenus/badges";
 import type { IdBadge } from "@sos-miam/commun/types/badge";
 import { FamilleBadges } from "~/composants/profil/FamilleBadges";
+import { BADGES_VISIBLES } from "~/contenus/badges-visibles";
 import { FAMILLES_BADGES } from "~/contenus/familles-badges";
 import { TEXTES_BADGES } from "~/contenus/textes-badges";
 import { grouperBadgesParFamille } from "~/fonctions/ambassadeur/grouper-badges-par-famille";
@@ -18,7 +18,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
-const FAMILLES = grouperBadgesParFamille(BADGES, FAMILLES_BADGES);
+const FAMILLES = grouperBadgesParFamille(BADGES_VISIBLES, FAMILLES_BADGES);
 const MARGE_EN_VUE = 16;
 
 export default function Badges() {
@@ -36,9 +36,9 @@ export default function Badges() {
   const obtenus: readonly string[] | null = DEMO_VISITES_ACTIVE
     ? listerBadgesObtenus({ rescousses: activite.rescoussesDonnees, "premiers-sauvetages": activite.premiersSauvetages.length })
     : (compte?.badges ?? null);
-  const nombreObtenus = obtenus ? BADGES.filter((b) => obtenus.includes(b.id)).length : 0;
-  const complete = nombreObtenus >= BADGES.length;
-  const sousTitre = obtenus ? (complete ? TEXTES_BADGES.collectionComplete : TEXTES_BADGES.sousTitre(nombreObtenus, BADGES.length)) : null;
+  const nombreObtenus = obtenus ? BADGES_VISIBLES.filter((b) => obtenus.includes(b.id)).length : 0;
+  const complete = nombreObtenus >= BADGES_VISIBLES.length;
+  const sousTitre = obtenus ? (complete ? TEXTES_BADGES.collectionComplete : TEXTES_BADGES.sousTitre(nombreObtenus, BADGES_VISIBLES.length)) : null;
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
 
   const montrer = useCallback(

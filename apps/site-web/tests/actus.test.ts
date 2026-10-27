@@ -31,6 +31,7 @@ const { ecrireAdresseActus } = await import("../src/fonctions/actus/ecrire-adres
 const { estArticleActusAlcool } = await import("../src/fonctions/actus/est-article-actus-alcool.ts");
 const { estLieuAvecFiche } = await import("../src/fonctions/actus/est-lieu-avec-fiche.ts");
 const { lireIdArticleActus } = await import("../src/fonctions/actus/lire-id-article-actus.ts");
+const { trierReponsesLieux } = await import("../src/fonctions/actus/trier-reponses-lieux.ts");
 const { listerArticlesActus, lireArticleActus } = await import("../src/services/actus.server.ts");
 const { ARTICLES_ACTUS_EXEMPLE } = await import("../src/services/actus-exemple.server.ts");
 const { MESSAGE_SANITAIRE_ALCOOL } = await import("../src/contenus/legal/prevention.ts");
@@ -41,6 +42,7 @@ const { createStaticHandler, createStaticRouter, Outlet, StaticRouterProvider, u
 const pageActus = await import("../src/routes/public/actus.tsx");
 const pageArticle = await import("../src/routes/public/article-actus.tsx");
 const { CorpsArticleActus } = await import("../src/composants/actus/CorpsArticleActus.tsx");
+const { MotsDesLieuxActus } = await import("../src/composants/actus/MotsDesLieuxActus.tsx");
 const { ContexteLangue } = await import("../src/hooks/utiliser-langue.ts");
 
 const afficher = (page: { default: unknown }) => () => h(page.default as never, { loaderData: useLoaderData(), params: {}, matches: [] } as never);
@@ -136,7 +138,7 @@ test("filtres : rubrique et ville lues dans l'adresse, combinées, et jamais une
 });
 
 test("jamais d'article sur un bar ou l'alcool, ni d'article non publié, sur aucune page", async () => {
-  const base = { alcool: false, titre: "Un portrait", accroche: "Une accroche", citation: null, paragraphes: ["Des crêpes et du chocolat chaud."] };
+  const base = { alcool: false, titre: "Un portrait", accroche: "Une accroche", citation: null, paragraphes: ["Des crêpes et du chocolat chaud."], reponsesLieux: [] as { lieuId: number; nomLieu: string; texte: string; repondueLe: string }[] };
   const lieu = { id: 0, nom: "La Crêperie des Miamis", type: "resto" as const, emoji: "🥞", quartier: "Centre", ville: "Lyon", verifie: true };
   assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu] }), false);
   assert.equal(estArticleActusAlcool({ ...base, alcool: true, lieux: [lieu] }), true);
@@ -145,6 +147,9 @@ test("jamais d'article sur un bar ou l'alcool, ni d'article non publié, sur auc
   assert.equal(estArticleActusAlcool({ ...base, paragraphes: ["Un verre offert au comptoir."], lieux: [lieu] }), true);
   assert.equal(estArticleActusAlcool({ ...base, citation: "« Le meilleur spritz du quartier »", lieux: [lieu] }), true);
   assert.equal(estArticleActusAlcool({ ...base, lieux: [{ ...lieu, nom: "Le Bar à cocktails des Miamis" }] }), true);
+  const reponse = { lieuId: lieu.id, nomLieu: lieu.nom, texte: "Merci ! Le café est offert.", repondueLe: "2026-10-25T18:00:00+02:00" };
+  assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu], reponsesLieux: [reponse] }), false);
+  assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu], reponsesLieux: [{ ...reponse, texte: "Merci ! L'apéro est offert." }] }), true);
 
   const { articles } = await listerArticlesActus({ rubrique: null, ville: null });
   assert.ok(articles.every((article) => !estArticleActusAlcool(article) && !article.alcool));
@@ -234,4 +239,33 @@ test("/en/actus : l'interface en anglais, les liens restent en anglais, les arti
   assert.doesNotMatch(html, /Devenir ambassadeur|Toutes les villes/);
   const balises = pageActus.meta({ loaderData: { langue: "en" } } as never) as { title?: string }[];
   assert.ok(balises.some((balise) => balise.title?.startsWith("News from the Miamis")));
+});
+
+test("le mot des lieux : une réponse par bloc, dans l'ordre des lieux de l'article, et aucun bloc sans réponse", async () => {
+  const reponse = (lieuId: number, nomLieu: string) => ({ lieuId, nomLieu, texte: `Mot de ${nomLieu} (${lieuId})`, repondueLe: "2026-10-25T18:00:00+02:00" });
+  const lieux = [{ id: 11 }, { id: 12 }, { id: 13 }];
+  assert.deepEqual(trierReponsesLieux([reponse(13, "C"), reponse(99, "Inconnu"), reponse(11, "A")], lieux).map((un) => un.lieuId), [11, 13, 99]);
+  const homonymes = [{ id: 21 }, { id: 22 }];
+  const triees = trierReponsesLieux([reponse(22, "Chez Nous"), reponse(21, "Chez Nous")], homonymes);
+  assert.deepEqual(triees.map((un) => [un.lieuId, un.texte]), [[21, "Mot de Chez Nous (21)"], [22, "Mot de Chez Nous (22)"]]);
+  const lieuHomonyme = { nom: "Chez Nous", type: "resto" as const, emoji: "🍲", quartier: "Centre", ville: "Lyon", verifie: true };
+  const rendu = renderToString(
+    h(MotsDesLieuxActus, { article: { lieux: [{ ...lieuHomonyme, id: 21 }, { ...lieuHomonyme, id: 22 }], reponsesLieux: [reponse(22, "Chez Nous"), reponse(21, "Chez Nous")] } }),
+  );
+  assert.equal(rendu.match(/Le mot du lieu/g)?.length, 2);
+  assert.ok(rendu.indexOf("Mot de Chez Nous (21)") > 0 && rendu.indexOf("Mot de Chez Nous (21)") < rendu.indexOf("Mot de Chez Nous (22)"));
+  const avecDeux = ARTICLES_ACTUS_EXEMPLE.find((article) => article.statut === "publie" && article.reponsesLieux.length > 1);
+  assert.ok(avecDeux && avecDeux.rubrique === "top-quartier");
+  const { html } = await servir(`https://apercu.sosmiam.fr/actus/${avecDeux.id}`);
+  assert.equal(html.match(/>Le mot du lieu<\/h2>/g)?.length, avecDeux.reponsesLieux.length);
+  const ordreLieux = avecDeux.lieux.filter((lieu) => avecDeux.reponsesLieux.some((un) => un.lieuId === lieu.id)).map((lieu) => lieu.nom);
+  assert.equal(new Set(avecDeux.lieux.map((lieu) => lieu.id)).size, avecDeux.lieux.length);
+  const positions = ordreLieux.map((nom) => html.indexOf(`<p lang="fr" class="font-bold">${nom}</p>`));
+  assert.ok(positions.every((position) => position > 0));
+  assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
+  const ids = [...html.matchAll(/<section aria-labelledby="([^"]+)"[^>]*border-dashed/g)].map(([, id]) => id);
+  assert.equal(new Set(ids).size, avecDeux.reponsesLieux.length);
+  const sansReponse = ARTICLES_ACTUS_EXEMPLE.find((article) => article.statut === "publie" && article.reponsesLieux.length === 0 && !estArticleActusAlcool(article));
+  assert.ok(sansReponse);
+  assert.doesNotMatch((await servir(`https://apercu.sosmiam.fr/actus/${sansReponse.id}`)).html, /Le mot du lieu/);
 });

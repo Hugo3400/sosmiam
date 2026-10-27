@@ -1,4 +1,6 @@
 import { PHRASE_MIAM_SAFE } from "../regles/miam-safe.ts";
+import type { ParLangue } from "../types/traduction.ts";
+import { ENGAGEMENTS_CHARTE_MIAM_SAFE_ANGLAIS } from "./anglais/charte-miam-safe.ts";
 
 export type EngagementCharteMiamSafe = { titre: string; texte: string };
 
@@ -20,3 +22,8 @@ export const ENGAGEMENTS_CHARTE_MIAM_SAFE: readonly EngagementCharteMiamSafe[] =
     texte: "Si quelqu'un nous raconte un souci dans le lieu, l'équipe SOS Miam peut te contacter. Après un signalement grave, elle peut retirer la charte et le badge.",
   },
 ];
+
+export const ENGAGEMENTS_CHARTE_MIAM_SAFE_PAR_LANGUE: ParLangue<readonly EngagementCharteMiamSafe[]> = {
+  fr: ENGAGEMENTS_CHARTE_MIAM_SAFE,
+  en: ENGAGEMENTS_CHARTE_MIAM_SAFE_ANGLAIS,
+};

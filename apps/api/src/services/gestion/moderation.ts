@@ -10,6 +10,8 @@ import { appliquerDecisionCommunaute } from "../communaute-moderation.ts";
 import { creerStockageMediasChat } from "../stockage-medias-chat.ts";
 import { retirerImageLieuModeree } from "../images-lieu.ts";
 import { enregistrerSignalementImageLieu, lireCibleImageLieu, type SignalementImageLieuRecu } from "../images-lieu-signalements.ts";
+import { listerActusARelire } from "./actus-a-relire.ts";
+import { lireActusGestion } from "./actus-gestion.ts";
 import { CIBLES_AVIS, CIBLES_COMMUNAUTE } from "./cibles-moderation.ts";
 import type { MotifModeration } from "./motifs-moderation.ts";
 
@@ -61,6 +63,12 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     })
     : [];
   const avisParId = new Map(avis.map(({ photo, ...a }) => [String(a.id), { ...a, avecPhoto: photo !== null }]));
+  const idsDe = (cible: string) => [...new Set(signalements.filter((s) => s.cible === cible).map((s) => Number(s.cibleId)).filter(Number.isSafeInteger))];
+  const actus = idsDe("article-actu").length + idsDe("reponse-actu").length > 0
+    ? await listerActusARelire(baseDeDonnees, { articles: idsDe("article-actu"), reponses: idsDe("reponse-actu") })
+    : { articles: [], reponses: [] };
+  const articlesParId = new Map(actus.articles.map((a) => [String(a.id), a]));
+  const reponsesParId = new Map(actus.reponses.map((r) => [String(r.id), r]));
   const instantanes = new Map(signalements.map((s) => [s.id, lireInstantane(social, s)]));
   const [lieux, signaleurs] = await Promise.all([
     lireLieuxDesInstantanes([...instantanes.values()].map((i) => (i?.etat === "lu" ? i.contenu : undefined))),
@@ -71,6 +79,8 @@ export async function listerSignalements(statut: string, social?: ModerationSoci
     urgent: RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(signalement.raison),
     publication: signalement.cible === "publication" ? parId.get(signalement.cibleId) ?? null : null,
     avis: (CIBLES_AVIS as readonly string[]).includes(signalement.cible) ? avisParId.get(signalement.cibleId) ?? null : null,
+    article: signalement.cible === "article-actu" ? articlesParId.get(signalement.cibleId) ?? null : null,
+    reponseActus: signalement.cible === "reponse-actu" ? reponsesParId.get(signalement.cibleId) ?? null : null,
     instantane: instantanes.get(signalement.id) ?? null,
     avecMedia: fichierMedia !== null || (signalement.cible === "profil" && avatarEnPhoto(instantanes.get(signalement.id))),
     signaleur: signalement.signaleParId ? signaleurs[signalement.signaleParId] ?? null : null,
@@ -111,6 +121,10 @@ export async function deciderSignalement(
     if (avis && decision === "rejete" && reexamen && (CIBLES_AVIS as readonly string[]).includes(signalement.cible) && Number.isSafeInteger(idAvis)) {
       retabli = signalement.cible === "avis" ? await avis.retablirAvisDans(transaction, idAvis, maintenant) : await avis.retablirReponseAvisDans(transaction, idAvis, maintenant);
     }
+    const actus = decision === "rejete" && reexamen ? lireActusGestion() : null;
+    const idActu = Number(signalement.cibleId);
+    if (actus && signalement.cible === "article-actu" && Number.isSafeInteger(idActu)) await actus.retablirArticleDans(transaction, idActu);
+    if (actus && signalement.cible === "reponse-actu" && Number.isSafeInteger(idActu)) await actus.retablirReponseDans(transaction, idActu);
     await prendre(transaction);
     const idPublication = Number(signalement.cibleId);
     if (signalement.cible === "publication" && Number.isInteger(idPublication)) {

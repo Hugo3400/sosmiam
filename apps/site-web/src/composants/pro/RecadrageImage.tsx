@@ -2,11 +2,13 @@ import { useId, useRef, type PointerEvent } from "react";
 
 import { CurseurRecadrage } from "~/composants/pro/CurseurRecadrage";
 import { ToileRecadrage } from "~/composants/pro/ToileRecadrage";
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
 import { calculerCadreRecadrage, ZOOM_MAX_RECADRAGE } from "~/fonctions/pro/calculer-cadre-recadrage";
 import { deplacerReglageRecadrage } from "~/fonctions/pro/deplacer-reglage-recadrage";
 import { detecterImageAgrandie } from "~/fonctions/pro/detecter-image-agrandie";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { ReglageRecadrage } from "~/types/images-lieu";
 import { REGLES_IMAGES_LIEU, type ImageLieu } from "../../../../../packages/commun/src/regles/images-lieu.ts";
 
@@ -24,10 +26,12 @@ const DAMIER = {
   backgroundImage: "conic-gradient(#EDE6D3 25%, #FFFFFF 0 50%, #EDE6D3 0 75%, #FFFFFF 0)",
   backgroundSize: "20px 20px",
 };
-const formatZoom = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
+const FORMATS_ZOOM = { fr: new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }), en: new Intl.NumberFormat("en-GB", { maximumFractionDigits: 2 }) };
 
 export function RecadrageImage({ quelle, source, reglage, onReglage }: Props) {
-  const T = TEXTES_IMAGES_LIEU.recadrage;
+  const langue = utiliserLangue();
+  const TL = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE);
+  const T = TL.recadrage;
   const regle = REGLES_IMAGES_LIEU[quelle];
   const dimensions = { largeur: source.width, hauteur: source.height };
   const cadre = calculerCadreRecadrage(dimensions, regle, reglage);
@@ -62,7 +66,7 @@ export function RecadrageImage({ quelle, source, reglage, onReglage }: Props) {
       <div
         ref={zone}
         role="img"
-        aria-label={TEXTES_IMAGES_LIEU.images[quelle].zone}
+        aria-label={TL.images[quelle].zone}
         aria-describedby={idAide}
         onPointerDown={commencer}
         onPointerMove={glisser}
@@ -83,7 +87,7 @@ export function RecadrageImage({ quelle, source, reglage, onReglage }: Props) {
           max={ZOOM_MAX_RECADRAGE}
           pas={PAS_ZOOM}
           valeur={reglage.zoom}
-          valeurTexte={T.valeurZoom(formatZoom.format(reglage.zoom))}
+          valeurTexte={T.valeurZoom(FORMATS_ZOOM[langue].format(reglage.zoom))}
           onChange={(zoom) => onReglage({ ...reglage, zoom })}
         />
         {dimensions.largeur - cadre.largeur > MARGE_IMMOBILE && (

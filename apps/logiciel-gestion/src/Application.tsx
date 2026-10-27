@@ -236,7 +236,7 @@ export function Application() {
             {ecran === "chasse-aux-bugs" && <EcranChasseAuxBugs onDecision={actualiserAlertes} />}
             {ecran === "versions-app" && <EcranVersionsApp />}
             {ecran === "postes" && <EcranPostes />}
-            {ecran === "actus" && <EcranActus />}
+            {ecran === "actus" && <EcranActus onDecision={actualiserAlertes} />}
             {ecran === "maintenance" && <EcranMaintenance surEtat={alertesServeur.prendreEtat} />}
             {ecran === "reglages" && (
               <EcranReglages

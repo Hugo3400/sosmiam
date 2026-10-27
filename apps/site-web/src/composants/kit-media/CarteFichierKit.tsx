@@ -1,6 +1,7 @@
 import { Bouton } from "~/composants/interface/Bouton";
-import { fichiersKitMedia, type VisuelKit } from "~/contenus/kit-media";
+import { TEXTES_KIT_MEDIA_PAR_LANGUE, fichiersKitMedia, type VisuelKit } from "~/contenus/kit-media";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visuel: VisuelKit;
@@ -13,6 +14,7 @@ type Props = {
  * le titre, et un bouton par format. Des liens simples : le fichier arrive en téléchargement (Content-Disposition).
  */
 export function CarteFichierKit({ visuel, poids }: Props) {
+  const T = utiliserTextes(TEXTES_KIT_MEDIA_PAR_LANGUE).carte;
   const fichiers = fichiersKitMedia.filter((fichier) => fichier.visuel === visuel.id);
   const apercu = fichiers.find((fichier) => fichier.format === "SVG") ?? fichiers[0];
   return (
@@ -33,11 +35,11 @@ export function CarteFichierKit({ visuel, poids }: Props) {
           {fichiers.map((fichier) => (
             <li key={fichier.nom} className="flex flex-col items-start gap-1.5">
               <Bouton href={`/kit-media/${fichier.nom}`} petit>
-                Télécharger le {fichier.format}
+                {T.telecharger(fichier.format)}
                 <span className="sr-only">&nbsp;: {lierPonctuation(visuel.titre)}</span>
               </Bouton>
               <span className="text-sm text-gris">
-                {[fichier.format === "SVG" ? "net à toutes les tailles" : fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}
+                {[fichier.format === "SVG" ? T.netPartout : fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}
               </span>
             </li>
           ))}

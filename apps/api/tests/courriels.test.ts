@@ -30,7 +30,7 @@ test("nouveaux essais : 5 min, 30 min, 2 h, 6 h, 24 h, puis abandon", () => {
 });
 
 test("gabarit : le texte est échappé, le bouton et la version texte sont là", () => {
-  const { html, texte } = habillerCourriel({ titre: "Salut <b>Léa</b>", paragraphes: ["1 < 2 & \"ok\""], bouton: { texte: "Y aller", adresse: "https://sosmiam.fr/?a=1&b=2" }, pied: "Pied" });
+  const { html, texte } = habillerCourriel({ titre: "Salut <b>Léa</b>", paragraphes: ["1 < 2 & \"ok\""], bouton: { texte: "Y aller", adresse: "https://sosmiam.fr/?a=1&b=2" }, pied: "Pied", langue: "fr" });
   assert.ok(html.includes("Salut &lt;b&gt;Léa&lt;/b&gt;") && !html.includes("<b>Léa"));
   assert.ok(html.includes("1 &lt; 2 &amp; &quot;ok&quot;"));
   assert.ok(html.includes('href="https://sosmiam.fr/?a=1&amp;b=2"'));
@@ -59,6 +59,7 @@ test("gabarit d'un mail écrit à la main : sans titre, retours à la ligne gard
   const { html, texte } = habillerCourriel({
     paragraphes: ["Salut Léa,\nmerci !", "Ton lien : https://ambassadeur.sosmiam.fr/nouveau-mot-de-passe#jeton=a&b. À bientôt", "Pas de lien : javascript:alert(1)"],
     pied: "Pied",
+    langue: "fr",
   });
   assert.ok(!html.includes("<h1"));
   assert.ok(html.includes("Salut Léa,<br>merci !"));

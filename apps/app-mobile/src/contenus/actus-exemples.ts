@@ -32,7 +32,7 @@ export const articlesActusExemples: ArticleActusAffiche[] = [
     aLaUne: true,
     jaime: 128,
     commentaires: 14,
-    reponseLieu: { nomLieu: "La Cabane d'Émile", texte: "Merci Zoé ! La tarte aux figues te dit merci aussi. On t'attend à la prochaine marée.", repondueLe: "2026-10-25T18:10:00+02:00" },
+    reponsesLieux: [{ lieuId: 13, nomLieu: "La Cabane d'Émile", texte: "Merci Zoé ! La tarte aux figues te dit merci aussi. On t'attend à la prochaine marée.", repondueLe: "2026-10-25T18:10:00+02:00" }],
   },
   {
     id: 2,
@@ -62,7 +62,7 @@ export const articlesActusExemples: ArticleActusAffiche[] = [
     aLaUne: false,
     jaime: 86,
     commentaires: 9,
-    reponseLieu: null,
+    reponsesLieux: [],
   },
   {
     id: 3,
@@ -85,7 +85,7 @@ export const articlesActusExemples: ArticleActusAffiche[] = [
     aLaUne: false,
     jaime: 41,
     commentaires: 3,
-    reponseLieu: null,
+    reponsesLieux: [],
   },
   {
     id: 4,
@@ -112,7 +112,7 @@ export const articlesActusExemples: ArticleActusAffiche[] = [
     aLaUne: false,
     jaime: 57,
     commentaires: 6,
-    reponseLieu: null,
+    reponsesLieux: [],
   },
   {
     id: 5,
@@ -135,7 +135,7 @@ export const articlesActusExemples: ArticleActusAffiche[] = [
     aLaUne: false,
     jaime: 33,
     commentaires: 2,
-    reponseLieu: null,
+    reponsesLieux: [],
   },
 ];
 

@@ -3,10 +3,12 @@ import { useActionData } from "react-router";
 import { remplirModele } from "../../../../../packages/commun/src/fonctions/texte/remplir-modele.ts";
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { FormulaireCompte, type ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
-import { textesLimitation as t } from "~/contenus/limitation-compte";
+import { TEXTES_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
 import { decrireFinLimitation } from "~/fonctions/compte/decrire-fin-limitation";
-import { formaterMomentAParis } from "~/fonctions/dates/formater-moment-a-paris";
+import { ecrireMomentAParisLangue } from "~/fonctions/dates/ecrire-moment-a-paris-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { LimitationCompte } from "~/types/compte";
 
 /** Le nom du formulaire de contestation (champ caché « formulaire »), lu par l'action de « Mon compte » */
@@ -26,11 +28,14 @@ const classeTitreBloc = "mb-1 font-extrabold";
  * ou la contestation envoyée et son état. Avec dignité : on explique, on ne fait pas la morale.
  */
 export function EncadreCompteLimite({ limitation, motif }: Props) {
-  const fin = decrireFinLimitation(limitation.fin);
-  const debut = formaterMomentAParis(limitation.debut) ?? "";
+  const t = utiliserTextes(TEXTES_LIMITATION_PAR_LANGUE);
+  const langue = utiliserLangue();
+  const fin = decrireFinLimitation(limitation.fin, langue);
+  const debut = ecrireMomentAParisLangue(limitation.debut, langue) ?? "";
   const intro = limitation.active ? remplirModele(t.intro, { fin }) : remplirModele(t.introAVenir, { debut, fin });
-  const contesteLe = limitation.contesteLe ? formaterMomentAParis(limitation.contesteLe) : null;
-  const reexamineLe = limitation.reexamineLe ? formaterMomentAParis(limitation.reexamineLe) : null;
+  const contesteLe = limitation.contesteLe ? ecrireMomentAParisLangue(limitation.contesteLe, langue) : null;
+  const reexamineLe = limitation.reexamineLe ? ecrireMomentAParisLangue(limitation.reexamineLe, langue) : null;
+  const motifFrancais = langue === "fr" ? undefined : "fr";
   // Contestation envoyée : le formulaire laisse la place à la contestation ; ce message-ci est lu par les lecteurs d'écran
   const reponse = useActionData<ReponseFormulaire>();
   const envoyee = reponse?.formulaire === FORMULAIRE_CONTESTATION && reponse.ok && limitation.contestation !== null;
@@ -44,13 +49,13 @@ export function EncadreCompteLimite({ limitation, motif }: Props) {
         <div>
           <dt className={classeTitreBloc}>{t.motif}</dt>
           <dd>
-            <strong>{motif.libelle}</strong>
-            {motif.regle && <span className="text-gris">{lierPonctuation(` : « ${motif.regle} ».`)}</span>}
+            <strong lang={motifFrancais}>{motif.libelle}</strong>
+            {motif.regle && <span lang={motifFrancais} className="text-gris">{lierPonctuation(t.regle(motif.regle))}</span>}
           </dd>
         </div>
         <div>
           <dt className={classeTitreBloc}>{t.pourquoi}</dt>
-          <dd className="whitespace-pre-line rounded-2xl border-2 border-encre bg-white px-4 py-3">{limitation.motivation}</dd>
+          <dd lang={motifFrancais} className="whitespace-pre-line rounded-2xl border-2 border-encre bg-white px-4 py-3">{limitation.motivation}</dd>
         </div>
         <div>
           <dt className={classeTitreBloc}>{t.coupeTitre}</dt>

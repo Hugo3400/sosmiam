@@ -1,9 +1,12 @@
 import { BoutonCopier } from "~/composants/kit-media/BoutonCopier";
-import { couleursKitMedia } from "~/contenus/kit-media";
+import { COULEURS_KIT_MEDIA, TEXTES_KIT_MEDIA_PAR_LANGUE } from "~/contenus/kit-media";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Les couleurs de la marque : pastille, nom, code à copier et à quoi elle sert. */
 export function NuancierKit() {
+  const T = utiliserTextes(TEXTES_KIT_MEDIA_PAR_LANGUE);
+  const couleursKitMedia = COULEURS_KIT_MEDIA.map((hex, i) => ({ hex, ...T.couleurs[i] }));
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {couleursKitMedia.map((couleur) => (
@@ -13,7 +16,7 @@ export function NuancierKit() {
             <h3 className="leading-tight font-extrabold">{couleur.nom}</h3>
             <p className="font-mono text-sm font-semibold">{couleur.hex}</p>
             <p className="text-sm text-gris">{lierPonctuation(couleur.usage)}</p>
-            <BoutonCopier texte={couleur.hex} libelle={`le code de la couleur ${couleur.nom}`} />
+            <BoutonCopier texte={couleur.hex} libelle={T.copier.leCode(couleur.nom)} />
           </div>
         </li>
       ))}

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ScrollView, Share, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,7 +13,7 @@ import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/textes-actus";
 import { ecrireDateArticle } from "~/fonctions/actus/ecrire-date-article";
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
-import { utiliserActus } from "~/hooks/utiliser-actus";
+import { utiliserArticleActus } from "~/hooks/utiliser-article-actus";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
@@ -28,11 +28,11 @@ export default function EcranArticleActus() {
   const T = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE);
   const { langue } = utiliserLangue();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const actus = utiliserActus();
-  const article = actus.trouver(Number(id));
+  const { chargement, article, commentaires, basculerJaime } = utiliserArticleActus(Number(id));
   const { lieux } = utiliserLieux();
   const positions = useMemo(() => new Map(lieux.map((l) => [l.id, l.position ?? null])), [lieux]);
-  const [aime, setAime] = useState(false);
+
+  if (chargement) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
 
   if (!article) {
     return (
@@ -57,22 +57,24 @@ export default function EcranArticleActus() {
         <View className="gap-6 px-5 pt-5">
           <ContenuArticle article={article} T={T} onVoir={voir} onYAller={yAller} />
 
-          {article.reponseLieu ? <MotDuLieu reponse={article.reponseLieu} titre={A.motDuLieu(article.reponseLieu.nomLieu)} mention={A.reponseRelue} /> : null}
+          {article.reponsesLieux.map((reponse) => (
+            <MotDuLieu key={reponse.lieuId} reponse={reponse} titre={A.motDuLieu(reponse.nomLieu)} mention={A.reponseRelue} />
+          ))}
 
           <Text className="font-texte text-[13px] leading-5 text-gris">
             {`${A.relu(date)} ${article.collaboration ? A.collaborationOui(article.auteur.prenom) : A.collaborationNon(article.auteur.prenom)}`}
           </Text>
 
           <ActionsArticle
-            jaime={article.jaime + (aime ? 1 : 0)}
-            aime={aime}
+            jaime={article.jaime}
+            aime={article.aime ?? false}
             commentaires={article.commentaires}
             T={A}
-            onAimer={() => setAime((a) => !a)}
+            onAimer={() => void basculerJaime()}
             onEnvoyer={envoyer}
           />
 
-          <CommentairesArticle commentaires={actus.commentaires(article.id)} auteurId={article.auteur.id} titre={A.commentaires(article.commentaires)} plume={A.plume} />
+          <CommentairesArticle commentaires={commentaires} auteurId={article.auteur.id} titre={A.commentaires(article.commentaires)} plume={A.plume} />
         </View>
       </ScrollView>
     </View>

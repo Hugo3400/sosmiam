@@ -13,10 +13,11 @@ import { lireEspaceMonCompte } from "../src/fonctions/hotes/lire-espace-mon-comp
 // @ts-ignore : même raison
 import { ecrireAdresseMail } from "../src/fonctions/texte/ecrire-adresse-mail.ts";
 // @ts-ignore : même raison
-import { AIDE_APPLE_GOOGLE, DELAI_REPONSE, droitsRgpd, mailSuppression, RESTE_APRES_SUPPRESSION } from "../src/contenus/mon-compte.ts";
+import { TEXTES_MON_COMPTE } from "../src/contenus/mon-compte.ts";
 // @ts-ignore : même raison
 import routes from "../src/routes.ts";
 
+const { aideAppleGoogle: AIDE_APPLE_GOOGLE, delaiReponse: DELAI_REPONSE, droitsRgpd, mailSuppression, resteApresSuppression: RESTE_APRES_SUPPRESSION } = TEXTES_MON_COMPTE;
 const AMBASSADEUR = "ambassadeur.sosmiam.fr";
 const PRO = "pro.sosmiam.fr";
 const arbre = [{ path: "", children: routes }] as unknown as RouteObject[];

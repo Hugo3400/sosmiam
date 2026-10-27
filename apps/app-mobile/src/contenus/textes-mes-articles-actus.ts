@@ -13,7 +13,7 @@ export const TEXTES_MES_ARTICLES_ACTUS = {
   titre: "Mes articles",
   retour: "Retour",
   ecrire: "Écrire un article",
-  badges: { "premier-reportage": "Premier reportage", "reporter-de-la-brigade": "Reporter de la Brigade", "grand-reporter": "Grand reporter" },
+  badges: { "premier-reportage": "Premier reportage", "reporter-du-quartier": "Reporter du quartier", "grand-reporter": "Grand reporter" },
   tousLesBadges: "Les trois badges des Actus sont à toi. Chapeau, Grand reporter ! 🎩",
   progression: (publies: number, objectif: number) => `${publies} / ${objectif} publiés`,
   progressionLue: (badge: string) => `Vers le badge ${badge}`,

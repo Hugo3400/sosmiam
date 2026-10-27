@@ -8,9 +8,12 @@ import { LogoApple } from "~/composants/compte/LogoApple";
 import { LogoGoogle } from "~/composants/compte/LogoGoogle";
 import { PartieCompte } from "~/composants/compte/PartieCompte";
 import { Bouton } from "~/composants/interface/Bouton";
-import { AIDE_AJOUTER_MOT_DE_PASSE, AVERTISSEMENT_RELAIS_APPLE, CHAPO_MES_CONNEXIONS } from "~/contenus/mes-connexions";
+import { TEXTES_MES_CONNEXIONS_PAR_LANGUE } from "~/contenus/mes-connexions";
 import { construireAdresseDepart } from "~/fonctions/connexion-externe/construire-adresse-depart";
+import { lireMessageMesConnexions } from "~/fonctions/connexion-externe/lire-message-mes-connexions";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FournisseurExterne } from "~/types/connexion-externe";
 import type { MesConnexions } from "~/types/mes-connexions";
 
@@ -25,15 +28,17 @@ const logos = { apple: <LogoApple className="h-5 w-5" />, google: <LogoGoogle cl
 export function PartieMesConnexions({ connexions }: { connexions: MesConnexions | null }) {
   // Un formulaire de la page vient de répondre : le message de l'adresse (relié, délié…) date d'avant, on ne le montre plus
   const reponse = useActionData();
+  const T = utiliserTextes(TEXTES_MES_CONNEXIONS_PAR_LANGUE);
+  const langue = utiliserLangue();
   if (!connexions) {
     return (
-      <PartieCompte id="mes-connexions" titre="Mes façons de me connecter">
-        <p className="text-gris">{lierPonctuation("On n'arrive pas à lire tes façons de te connecter pour l'instant. Recharge la page dans un petit moment !")}</p>
+      <PartieCompte id="mes-connexions" titre={T.titre}>
+        <p className="text-gris">{lierPonctuation(T.illisible)}</p>
       </PartieCompte>
     );
   }
   const { motDePasse, actifs, pret, email, relaisApple, depart } = connexions;
-  const message = reponse ? null : connexions.message;
+  const message = reponse || !connexions.message ? null : lireMessageMesConnexions(connexions.message.code, connexions.message.avec, langue);
   const fournisseurs = (["google", "apple"] as const).filter((fournisseur) => actifs[fournisseur] || connexions[fournisseur]);
 
   const ligneFournisseur = (fournisseur: FournisseurExterne) => {
@@ -41,23 +46,23 @@ export function PartieMesConnexions({ connexions }: { connexions: MesConnexions 
     const confirmable = motDePasse || actifs[autres[fournisseur]];
     const relier = !relie && actifs[fournisseur] && confirmable && (
       <Bouton href={construireAdresseDepart(fournisseur, depart, null, "relier")} variante="blanc" petit>
-        Relier<span className="sr-only"> mon compte {noms[fournisseur]}</span>
+        {T.relier}<span className="sr-only">{T.monCompte(noms[fournisseur])}</span>
       </Bouton>
     );
     return (
-      <LigneConnexion key={fournisseur} icone={logos[fournisseur]} nom={noms[fournisseur]} actif={relie} etat={relie ? "Relié" : "Pas relié"} action={relier || undefined}>
+      <LigneConnexion key={fournisseur} icone={logos[fournisseur]} nom={noms[fournisseur]} actif={relie} etat={relie ? T.relie : T.pasRelie} action={relier || undefined}>
         {relie ? (
           <DelierConnexion fournisseur={fournisseur} connexions={connexions} />
         ) : confirmable ? undefined : (
-          <p className="text-gris">{lierPonctuation(`Pour relier ${noms[fournisseur]} ici, ajoute d'abord un mot de passe : c'est lui qui confirmera que c'est bien toi.`)}</p>
+          <p className="text-gris">{lierPonctuation(T.pourRelier(noms[fournisseur]))}</p>
         )}
       </LigneConnexion>
     );
   };
 
   return (
-    <PartieCompte id="mes-connexions" titre="Mes façons de me connecter">
-      <p className="mb-5 text-gris">{lierPonctuation(CHAPO_MES_CONNEXIONS)}</p>
+    <PartieCompte id="mes-connexions" titre={T.titre}>
+      <p className="mb-5 text-gris">{lierPonctuation(T.chapo)}</p>
       {message && (
         <p role="status" className={`mb-5 rounded-2xl border-2 border-encre px-5 py-4 font-semibold ${message.reussite ? "bg-jaune-clair" : "bg-rose-alerte"}`}>
           {message.reussite && <span aria-hidden="true">✓ </span>}{lierPonctuation(message.texte)}
@@ -65,11 +70,11 @@ export function PartieMesConnexions({ connexions }: { connexions: MesConnexions 
       )}
       {pret && <ConfirmationConnexion intention={pret.intention} fournisseur={pret.fournisseur} confirme={pret.confirme} connexions={connexions} />}
       <ul className="grid gap-4">
-        <LigneConnexion icone={<span aria-hidden="true">✉️</span>} nom="E-mail et mot de passe" actif={motDePasse} etat={motDePasse ? "Activé" : "Pas encore de mot de passe"}>
+        <LigneConnexion icone={<span aria-hidden="true">✉️</span>} nom={T.emailEtMotDePasse} actif={motDePasse} etat={motDePasse ? T.active : T.pasDeMotDePasse}>
           {!motDePasse && (
-            <FormulaireCompte nom="ajouter-mot-de-passe" bouton="Ajouter un mot de passe" boutonEnvoi="Envoi du lien…">
-              <p className="mb-2">{lierPonctuation(AIDE_AJOUTER_MOT_DE_PASSE.replace("{email}", email))}</p>
-              {relaisApple && <p className="mb-2 rounded-2xl border-2 border-encre bg-jaune-clair px-4 py-3">{lierPonctuation(AVERTISSEMENT_RELAIS_APPLE)}</p>}
+            <FormulaireCompte nom="ajouter-mot-de-passe" bouton={T.ajouterMotDePasse} boutonEnvoi={T.envoiDuLien}>
+              <p className="mb-2">{lierPonctuation(T.aideAjouterMotDePasse.replace("{email}", email))}</p>
+              {relaisApple && <p className="mb-2 rounded-2xl border-2 border-encre bg-jaune-clair px-4 py-3">{lierPonctuation(T.avertissementRelaisApple)}</p>}
             </FormulaireCompte>
           )}
         </LigneConnexion>

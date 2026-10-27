@@ -2,6 +2,7 @@ import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-mode
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { Publication } from "~/contenus/type-publication";
+import { decrireNotificationClocheActus } from "~/fonctions/notifications/decrire-notification-cloche-actus";
 import { decrireNotificationClocheCommunaute } from "~/fonctions/notifications/decrire-notification-cloche-communaute";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -85,6 +86,13 @@ export function decrireNotificationCloche(n: NotificationCloche, { trouverPote, 
       if (n.detail === "retenu") return decrire("🛡️", "On a examiné ton signalement : le contenu est retiré. Merci de veiller au grain !", ...moderation);
       if (n.detail === "rejete") return decrire("🛡️", "On a examiné ton signalement : le contenu respecte nos règles, il reste en ligne. Merci quand même !", ...moderation);
       return decrire("🛡️", "On a examiné ton signalement : merci !", ...moderation);
+    case "actu-publiee":
+    case "actu-a-retoucher":
+    case "actu-refusee":
+    case "actu-lieu-cite":
+    case "actu-reponse-publiee":
+    case "actu-reponse-refusee":
+      return decrireNotificationClocheActus(n);
     default:
       return decrireNotificationClocheCommunaute(n, qui);
   }

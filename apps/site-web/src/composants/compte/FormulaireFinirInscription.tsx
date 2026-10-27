@@ -1,7 +1,13 @@
 import { CaseACocher } from "~/composants/compte/CaseACocher";
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { FormulaireCompte } from "~/composants/compte/FormulaireCompte";
+import { TEXTES_FINIR_INSCRIPTION_PAR_LANGUE } from "~/contenus/finir-inscription";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { TEXTES_INSCRIPTION_COMPTE_PAR_LANGUE } from "~/contenus/inscription-compte";
+import { site } from "~/contenus/legal/informations-legales";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLienLangue } from "~/hooks/utiliser-lien-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FournisseurExterne } from "~/types/connexion-externe";
 
 const classeLien = "font-semibold text-encre underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre";
@@ -19,36 +25,40 @@ type Props = {
  * prénom pré-rempli, date de naissance (dès 18 ans), ville et conditions. Le jeton reste côté serveur, jamais dans la page.
  */
 export function FormulaireFinirInscription({ fournisseur, prenom, email }: Props) {
+  const T = utiliserTextes(TEXTES_FINIR_INSCRIPTION_PAR_LANGUE);
+  const { creerMonCompte } = utiliserTextes(TEXTES_INSCRIPTION_COMPTE_PAR_LANGUE);
+  const { champs, conditions } = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
+  const lien = utiliserLienLangue();
   return (
-    <FormulaireCompte nom="finir-inscription" bouton="Créer mon compte" className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
+    <FormulaireCompte nom="finir-inscription" bouton={creerMonCompte} className="rounded-carte border-2 border-encre bg-white p-6 shadow-brut md:p-10">
       {email && (
         <p className="mb-6 rounded-2xl bg-creme px-4 py-3">
-          {lierPonctuation(`Ton compte SOS Miam sera lié à ${noms[fournisseur]}, avec l'adresse `)}<strong className="break-all">{email}</strong>.
+          {lierPonctuation(T.lieA(noms[fournisseur]))}<strong className="break-all">{email}</strong>.
         </p>
       )}
       <div className="grid gap-5">
-        <ChampTexte nom="prenom" libelle="Ton prénom (ou un surnom)" autoComplete="given-name" maximum={40} valeur={prenom ?? undefined} />
+        <ChampTexte nom="prenom" libelle={champs.prenom} autoComplete="given-name" maximum={40} valeur={prenom ?? undefined} />
         <ChampTexte
           nom="dateNaissance"
-          libelle="Ta date de naissance"
+          libelle={champs.dateNaissance}
           type="date"
           autoComplete="bday"
-          aide={lierPonctuation("SOS Miam, c'est dès 18 ans. Elle est gardée chiffrée avec ton compte, comme pour un compte créé dans l'app.")}
+          aide={lierPonctuation(T.aideDateNaissance)}
         />
-        <ChampTexte nom="ville" libelle="Ta ville" autoComplete="address-level2" maximum={80} aide="Pour te montrer les lieux du coin dans l'app." />
+        <ChampTexte nom="ville" libelle={T.ville} autoComplete="address-level2" maximum={80} aide={T.aideVille} />
       </div>
       <div className="mt-7">
         <CaseACocher nom="cgu">
-          {"J'accepte les "}
-          <a href="https://sosmiam.fr/cgu" target="_blank" rel="noopener" className={classeLien}>
-            conditions d'utilisation<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
+          {conditions.jAccepte}
+          <a href={`https://${site.adresse}${lien("/cgu")}`} target="_blank" rel="noopener" className={classeLien}>
+            {conditions.lien}<span className="sr-only">{conditions.nouvelOnglet}</span>
           </a>
         </CaseACocher>
       </div>
       <p className="mt-5 text-sm text-gris">
-        {lierPonctuation("Ce qu'on fait de tes données : ")}
-        <a href="https://sosmiam.fr/confidentialite#connexion-apple-google" target="_blank" rel="noopener" className={classeLien}>
-          confidentialité<span className="sr-only"> (s'ouvre dans un nouvel onglet)</span>
+        {lierPonctuation(conditions.tesDonnees)}
+        <a href={`https://${site.adresse}${lien("/confidentialite#connexion-apple-google")}`} target="_blank" rel="noopener" className={classeLien}>
+          {conditions.confidentialite}<span className="sr-only">{conditions.nouvelOnglet}</span>
         </a>.
       </p>
     </FormulaireCompte>

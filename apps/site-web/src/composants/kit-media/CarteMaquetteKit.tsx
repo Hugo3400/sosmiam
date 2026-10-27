@@ -1,6 +1,8 @@
+import type { Traduction } from "../../../../../packages/commun/src/types/traduction.ts";
 import { Bouton } from "~/composants/interface/Bouton";
-import type { FichierMaquette, Maquette } from "~/contenus/maquettes-kits";
+import { TEXTES_MAQUETTES_KITS_PAR_LANGUE, type FichierMaquette, type Maquette, type TEXTES_MAQUETTES_KITS } from "~/contenus/maquettes-kits";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   maquette: Maquette;
@@ -11,10 +13,10 @@ type Props = {
 };
 
 /** Ce que dit un bouton : « le PDF A3 », « le PNG », « la série (ZIP) » */
-function decrireFichier(fichier: FichierMaquette): string {
-  if (fichier.format === "PDF") return `le PDF ${fichier.taille}`;
-  if (fichier.format === "ZIP") return "la série (ZIP)";
-  return "le PNG";
+function decrireFichier(fichier: FichierMaquette, T: Traduction<typeof TEXTES_MAQUETTES_KITS>["boutons"]): string {
+  if (fichier.format === "PDF") return T.pdf(fichier.taille);
+  if (fichier.format === "ZIP") return T.serie;
+  return T.png;
 }
 
 /**
@@ -22,6 +24,7 @@ function decrireFichier(fichier: FichierMaquette): string {
  * bouton par fichier. Des liens simples : le fichier arrive en téléchargement, JavaScript ou pas.
  */
 export function CarteMaquetteKit({ maquette, prefixe, poids }: Props) {
+  const T = utiliserTextes(TEXTES_MAQUETTES_KITS_PAR_LANGUE).boutons;
   return (
     <li className="flex flex-col overflow-hidden rounded-carte border-2 border-encre bg-white shadow-brut">
       <div className="flex h-72 items-center justify-center gap-3 border-b-2 border-encre bg-creme p-4">
@@ -44,7 +47,7 @@ export function CarteMaquetteKit({ maquette, prefixe, poids }: Props) {
           {maquette.fichiers.map((fichier) => (
             <li key={fichier.nom} className="flex flex-col items-start gap-1.5">
               <Bouton href={`${prefixe}/${fichier.nom}`} petit>
-                Télécharger {decrireFichier(fichier)}
+                {T.telecharger(decrireFichier(fichier, T))}
                 <span className="sr-only">&nbsp;: {lierPonctuation(maquette.titre)}</span>
               </Bouton>
               <span className="text-sm text-gris">{[fichier.format === "PDF" ? null : fichier.taille, poids[fichier.nom]].filter(Boolean).join(" · ")}</span>

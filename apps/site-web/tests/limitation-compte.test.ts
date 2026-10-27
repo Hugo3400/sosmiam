@@ -45,7 +45,7 @@ const { contesterLimitation } = await import("../src/services/limitation-compte.
 const { decrireFinLimitation } = await import("../src/fonctions/compte/decrire-fin-limitation.ts");
 const { expliquerCompteLimite } = await import("../src/fonctions/compte/expliquer-compte-limite.ts");
 const { lireMotifLimitation } = await import("../src/fonctions/compte/lire-motif-limitation.ts");
-const { textesLimitation } = await import("../src/contenus/limitation-compte.ts");
+const { TEXTES_LIMITATION: textesLimitation } = await import("../src/contenus/limitation-compte.ts");
 const { sectionModerationCgu } = await import("../src/contenus/legal/cgu-moderation.ts");
 const { sectionSignalementsSociaux } = await import("../src/contenus/legal/confidentialite-signalements-sociaux.ts");
 

@@ -1,25 +1,31 @@
 import { data } from "react-router";
 
 import type { Route } from "./+types/ma-fiche";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { Section } from "~/composants/mise-en-page/Section";
 import { EncartImagesLieu } from "~/composants/pro/EncartImagesLieu";
 import { FicheEnLecture } from "~/composants/pro/FicheEnLecture";
 import { FormulaireFiche } from "~/composants/pro/FormulaireFiche";
 import { TitreLieuPro } from "~/composants/pro/TitreLieuPro";
-import { NOMS_CHAMPS } from "~/contenus/infos-pratiques";
+import { TEXTES_FICHE_PRO_PAR_LANGUE } from "~/contenus/fiche-pro";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { garderChampsModifies } from "~/fonctions/pro/garder-champs-modifies";
 import { lireChampsFiche } from "~/fonctions/pro/lire-champs-fiche";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { lireLangueRequete } from "~/services/langue.server";
 import { exigerLieuPro } from "~/services/lieu-pro.server";
 import { modifierFichePro } from "~/services/pro.server";
 import { redirigerSiSessionFermee } from "~/services/session-compte.server";
 import type { ChampsFiche, FichePro } from "~/types/pro";
 
-export function meta({ loaderData }: Route.MetaArgs) {
-  return [...creerMeta({ titre: loaderData ? `Ma fiche · ${loaderData.lieu.nom}` : "Ma fiche", description: "La fiche de ton lieu sur SOS Miam." }), { name: "robots", content: "noindex" }];
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_FICHE_PRO_PAR_LANGUE, langue).meta;
+  return [...creerMeta({ titre: loaderData ? T.titre(loaderData.lieu.nom) : T.titreParDefaut, description: T.description, langue }), { name: "robots", content: "noindex" }];
 }
 
 /** La fiche du lieu et ce que le compte peut en faire (le gérant modifie, l'équipe lit). */
@@ -34,7 +40,11 @@ function lireActuel(lieu: FichePro): ChampsFiche {
   return { nom, adresse, horaires: horaires || null, texte: texte || null, telephone, siteWeb, instagram, animaux, accessible, terrasse, wifi, enfants, parking, paiements, reservation };
 }
 
-const ecrireListe = (champs: string[]) => champs.map((champ) => NOMS_CHAMPS[champ as keyof typeof NOMS_CHAMPS]?.toLowerCase() ?? champ).join(", ");
+type NomsChamps = (typeof TEXTES_FICHE_PRO_PAR_LANGUE)["fr"]["nomsChamps"];
+
+const nommerChamp = (noms: NomsChamps, champ: string) => (Object.hasOwn(noms, champ) ? noms[champ as keyof NomsChamps] : undefined);
+
+const ecrireListe = (noms: NomsChamps, champs: string[]) => champs.map((champ) => nommerChamp(noms, champ)?.toLowerCase() ?? champ).join(", ");
 
 /**
  * Enregistre la fiche (gérant) : seuls les champs qui changent partent. Les infos sont en ligne tout de suite ; le nom et
@@ -44,53 +54,57 @@ export async function action({ request, params }: Route.ActionArgs): Promise<Rep
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   const { jeton, ip, lieu, peutModifier } = await exigerLieuPro(request, params.id);
-  if (!peutModifier) return { ok: false, formulaire: "fiche", message: lierPonctuation("Seul le gérant modifie la fiche.") };
+  const langue = lireLangueRequete(request).langue;
+  const T = choisirTextes(TEXTES_FICHE_PRO_PAR_LANGUE, langue);
+  const M = T.messages;
+  if (!peutModifier) return { ok: false, formulaire: "fiche", message: lierPonctuation(M.reserveAuGerant) };
 
-  const { champs, message, erreurs, valeurs } = lireChampsFiche(formulaire);
+  const { champs, message, erreurs, valeurs } = lireChampsFiche(formulaire, langue);
   for (const nom of Object.keys(erreurs)) erreurs[nom] = lierPonctuation(erreurs[nom]);
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: "fiche", erreurs, valeurs };
 
   const modifies = garderChampsModifies(lireActuel(lieu), champs);
   if (modifies.adresse === null) delete modifies.adresse;
-  if (Object.keys(modifies).length === 0) return { ok: true, formulaire: "fiche", message: lierPonctuation("Rien n'a changé : ta fiche est déjà comme ça !") };
+  if (Object.keys(modifies).length === 0) return { ok: true, formulaire: "fiche", message: lierPonctuation(M.rienChange) };
   const versEquipe = "nom" in modifies || "adresse" in modifies;
 
   const reponse = await modifierFichePro(jeton, ip, lieu.id, { ...modifies, ...(versEquipe && message ? { message } : {}) });
   if (reponse.ok) {
     const phrases: string[] = [];
-    if (reponse.appliques.length > 0) phrases.push(`C'est en ligne : ${ecrireListe(reponse.appliques)}.`);
+    if (reponse.appliques.length > 0) phrases.push(M.enLigne(ecrireListe(T.nomsChamps, reponse.appliques)));
     if (reponse.envoyesAEquipe.length > 0) {
-      phrases.push(`${reponse.envoyesAEquipe.length > 1 ? "Le nom et l'adresse partent" : reponse.envoyesAEquipe[0] === "nom" ? "Le nom part" : "L'adresse part"} vers l'équipe SOS Miam : sa décision s'affichera dans Suggestions.`);
+      phrases.push(reponse.envoyesAEquipe.length > 1 ? M.versEquipe.deux : reponse.envoyesAEquipe[0] === "nom" ? M.versEquipe.nom : M.versEquipe.adresse);
     }
-    if (phrases.length === 0) phrases.push("Rien n'a changé : ta fiche est déjà comme ça !");
+    if (phrases.length === 0) phrases.push(M.rienChange);
     return { ok: true, formulaire: "fiche", message: lierPonctuation(phrases.join(" ")) };
   }
   await redirigerSiSessionFermee(request, reponse.erreur);
-  if (reponse.erreur === "proposition-invalide" && reponse.champ && reponse.champ in NOMS_CHAMPS) {
-    return { ok: false, formulaire: "fiche", erreurs: { [reponse.champ]: lierPonctuation("Ce champ ne passe pas : vérifie-le (longueur, forme, mots).") }, valeurs };
+  if (reponse.erreur === "proposition-invalide" && reponse.champ && reponse.champ in T.nomsChamps) {
+    return { ok: false, formulaire: "fiche", erreurs: { [reponse.champ]: lierPonctuation(M.champInvalide) }, valeurs };
   }
   if (reponse.erreur === "proposition-invalide" && reponse.champ === "message") {
-    return { ok: false, formulaire: "fiche", erreurs: { message: lierPonctuation("Ce petit mot ne passe pas : raccourcis-le un peu.") }, valeurs };
+    return { ok: false, formulaire: "fiche", erreurs: { message: lierPonctuation(M.messageInvalide) }, valeurs };
   }
   // Compte limité : la fiche publique ne change pas tant que ça dure
-  if (reponse.erreur === "compte-limite") return { ok: false, formulaire: "fiche", message: lierPonctuation(expliquerCompteLimite(reponse.jusqua)), valeurs };
+  if (reponse.erreur === "compte-limite") return { ok: false, formulaire: "fiche", message: lierPonctuation(expliquerCompteLimite(reponse.jusqua, langue)), valeurs };
   const texte = reponse.erreur === "trop-de-suggestions"
-    ? "Il y a déjà des changements de nom ou d'adresse en attente : rien n'a été enregistré. Retire le nom et l'adresse pour enregistrer le reste, ou attends la réponse de l'équipe."
+    ? M.tropDeSuggestions
     : reponse.erreur === "reserve-au-gerant"
-      ? "Seul le gérant modifie la fiche."
-      : "Oups, ta fiche n'a pas été enregistrée. Réessaie dans un instant.";
+      ? M.reserveAuGerant
+      : M.panne;
   return { ok: false, formulaire: "fiche", message: lierPonctuation(texte), valeurs };
 }
 
 /** Page /lieu/:id : « Ma fiche » en sections (gérant), ou en lecture (équipe). */
 export default function PageMaFiche({ loaderData }: Route.ComponentProps) {
   const { lieu, peutModifier } = loaderData;
+  const T = utiliserTextes(TEXTES_FICHE_PRO_PAR_LANGUE);
   return (
     <Section fond="creme" etroit className="!pt-10 md:!pt-14">
       <TitreLieuPro
         lieu={lieu}
-        page="Ma fiche"
-        chapo={peutModifier ? lierPonctuation("Horaires, présentation, contact et infos pratiques : en ligne dès que tu enregistres.") : undefined}
+        page={T.page}
+        chapo={peutModifier ? lierPonctuation(T.chapo) : undefined}
       />
       {lieu.estVerifie && <EncartImagesLieu lieuId={lieu.id} gerant={peutModifier} />}
       {peutModifier ? <FormulaireFiche lieu={lieu} /> : <FicheEnLecture lieu={lieu} />}

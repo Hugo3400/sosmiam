@@ -2,9 +2,14 @@
 // celui du « Mon compte » de sosmiam.fr (routes/compte/mon-compte.tsx), qui a sa connexion dans la page même.
 import { redirect } from "react-router";
 
+import { choisirTextes } from "../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
+import { TEXTES_CONNEXION_COMPTE_PAR_LANGUE } from "~/contenus/connexion-compte";
+import { TEXTES_MESSAGES_COMPTE_PAR_LANGUE } from "~/contenus/messages-compte";
+import { ecrireAttente } from "~/fonctions/compte/ecrire-attente";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { connecterCompte, decrireAttente, MESSAGE_OCCUPE } from "~/services/comptes.server";
+import { connecterCompte } from "~/services/comptes.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { lireIpVisiteur, poserCookieSession } from "~/services/session-compte.server";
 
 /**
@@ -15,10 +20,13 @@ export async function connecterDepuisFormulaire(request: Request, formulaire: Fo
   const email = String(formulaire.get("email") ?? "").trim().toLowerCase();
   const motDePasse = String(formulaire.get("motDePasse") ?? "");
   const valeurs = { email };
+  const { langue } = lireLangueRequete(request);
+  const T = choisirTextes(TEXTES_CONNEXION_COMPTE_PAR_LANGUE, langue);
+  const M = choisirTextes(TEXTES_MESSAGES_COMPTE_PAR_LANGUE, langue);
 
   const erreurs: Record<string, string> = {};
-  if (!email) erreurs.email = "Indique ton e-mail.";
-  if (!motDePasse) erreurs.motDePasse = "Indique ton mot de passe.";
+  if (!email) erreurs.email = T.indiqueEmail;
+  if (!motDePasse) erreurs.motDePasse = T.indiqueMotDePasse;
   if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: "connexion", erreurs, valeurs };
 
   const reponse = await connecterCompte(email, motDePasse, lireIpVisiteur(request));
@@ -26,10 +34,10 @@ export async function connecterDepuisFormulaire(request: Request, formulaire: Fo
 
   // Même message pour un e-mail inconnu, un mauvais mot de passe et un compte sans mot de passe (Apple ou Google) : rien
   // n'est révélé sur les comptes existants
-  let message = "Oups, la connexion n'a pas marché. Réessaie dans un instant.";
-  if (reponse.erreur === "identifiants" || reponse.erreur === "champ-invalide") message = "E-mail ou mot de passe incorrect.";
-  if (reponse.erreur === "occupe") message = MESSAGE_OCCUPE;
+  let message = T.pasMarche;
+  if (reponse.erreur === "identifiants" || reponse.erreur === "champ-invalide") message = T.identifiants;
+  if (reponse.erreur === "occupe") message = M.occupe;
   // Après 5 mots de passe faux : 2 minutes d'attente, puis le double à chaque fois, 2 heures au plus
-  if (reponse.erreur === "trop-de-demandes") message = `Trop d'essais : réessaie dans ${decrireAttente(reponse.attente)}.`;
+  if (reponse.erreur === "trop-de-demandes") message = M.tropDEssais(ecrireAttente(reponse.attente, langue));
   return { ok: false, formulaire: "connexion", message: lierPonctuation(message), valeurs };
 }

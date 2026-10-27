@@ -1,45 +1,33 @@
 import { data, redirect } from "react-router";
 
 import type { Route } from "./+types/fondateur";
+
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { EtatCandidature } from "~/composants/ambassadeur/EtatCandidature";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { ChoixCommuneFondateur } from "~/composants/fondateurs/ChoixCommuneFondateur";
 import { TelechargerCarte } from "~/composants/fondateurs/TelechargerCarte";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE } from "~/contenus/candidature-fondateur";
 import { ecrireNumeroFondateur } from "~/fonctions/fondateurs/ecrire-numero-fondateur";
 import { lireCodeCommune } from "~/fonctions/fondateurs/lire-code-commune";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { changerCommuneCandidature, envoyerCandidature, lireCandidature } from "~/services/comptes.server";
 import { resoudreRecherche } from "~/services/fondateurs.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { exigerAmbassadeurActif, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
 import type { EnvieFondateur, ResultatRecherche } from "~/types/compte";
 
 const ENVIES: EnvieFondateur[] = ["denicher", "fiches", "selections", "faire-savoir"];
 
-const messages: Record<string, string> = {
-  pepites: "Parle-nous de tes 3 pépites, en 20 à 1500 caractères.",
-  envies: "Coche au moins une chose que tu aimerais faire.",
-  reseaux: "Tes réseaux font 200 caractères au plus.",
-  motivation: "Dis-nous pourquoi toi, en 20 à 600 caractères.",
-  connuPar: "Cette réponse fait 120 caractères au plus.",
-};
-
-/** Refus de l'API qui ne visent pas un champ (formulaires « candidature » et « commune »). */
-const messagesRefus: Partial<Record<string, string>> = {
-  "candidature-existante": "Tu as déjà une candidature : pas besoin d'en envoyer une autre.",
-  // Les places de la zone viennent d'être prises : la page revient avec « au complet » (FondateursAuComplet)
-  "plus-de-place": "Toutes les places de ta ville viennent d'être prises. Elle rouvrira dès qu'une place se libère.",
-  "champ-invalide": "Choisis ta commune dans la liste, puis réessaie.",
-  "deja-traitee": "L'équipe a déjà répondu à ta candidature : sa commune ne peut plus changer.",
-  "aucune-candidature": "On ne trouve pas ta candidature : recharge la page.",
-  "trop-de-demandes": "Doucement ! Trop d'envois d'affilée : réessaie dans quelques minutes.",
-};
-const MESSAGE_PANNE = "Oups, ça n'est pas passé. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.";
-
-export function meta(_: Route.MetaArgs) {
-  return [...creerMeta({ titre: "Devenir fondateur", description: "Candidate pour être l'un des fondateurs de ta ville." }), { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE, langue);
+  return [...creerMeta({ ...T.meta, langue }), { name: "robots", content: "noindex" }];
 }
 
 /**
@@ -82,13 +70,17 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   const ip = lireIpVisiteur(request);
   const communeCode = lireCodeCommune(formulaire.get("communeCode"));
+  const T = choisirTextes(TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE, lireLangueRequete(request).langue);
+  const messages: Record<string, string> = T.messages;
+  const messagesRefus: Partial<Record<string, string>> = T.refus;
+  const messagePanne = T.panne;
 
   if (formulaire.get("formulaire") === "commune") {
-    if (!communeCode) return { ok: false, formulaire: "commune", message: lierPonctuation(messagesRefus["champ-invalide"] ?? MESSAGE_PANNE) };
+    if (!communeCode) return { ok: false, formulaire: "commune", message: lierPonctuation(messagesRefus["champ-invalide"] ?? messagePanne) };
     const reponse = await changerCommuneCandidature(jeton, ip, communeCode);
     if (reponse.ok) throw redirect("/espace/fondateur?commune-changee=1");
     await redirigerSiSessionFermee(request, reponse.erreur);
-    return { ok: false, formulaire: "commune", message: lierPonctuation(messagesRefus[reponse.erreur] ?? MESSAGE_PANNE) };
+    return { ok: false, formulaire: "commune", message: lierPonctuation(messagesRefus[reponse.erreur] ?? messagePanne) };
   }
 
   const nom = "candidature";
@@ -101,7 +93,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     partantRencontre: formulaire.get("partantRencontre") === "oui" ? "oui" : "",
     connuPar: lireTexte(formulaire, "connuPar"),
   };
-  if (!communeCode) return { ok: false, formulaire: nom, message: lierPonctuation("Choisis d'abord ta commune, juste au-dessus."), valeurs };
+  if (!communeCode) return { ok: false, formulaire: nom, message: lierPonctuation(T.communeDAbord), valeurs };
 
   const erreurs: Record<string, string> = {};
   if (valeurs.pepites.length < 20 || valeurs.pepites.length > 1500) erreurs.pepites = messages.pepites;
@@ -126,7 +118,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (reponse.erreur === "champ-invalide" && reponse.champ && messages[reponse.champ]) {
     return { ok: false, formulaire: nom, erreurs: { [reponse.champ]: messages[reponse.champ] }, valeurs };
   }
-  return { ok: false, formulaire: nom, message: lierPonctuation(messagesRefus[reponse.erreur] ?? MESSAGE_PANNE), valeurs };
+  return { ok: false, formulaire: nom, message: lierPonctuation(messagesRefus[reponse.erreur] ?? messagePanne), valeurs };
 }
 
 /**
@@ -135,15 +127,16 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
  * du choix de commune quand on peut (re)candidater : après un souvenir ou un refus, tout de suite.
  */
 export default function PageFondateur({ loaderData, actionData }: Route.ComponentProps) {
+  const T = utiliserTextes(TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE);
   const { candidature, mode, recherche, communeChangee } = loaderData;
   const carte = candidature && (candidature.statut === "acceptee" || candidature.statut === "souvenir") && candidature.numeroLocal;
   return (
     <Section fond="creme" etroit>
       <TitreSection
         principal
-        chapo={lierPonctuation("Dans chaque ville, des ambassadeurs lancent l'aventure avec nous : plus ou moins de places selon la taille de la ville, et une place par département pour les plus petites communes.")}
+        chapo={lierPonctuation(T.chapo)}
       >
-        Les fondateurs de ta ville
+        {T.titre}
       </TitreSection>
       <div className="grid gap-8">
         {candidature && mode !== "preciser" && mode !== "changer" && (

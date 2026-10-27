@@ -2,6 +2,8 @@ import { createContext, useEffect, useRef, useState, type ReactNode } from "reac
 import { Form, useActionData } from "react-router";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Réponse des actions des formulaires de l'espace ambassadeur. « erreurs » : le message de chaque champ à corriger, dans
@@ -61,7 +63,8 @@ const classeDanger = `inline-flex items-center justify-center rounded-full borde
  * Formulaire de l'espace ambassadeur, accessible et utilisable sans JavaScript (même modèle que FormulaireDemandeLieu) :
  * résumé lu par les lecteurs d'écran (role="status"), focus sur le premier champ en faute, bouton « Envoi… ».
  */
-export function FormulaireCompte({ nom, bouton, boutonEnvoi = "Envoi…", danger, piege, viderApresReussite, reponseParDefaut, children, apres, className = "" }: Props) {
+export function FormulaireCompte({ nom, bouton, boutonEnvoi, danger, piege, viderApresReussite, reponseParDefaut, children, apres, className = "" }: Props) {
+  const T = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   const donnees = useActionData<ReponseFormulaire>();
   // Un autre formulaire de la page vient de répondre : la réussite d'avant (redirection) n'est plus à montrer
   const reponse = donnees?.formulaire === nom ? donnees : donnees ? undefined : reponseParDefaut;
@@ -92,7 +95,7 @@ export function FormulaireCompte({ nom, bouton, boutonEnvoi = "Envoi…", danger
     if (element instanceof HTMLElement) element.focus();
   }, [reponse]);
 
-  const resume = champsEnFaute.length === 1 ? "Un champ est à corriger." : `${champsEnFaute.length} champs sont à corriger.`;
+  const resume = champsEnFaute.length === 1 ? T.unChamp : T.plusieursChamps(champsEnFaute.length);
   const message = !reponse || enAttente ? "" : (reponse.message ?? (champsEnFaute.length > 0 ? resume : ""));
   const zoneMessage = (
     <p
@@ -123,8 +126,8 @@ export function FormulaireCompte({ nom, bouton, boutonEnvoi = "Envoi…", danger
         {!sansJs && zoneMessage}
         <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-3">
           {danger
-            ? <button type="submit" className={classeDanger}>{enAttente ? boutonEnvoi : bouton}</button>
-            : <Bouton type="submit" className="w-full sm:w-auto sm:min-w-52">{enAttente ? boutonEnvoi : bouton}</Bouton>}
+            ? <button type="submit" className={classeDanger}>{enAttente ? (boutonEnvoi ?? T.envoi) : bouton}</button>
+            : <Bouton type="submit" className="w-full sm:w-auto sm:min-w-52">{enAttente ? (boutonEnvoi ?? T.envoi) : bouton}</Bouton>}
           {apres}
         </div>
       </ContexteFormulaire>

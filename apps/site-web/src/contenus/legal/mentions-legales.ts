@@ -11,7 +11,7 @@ export const documentMentionsLegales: DocumentLegal = {
   titre: "Mentions légales",
   description:
     "Qui édite SOS Miam, qui l'héberge, comment nous écrire ou signaler un contenu illicite : toutes les mentions légales du site sosmiam.fr.",
-  miseAJour: "25 octobre 2026",
+  miseAJour: "27 octobre 2026",
   introduction: [
     "Qui se cache derrière SOS Miam, qui héberge le site et comment nous joindre : c'est la page la plus sérieuse du site, mais on a fait en sorte qu'elle reste digeste.",
     `Ces mentions s'appliquent au site **${site.adresse}** et à ses sous-domaines.`,
@@ -138,7 +138,7 @@ export const documentMentionsLegales: DocumentLegal = {
       titre: "Données personnelles et cookies",
       blocs: [
         "SOS Miam ne vend ni ne loue jamais tes données. Ce qui est traité aujourd'hui, pourquoi, combien de temps et comment exercer tes droits : tout est expliqué dans la [politique de confidentialité](/confidentialite).",
-        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seuls cookies posés, tous strictement nécessaires : un cookie de sécurité que notre prestataire ${prestataires.reseau.nom} dépose pour protéger le site, le cookie qui retient ton refus des statistiques si tu le demandes, celui qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro) et, le temps d'une connexion avec Apple ou Google, deux cookies de 10 minutes. La liste complète, avec leurs durées, est sur la page [cookies](/cookies).`,
+        `Le site ne dépose aucun cookie de suivi et n'affiche aucune publicité. Ses statistiques de visite sont comptées par notre serveur, sans cookie, et tu peux refuser d'être compté sur la page [statistiques](/statistiques). Seuls cookies posés, tous strictement nécessaires : un cookie de sécurité que notre prestataire ${prestataires.reseau.nom} dépose pour protéger le site, le cookie qui retient ton refus des statistiques si tu le demandes, celui qui te garde connecté (à « Mon compte », à ton espace ambassadeur ou pro), deux cookies de 10 minutes le temps d'une connexion avec Apple ou Google, et un de 2 minutes quand tu te connectes avec l'app. La liste complète, avec leurs durées, est sur la page [cookies](/cookies).`,
       ],
     },
     {

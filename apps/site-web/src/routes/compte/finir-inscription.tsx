@@ -1,6 +1,7 @@
 import { data, Link, redirect } from "react-router";
 
 import type { Route } from "./+types/finir-inscription";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { CadreAmbassadeur } from "~/composants/ambassadeur/CadreAmbassadeur";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { FormulaireFinirInscription } from "~/composants/compte/FormulaireFinirInscription";
@@ -9,23 +10,20 @@ import { TitreSection } from "~/composants/interface/TitreSection";
 import { CadrePublic } from "~/composants/mise-en-page/CadrePublic";
 import { Section } from "~/composants/mise-en-page/Section";
 import { CadrePro } from "~/composants/pro/CadrePro";
-import { messagesConnexionExterne } from "~/contenus/connexion-externe";
-import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
+import { TEXTES_CONNEXION_EXTERNE_PAR_LANGUE } from "~/contenus/connexion-externe";
+import { TEXTES_FINIR_INSCRIPTION_PAR_LANGUE } from "~/contenus/finir-inscription";
+import { TEXTES_MESSAGES_COMPTE_PAR_LANGUE } from "~/contenus/messages-compte";
 import { choisirCodeConnexionExterne } from "~/fonctions/connexion-externe/choisir-code-connexion-externe";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { connecterAvecFournisseur } from "~/services/comptes.server";
 import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-connexion-externe.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { lireIpVisiteur, poserCookieSession } from "~/services/session-compte.server";
 
 type ReponseFinir = ReponseFormulaire & { refusAge?: boolean };
-
-const messages = {
-  prenom: "Donne ton prénom ou un surnom (40 caractères au plus).",
-  dateNaissance: "Indique ta date de naissance (jour, mois et année).",
-  ville: "Indique ta ville (2 à 80 caractères).",
-  cgu: "Pour créer ton compte, coche la case qui accepte les conditions d'utilisation.",
-};
 
 /** Page propre à chaque personne : jamais gardée par un cache */
 export const middleware: Route.MiddlewareFunction[] = [
@@ -36,8 +34,10 @@ export const middleware: Route.MiddlewareFunction[] = [
   },
 ];
 
-export function meta() {
-  return [...creerMeta({ titre: "Finir ton inscription", description: "Encore trois infos et ton compte SOS Miam est prêt." }), { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_FINIR_INSCRIPTION_PAR_LANGUE, langue);
+  return [...creerMeta({ titre: T.titre, description: T.description, langue }), { name: "robots", content: "noindex" }];
 }
 
 /** L'attente posée par le retour d'Apple ou de Google ; sans elle (expirée, déjà utilisée), retour au départ. */
@@ -58,6 +58,8 @@ export async function action({ request }: Route.ActionArgs) {
   }
   const formulaire = await request.formData().catch(() => null);
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
+  const { langue } = lireLangueRequete(request);
+  const messages = choisirTextes(TEXTES_MESSAGES_COMPTE_PAR_LANGUE, langue);
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\s+/g, " ").trim();
   const valeurs = { prenom: lire("prenom"), dateNaissance: lire("dateNaissance"), ville: lire("ville"), cgu: formulaire.get("cgu") === "oui" ? "oui" : "" };
   const erreurs: Record<string, string> = {};
@@ -89,20 +91,21 @@ export async function action({ request }: Route.ActionArgs) {
   // Jeton expiré entre-temps (Apple : 10 minutes) : on recommence depuis le bouton
   if (reponse.erreur === "jeton-externe-invalide") throw redirect(`${depart}?externe=expire`, { headers: { "Set-Cookie": effacerCookieAttente() } });
   if (reponse.erreur === "champ-invalide" && (reponse.champ === "prenom" || reponse.champ === "dateNaissance" || reponse.champ === "ville")) {
-    const message = reponse.champ === "prenom" ? MESSAGE_PRENOM_REFUSE : messages[reponse.champ];
+    const message = reponse.champ === "prenom" ? messages.prenomRefuse : messages[reponse.champ];
     return { ok: false, formulaire: "finir-inscription", erreurs: { [reponse.champ]: lierPonctuation(message) }, valeurs } satisfies ReponseFinir;
   }
-  const message = messagesConnexionExterne[choisirCodeConnexionExterne(reponse.erreur)];
+  const message = choisirTextes(TEXTES_CONNEXION_EXTERNE_PAR_LANGUE, langue).messages[choisirCodeConnexionExterne(reponse.erreur)];
   return { ok: false, formulaire: "finir-inscription", message: lierPonctuation(message), valeurs } satisfies ReponseFinir;
 }
 
 /** Page /connexion/finir-inscription, dans le cadre de l'espace de départ (site, ambassadeur ou pro). */
 export default function PageFinirInscription({ loaderData, actionData }: Route.ComponentProps) {
   const { espace, fournisseur, prenom, email, depart } = loaderData;
+  const T = utiliserTextes(TEXTES_FINIR_INSCRIPTION_PAR_LANGUE);
   const contenu = (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo={lierPonctuation("Bienvenue chez les Miamis ! Encore trois petites infos et ton compte SOS Miam est prêt.")}>
-        Finir ton inscription
+      <TitreSection principal chapo={lierPonctuation(T.chapo)}>
+        {T.titre}
       </TitreSection>
       <div className="mx-auto max-w-xl">
         {actionData && "refusAge" in actionData && actionData.refusAge ? <RefusAge /> : (
@@ -110,7 +113,7 @@ export default function PageFinirInscription({ loaderData, actionData }: Route.C
             <FormulaireFinirInscription fournisseur={fournisseur} prenom={prenom} email={email} />
             <p className="mt-6 text-center">
               <Link to={depart} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-                {lierPonctuation("Finalement non, je laisse tomber")}
+                {lierPonctuation(T.laisserTomber)}
               </Link>
             </p>
           </>

@@ -1,4 +1,6 @@
-import { ecrireNomAvecArticle } from "~/fonctions/fondateurs/ecrire-nom-avec-article";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
+import type { Langue } from "../../../../../packages/commun/src/regles/langues.ts";
+import { TEXTES_RECHERCHE_COMMUNE_PAR_LANGUE } from "~/contenus/recherche-commune";
 import type { ZoneFondateurs } from "~/types/compte";
 
 /**
@@ -6,10 +8,10 @@ import type { ZoneFondateurs } from "~/types/compte";
  * prises », « Avignon : 1 place, encore libre » ; pour une commune de moins de 50 000 habitants, « Ta commune compte avec
  * le Rhône : 1 place, encore libre » (ou « déjà prise »). Espaces insécables comprises.
  */
-export function decrirePlacesZone(zone: ZoneFondateurs): string {
-  const debut = zone.type === "departement" ? `Ta commune compte avec ${ecrireNomAvecArticle(zone.nomAvecDe, zone.nom)}` : zone.nom;
-  if (zone.places === 1) return `${debut} : 1 place, ${zone.libres > 0 ? "encore libre" : "déjà prise"}`;
-  if (zone.libres === 0) return `${debut} : les ${zone.places} places sont prises`;
-  const libres = zone.libres > 1 ? `${zone.libres} places libres` : "1 place libre";
-  return `${debut} : ${libres} sur ${zone.places}`;
+export function decrirePlacesZone(zone: ZoneFondateurs, langue: Langue): string {
+  const T = choisirTextes(TEXTES_RECHERCHE_COMMUNE_PAR_LANGUE, langue).places;
+  const debut = T.debut(zone);
+  if (zone.places === 1) return T.unePlace(debut, zone.libres > 0);
+  if (zone.libres === 0) return T.toutesPrises(debut, zone.places);
+  return T.libres(debut, zone.libres, zone.places);
 }

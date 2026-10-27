@@ -31,6 +31,7 @@ import { effacerPseudosReservesExpires } from "../services/pseudos-reserves.ts";
 import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts";
 import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
 import { menagerImagesLieu } from "../services/images-lieu-base.ts";
+import { faireLeMenagePhotosActus } from "../services/menage-photos-actus.ts";
 import { faireLeMenagePhotosAvis } from "../services/menage-photos-avis.ts";
 import { faireLeMenageCommunaute } from "../services/menage-communaute.ts";
 import { decrireBilanMenageCommunaute } from "../fonctions/communaute/decrire-bilan-menage-communaute.ts";
@@ -207,6 +208,15 @@ async function nettoyerPhotosAvis() {
   }
 }
 
+async function nettoyerPhotosActus() {
+  try {
+    const effacees = await faireLeMenagePhotosActus();
+    if (effacees > 0) await noterAction("serveur", "Photos des Actus inutilisées effacées (plus de 25 h)", `${effacees} photo(s)`);
+  } catch (erreur) {
+    console.error("Ménage des photos des Actus impossible :", resumerErreur(erreur));
+  }
+}
+
 async function nettoyerImagesLieu() {
   try {
     const effacees = await menagerImagesLieu();
@@ -234,6 +244,7 @@ async function nettoyerPuisSauvegarder() {
   await nettoyerPhotosProfil();
   await nettoyerImagesLieu();
   await nettoyerPhotosAvis();
+  await nettoyerPhotosActus();
   await nettoyerCarriere();
   await nettoyerSecurite();
   await prevenirLesComptesInactifs();

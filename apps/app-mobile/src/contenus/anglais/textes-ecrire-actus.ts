@@ -30,6 +30,9 @@ export const TEXTES_ECRIRE_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ECRIRE_ACTUS>
   formulaire: {
     retour: "Back",
     brouillonGarde: "Draft saved on your phone",
+    retouche: "Tweak requested by the Brigade",
+    brigade: "The Brigade:",
+    envoiEnCours: "Sending…",
     couverture: "Cover photo",
     couvertureChoisir: "Choose the photo",
     couvertureChanger: "Change the photo",

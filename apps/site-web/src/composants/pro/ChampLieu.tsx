@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
+import { EXEMPLES_RATTACHER_LIEU, TEXTES_RATTACHER_LIEU_PAR_LANGUE } from "~/contenus/rattacher-lieu";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { LieuTrouve } from "~/types/pro";
 
 type Props = {
@@ -23,6 +25,7 @@ const DELAI_RECHERCHE = 250;
  * Entrée pour choisir, Échap pour fermer ; Entrée sans choix envoie le formulaire.
  */
 export function ChampLieu({ id, name, valeurInitiale = "", onChoisir, decritPar, invalide = false, className = "" }: Props) {
+  const T = utiliserTextes(TEXTES_RATTACHER_LIEU_PAR_LANGUE).champ;
   const [pret, setPret] = useState(false);
   const [lieux, setLieux] = useState<LieuTrouve[]>([]);
   const [ouvert, setOuvert] = useState(false);
@@ -60,7 +63,7 @@ export function ChampLieu({ id, name, valeurInitiale = "", onChoisir, decritPar,
         setLieux(trouves);
         setActif(-1);
         setOuvert(true);
-        setAnnonce(trouves.length === 0 ? "Aucun lieu trouvé." : `${trouves.length} lieu${trouves.length > 1 ? "x" : ""} proposé${trouves.length > 1 ? "s" : ""}.`);
+        setAnnonce(trouves.length === 0 ? T.aucun : T.trouves(trouves.length));
       } catch {
         // Recherche remplacée par une plus récente, ou réseau coupé : le bouton du formulaire marche toujours
       }
@@ -108,7 +111,7 @@ export function ChampLieu({ id, name, valeurInitiale = "", onChoisir, decritPar,
         autoComplete="off"
         spellCheck={false}
         maxLength={80}
-        placeholder="Chez Jo, Montpellier…"
+        placeholder={EXEMPLES_RATTACHER_LIEU.lieu}
         defaultValue={valeurInitiale}
         onChange={(evenement) => chercher(evenement.currentTarget.value)}
         onFocus={() => setOuvert(true)}
@@ -122,7 +125,7 @@ export function ChampLieu({ id, name, valeurInitiale = "", onChoisir, decritPar,
         <ul
           id={idListe}
           role="listbox"
-          aria-label="Lieux proposés"
+          aria-label={T.liste}
           hidden={!visible}
           onMouseDown={(evenement) => evenement.preventDefault()}
           className="absolute top-full left-0 z-30 mt-2 max-h-[min(20rem,50vh)] w-full overflow-y-auto overscroll-contain rounded-2xl border-2 border-encre
@@ -140,7 +143,7 @@ export function ChampLieu({ id, name, valeurInitiale = "", onChoisir, decritPar,
             >
               <span className="block font-semibold"><span aria-hidden="true">{`${lieu.emoji} `}</span>{lieu.nom}</span>
               <span className={`block text-sm ${position === actif ? "text-jaune-clair" : "text-gris"}`}>
-                {lieu.quartier ? `${lieu.quartier}, ${lieu.ville}` : lieu.ville}{lieu.statut === "brouillon" ? " · pas encore publié" : ""}
+                {lieu.quartier ? `${lieu.quartier}, ${lieu.ville}` : lieu.ville}{lieu.statut === "brouillon" ? T.pasPublie : ""}
               </span>
             </li>
           ))}

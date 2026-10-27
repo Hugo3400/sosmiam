@@ -7,13 +7,19 @@ import { effacerBrouillonActus, garderBrouillonActus, lireBrouillonActusGarde } 
 
 const DELAI_GARDE = 400;
 
-export function utiliserBrouillonActus(rubrique: RubriqueActus) {
+export function utiliserBrouillonActus(rubrique: RubriqueActus, retouche: BrouillonActusSaisi | null | undefined) {
   const [brouillon, setBrouillon] = useState<BrouillonActusSaisi>(() => creerBrouillonActus(rubrique));
   const [pret, setPret] = useState(false);
-  const fini = useRef(false);
+  const fini = useRef(retouche !== undefined);
   const modifie = useRef(false);
+  const [retoucheLue, setRetoucheLue] = useState<BrouillonActusSaisi | null>(null);
+  if (retouche && retouche !== retoucheLue) {
+    setRetoucheLue(retouche);
+    setBrouillon(retouche);
+  }
 
   useEffect(() => {
+    if (retouche !== undefined) return;
     let actif = true;
     void lireBrouillonActusGarde().then((garde) => {
       if (!actif) return;
@@ -23,7 +29,7 @@ export function utiliserBrouillonActus(rubrique: RubriqueActus) {
     return () => {
       actif = false;
     };
-  }, [rubrique]);
+  }, [rubrique, retouche]);
 
   useEffect(() => {
     if (!pret || fini.current || !modifie.current) return;
@@ -39,8 +45,9 @@ export function utiliserBrouillonActus(rubrique: RubriqueActus) {
   }, []);
 
   const terminer = useCallback(async () => {
+    const nouveau = !fini.current;
     fini.current = true;
-    await effacerBrouillonActus();
+    if (nouveau) await effacerBrouillonActus();
   }, []);
 
   return { brouillon, pret, changer, terminer };

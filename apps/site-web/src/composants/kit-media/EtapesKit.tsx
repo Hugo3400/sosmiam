@@ -1,8 +1,10 @@
-import { etapesKitMedia } from "~/contenus/kit-media";
+import { TEXTES_KIT_MEDIA_PAR_LANGUE } from "~/contenus/kit-media";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** « Comment ça marche ? » : les trois étapes, de l'image au post. */
 export function EtapesKit() {
+  const etapesKitMedia = utiliserTextes(TEXTES_KIT_MEDIA_PAR_LANGUE).etapes;
   return (
     <ol className="grid gap-4 md:grid-cols-3">
       {etapesKitMedia.map((etape, i) => (

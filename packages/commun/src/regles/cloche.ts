@@ -20,10 +20,18 @@ export const TYPES_CLOCHE = [
   "contenu-retire",
   "signalement-decide",
   "compte-limite",
+  "actu-publiee",
+  "actu-a-retoucher",
+  "actu-refusee",
+  "actu-lieu-cite",
+  "actu-reponse-publiee",
+  "actu-reponse-refusee",
 ] as const satisfies readonly TypeCloche[];
 
 export const DUREE_CLOCHE_JOURS = 90;
 export const MAX_NOTIFICATIONS_CLOCHE = 200;
 
-export const TYPES_CLOCHE_MODERATION = ["contenu-masque", "contenu-retire", "signalement-decide", "compte-limite"] as const satisfies readonly TypeCloche[];
+export const TYPES_CLOCHE_MODERATION = [
+  "contenu-masque", "contenu-retire", "signalement-decide", "compte-limite", "actu-refusee", "actu-reponse-refusee",
+] as const satisfies readonly TypeCloche[];
 export const DUREE_CLOCHE_MODERATION_JOURS = 183;

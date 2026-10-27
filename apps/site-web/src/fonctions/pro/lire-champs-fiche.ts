@@ -1,3 +1,6 @@
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../../packages/commun/src/regles/langues.ts";
+import { TEXTES_FICHE_PRO_PAR_LANGUE } from "~/contenus/fiche-pro";
 import type { AccueilAnimaux, ChampsFiche, MoyenPaiement, ReservationConseillee } from "~/types/pro";
 
 type Resultat = {
@@ -20,7 +23,8 @@ const OUI_NON = ["accessible", "terrasse", "wifi", "enfants", "parking"] as cons
  * null (inconnu, jamais affiché), « oui » / « non » / rien deviennent true / false / null, et les choix inconnus sont
  * ignorés. Le compte Instagram est gardé sans « @ » ni adresse. Les messages d'erreur sont à passer par lierPonctuation.
  */
-export function lireChampsFiche(formulaire: FormData): Resultat {
+export function lireChampsFiche(formulaire: FormData, langue: Langue = LANGUE_PAR_DEFAUT): Resultat {
+  const E = choisirTextes(TEXTES_FICHE_PRO_PAR_LANGUE, langue).erreurs;
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/[ \t]+/g, " ").trim();
   const texte = String(formulaire.get("texte") ?? "").replace(/\r\n/g, "\n").trim();
   const erreurs: Record<string, string> = {};
@@ -34,17 +38,17 @@ export function lireChampsFiche(formulaire: FormData): Resultat {
   const paiements = PAIEMENTS.filter((code) => coches.includes(code));
   valeurs.paiements = paiements.join(",");
 
-  if (valeurs.nom.length < 2 || valeurs.nom.length > 80) erreurs.nom = "Le nom fait entre 2 et 80 caractères.";
-  if (valeurs.adresse.length > 160) erreurs.adresse = "L'adresse fait 160 caractères au plus.";
-  if (valeurs.horaires.length > 160) erreurs.horaires = "Les horaires font 160 caractères au plus : résume, les gourmands comprendront.";
-  if (texte.length > 1000) erreurs.texte = "La présentation fait 1 000 caractères au plus.";
-  if (message.length > 1000) erreurs.message = "Ce petit mot fait 1 000 caractères au plus.";
-  if (valeurs.telephone && !/^\+?[\d\s.()-]{6,30}$/.test(valeurs.telephone)) erreurs.telephone = "Ce numéro ne semble pas valide (chiffres et espaces : 04 67 12 34 56).";
+  if (valeurs.nom.length < 2 || valeurs.nom.length > 80) erreurs.nom = E.nom;
+  if (valeurs.adresse.length > 160) erreurs.adresse = E.adresse;
+  if (valeurs.horaires.length > 160) erreurs.horaires = E.horaires;
+  if (texte.length > 1000) erreurs.texte = E.texte;
+  if (message.length > 1000) erreurs.message = E.message;
+  if (valeurs.telephone && !/^\+?[\d\s.()-]{6,30}$/.test(valeurs.telephone)) erreurs.telephone = E.telephone;
   if (valeurs.siteWeb && (!/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(valeurs.siteWeb) || valeurs.siteWeb.length > 200)) {
-    erreurs.siteWeb = "Écris l'adresse complète du site, avec https:// (200 caractères au plus).";
+    erreurs.siteWeb = E.siteWeb;
   }
   const instagram = valeurs.instagram.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "").replace(/^@/, "").replace(/\/+$/, "");
-  if (instagram && !/^[A-Za-z0-9._]{1,30}$/.test(instagram)) erreurs.instagram = "Juste le nom du compte, sans « @ » : chezjo.montpellier.";
+  if (instagram && !/^[A-Za-z0-9._]{1,30}$/.test(instagram)) erreurs.instagram = E.instagram;
 
   const ouiNon = (nom: string) => (valeurs[nom] === "oui" ? true : valeurs[nom] === "non" ? false : null);
   return {

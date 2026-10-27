@@ -11,6 +11,7 @@ import { creerControleursDefis, type DefisGestion } from "../controleurs/gestion
 import { creerControleursPresse } from "../controleurs/gestion/controleurs-presse.ts";
 import { creerControleursEvenementsGestion } from "../controleurs/gestion/controleurs-evenements-gestion.ts";
 import { creerControleursReservationsGestion } from "../controleurs/gestion/controleurs-reservations-gestion.ts";
+import { creerControleursActusGestion, type ActusDuLogiciel } from "../controleurs/gestion/controleurs-actus-gestion.ts";
 import { creerControleursAvisGestion } from "../controleurs/gestion/controleurs-avis-gestion.ts";
 import { creerControleursLimitations } from "../controleurs/gestion/controleurs-limitations.ts";
 import { creerControleursAnnoncesApp } from "../controleurs/gestion/controleurs-annonces-app.ts";
@@ -64,6 +65,7 @@ export type DependancesGestion = {
   defis?: DefisGestion;
   /** Relecture des avis (services/avis-gestion.ts de la session App) : publier, masquer, rétablir ; absent → 503 */
   avis?: AvisGestion;
+  actus?: ActusDuLogiciel;
   /** Limitation d'un compte (services/limitations-comptes.ts de la session Site) : limiter, lever, réexaminer ; absent → 503 */
   limitations?: ServicesLimitations;
   /** « En ce moment » : visites actives et pages regardées (compteur de visites de l'API) */
@@ -72,7 +74,7 @@ export type DependancesGestion = {
 };
 
 /** /api-gestion/… : les routes du logiciel de gestion, toutes signées par un poste autorisé (voir proteger-gestion.ts). */
-export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale, avis: avisGestion, limitations, postesDistance }: DependancesGestion) {
+export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lireDirect, comptes, chiffrement = null, visites, defis, moderationSociale, avis: avisGestion, actus: actusGestion, limitations, postesDistance }: DependancesGestion) {
   const registre = postesDistance ?? creerRegistrePostesDistanceEnMemoire();
   const lireHeure = horloge ?? Date.now;
   const lireTout = () => fusionnerAccesGestion(lireAcces(), registre.lire(), lireHeure());
@@ -100,6 +102,7 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   const evenements = creerControleursEvenementsGestion(services);
   const reservations = creerControleursReservationsGestion(services);
   const avis = creerControleursAvisGestion(services, avisGestion, moderationSociale);
+  const actus = creerControleursActusGestion(services, actusGestion);
   const lim = creerControleursLimitations(services, limitations, moderationSociale);
   const popups = creerControleursAnnoncesApp(services);
   const communaute = creerControleursCommunaute(services, moderationSociale);
@@ -226,6 +229,13 @@ export function creerRoutesGestion({ lireAcces, services, horloge, sessions, lir
   routes.get("/avis/a-relire", avis.aRelire);
   routes.get("/avis/:id/photo", avis.photo);
   routes.post("/avis/:id/decision", avis.deciderAvis);
+  routes.get("/actus", actus.lister);
+  routes.get("/actus/medias/:nom", actus.media);
+  routes.post("/actus/reponses/:id/publier", actus.publierReponse);
+  routes.post("/actus/reponses/:id/refuser", actus.refuserReponse);
+  routes.post("/actus/:id/publier", actus.publier);
+  routes.post("/actus/:id/retoucher", actus.retoucher);
+  routes.post("/actus/:id/refuser", actus.refuser);
   routes.post("/avis/:id/reponse/decision", avis.deciderReponse);
   routes.get("/limitations", lim.liste);
   routes.get("/comptes/:id/limitations", lim.duCompte);

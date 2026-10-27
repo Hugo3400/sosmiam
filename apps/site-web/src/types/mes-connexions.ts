@@ -1,4 +1,5 @@
 // « Mes façons de me connecter » dans « Mon compte » : ce que la page reçoit (services/mes-connexions.server.ts).
+import type { CodeMesConnexions } from "~/contenus/mes-connexions";
 import type { FournisseurExterne } from "~/types/connexion-externe";
 
 export type MesConnexions = {
@@ -16,7 +17,7 @@ export type MesConnexions = {
   /** Cette page, pour y revenir après Apple ou Google */
   depart: "/mon-compte" | "/espace/mon-compte";
   /** Le message d'un essai (réussi ou non) */
-  message: { texte: string; reussite: boolean } | null;
+  message: { code: CodeMesConnexions; avec: string | null } | null;
   /** L'e-mail du compte (« Ajouter un mot de passe » y envoie le lien), et s'il s'agit d'une adresse masquée d'Apple */
   email: string;
   relaisApple: boolean;

@@ -44,8 +44,8 @@ test("signalement social : les 6 cibles, et l'identifiant qui va avec", () => {
 });
 
 test("décisions de la modération : les cibles sociales, plus l'avis, la réponse d'un lieu et l'image d'un lieu, qui ne se signalent pas par là", () => {
-  assert.deepEqual([...CIBLES_DECISION_MODERATION], [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis", "image-lieu"]);
-  for (const cible of ["avis", "reponse-avis", "image-lieu"]) {
+  assert.deepEqual([...CIBLES_DECISION_MODERATION], [...CIBLES_SIGNALEMENT_SOCIAL, "avis", "reponse-avis", "image-lieu", "article-actu", "reponse-actu"]);
+  for (const cible of ["avis", "reponse-avis", "image-lieu", "article-actu", "reponse-actu"]) {
     assert.equal((CIBLES_SIGNALEMENT_SOCIAL as readonly string[]).includes(cible), false, cible);
     assert.equal(validerSignalementContenu({ ...signalement, cible }), null, cible);
   }
@@ -155,9 +155,10 @@ test("identifiant public : 10 caractères de a à z et de 2 à 9", () => {
   assert.equal(FORME_ID_PUBLIC.test("K7MQ2X9PA4"), false);
 });
 
-test("cloche : 15 types sans doublon, dont les 3 de la modération gardés 6 mois (le temps de contester)", () => {
-  assert.equal(TYPES_CLOCHE.length, 16);
-  assert.equal(new Set(TYPES_CLOCHE).size, 16);
+test("cloche : 22 types sans doublon, dont ceux de la modération gardés 6 mois (le temps de contester)", () => {
+  assert.equal(TYPES_CLOCHE.length, 22);
+  assert.equal(new Set(TYPES_CLOCHE).size, 22);
+  for (const type of TYPES_CLOCHE) assert.ok(type.length <= 24, type);
   assert.ok(TYPES_CLOCHE.includes("invitation-groupe"));
   assert.ok(TYPES_CLOCHE_MODERATION.every((type) => (TYPES_CLOCHE as readonly string[]).includes(type)));
   assert.equal(DUREE_CLOCHE_MODERATION_JOURS, DUREE_CONTESTATION_JOURS);

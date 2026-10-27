@@ -5,7 +5,7 @@ export const TEXTES_MES_ARTICLES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_MES_ART
   titre: "My stories",
   retour: "Back",
   ecrire: "Write a story",
-  badges: { "premier-reportage": "First Scoop", "reporter-de-la-brigade": "Brigade Reporter", "grand-reporter": "Star Reporter" },
+  badges: { "premier-reportage": "First Scoop", "reporter-du-quartier": "Neighbourhood Reporter", "grand-reporter": "Star Reporter" },
   tousLesBadges: "All three News badges are yours. Hats off, Star Reporter! 🎩",
   progression: (publies: number, objectif: number) => `${publies} / ${objectif} published`,
   progressionLue: (badge: string) => `Towards the ${badge} badge`,

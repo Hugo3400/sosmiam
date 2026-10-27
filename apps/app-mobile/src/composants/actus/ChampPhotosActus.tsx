@@ -1,9 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Image } from "expo-image";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { PHOTOS_ACTUS_MAX } from "@sos-miam/commun/regles/actus";
 import type { Traduction } from "@sos-miam/commun/types/traduction";
+import { VignettePhotoActus } from "~/composants/actus/VignettePhotoActus";
 import type { TEXTES_ECRIRE_ACTUS } from "~/contenus/textes-ecrire-actus";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 
@@ -24,19 +24,8 @@ export function ChampPhotosActus({ photos, preparation, T, onAjouter, onRetirer 
         <Text className="font-texte text-[13px] text-gris">{T.compteur(photos.length, PHOTOS_ACTUS_MAX)}</Text>
       </View>
       <View className="flex-row flex-wrap gap-2">
-        {photos.map((uri, i) => (
-          <View key={uri} className="h-20 w-20 overflow-hidden rounded-xl border-2 border-encre">
-            <Image source={{ uri }} accessible={false} contentFit="cover" style={{ width: "100%", height: "100%" }} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={T.retirerPhoto(i + 1)}
-              hitSlop={8}
-              onPress={() => onRetirer(i)}
-              className="absolute right-1 top-1 h-7 w-7 items-center justify-center rounded-full border-2 border-encre bg-carte"
-            >
-              <Ionicons name="close" size={14} color={couleurs.encre} />
-            </Pressable>
-          </View>
+        {photos.map((valeur, i) => (
+          <VignettePhotoActus key={valeur} valeur={valeur} retirer={T.retirerPhoto(i + 1)} onRetirer={() => onRetirer(i)} />
         ))}
         {photos.length < PHOTOS_ACTUS_MAX ? (
           <Pressable

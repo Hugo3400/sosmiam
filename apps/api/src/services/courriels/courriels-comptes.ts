@@ -2,6 +2,11 @@
 // avant le retrait du rôle d'ambassadeur (1 an sans visite) et avant l'effacement du compte (2 ans sans visite), lien pour
 // choisir un nouveau mot de passe.
 import { baseDeDonnees } from "../../base-de-donnees/connexion.ts";
+import { TEXTES_COURRIELS_COMPTES_PAR_LANGUE } from "../../../../../packages/commun/src/contenus/courriels-comptes.ts";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
+import { lireLangue } from "../../../../../packages/commun/src/fonctions/langue/lire-langue.ts";
+import { LANGUE_PAR_DEFAUT } from "../../../../../packages/commun/src/regles/langues.ts";
+import { formaterDateCourriel } from "../../fonctions/courriels/formater-date-courriel.ts";
 import { habillerCourriel } from "../../fonctions/courriels/habiller-courriel.ts";
 import { envoyerToutDeSuite, mettreEnFile } from "./file-courriels.ts";
 import { lireReglagesEnvoi } from "./reglages-envoi.ts";
@@ -16,28 +21,28 @@ const UN_JOUR = 86_400_000;
 const RETRAIT = 365 * UN_JOUR;
 const EFFACEMENT = 730 * UN_JOUR;
 const PREVENIR_AVANT = 30 * UN_JOUR;
-const jourEnLettres = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" });
 
 /** L'envoi est-il réglé ? Sinon on ne met rien en file : un mail parti des semaines plus tard n'aurait plus de sens. */
 const envoiPret = async () => (await lireReglagesEnvoi()).etat === "pret";
 
+const langueDuCompte = (langue: string) => lireLangue(langue) ?? LANGUE_PAR_DEFAUT;
+const textesDuCompte = (langue: string) => choisirTextes(TEXTES_COURRIELS_COMPTES_PAR_LANGUE, langueDuCompte(langue));
+const champsCompte = { prenom: true, email: true, langue: true } as const;
+
 /** Inscription d'ambassadeur validée par l'équipe : un mot de bienvenue part tout seul (faux si l'envoi n'est pas réglé). */
 export async function prevenirAmbassadeurValide(compteId: number) {
   if (!(await envoiPret())) return false;
-  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: champsCompte });
   if (!compte) return false;
-  const objet = `C'est validé, ${compte.prenom} : bienvenue chez les ambassadeurs 🛟`;
+  const T = textesDuCompte(compte.langue).ambassadeurValide;
   await mettreEnFile("ambassadeur-valide", compte.email, {
-    objet,
+    objet: T.objet(compte.prenom),
     ...habillerCourriel({
-      titre: `Bienvenue dans l'équipe, ${compte.prenom} !`,
-      paragraphes: [
-        "On a lu ton inscription et c'est tout bon : ton espace ambassadeur est ouvert.",
-        "Tu peux y proposer tes pépites, suivre tes points et tes badges, et retrouver les missions et les messages de l'équipe. Les lieux qu'on aide comptent sur des gens comme toi pour se faire connaître : merci d'être là.",
-        "Une question ? Réponds simplement à ce mail, on lit tout.",
-      ],
-      bouton: { texte: "Ouvrir mon espace", adresse: ESPACE_AMBASSADEUR },
-      pied: "Tu reçois ce mail parce que tu t'es inscrit à l'espace ambassadeur de SOS Miam.",
+      titre: T.titre(compte.prenom),
+      paragraphes: [...T.paragraphes],
+      bouton: { texte: T.bouton, adresse: ESPACE_AMBASSADEUR },
+      pied: T.pied,
+      langue: langueDuCompte(compte.langue),
     }),
   });
   return true;
@@ -46,20 +51,17 @@ export async function prevenirAmbassadeurValide(compteId: number) {
 /** Bienvenue chez les ambassadeurs certifiés (titre accepté dans le logiciel) : ce que le titre apporte, et la règle d'or. */
 export async function prevenirCertifie(compteId: number) {
   if (!(await envoiPret())) return false;
-  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: champsCompte });
   if (!compte) return false;
+  const T = textesDuCompte(compte.langue).certifie;
   await mettreEnFile("certifie", compte.email, {
-    objet: `Te voilà Ambassadeur certifié ✓, ${compte.prenom} !`,
+    objet: T.objet(compte.prenom),
     ...habillerCourriel({
-      titre: `Bravo ${compte.prenom}, tu es certifié ✓`,
-      paragraphes: [
-        "On a lu ta candidature et c'est oui : tu fais désormais partie des ambassadeurs certifiés, ceux qui donnent un vrai coup de main aux lieux.",
-        "Ton badge « Ambassadeur certifié ✓ » apparaîtra sur les fiches des lieux que tu aides. L'équipe pourra te confier des missions chez les lieux partenaires, et ton kit média pro t'attend dans ton espace.",
-        "La règle d'or ne change pas : tu n'es jamais payé par un lieu. Si un lieu t'offre quelque chose, écris-le clairement : « Collaboration commerciale ».",
-        "Une question ? Réponds simplement à ce mail, on lit tout.",
-      ],
-      bouton: { texte: "Ouvrir mon espace", adresse: ESPACE_AMBASSADEUR },
-      pied: "Tu reçois ce mail parce que ta candidature d'ambassadeur certifié a été acceptée.",
+      titre: T.titre(compte.prenom),
+      paragraphes: [...T.paragraphes],
+      bouton: { texte: T.bouton, adresse: ESPACE_AMBASSADEUR },
+      pied: T.pied,
+      langue: langueDuCompte(compte.langue),
     }),
   });
   return true;
@@ -74,7 +76,7 @@ async function trouverAPrevenir({ type, delai, seulementAmbassadeurs }: Alerte, 
       derniereConnexion: { lt: new Date(maintenant.getTime() - delai + PREVENIR_AVANT), gte: new Date(maintenant.getTime() - delai) },
       ...(seulementAmbassadeurs ? { ambassadeur: { isNot: null } } : {}),
     },
-    select: { prenom: true, email: true, derniereConnexion: true, ambassadeur: { select: { compteId: true } } },
+    select: { prenom: true, email: true, langue: true, derniereConnexion: true, ambassadeur: { select: { compteId: true } } },
     take: 500,
   });
   if (comptes.length === 0) return [];
@@ -84,7 +86,9 @@ async function trouverAPrevenir({ type, delai, seulementAmbassadeurs }: Alerte, 
       select: { destinataire: true },
     })).map((envoi) => envoi.destinataire),
   );
-  return comptes.filter((c) => !dejaPrevenus.has(c.email)).map((c) => ({ ...c, date: jourEnLettres.format(new Date(c.derniereConnexion.getTime() + delai)) }));
+  return comptes
+    .filter((c) => !dejaPrevenus.has(c.email))
+    .map((c) => ({ ...c, langue: langueDuCompte(c.langue), date: formaterDateCourriel(new Date(c.derniereConnexion.getTime() + delai), "jour", langueDuCompte(c.langue)) }));
 }
 
 /**
@@ -95,31 +99,29 @@ export async function prevenirAvantEcheances(maintenant = new Date()) {
   if (!(await envoiPret())) return { retraits: 0, effacements: 0 };
   const retraits = await trouverAPrevenir({ type: "alerte-retrait", delai: RETRAIT, seulementAmbassadeurs: true }, maintenant);
   for (const compte of retraits) {
+    const T = choisirTextes(TEXTES_COURRIELS_COMPTES_PAR_LANGUE, compte.langue).alerteRetrait;
     await mettreEnFile("alerte-retrait", compte.email, {
-      objet: `Ton rôle d'ambassadeur SOS Miam s'arrête dès le ${compte.date}`,
+      objet: T.objet(compte.date),
       ...habillerCourriel({
-        titre: `Tu nous manques, ${compte.prenom} !`,
-        paragraphes: [
-          `Ton espace ambassadeur n'a pas servi depuis presque un an. Comme prévu dans nos règles, ton rôle d'ambassadeur s'arrêtera dès le ${compte.date} : tes missions et tes messages partiront avec lui. Ton compte SOS Miam, tes points et tes badges, eux, restent.`,
-          `Tu veux continuer l'aventure ? Il suffit de te connecter avant le ${compte.date}. Sinon, tu n'as rien à faire.`,
-        ],
-        bouton: { texte: "Me connecter", adresse: ESPACE_AMBASSADEUR },
-        pied: "Tu reçois ce mail parce que tu es ambassadeur SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",
+        titre: T.titre(compte.prenom),
+        paragraphes: [...T.paragraphes(compte.date)],
+        bouton: { texte: T.bouton, adresse: ESPACE_AMBASSADEUR },
+        pied: T.pied,
+        langue: compte.langue,
       }),
     });
   }
   const effacements = await trouverAPrevenir({ type: "alerte-effacement", delai: EFFACEMENT, seulementAmbassadeurs: false }, maintenant);
   for (const compte of effacements) {
+    const T = choisirTextes(TEXTES_COURRIELS_COMPTES_PAR_LANGUE, compte.langue).alerteEffacement;
     await mettreEnFile("alerte-effacement", compte.email, {
-      objet: `Ton compte SOS Miam sera effacé dès le ${compte.date}`,
+      objet: T.objet(compte.date),
       ...habillerCourriel({
-        titre: `On ne t'a pas vu depuis longtemps, ${compte.prenom}`,
-        paragraphes: [
-          `Ton compte SOS Miam n'a pas servi depuis presque deux ans. Comme promis dans notre politique de confidentialité, il sera effacé pour de bon dès le ${compte.date}, avec tout ce qui va avec.`,
-          `Tu veux le garder ? Il suffit de te connecter avant le ${compte.date}. Sinon, tu n'as rien à faire : on efface tout, sans relance.`,
-        ],
-        bouton: { texte: "Me connecter", adresse: compte.ambassadeur ? ESPACE_AMBASSADEUR : ESPACE_PRO },
-        pied: "Tu reçois ce mail parce que tu as un compte SOS Miam. C'est le seul qu'on t'enverra à ce sujet.",
+        titre: T.titre(compte.prenom),
+        paragraphes: [...T.paragraphes(compte.date)],
+        bouton: { texte: T.bouton, adresse: compte.ambassadeur ? ESPACE_AMBASSADEUR : ESPACE_PRO },
+        pied: T.pied,
+        langue: compte.langue,
       }),
     });
   }
@@ -128,19 +130,18 @@ export async function prevenirAvantEcheances(maintenant = new Date()) {
 
 /** Envoie le lien pour choisir un nouveau mot de passe, tout de suite et sans passer par la file (rien n'en est gardé). */
 export async function envoyerLienMotDePasse(compteId: number, lien: string, expireLe: Date) {
-  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: champsCompte });
   if (!compte) return { ok: false as const, erreur: "introuvable" };
-  const echeance = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(expireLe);
+  const langue = langueDuCompte(compte.langue);
+  const T = choisirTextes(TEXTES_COURRIELS_COMPTES_PAR_LANGUE, langue).motDePasse;
   return envoyerToutDeSuite("mot-de-passe", compte.email, {
-    objet: "Ton lien pour choisir un nouveau mot de passe",
+    objet: T.objet,
     ...habillerCourriel({
-      titre: `Un nouveau mot de passe, ${compte.prenom} ?`,
-      paragraphes: [
-        `Voici ton lien pour choisir un nouveau mot de passe. Il marche jusqu'au ${echeance}, une seule fois.`,
-        "Tu n'as rien demandé ? Ignore ce mail : ton mot de passe actuel ne change pas.",
-      ],
-      bouton: { texte: "Choisir mon mot de passe", adresse: lien },
-      pied: "Tu reçois ce mail parce qu'une réinitialisation de mot de passe a été préparée pour ton compte SOS Miam.",
+      titre: T.titre(compte.prenom),
+      paragraphes: [...T.paragraphes(formaterDateCourriel(expireLe, "echeance", langue))],
+      bouton: { texte: T.bouton, adresse: lien },
+      pied: T.pied,
+      langue,
     }),
     secrets: [lien],
     relancer: true,
@@ -152,20 +153,18 @@ export async function envoyerLienMotDePasse(compteId: number, lien: string, expi
  * file : le lien n'est gardé nulle part. Même ton que les autres mails des comptes.
  */
 export async function envoyerLienVerificationEmail(compteId: number, lien: string, expireLe: Date) {
-  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: { prenom: true, email: true } });
+  const compte = await baseDeDonnees.compte.findUnique({ where: { id: compteId }, select: champsCompte });
   if (!compte) return { ok: false as const, erreur: "introuvable" };
-  const echeance = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(expireLe);
+  const langue = langueDuCompte(compte.langue);
+  const T = choisirTextes(TEXTES_COURRIELS_COMPTES_PAR_LANGUE, langue).verificationEmail;
   return envoyerToutDeSuite("verification-email", compte.email, {
-    objet: "Confirme ton adresse e-mail SOS Miam 🛟",
+    objet: T.objet,
     ...habillerCourriel({
-      titre: `Bienvenue, ${compte.prenom} !`,
-      paragraphes: [
-        "Encore un clic : confirme que cette adresse est bien la tienne, et ton inscription part à l'équipe, qui la regarde à la main.",
-        `Le lien marche jusqu'au ${echeance}, une seule fois.`,
-        "Tu n'as rien demandé ? Ignore ce mail : sans confirmation, rien ne se passe.",
-      ],
-      bouton: { texte: "Confirmer mon adresse", adresse: lien },
-      pied: "Tu reçois ce mail parce que quelqu'un (toi, on espère !) vient de créer un compte SOS Miam avec cette adresse.",
+      titre: T.titre(compte.prenom),
+      paragraphes: [...T.paragraphes(formaterDateCourriel(expireLe, "echeance", langue))],
+      bouton: { texte: T.bouton, adresse: lien },
+      pied: T.pied,
+      langue,
     }),
     secrets: [lien],
     relancer: true,

@@ -3,7 +3,6 @@ import { useBottomTabBarHeight } from "expo-router/tabs";
 import { Alert, Linking, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { BADGES } from "@sos-miam/commun/contenus/badges";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { AnnonceProfil } from "~/composants/profil/AnnonceProfil";
@@ -15,6 +14,7 @@ import { EspacesProfil } from "~/composants/profil/EspacesProfil";
 import { ListeDefis } from "~/composants/profil/ListeDefis";
 import { RaccourcisProfil } from "~/composants/profil/RaccourcisProfil";
 import { SectionPalier } from "~/composants/profil/SectionPalier";
+import { BADGES_VISIBLES } from "~/contenus/badges-visibles";
 import { TEXTES_PROFIL } from "~/contenus/textes-profil";
 import type { MesuresActivite } from "~/contenus/type-mesure-activite";
 import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
@@ -125,7 +125,7 @@ export default function Profil() {
             lieuxSauves={activite.lieuxSauves.length}
             premiersSauvetages={activite.premiersSauvetages.length}
             badgesObtenus={ambassadeur.obtenus.length}
-            badgesTotal={BADGES.length}
+            badgesTotal={BADGES_VISIBLES.length}
             restantes={activiteConnue ? activite.restantes : null}
           />
         ) : (

@@ -31,6 +31,7 @@ export const TEXTES_ACTUS_PRO = {
     pasMaintenant: "Pas maintenant",
   },
   envoyee: "Réponse envoyée : la Brigade la relit avant de la publier.",
+  echec: "Ta réponse n'est pas partie. Vérifie ta connexion, ou ton texte, et réessaie.",
 } as const;
 
 export const TEXTES_ACTUS_PRO_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ACTUS_PRO>> = { fr: TEXTES_ACTUS_PRO, en: TEXTES_ACTUS_PRO_ANGLAIS };

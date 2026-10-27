@@ -2,12 +2,11 @@ import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { ChoixMultiples } from "~/composants/compte/ChoixMultiples";
 import { FormulaireCompte } from "~/composants/compte/FormulaireCompte";
 import { SectionFiche } from "~/composants/pro/SectionFiche";
-import { INFOS_OUI_NON, LIBELLES_ANIMAUX, LIBELLES_PAIEMENT, LIBELLES_RESERVATION } from "~/contenus/infos-pratiques";
+import { EXEMPLES_FICHE_PRO, TEXTES_FICHE_PRO_PAR_LANGUE } from "~/contenus/fiche-pro";
+import { INFOS_OUI_NON, LIBELLES_ANIMAUX, LIBELLES_PAIEMENT, LIBELLES_RESERVATION, TEXTES_INFOS_PRATIQUES_PAR_LANGUE } from "~/contenus/infos-pratiques";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import type { FichePro } from "~/types/pro";
-
-/** Le choix « on ne dit rien » : l'info reste inconnue, donc absente de la fiche publique. */
-const SANS_AVIS = { valeur: "", libelle: "Je ne précise pas" };
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import type { AccueilAnimaux, FichePro, MoyenPaiement, ReservationConseillee } from "~/types/pro";
 
 const ouiNon = (valeur: boolean | null) => (valeur === true ? "oui" : valeur === false ? "non" : "");
 
@@ -16,79 +15,82 @@ const ouiNon = (valeur: boolean | null) => (valeur === true ? "oui" : valeur ===
  * et présentation, contact, infos pratiques. Marche sans JavaScript (FormulaireCompte).
  */
 export function FormulaireFiche({ lieu }: { lieu: FichePro }) {
+  const T = utiliserTextes(TEXTES_FICHE_PRO_PAR_LANGUE).formulaire;
+  const I = utiliserTextes(TEXTES_INFOS_PRATIQUES_PAR_LANGUE);
+  const sansAvis = { valeur: "", libelle: T.sansAvis };
   return (
-    <FormulaireCompte nom="fiche" bouton="Enregistrer ma fiche" boutonEnvoi="Enregistrement…" className="grid gap-6">
+    <FormulaireCompte nom="fiche" bouton={T.bouton} boutonEnvoi={T.envoi} className="grid gap-6">
       <SectionFiche
-        titre="Nom et adresse"
-        note={<p><span aria-hidden="true">🔒 </span>{lierPonctuation("Ces deux-là passent par l'équipe SOS Miam : elle vérifie, puis la fiche change. C'est pour éviter les mauvaises blagues.")}</p>}
+        titre={T.nomAdresse.titre}
+        note={<p><span aria-hidden="true">🔒 </span>{lierPonctuation(T.nomAdresse.note)}</p>}
       >
-        <ChampTexte nom="nom" libelle="Nom du lieu" valeur={lieu.nom} maximum={80} />
-        <ChampTexte nom="adresse" libelle="Adresse" facultatif valeur={lieu.adresse ?? ""} maximum={160} exemple="12 rue de la Paix" />
+        <ChampTexte nom="nom" libelle={T.nomAdresse.nom} valeur={lieu.nom} maximum={80} />
+        <ChampTexte nom="adresse" libelle={T.nomAdresse.adresse} facultatif valeur={lieu.adresse ?? ""} maximum={160} exemple={EXEMPLES_FICHE_PRO.adresse} />
         <ChampTexte
           nom="message"
-          libelle="Un mot pour l'équipe"
+          libelle={T.nomAdresse.message}
           facultatif
           lignes={2}
           maximum={1000}
-          aide={lierPonctuation("Seulement si tu changes le nom ou l'adresse : pourquoi ? (« On a déménagé en septembre », par exemple.)")}
+          aide={lierPonctuation(T.nomAdresse.aideMessage)}
         />
       </SectionFiche>
 
-      <SectionFiche titre="Horaires et présentation" note={lierPonctuation("En ligne tout de suite.")}>
-        <ChampTexte nom="horaires" libelle="Horaires" facultatif valeur={lieu.horaires ?? ""} maximum={160} exemple="Mar–sam, 12h–14h30 et 19h–23h" />
+      <SectionFiche titre={T.horaires.titre} note={lierPonctuation(T.horaires.note)}>
+        <ChampTexte nom="horaires" libelle={T.horaires.horaires} facultatif valeur={lieu.horaires ?? ""} maximum={160} exemple={T.horaires.exempleHoraires} />
         <ChampTexte
           nom="texte"
-          libelle="Présentation"
+          libelle={T.horaires.texte}
           facultatif
           valeur={lieu.texte ?? ""}
           lignes={6}
           maximum={1000}
-          aide={lierPonctuation("Ce qui rend ton lieu unique : la spécialité, l'ambiance, l'histoire. Parle comme à un client au comptoir.")}
+          aide={lierPonctuation(T.horaires.aideTexte)}
         />
       </SectionFiche>
 
-      <SectionFiche titre="Contact" note={lierPonctuation("En ligne tout de suite. Laisse vide ce que tu ne veux pas montrer.")}>
-        <ChampTexte nom="telephone" libelle="Téléphone" facultatif valeur={lieu.telephone ?? ""} maximum={30} autoComplete="off" exemple="04 67 12 34 56" />
-        <ChampTexte nom="siteWeb" libelle="Site" type="url" inputMode="url" facultatif valeur={lieu.siteWeb ?? ""} maximum={200} exemple="https://…" />
-        <ChampTexte nom="instagram" libelle="Compte Instagram" facultatif valeur={lieu.instagram ?? ""} maximum={60} aide="Juste le nom du compte, sans « @ »." />
+      <SectionFiche titre={T.contact.titre} note={lierPonctuation(T.contact.note)}>
+        <ChampTexte nom="telephone" libelle={T.contact.telephone} facultatif valeur={lieu.telephone ?? ""} maximum={30} autoComplete="off" exemple={EXEMPLES_FICHE_PRO.telephone} />
+        <ChampTexte nom="siteWeb" libelle={T.contact.siteWeb} type="url" inputMode="url" facultatif valeur={lieu.siteWeb ?? ""} maximum={200} exemple={EXEMPLES_FICHE_PRO.siteWeb} />
+        <ChampTexte nom="instagram" libelle={T.contact.instagram} facultatif valeur={lieu.instagram ?? ""} maximum={60} aide={T.contact.aideInstagram} />
       </SectionFiche>
 
-      <SectionFiche titre="Infos pratiques" note={lierPonctuation("En ligne tout de suite. « Je ne précise pas » : rien n'est affiché, on ne devine jamais à ta place.")}>
+      <SectionFiche titre={T.infos.titre} note={lierPonctuation(T.infos.note)}>
         <ChoixMultiples
           nom="animaux"
-          legende="Les animaux"
+          legende={T.infos.animaux}
           type="radio"
           enLigne
           depart={[lieu.animaux ?? ""]}
-          options={[...Object.entries(LIBELLES_ANIMAUX).map(([valeur, libelle]) => ({ valeur, libelle: libelle.texte })), SANS_AVIS]}
+          options={[...(Object.keys(LIBELLES_ANIMAUX) as AccueilAnimaux[]).map((valeur) => ({ valeur, libelle: I.animaux[valeur] })), sansAvis]}
         />
         {INFOS_OUI_NON.map((info) => (
           <ChoixMultiples
             key={info.champ}
             nom={info.champ}
-            legende={info.question}
+            legende={I.ouiNon[info.champ].question}
             type="radio"
             enLigne
             depart={[ouiNon(lieu[info.champ])]}
-            options={[{ valeur: "oui", libelle: "Oui" }, { valeur: "non", libelle: "Non" }, SANS_AVIS]}
+            options={[{ valeur: "oui", libelle: T.oui }, { valeur: "non", libelle: T.non }, sansAvis]}
           />
         ))}
         <ChoixMultiples
           nom="reservation"
-          legende="La réservation"
+          legende={T.infos.reservation}
           type="radio"
           enLigne
           depart={[lieu.reservation ?? ""]}
-          options={[...Object.entries(LIBELLES_RESERVATION).map(([valeur, libelle]) => ({ valeur, libelle })), SANS_AVIS]}
+          options={[...(Object.keys(LIBELLES_RESERVATION) as ReservationConseillee[]).map((valeur) => ({ valeur, libelle: I.reservation[valeur] })), sansAvis]}
         />
         <ChoixMultiples
           nom="paiements"
-          legende="Les paiements acceptés"
+          legende={T.infos.paiements}
           type="checkbox"
           enLigne
           depart={lieu.paiements}
-          aide="Coche tout ce que tu acceptes. Rien de coché : rien n'est affiché."
-          options={Object.entries(LIBELLES_PAIEMENT).map(([valeur, libelle]) => ({ valeur, libelle: libelle[0].toUpperCase() + libelle.slice(1) }))}
+          aide={T.infos.aidePaiements}
+          options={(Object.keys(LIBELLES_PAIEMENT) as MoyenPaiement[]).map((valeur) => ({ valeur, libelle: I.paiement[valeur][0].toUpperCase() + I.paiement[valeur].slice(1) }))}
         />
       </SectionFiche>
     </FormulaireCompte>

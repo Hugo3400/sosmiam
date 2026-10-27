@@ -1,13 +1,15 @@
 import type { Ref } from "react";
 
-import { TEXTES_IMAGES_LIEU } from "~/contenus/pro-images-lieu";
+import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/pro-images-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type EtatMessageImageLieu = { ok: boolean; titre?: string; texte: string; connexion: boolean };
 
 type Props = { ref: Ref<HTMLDivElement>; id: string; message: EtatMessageImageLieu | null; lieuId: number };
 
 export function MessageImageLieu({ ref, id, message, lieuId }: Props) {
+  const lienConnexion = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE).erreurs.lienConnexion;
   return (
     <div ref={ref} id={id} tabIndex={-1} className="mt-4 focus:outline-none">
       {message && (
@@ -25,7 +27,7 @@ export function MessageImageLieu({ ref, id, message, lieuId }: Props) {
               href={`/connexion?retour=${encodeURIComponent(`/lieu/${lieuId}/images`)}`}
               className="mt-2 inline-block font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre"
             >
-              {TEXTES_IMAGES_LIEU.erreurs.lienConnexion}
+              {lienConnexion}
             </a>
           )}
         </div>

@@ -25,7 +25,7 @@ export type PalierCompte = "curieux" | "denicheur" | "ambassadeur-quartier" | "a
  * (ajout ou retrait à la main depuis le logiciel de gestion).
  */
 export type RaisonPoints =
-  | "visite" | "visite-sos" | "avis-photo" | "proposer-lieu" | "corriger-fiche" | "premier-sauveteur" | "rescousse" | "defi" | "equipe";
+  | "visite" | "visite-sos" | "avis-photo" | "proposer-lieu" | "corriger-fiche" | "premier-sauveteur" | "rescousse" | "defi" | "equipe" | "article-actus";
 
 /** Durée de validité d'un lien de réinitialisation, préparé par l'équipe ou demandé (24 h au plus : CNIL, OWASP) */
 const DUREE_REINITIALISATION = 24 * 3600_000;

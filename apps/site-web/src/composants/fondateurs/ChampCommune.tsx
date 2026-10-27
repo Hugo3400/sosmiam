@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
+import { TEXTES_RECHERCHE_COMMUNE_PAR_LANGUE } from "~/contenus/recherche-commune";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 /** Une commune proposée par la route /communes du site. */
 export type CommuneProposee = { code: string; nom: string; nomDepartement: string; codePostal: string | null };
 
@@ -27,6 +30,7 @@ const DELAI_RECHERCHE = 220;
  * Échap pour fermer ; Entrée sans choix envoie le formulaire comme d'habitude.
  */
 export function ChampCommune({ id, name, valeurInitiale = "", onChoisir, decritPar, invalide = false, autoFocus = false, className = "" }: Props) {
+  const T = utiliserTextes(TEXTES_RECHERCHE_COMMUNE_PAR_LANGUE);
   const [pret, setPret] = useState(false);
   const [communes, setCommunes] = useState<CommuneProposee[]>([]);
   const [ouvert, setOuvert] = useState(false);
@@ -64,9 +68,7 @@ export function ChampCommune({ id, name, valeurInitiale = "", onChoisir, decritP
         setCommunes(trouvees);
         setActif(-1);
         setOuvert(true);
-        setAnnonce(trouvees.length === 0
-          ? "Aucune commune trouvée."
-          : `${trouvees.length} commune${trouvees.length > 1 ? "s" : ""} proposée${trouvees.length > 1 ? "s" : ""}.`);
+        setAnnonce(trouvees.length === 0 ? T.aucune : T.proposees(trouvees.length));
       } catch {
         // Recherche remplacée par une plus récente, ou réseau coupé : le bouton du formulaire marche toujours
       }
@@ -116,7 +118,7 @@ export function ChampCommune({ id, name, valeurInitiale = "", onChoisir, decritP
         spellCheck={false}
         autoFocus={autoFocus}
         maxLength={80}
-        placeholder="Lyon, Bron, 69003…"
+        placeholder={T.exemple}
         defaultValue={valeurInitiale}
         onChange={(evenement) => chercher(evenement.currentTarget.value)}
         onFocus={() => setOuvert(true)}
@@ -130,7 +132,7 @@ export function ChampCommune({ id, name, valeurInitiale = "", onChoisir, decritP
         <ul
           id={idListe}
           role="listbox"
-          aria-label="Communes proposées"
+          aria-label={T.suggestions}
           hidden={!visible}
           onMouseDown={(evenement) => evenement.preventDefault()}
           className="absolute top-full left-0 z-30 mt-2 max-h-[min(20rem,50vh)] w-full overflow-y-auto overscroll-contain rounded-2xl border-2 border-encre

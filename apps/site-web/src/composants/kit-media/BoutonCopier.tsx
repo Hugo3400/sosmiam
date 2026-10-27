@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_KIT_MEDIA_PAR_LANGUE } from "~/contenus/kit-media";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   texte: string;
@@ -14,6 +16,7 @@ type Props = {
  * Il n'apparaît qu'avec JavaScript et un presse-papier disponible ; sans eux, le texte reste là, à sélectionner à la main.
  */
 export function BoutonCopier({ texte, libelle }: Props) {
+  const T = utiliserTextes(TEXTES_KIT_MEDIA_PAR_LANGUE).copier;
   const [disponible, setDisponible] = useState(false);
   const [message, setMessage] = useState("");
   // Numéro de copie : le message est recréé à chaque copie, donc relu même s'il est identique au précédent (« Copié ! »)
@@ -28,9 +31,9 @@ export function BoutonCopier({ texte, libelle }: Props) {
   async function copier() {
     try {
       await navigator.clipboard.writeText(texte);
-      setMessage("Copié !");
+      setMessage(T.copie);
     } catch {
-      setMessage("La copie n'a pas marché : sélectionne le texte à la main.");
+      setMessage(T.rate);
     }
     setNumero((n) => n + 1);
     window.clearTimeout(minuteur.current);
@@ -41,7 +44,7 @@ export function BoutonCopier({ texte, libelle }: Props) {
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {disponible && (
         <Bouton petit variante="blanc" onClick={copier}>
-          Copier<span className="sr-only"> {libelle}</span>
+          {T.bouton}<span className="sr-only"> {libelle}</span>
         </Bouton>
       )}
       <p role="status" className="text-sm font-semibold"><span key={numero}>{lierPonctuation(message)}</span></p>

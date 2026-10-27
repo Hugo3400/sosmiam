@@ -1,4 +1,7 @@
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { LIMITES_CARTE } from "../../../../../packages/commun/src/regles/carte-du-lieu.ts";
+import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../../packages/commun/src/regles/langues.ts";
+import { TEXTES_EDITEUR_CARTE_PAR_LANGUE } from "../../contenus/editeur-carte.ts";
 import type { BrouillonCarte, BrouillonSection, FocusCarte } from "../../types/carte.ts";
 import { PLAT_VIDE } from "./creer-brouillon-carte.ts";
 import { nommerBoutonCarte } from "./nommer-bouton-carte.ts";
@@ -28,7 +31,8 @@ function echanger<T>(liste: T[], a: number, b: number): T[] {
  * « Descendre ») appliqué au brouillon : la même logique avec et sans JavaScript, côté serveur (action de la page).
  * Rien n'est enregistré. Geste : « ajouter-plat:1 », « monter-plat:1:3 »… (numéros à partir de 0).
  */
-export function appliquerGesteCarte(depart: BrouillonCarte, geste: string): ResultatGesteCarte {
+export function appliquerGesteCarte(depart: BrouillonCarte, geste: string, langue: Langue = LANGUE_PAR_DEFAUT): ResultatGesteCarte {
+  const T = choisirTextes(TEXTES_EDITEUR_CARTE_PAR_LANGUE, langue).gestes;
   const sections: BrouillonSection[] = depart.sections.map((s) => ({ ...s, elements: [...s.elements] }));
   const rien: ResultatGesteCarte = { brouillon: { sections }, focus: null, message: "", fait: false };
   const morceaux = GESTE.exec(geste);
@@ -41,23 +45,23 @@ export function appliquerGesteCarte(depart: BrouillonCarte, geste: string): Resu
   const focusBouton = (unGeste: string): FocusCarte => ({ bouton: nommerBoutonCarte(unGeste) });
 
   if (action === "ajouter-section") {
-    if (sections.length >= LIMITES_CARTE.sections) return { ...rien, message: `Une carte a ${LIMITES_CARTE.sections} sections au plus.` };
+    if (sections.length >= LIMITES_CARTE.sections) return { ...rien, message: T.maxSections };
     sections.push({ titre: "", elements: [{ ...PLAT_VIDE, etiquettes: [] }] });
-    return fait({ champ: nommerChampCarte(sections.length - 1, "titre") }, "Nouvelle section ajoutée, avec un premier plat à remplir.");
+    return fait({ champ: nommerChampCarte(sections.length - 1, "titre") }, T.sectionAjoutee);
   }
   const section = sections[i];
   if (!section) return rien;
 
   if (action === "ajouter-plat") {
-    if (section.elements.length >= LIMITES_CARTE.elementsParSection) return { ...rien, message: `Une section a ${LIMITES_CARTE.elementsParSection} plats au plus.` };
-    if (total >= LIMITES_CARTE.elements) return { ...rien, message: `Une carte a ${LIMITES_CARTE.elements} plats au plus.` };
+    if (section.elements.length >= LIMITES_CARTE.elementsParSection) return { ...rien, message: T.maxPlatsSection };
+    if (total >= LIMITES_CARTE.elements) return { ...rien, message: T.maxPlats };
     section.elements.push({ ...PLAT_VIDE, etiquettes: [] });
-    return fait({ champ: nommerChampCarte(i, "nom", section.elements.length - 1) }, "Nouveau plat ajouté.");
+    return fait({ champ: nommerChampCarte(i, "nom", section.elements.length - 1) }, T.platAjoute);
   }
   if (action === "supprimer-section") {
     sections.splice(i, 1);
     const voisine = Math.min(i, sections.length - 1);
-    return fait(voisine >= 0 ? { champ: nommerChampCarte(voisine, "titre") } : focusBouton("ajouter-section"), "Section retirée.");
+    return fait(voisine >= 0 ? { champ: nommerChampCarte(voisine, "titre") } : focusBouton("ajouter-section"), T.sectionRetiree);
   }
   if (action === "monter-section" || action === "descendre-section") {
     const cible = action === "monter-section" ? i - 1 : i + 1;
@@ -65,18 +69,18 @@ export function appliquerGesteCarte(depart: BrouillonCarte, geste: string): Resu
     sections.splice(0, sections.length, ...echanger(sections, i, cible));
     // Le même bouton à la nouvelle place, sinon l'autre (tout en haut, plus de « Monter »)
     const bout = cible === 0 ? "descendre-section" : cible === sections.length - 1 ? "monter-section" : action;
-    return fait(sections.length > 1 ? focusBouton(`${bout}:${cible}`) : { champ: nommerChampCarte(cible, "titre") }, action === "monter-section" ? "Section montée." : "Section descendue.");
+    return fait(sections.length > 1 ? focusBouton(`${bout}:${cible}`) : { champ: nommerChampCarte(cible, "titre") }, action === "monter-section" ? T.sectionMontee : T.sectionDescendue);
   }
 
   if (!section.elements[j]) return rien;
   if (action === "supprimer-plat") {
     section.elements.splice(j, 1);
     const voisin = Math.min(j, section.elements.length - 1);
-    return fait(voisin >= 0 ? { champ: nommerChampCarte(i, "nom", voisin) } : focusBouton(`ajouter-plat:${i}`), "Plat retiré.");
+    return fait(voisin >= 0 ? { champ: nommerChampCarte(i, "nom", voisin) } : focusBouton(`ajouter-plat:${i}`), T.platRetire);
   }
   const cible = action === "monter-plat" ? j - 1 : j + 1;
   if (cible < 0 || cible >= section.elements.length) return rien;
   section.elements = echanger(section.elements, j, cible);
   const bout = cible === 0 ? "descendre-plat" : cible === section.elements.length - 1 ? "monter-plat" : action;
-  return fait(focusBouton(`${bout}:${i}:${cible}`), action === "monter-plat" ? "Plat monté." : "Plat descendu.");
+  return fait(focusBouton(`${bout}:${i}:${cible}`), action === "monter-plat" ? T.platMonte : T.platDescendu);
 }

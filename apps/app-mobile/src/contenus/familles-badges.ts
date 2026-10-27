@@ -36,6 +36,10 @@ export const FAMILLES_BADGES: readonly FamilleDeBadges[] = [
     badges: ["premiere-plume", "plume-de-la-brigade", "plume-d-or", "oeil-de-chef", "objectif-gourmand"],
   },
   {
+    titre: "Actus",
+    badges: ["premier-reportage", "reporter-du-quartier", "grand-reporter"],
+  },
+  {
     titre: "Coup de main à la Brigade",
     badges: ["chasseur-de-bugs"],
   },

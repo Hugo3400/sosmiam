@@ -1,7 +1,10 @@
 import { BADGES } from "../../../../../packages/commun/src/contenus/badges.ts";
 import { BadgePalier, type NiveauPalier } from "~/composants/marque/BadgePalier";
-import { paliersAmbassadeurs } from "~/contenus/ambassadeurs";
+import { TEXTES_AMBASSADEURS_PAR_LANGUE } from "~/contenus/ambassadeurs";
+import { TEXTES_ESPACE_AMBASSADEUR_PAR_LANGUE } from "~/contenus/espace-ambassadeur";
+import { listerPaliersAmbassadeurs } from "~/fonctions/ambassadeurs/lister-paliers-ambassadeurs";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { CertificationAmbassadeur, PalierCompte } from "~/types/compte";
 
 // Les paliers dans l'ordre (leur position donne le niveau du badge) et les points pour y arriver (docs/decisions.md) ;
@@ -29,16 +32,18 @@ type Props = {
  * le suivant, et ses badges.
  */
 export function CartePalier({ palier, points, badges, certifie = null }: Props) {
+  const T = utiliserTextes(TEXTES_ESPACE_AMBASSADEUR_PAR_LANGUE).palier;
+  const paliersAmbassadeurs = listerPaliersAmbassadeurs(utiliserTextes(TEXTES_AMBASSADEURS_PAR_LANGUE));
   const index = Math.max(0, paliers.findIndex((p) => p.cle === palier));
   const suivant = paliers[index + 1];
-  const nomSuivant = paliersAmbassadeurs[index + 1]?.titre;
+  const nomSuivant = paliersAmbassadeurs[index + 1]?.titre ?? "";
   const reste = suivant?.seuil != null ? suivant.seuil - points : null;
 
   let progression = "";
-  if (points === 0) progression = "Les points arrivent avec l'app : pour l'instant, tout le monde démarre Curieux.";
-  else if (reste !== null && reste > 0) progression = `Encore ${reste} point${reste > 1 ? "s" : ""} pour passer ${nomSuivant}.`;
+  if (points === 0) progression = T.aucunPoint;
+  else if (reste !== null && reste > 0) progression = T.reste(reste, nomSuivant);
   else if (suivant && suivant.seuil === null) {
-    progression = `Le palier suivant, ${nomSuivant}, n'est pas une question de points : l'équipe le choisit parmi les fondateurs de ta ville.`;
+    progression = T.choisiParEquipe(nomSuivant);
   }
 
   return (
@@ -46,20 +51,20 @@ export function CartePalier({ palier, points, badges, certifie = null }: Props) 
       <div className="flex flex-wrap items-center gap-5">
         <BadgePalier niveau={(index + 1) as NiveauPalier} className="h-24 w-24 shrink-0" />
         <div>
-          <p className="text-sm font-semibold text-gris">Ton palier</p>
-          <h2 id="titre-palier" className="text-3xl font-extrabold">{paliersAmbassadeurs[index]?.titre ?? "Curieux"}</h2>
+          <p className="text-sm font-semibold text-gris">{T.tonPalier}</p>
+          <h2 id="titre-palier" className="text-3xl font-extrabold">{paliersAmbassadeurs[index]?.titre ?? paliersAmbassadeurs[0].titre}</h2>
           {certifie && (
             <p className="mt-2 inline-block max-w-full rounded-full border-2 border-encre bg-jaune px-3 py-1 text-sm font-bold break-words">
-              {lierPonctuation("Certifié ✓")}
+              {lierPonctuation(T.certifie)}
               {certifie.structure && <span className="font-semibold">{` · ${certifie.structure}`}</span>}
             </p>
           )}
-          <p className="mt-1 text-lg"><strong className="font-titre text-2xl font-extrabold">{points}</strong> point{points > 1 ? "s" : ""}</p>
+          <p className="mt-1 text-lg"><strong className="font-titre text-2xl font-extrabold">{points}</strong>{T.unitePoints(points)}</p>
         </div>
       </div>
       {progression && <p className="mt-5 text-gris">{lierPonctuation(progression)}</p>}
 
-      <h3 className="mt-6 text-lg font-extrabold">Tes badges</h3>
+      <h3 className="mt-6 text-lg font-extrabold">{T.tesBadges}</h3>
       {badges.length > 0 ? (
         <ul className="mt-2.5 flex flex-wrap gap-2">
           {badges.map((code) => {
@@ -73,7 +78,7 @@ export function CartePalier({ palier, points, badges, certifie = null }: Props) 
         </ul>
       ) : (
         <p className="mt-1.5 text-gris">
-          {lierPonctuation("Pas encore de badge. Par exemple, quand un lieu que tu as proposé rejoint SOS Miam, tu gagnes « Déniché par toi ».")}
+          {lierPonctuation(T.aucunBadge)}
         </p>
       )}
     </section>

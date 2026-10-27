@@ -2,8 +2,10 @@ import { LIMITES_CARTE } from "../../../../../packages/commun/src/regles/carte-d
 import { ChampTexte } from "~/composants/compte/ChampTexte";
 import { BoutonGesteCarte } from "~/composants/pro/BoutonGesteCarte";
 import { PlatEditeurCarte } from "~/composants/pro/PlatEditeurCarte";
+import { TEXTES_EDITEUR_CARTE_PAR_LANGUE } from "~/contenus/editeur-carte";
 import { nommerChampCarte } from "~/fonctions/carte/nommer-champ-carte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { BrouillonSection } from "~/types/carte";
 
 type Props = {
@@ -20,21 +22,22 @@ type Props = {
  * propres boutons Monter, Descendre et Supprimer. Une section vide est permise : elle n'apparaît pas sur la fiche.
  */
 export function SectionEditeurCarte({ section, position, nombre, placeSurLaCarte, focus }: Props) {
+  const T = utiliserTextes(TEXTES_EDITEUR_CARTE_PAR_LANGUE).section;
   const plats = section.elements.length;
   const pleine = plats >= LIMITES_CARTE.elementsParSection;
-  const precision = `la section ${position + 1}${section.titre.trim() ? `, ${section.titre.trim()}` : ""}`;
+  const precision = T.precision(position + 1, section.titre.trim());
   return (
     <fieldset className="min-w-0 rounded-carte border-2 border-encre bg-white p-4 shadow-brut md:p-6">
       <legend className="float-left flex w-full flex-wrap items-baseline justify-between gap-x-3 font-titre text-xl font-extrabold">
-        <span>{`Section ${position + 1}`}</span>
-        <span className="font-sans text-sm font-semibold text-gris">{`${plats} / ${LIMITES_CARTE.elementsParSection} plats`}</span>
+        <span>{T.titre(position + 1)}</span>
+        <span className="font-sans text-sm font-semibold text-gris">{T.plats(plats)}</span>
       </legend>
       <div className="clear-both grid gap-4 pt-3">
-        <ChampTexte nom={nommerChampCarte(position, "titre")} libelle="Titre de la section" maximum={LIMITES_CARTE.titreSection} exemple="Les plats, À boire, Les desserts…" />
+        <ChampTexte nom={nommerChampCarte(position, "titre")} libelle={T.libelleTitre} maximum={LIMITES_CARTE.titreSection} exemple={T.exempleTitre} />
         <div className="flex flex-wrap gap-2">
-          {position > 0 && <BoutonGesteCarte geste={`monter-section:${position}`} focus={focus} emoji="↑" precision={precision}>Monter la section</BoutonGesteCarte>}
-          {position < nombre - 1 && <BoutonGesteCarte geste={`descendre-section:${position}`} focus={focus} emoji="↓" precision={precision}>Descendre la section</BoutonGesteCarte>}
-          <BoutonGesteCarte geste={`supprimer-section:${position}`} focus={focus} emoji="✕" precision={precision} danger>Supprimer la section</BoutonGesteCarte>
+          {position > 0 && <BoutonGesteCarte geste={`monter-section:${position}`} focus={focus} emoji="↑" precision={precision}>{T.monter}</BoutonGesteCarte>}
+          {position < nombre - 1 && <BoutonGesteCarte geste={`descendre-section:${position}`} focus={focus} emoji="↓" precision={precision}>{T.descendre}</BoutonGesteCarte>}
+          <BoutonGesteCarte geste={`supprimer-section:${position}`} focus={focus} emoji="✕" precision={precision} danger>{T.supprimer}</BoutonGesteCarte>
         </div>
         {plats > 0 ? (
           <ol className="grid gap-4">
@@ -43,15 +46,15 @@ export function SectionEditeurCarte({ section, position, nombre, placeSurLaCarte
             ))}
           </ol>
         ) : (
-          <p className="text-sm text-gris">{lierPonctuation("Pas encore de plat ici : la section reste cachée sur ta fiche tant qu'elle est vide.")}</p>
+          <p className="text-sm text-gris">{lierPonctuation(T.vide)}</p>
         )}
         <div>
           {pleine || !placeSurLaCarte ? (
             <p className="text-sm font-semibold text-gris">
-              {lierPonctuation(pleine ? `Section pleine (${LIMITES_CARTE.elementsParSection} plats) : ajoute une autre section.` : `Ta carte est pleine (${LIMITES_CARTE.elements} plats).`)}
+              {lierPonctuation(pleine ? T.pleine : T.cartePleine)}
             </p>
           ) : (
-            <BoutonGesteCarte geste={`ajouter-plat:${position}`} focus={focus} emoji="+" precision={`dans ${precision}`} ajout>Ajouter un plat</BoutonGesteCarte>
+            <BoutonGesteCarte geste={`ajouter-plat:${position}`} focus={focus} emoji="+" precision={T.dans(precision)} ajout>{T.ajouterPlat}</BoutonGesteCarte>
           )}
         </div>
       </div>

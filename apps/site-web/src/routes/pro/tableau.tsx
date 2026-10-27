@@ -1,6 +1,7 @@
 import { data, useActionData } from "react-router";
 
 import type { Route } from "./+types/tableau";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
 import { BandeauVerificationEmail, FORMULAIRE_RENVOI } from "~/composants/compte/BandeauVerificationEmail";
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -9,15 +10,20 @@ import { FORMULAIRE_RATTACHEMENT } from "~/composants/pro/BoutonRattachement";
 import { CarteInvitation } from "~/composants/pro/CarteInvitation";
 import { CarteLieuPro } from "~/composants/pro/CarteLieuPro";
 import { EtatSansLieu } from "~/composants/pro/EtatSansLieu";
+import { TEXTES_TABLEAU_PRO_PAR_LANGUE } from "~/contenus/tableau-pro";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { lireLangueRequete } from "~/services/langue.server";
 import { accepterInvitation, listerRattachements, retirerRattachement } from "~/services/pro.server";
 import { exigerCompte, lireIpVisiteur, redirigerSiSessionFermee } from "~/services/session-compte.server";
 import { traiterRenvoiVerification } from "~/services/verification-email.server";
 
-export function meta(_: Route.MetaArgs) {
-  return [...creerMeta({ titre: "Mon tableau pro", description: "Tes lieux sur SOS Miam." }), { name: "robots", content: "noindex" }];
+export function meta({ matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  return [...creerMeta({ ...choisirTextes(TEXTES_TABLEAU_PRO_PAR_LANGUE, langue).meta, langue }), { name: "robots", content: "noindex" }];
 }
 
 /**
@@ -40,12 +46,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
-/** Ce que dit la page après un geste réussi. */
-const reussites = {
-  accepter: "Bienvenue dans l'équipe ! La fiche du lieu est dans ta liste.",
-  retirer: "C'est fait.",
-};
-
 /** « Accepter » ou « Refuser » une invitation, « Annuler ma demande », « Quitter ce lieu », ou « Renvoyer le lien ». */
 export async function action({ request }: Route.ActionArgs): Promise<ReponseFormulaire> {
   const formulaire = await request.clone().formData().catch(() => null);
@@ -59,33 +59,36 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
 
   const { jeton } = await exigerCompte(request);
   const ip = lireIpVisiteur(request);
+  const langue = lireLangueRequete(request).langue;
+  const T = choisirTextes(TEXTES_TABLEAU_PRO_PAR_LANGUE, langue);
   const reponse = geste === "accepter" ? await accepterInvitation(jeton, ip, id) : await retirerRattachement(jeton, ip, id);
-  if (reponse.ok) return { ok: true, formulaire: FORMULAIRE_RATTACHEMENT, message: lierPonctuation(reussites[geste]) };
+  if (reponse.ok) return { ok: true, formulaire: FORMULAIRE_RATTACHEMENT, message: lierPonctuation(T.reussites[geste]) };
   await redirigerSiSessionFermee(request, reponse.erreur);
   // Compte limité : rejoindre une équipe se verrait du gérant, ça attend la fin de la limitation (refuser reste possible)
   const message = reponse.erreur === "compte-limite"
-    ? expliquerCompteLimite(reponse.jusqua)
+    ? expliquerCompteLimite(reponse.jusqua, langue)
     : reponse.erreur === "invitation-inconnue" || reponse.erreur === "rattachement-inconnu"
-      ? "Ça a déjà bougé entre-temps : la liste ci-dessous est à jour."
-      : "Oups, ça n'a pas marché. Réessaie dans un instant.";
+      ? T.erreurs.dejaBouge
+      : T.erreurs.panne;
   return { ok: false, formulaire: FORMULAIRE_RATTACHEMENT, message: lierPonctuation(message) };
 }
 
 /** Page /tableau : mes lieux et leur statut, les invitations reçues, et « Rattacher un lieu ». */
 export default function PageTableau({ loaderData }: Route.ComponentProps) {
   const { prenom, email, demandeEnvoyee, invitations, lieux } = loaderData;
+  const T = utiliserTextes(TEXTES_TABLEAU_PRO_PAR_LANGUE);
   const reponse = useActionData<ReponseFormulaire>();
   const reponseGeste = reponse?.formulaire === FORMULAIRE_RATTACHEMENT ? reponse : undefined;
   return (
     <Section fond="creme" className="!pt-10 md:!pt-14">
       {!email.verifie && <BandeauVerificationEmail justeInscrit={email.justeInscrit} />}
-      <h1 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-tight">{lierPonctuation(`Salut, ${prenom} !`)}</h1>
-      <p className="mt-2 max-w-xl text-lg text-gris">{lierPonctuation("Ton tableau pro : tes lieux, leur fiche, ton équipe.")}</p>
+      <h1 className="text-[clamp(2rem,4vw,3rem)] font-extrabold tracking-tight">{lierPonctuation(T.salut(prenom))}</h1>
+      <p className="mt-2 max-w-xl text-lg text-gris">{lierPonctuation(T.chapo)}</p>
 
       {demandeEnvoyee && !reponseGeste && (
         <p role="status" className="mt-6 rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4 font-semibold">
           <span aria-hidden="true">✓ </span>
-          {lierPonctuation("Ta demande est partie ! L'équipe SOS Miam vérifie que ce lieu est bien à toi, puis sa fiche s'ouvre ici.")}
+          {lierPonctuation(T.demandeEnvoyee)}
         </p>
       )}
       <p role="status" aria-live="polite" className={`font-semibold ${reponseGeste?.ok ? "text-encre" : "text-rouge-texte"} ${reponseGeste ? "mt-6" : ""}`}>
@@ -95,7 +98,7 @@ export default function PageTableau({ loaderData }: Route.ComponentProps) {
 
       {invitations.length > 0 && (
         <section aria-labelledby="invitations" className="mt-8">
-          <h2 id="invitations" className="text-2xl font-extrabold">Invitations</h2>
+          <h2 id="invitations" className="text-2xl font-extrabold">{T.invitations}</h2>
           <ul className="mt-4 grid gap-4">
             {invitations.map((invitation) => <CarteInvitation key={invitation.id} invitation={invitation} />)}
           </ul>
@@ -104,12 +107,12 @@ export default function PageTableau({ loaderData }: Route.ComponentProps) {
 
       <section aria-labelledby="mes-lieux" className="mt-10">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 id="mes-lieux" className="text-2xl font-extrabold">Mes lieux</h2>
-          {lieux && lieux.length > 0 && <Bouton vers="/rattacher" petit>Rattacher un lieu</Bouton>}
+          <h2 id="mes-lieux" className="text-2xl font-extrabold">{T.mesLieux}</h2>
+          {lieux && lieux.length > 0 && <Bouton vers="/rattacher" petit>{T.rattacher}</Bouton>}
         </div>
         {lieux === null ? (
           <p className="rounded-2xl border-2 border-encre bg-white px-5 py-4 font-semibold">
-            {lierPonctuation("Oups, tes lieux ne se sont pas affichés. Recharge la page dans un instant.")}
+            {lierPonctuation(T.lieuxIllisibles)}
           </p>
         ) : lieux.length > 0 ? (
           <ul className="grid gap-5 md:grid-cols-2">

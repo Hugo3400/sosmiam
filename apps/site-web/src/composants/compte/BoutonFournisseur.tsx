@@ -1,6 +1,7 @@
 import { LogoApple } from "~/composants/compte/LogoApple";
 import { LogoGoogle } from "~/composants/compte/LogoGoogle";
-import { libellesFournisseurs } from "~/contenus/connexion-externe";
+import { TEXTES_CONNEXION_EXTERNE_PAR_LANGUE } from "~/contenus/connexion-externe";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { FournisseurExterne } from "~/types/connexion-externe";
 
 /**
@@ -18,7 +19,8 @@ type Props = { fournisseur: FournisseurExterne; adresse: string; libelle?: strin
  * « Continuer avec Apple » ou « Continuer avec Google » : un vrai lien (navigation complète vers le départ, puis chez le
  * fournisseur), utilisable au clavier et sans JavaScript. Le logo est décoratif : le libellé suffit.
  */
-export function BoutonFournisseur({ fournisseur, adresse, libelle = libellesFournisseurs[fournisseur] }: Props) {
+export function BoutonFournisseur({ fournisseur, adresse, libelle }: Props) {
+  const T = utiliserTextes(TEXTES_CONNEXION_EXTERNE_PAR_LANGUE);
   return (
     <a
       href={adresse}
@@ -26,7 +28,7 @@ export function BoutonFournisseur({ fournisseur, adresse, libelle = libellesFour
         transition-colors focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre ${habits[fournisseur]}`}
     >
       {fournisseur === "apple" ? <LogoApple className="h-5 w-5 shrink-0" /> : <LogoGoogle className="h-5 w-5 shrink-0" />}
-      <span>{libelle}</span>
+      <span>{libelle ?? T.fournisseurs[fournisseur]}</span>
     </a>
   );
 }

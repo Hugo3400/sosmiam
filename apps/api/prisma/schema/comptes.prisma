@@ -149,6 +149,9 @@ model Compte {
   votesIdeesCommunaute           VoteIdeeCommunaute[]
   commentairesIdeesCommunaute    CommentaireIdeeCommunaute[]
   jaimesCommentairesIdees        JaimeCommentaireIdee[]
+  articlesActusEcrits            ArticleActus[]                 @relation("ArticlesActusEcrits")
+  jaimesArticlesActus            JaimeArticleActus[]
+  reponsesActusEcrites           ReponseLieuActus[]             @relation("ReponsesActusEcrites")
   langue                String    @default("fr") @db.VarChar(5)
   @@index([derniereConnexion])
   @@map("comptes")

@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { data, Link, redirect, useActionData } from "react-router";
 
 import type { Route } from "./+types/mon-compte";
+import { choisirTextes } from "../../../../../packages/commun/src/fonctions/langue/choisir-textes.ts";
+import type { Langue } from "../../../../../packages/commun/src/regles/langues.ts";
 import { BoutonDeconnexion } from "~/composants/compte/BoutonDeconnexion";
 import { ConnexionMonCompte } from "~/composants/compte/ConnexionMonCompte";
 import { EncadreCompteLimite, FORMULAIRE_CONTESTATION } from "~/composants/compte/EncadreCompteLimite";
@@ -15,55 +17,44 @@ import { PartieMesDonnees } from "~/composants/compte/PartieMesDonnees";
 import { PartieSupprimerSansConnexion } from "~/composants/compte/PartieSupprimerSansConnexion";
 import { TitreSection } from "~/composants/interface/TitreSection";
 import { Section } from "~/composants/mise-en-page/Section";
+import { TEXTES_CONNEXION_COMPTE_PAR_LANGUE } from "~/contenus/connexion-compte";
+import { TEXTES_CONNEXION_EXTERNE_PAR_LANGUE } from "~/contenus/connexion-externe";
 import { site } from "~/contenus/legal/informations-legales";
-import { messagesConnexionExterne } from "~/contenus/connexion-externe";
-import { accueilsMonCompte, AIDE_SANS_MOT_DE_PASSE, CHAPO_CONNECTE, CHAPO_VISITEUR } from "~/contenus/mon-compte";
-import { textesLimitation } from "~/contenus/limitation-compte";
+import { TEXTES_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_MESSAGES_COMPTE_PAR_LANGUE } from "~/contenus/messages-compte";
+import { TEXTES_MON_COMPTE_PAR_LANGUE } from "~/contenus/mon-compte";
+import { ecrireAttente } from "~/fonctions/compte/ecrire-attente";
 import { expliquerCompteLimite } from "~/fonctions/compte/expliquer-compte-limite";
 import { lireMotifLimitation } from "~/fonctions/compte/lire-motif-limitation";
-import { MESSAGE_PRENOM_REFUSE } from "~/contenus/prenom-refuse";
 import { choisirCodeConnexionExterne } from "~/fonctions/connexion-externe/choisir-code-connexion-externe";
-import { lireMessageConnexionExterne } from "~/fonctions/connexion-externe/lire-message-connexion-externe";
+import { lireCodeConnexionExterne } from "~/fonctions/connexion-externe/lire-code-connexion-externe";
 import { HOTE_AMBASSADEUR } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lireEspaceHote } from "~/fonctions/hotes/lire-espace-hote";
 import { lireEspaceMonCompte } from "~/fonctions/hotes/lire-espace-mon-compte";
+import { lireLangueMeta } from "~/fonctions/langue/lire-langue-meta";
 import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import {
-  changerMotDePasse, decrireAttente, lireConnexionsCompte, MESSAGE_OCCUPE, modifierCompte, supprimerCompte, supprimerCompteAvecFournisseur,
+  changerMotDePasse, lireConnexionsCompte, modifierCompte, supprimerCompte, supprimerCompteAvecFournisseur,
 } from "~/services/comptes.server";
 import { effacerCookieAttente, lireCookieAttente } from "~/services/cookies-connexion-externe.server";
 import { lireFournisseursActifs } from "~/services/reglages-connexion-externe.server";
 import { connecterDepuisFormulaire } from "~/services/connexion-compte.server";
 import { lireQrAffiche } from "~/services/connexion-qr.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { contesterLimitation, lireLimitation } from "~/services/limitation-compte.server";
 import { preparerMesConnexions, traiterMesConnexions } from "~/services/mes-connexions.server";
 import {
   effacerCookieSession, exigerCompte, lireCompteConnecte, lireIpVisiteur, poserCookieSession, redirigerSiSessionFermee,
 } from "~/services/session-compte.server";
 
-const messages = {
-  prenom: "Donne ton prénom ou un surnom (40 caractères au plus).",
-  ville: "Indique ta ville (2 à 80 caractères).",
-  quartier: "Le quartier fait 80 caractères au plus.",
-  actuel: "Indique ton mot de passe actuel.",
-  actuelIncorrect: "Ce n'est pas ton mot de passe actuel.",
-  nouveau: "Ton nouveau mot de passe doit faire au moins 12 caractères (et 128 au plus).",
-  // Refusé par l'API : trop facile à deviner (courant, suite, répétition, e-mail), ou que des chiffres et moins de 16
-  nouveauRefuse: "Ce mot de passe est trop facile à deviner (trop courant, une suite, une répétition, ton e-mail…), ou il n'a que des chiffres (il en faut alors 16) : choisis-en un autre. Une petite phrase marche très bien.",
-  motDePasse: "Indique ton mot de passe pour confirmer.",
-  motDePasseIncorrect: "Ce n'est pas ton mot de passe.",
-};
 
 /** Après un changement de mot de passe : « ?mot-de-passe-change=<marque> », une marque nouvelle à chaque changement. */
 const PARAMETRE_CHANGE = "mot-de-passe-change";
 
 /** Où mène le lien du bas de la page, selon l'espace. */
-const retours = {
-  ambassadeur: { vers: "/espace", texte: "Retour à mon espace" },
-  pro: { vers: "/tableau", texte: "Retour à mon tableau" },
-  site: { vers: "/", texte: "Retour à l'accueil" },
-};
+const RETOURS = { ambassadeur: "/espace", pro: "/tableau", site: "/" };
 
 /**
  * La même page sert trois espaces, chacun avec son cookie : /espace/mon-compte (ambassadeur.sosmiam.fr), /mon-compte sur
@@ -73,17 +64,13 @@ const retours = {
 function lireEspacePage(request: Request) {
   const url = new URL(request.url);
   const espace = lireEspaceMonCompte(lireEspaceHote(url.host), url.pathname);
-  return { espace, chemin: espace === "ambassadeur" ? "/espace/mon-compte" : "/mon-compte", retour: retours[espace] };
+  return { espace, chemin: espace === "ambassadeur" ? "/espace/mon-compte" : "/mon-compte", retour: RETOURS[espace] };
 }
 
-const descriptions = {
-  ambassadeur: "Ton compte ambassadeur SOS Miam.",
-  pro: "Ton compte SOS Miam, dans l'espace pro.",
-  site: "Ton compte SOS Miam : tes infos, tes données, et la suppression de ton compte, même sans te connecter.",
-};
-
-export function meta({ loaderData }: Route.MetaArgs) {
-  return [...creerMeta({ titre: "Mon compte", description: descriptions[loaderData?.espace ?? "ambassadeur"] }), { name: "robots", content: "noindex" }];
+export function meta({ loaderData, matches }: Route.MetaArgs) {
+  const langue = lireLangueMeta(matches);
+  const T = choisirTextes(TEXTES_MON_COMPTE_PAR_LANGUE, langue);
+  return [...creerMeta({ titre: T.titre, description: T.descriptions[loaderData?.espace ?? "ambassadeur"], langue }), { name: "robots", content: "noindex" }];
 }
 
 /**
@@ -95,11 +82,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const { espace, retour } = lireEspacePage(request);
   if (espace === "site" && !(await lireCompteConnecte(request))) {
-    const accueil = url.searchParams.has("au-revoir") ? accueilsMonCompte["au-revoir"] : url.searchParams.has("deconnecte") ? accueilsMonCompte.deconnecte : null;
+    const accueil = url.searchParams.has("au-revoir") ? "au-revoir" as const : url.searchParams.has("deconnecte") ? "deconnecte" as const : null;
     // Sur sosmiam.fr, « Mot de passe oublié » vit sur l'espace ambassadeur (le lien reçu par mail y mène aussi)
     const adresseOubli = url.hostname === site.adresse ? `https://${HOTE_AMBASSADEUR}/mot-de-passe-oublie` : "/mot-de-passe-oublie";
-    const messageExterne = lireMessageConnexionExterne(url.searchParams.get("externe"));
-    return { connecte: false as const, espace, retour, accueil: accueil && lierPonctuation(accueil), adresseOubli, fournisseurs: lireFournisseursActifs(), messageExterne,
+    const messageExterne = lireCodeConnexionExterne(url.searchParams.get("externe"));
+    return { connecte: false as const, espace, retour, accueil, adresseOubli, fournisseurs: lireFournisseursActifs(), messageExterne,
       // « Me connecter avec l'app » : le QR redessiné après un retour sans JavaScript (« ?qr=… »), sinon rien
       qr: lireQrAffiche(request) };
   }
@@ -119,7 +106,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         lies: (["apple", "google"] as const).filter((fournisseur) => connexions.connexions[fournisseur] && actifs[fournisseur]),
         pret: attente?.intention === "suppression" ? attente.fournisseur : null,
         depart: espace === "ambassadeur" ? "/espace/mon-compte" as const : "/mon-compte" as const,
-        message: lireMessageConnexionExterne(url.searchParams.get("externe")),
+        message: lireCodeConnexionExterne(url.searchParams.get("externe")),
       }
     : null;
   // La marque est l'heure du changement (Date.now() en base 36) : passé 2 minutes (rechargement, retour arrière, adresse
@@ -144,10 +131,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 /** Message général d'une erreur de l'API qui ne vise pas un champ (« attente » : secondes avant le prochain essai). */
-function expliquer({ erreur, attente }: { erreur: string; attente?: number }): string {
-  if (erreur === "occupe") return lierPonctuation(MESSAGE_OCCUPE);
-  if (erreur !== "trop-de-demandes") return lierPonctuation("Oups, ça n'a pas marché. Réessaie dans un instant, ou écris-nous à bonjour@sosmiam.fr.");
-  return lierPonctuation(`Trop d'essais : réessaie dans ${decrireAttente(attente)}.`);
+function expliquer({ erreur, attente }: { erreur: string; attente?: number }, langue: Langue): string {
+  const M = choisirTextes(TEXTES_MESSAGES_COMPTE_PAR_LANGUE, langue);
+  if (erreur === "occupe") return lierPonctuation(M.occupe);
+  if (erreur !== "trop-de-demandes") return lierPonctuation(M.panne);
+  return lierPonctuation(M.tropDEssais(ecrireAttente(attente, langue)));
 }
 
 /**
@@ -159,6 +147,14 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
   if (!formulaire) throw data("Formulaire illisible", { status: 400 });
   const page = lireEspacePage(request);
   if (formulaire.get("formulaire") === "connexion" && page.espace === "site") return connecterDepuisFormulaire(request, formulaire, "/mon-compte");
+  const { langue } = lireLangueRequete(request);
+  const M = choisirTextes(TEXTES_MESSAGES_COMPTE_PAR_LANGUE, langue);
+  const T = choisirTextes(TEXTES_MON_COMPTE_PAR_LANGUE, langue);
+  const L = choisirTextes(TEXTES_LIMITATION_PAR_LANGUE, langue);
+  const messages = {
+    prenom: M.prenom, ville: M.ville, quartier: M.quartier, actuel: T.messages.actuel, actuelIncorrect: T.messages.actuelIncorrect,
+    nouveau: T.messages.nouveau, nouveauRefuse: M.motDePasseRefuse, motDePasse: M.motDePasseConfirmer, motDePasseIncorrect: M.motDePasseIncorrect,
+  };
   const { jeton, compte } = await exigerCompte(request);
   const lire = (nom: string) => String(formulaire.get(nom) ?? "").replace(/\s+/g, " ").trim();
   const ip = lireIpVisiteur(request);
@@ -176,28 +172,28 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     if (Object.keys(erreurs).length > 0) return { ok: false, formulaire: nom, erreurs, valeurs };
     // Un quartier vide efface celui qui était enregistré
     const reponse = await modifierCompte(jeton, ip, compte.ambassadeur ? valeurs : { prenom: valeurs.prenom });
-    if (reponse.ok) return { ok: true, formulaire: nom, message: "C'est enregistré." };
+    if (reponse.ok) return { ok: true, formulaire: nom, message: T.enregistre };
     await redirigerSiSessionFermee(request, reponse.erreur);
     const champ = reponse.champ as keyof typeof messages | undefined;
     // Compte limité : un nouveau prénom se verrait des autres, il attend la fin de la limitation
-    if (reponse.erreur === "compte-limite") return { ok: false, formulaire: nom, message: lierPonctuation(expliquerCompteLimite(reponse.jusqua)), valeurs };
+    if (reponse.erreur === "compte-limite") return { ok: false, formulaire: nom, message: lierPonctuation(expliquerCompteLimite(reponse.jusqua, langue)), valeurs };
     if (reponse.erreur === "champ-invalide" && champ && (champ === "prenom" || champ === "ville" || champ === "quartier")) {
       // Le prénom avait la bonne longueur (vérifiée ici) : l'API le refuse pour un gros mot
-      return { ok: false, formulaire: nom, erreurs: { [champ]: champ === "prenom" ? MESSAGE_PRENOM_REFUSE : messages[champ] }, valeurs };
+      return { ok: false, formulaire: nom, erreurs: { [champ]: champ === "prenom" ? M.prenomRefuse : messages[champ] }, valeurs };
     }
-    return { ok: false, formulaire: nom, message: expliquer(reponse), valeurs };
+    return { ok: false, formulaire: nom, message: expliquer(reponse, langue), valeurs };
   }
 
   if (nom === FORMULAIRE_CONTESTATION) {
     // « Contester » ma limitation : 10 à 1 000 caractères, une seule fois, pendant la limitation
     const texte = String(formulaire.get("texte") ?? "").trim();
-    if (texte.length < 10 || texte.length > 1000) return { ok: false, formulaire: nom, erreurs: { texte: lierPonctuation(textesLimitation.texteInvalide) }, valeurs: { texte } };
+    if (texte.length < 10 || texte.length > 1000) return { ok: false, formulaire: nom, erreurs: { texte: lierPonctuation(L.texteInvalide) }, valeurs: { texte } };
     const reponse = await contesterLimitation(jeton, ip, texte);
-    if (reponse.ok) return { ok: true, formulaire: nom, message: lierPonctuation(textesLimitation.envoiReussi) };
+    if (reponse.ok) return { ok: true, formulaire: nom, message: lierPonctuation(L.envoiReussi) };
     await redirigerSiSessionFermee(request, reponse.erreur);
-    if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: nom, erreurs: { texte: lierPonctuation(textesLimitation.texteInvalide) }, valeurs: { texte } };
-    const message = reponse.erreur === "deja-conteste" ? textesLimitation.dejaConteste : reponse.erreur === "aucune-limitation" ? textesLimitation.plusDeLimitation : null;
-    return { ok: false, formulaire: nom, message: message ? lierPonctuation(message) : expliquer(reponse), valeurs: { texte } };
+    if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: nom, erreurs: { texte: lierPonctuation(L.texteInvalide) }, valeurs: { texte } };
+    const message = reponse.erreur === "deja-conteste" ? L.dejaConteste : reponse.erreur === "aucune-limitation" ? L.plusDeLimitation : null;
+    return { ok: false, formulaire: nom, message: message ? lierPonctuation(message) : expliquer(reponse, langue), valeurs: { texte } };
   }
 
   if (nom === "mot-de-passe") {
@@ -220,7 +216,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { actuel: messages.actuelIncorrect } };
     if (reponse.erreur === "champ-invalide") return { ok: false, formulaire: nom, erreurs: { nouveau: lierPonctuation(messages.nouveauRefuse) } };
-    return { ok: false, formulaire: nom, message: expliquer(reponse) };
+    return { ok: false, formulaire: nom, message: expliquer(reponse, langue) };
   }
 
   if (nom === "suppression") {
@@ -231,13 +227,14 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
     if (reponse.ok) throw redirect(apres, { headers: { "Set-Cookie": await effacerCookieSession() } });
     await redirigerSiSessionFermee(request, reponse.erreur);
     if (reponse.erreur === "mot-de-passe-incorrect") return { ok: false, formulaire: nom, erreurs: { motDePasse: messages.motDePasseIncorrect } };
-    return { ok: false, formulaire: nom, message: expliquer(reponse) };
+    return { ok: false, formulaire: nom, message: expliquer(reponse, langue) };
   }
 
   if (nom === "suppression-externe") {
     // Le jeton d'Apple ou de Google, gardé côté serveur après la reconnexion (10 minutes au plus)
     const attente = lireCookieAttente(request, Date.now());
-    if (attente?.intention !== "suppression") return { ok: false, formulaire: nom, message: lierPonctuation(messagesConnexionExterne.expire) };
+    const externe = choisirTextes(TEXTES_CONNEXION_EXTERNE_PAR_LANGUE, langue).messages;
+    if (attente?.intention !== "suppression") return { ok: false, formulaire: nom, message: lierPonctuation(externe.expire) };
     const reponse = await supprimerCompteAvecFournisseur(jeton, ip, attente.fournisseur, attente.jeton, attente.nonce);
     const apres = page.espace === "site" ? "/mon-compte?au-revoir" : "/connexion?au-revoir";
     if (reponse.ok) {
@@ -247,7 +244,7 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
       throw redirect(apres, { headers: entetes });
     }
     await redirigerSiSessionFermee(request, reponse.erreur);
-    return { ok: false, formulaire: nom, message: lierPonctuation(messagesConnexionExterne[choisirCodeConnexionExterne(reponse.erreur)]) };
+    return { ok: false, formulaire: nom, message: lierPonctuation(externe[choisirCodeConnexionExterne(reponse.erreur)]) };
   }
 
   throw data("Formulaire inconnu", { status: 400 });
@@ -258,22 +255,24 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseForm
  * suppression du compte ; sur sosmiam.fr, en plus, « Mes données » et, sans connexion, la connexion et la suppression par mail.
  */
 export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
+  const T = utiliserTextes(TEXTES_MON_COMPTE_PAR_LANGUE);
+  const { accueils } = utiliserTextes(TEXTES_CONNEXION_COMPTE_PAR_LANGUE);
   const reponseAction = useActionData<ReponseFormulaire>();
   const motDePasseChange = loaderData.connecte ? loaderData.motDePasseChange : null;
   // Mot de passe changé (on revient ici par une redirection, sans réponse d'action) : le formulaire l'annonce comme une
   // réussite et se vide. Un nouvel objet seulement quand la marque change : chaque changement est annoncé une fois.
   const confirmation = useMemo<ReponseFormulaire | undefined>(
     () => motDePasseChange
-      ? { ok: true, formulaire: "mot-de-passe", message: lierPonctuation("C'est fait ! Ton nouveau mot de passe est enregistré, et tes autres connexions sont fermées.") }
+      ? { ok: true, formulaire: "mot-de-passe", message: lierPonctuation(T.motDePasseChange) }
       : undefined,
-    [motDePasseChange],
+    [motDePasseChange, T],
   );
   const { espace, retour } = loaderData;
   const surSite = espace === "site";
   const lienRetour = (
     <p className="mt-8 text-center">
-      <Link to={retour.vers} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-        <span aria-hidden="true">← </span>{retour.texte}
+      <Link to={retour} className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
+        <span aria-hidden="true">← </span>{T.retours[espace]}
       </Link>
     </p>
   );
@@ -281,10 +280,10 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
   if (!loaderData.connecte) {
     return (
       <Section fond="creme" etroit>
-        <TitreSection principal chapo={lierPonctuation(CHAPO_VISITEUR)}>Mon compte</TitreSection>
+        <TitreSection principal chapo={lierPonctuation(T.chapoVisiteur)}>{T.titre}</TitreSection>
         {loaderData.accueil && (
           <p role="status" className="mx-auto -mt-4 mb-8 max-w-xl rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4 text-center font-semibold">
-            {loaderData.accueil}
+            {lierPonctuation(accueils[loaderData.accueil])}
           </p>
         )}
         <div className="grid gap-8">
@@ -302,26 +301,26 @@ export default function PageMonCompte({ loaderData }: Route.ComponentProps) {
   const contestationSansEncadre = !limitation && reponseAction?.formulaire === FORMULAIRE_CONTESTATION ? reponseAction.message : undefined;
   return (
     <Section fond="creme" etroit>
-      <TitreSection principal chapo={lierPonctuation(surSite ? CHAPO_CONNECTE : "Tes infos, ton mot de passe, et la porte de sortie si tu en as besoin.")}>
-        Mon compte
+      <TitreSection principal chapo={lierPonctuation(surSite ? T.chapoConnecte : T.chapoEspace)}>
+        {T.titre}
       </TitreSection>
       <div className="grid gap-8">
         {limitation && <EncadreCompteLimite limitation={limitation.vue} motif={limitation.motif} />}
         {contestationSansEncadre && <p role="status" className="rounded-2xl border-2 border-encre bg-jaune-clair px-5 py-4 font-semibold">{contestationSansEncadre}</p>}
-        <PartieCompte id="mes-infos" titre="Mes infos">
+        <PartieCompte id="mes-infos" titre={T.parties.mesInfos}>
           <FormulaireProfil prenom={prenom} email={email} lieu={lieu} />
         </PartieCompte>
         <PartieMesConnexions connexions={mesConnexions} />
-        <PartieCompte id="mon-mot-de-passe" titre="Mon mot de passe">
+        <PartieCompte id="mon-mot-de-passe" titre={T.parties.monMotDePasse}>
           {sansMotDePasse
-            ? <p className="text-gris">{lierPonctuation(AIDE_SANS_MOT_DE_PASSE)}</p>
+            ? <p className="text-gris">{lierPonctuation(T.aideSansMotDePasse)}</p>
             : <FormulaireChangerMotDePasse email={email} confirmation={confirmation} />}
         </PartieCompte>
-        <PartieCompte id="me-deconnecter" titre="Me déconnecter">
-          <p className="mb-5 text-gris">{lierPonctuation(sansMotDePasse ? "Sur cet appareil. Tu pourras te reconnecter quand tu veux avec Apple ou Google." : "Sur cet appareil. Tu pourras te reconnecter quand tu veux avec ton e-mail et ton mot de passe.")}</p>
+        <PartieCompte id="me-deconnecter" titre={T.parties.meDeconnecter}>
+          <p className="mb-5 text-gris">{lierPonctuation(sansMotDePasse ? T.deconnexionAppleGoogle : T.deconnexionEmail)}</p>
           <BoutonDeconnexion apres={surSite ? "/mon-compte" : undefined} />
         </PartieCompte>
-        <PartieCompte id="supprimer-mon-compte" titre="Supprimer mon compte">
+        <PartieCompte id="supprimer-mon-compte" titre={T.parties.supprimer}>
           <FormulaireSupprimerCompte espace={suppression} sansMotDePasse={sansMotDePasse ?? undefined} />
         </PartieCompte>
         {surSite && <PartieMesDonnees connecte />}

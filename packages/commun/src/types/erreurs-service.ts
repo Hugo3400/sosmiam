@@ -7,6 +7,7 @@ import type { ErreurServiceCommunaute } from "./erreurs-service-communaute.ts";
 import type { ErreurServiceReservations } from "./erreurs-reservations.ts";
 import type { ErreurCarriere } from "./erreurs-carriere.ts";
 import type { ErreurSecurite } from "./erreurs-securite.ts";
+import type { ErreurActus } from "./erreurs-actus.ts";
 import type { ErreurImagesLieu } from "./erreurs-images-lieu.ts";
 
 export type ErreurService =
@@ -17,6 +18,7 @@ export type ErreurService =
   | ErreurCarriere
   | ErreurSecurite
   | ErreurImagesLieu
+  | ErreurActus
   | "connexion-requise"
   | "service-indisponible"
   | "erreur-serveur"

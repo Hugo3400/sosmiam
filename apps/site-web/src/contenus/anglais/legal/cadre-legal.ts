@@ -8,3 +8,8 @@ export const TEXTES_CADRE_LEGAL_ANGLAIS: Traduction<typeof TEXTES_CADRE_LEGAL> =
   auSommaire: "Contents",
   hautDePage: "Back to top",
 };
+
+export const MENTIONS_TRADUCTION_COURTOISIE = {
+  toutes: "This is a courtesy translation. If it differs from the French version, the French version prevails.",
+  contraignante: "Only the French version is legally binding.",
+};

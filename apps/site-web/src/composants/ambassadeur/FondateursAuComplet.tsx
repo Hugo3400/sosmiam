@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
 
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE } from "~/contenus/candidature-fondateur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { ZoneFondateurs } from "~/types/compte";
 
 type Props = {
@@ -18,6 +20,7 @@ type Props = {
  * commune, si on s'est trompé.
  */
 export function FondateursAuComplet({ zone, idRecherche, apresEnvoi = false }: Props) {
+  const T = utiliserTextes(TEXTES_CANDIDATURE_FONDATEUR_PAR_LANGUE).complet;
   const titre = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (apresEnvoi) titre.current?.focus();
@@ -28,13 +31,13 @@ export function FondateursAuComplet({ zone, idRecherche, apresEnvoi = false }: P
     <div className="rounded-carte border-2 border-encre bg-white px-6 py-10 text-center shadow-brut md:px-12">
       <Mascotte expression="surprise" className="mx-auto mb-5 h-24 w-24" />
       <h2 ref={titre} tabIndex={-1} className="text-3xl font-extrabold">
-        {ville ? "Toutes les places de ta ville sont prises" : lierPonctuation(`La place ${zone.nomAvecDe} est prise`)}
+        {ville ? T.titreVille : lierPonctuation(T.titreZone(zone))}
       </h2>
       <p className="mx-auto mt-3 max-w-lg text-lg">
-        {lierPonctuation(`Merci d'avoir tenté ta chance ! La candidature ${zone.nomAvecDe} rouvrira dès qu'une place se libère : pas de liste d'attente, repasse de temps en temps. En attendant, tu restes ambassadeur et tu grimpes les niveaux, comme tout le monde.`)}
+        {lierPonctuation(T.texte(zone))}
       </p>
       <p className="mx-auto mt-4 max-w-lg">
-        {lierPonctuation("Tu t'es trompé de commune ? ")}
+        {lierPonctuation(T.trompe)}
         {/* Avec JavaScript, le champ de recherche prend aussi le focus (un lien « # » vers un champ ne fait que défiler) */}
         <a
           href={`#${idRecherche}`}
@@ -46,7 +49,7 @@ export function FondateursAuComplet({ zone, idRecherche, apresEnvoi = false }: P
             champ.focus({ preventScroll: true });
           }}
           className="font-semibold underline decoration-jaune decoration-[3px] underline-offset-2 hover:decoration-encre">
-          Choisis-en une autre
+          {T.autre}
         </a>
         .
       </p>

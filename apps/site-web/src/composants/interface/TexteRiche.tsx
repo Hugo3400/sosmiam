@@ -14,6 +14,7 @@ export function TexteRiche({ texte }: { texte: string }) {
   const lien = utiliserLienLangue();
   return decouperTexteRiche(texte).map((morceau, i) => {
     if (morceau.type === "gras") return <strong key={i} className="text-encre">{lierPonctuation(morceau.texte)}</strong>;
+    if (morceau.type === "francais") return <i key={i} lang="fr">{lierPonctuation(morceau.texte)}</i>;
     if (morceau.type === "lien") {
       const href = lien(morceau.href);
       return href.startsWith("/") && !href.includes("#")

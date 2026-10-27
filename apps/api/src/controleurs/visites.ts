@@ -18,6 +18,7 @@ import type { ServicesEvenements } from "../services/evenements-regles.ts";
 import type { ServicesStatistiquesLieu } from "../services/statistiques-lieu-regles.ts";
 import type { DependancesAvis } from "./avis.ts";
 import type { ImagesLieu } from "../services/images-lieu.ts";
+import type { ActusPro, RoleDansLeLieu } from "../services/actus-pro.ts";
 import { lireCompteId, lireCorps } from "./comptes-champs.ts";
 
 export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
@@ -33,6 +34,7 @@ export type DependancesVisites = Omit<ContexteComptoir, "horloge"> & {
   avis?: Pick<DependancesAvis, "depot">;
   prevenirCompte?: PrevenirCompte;
   imagesLieu?: Pick<ImagesLieu, "envoyer" | "retirer" | "lirePublique">;
+  actus?: (roleDe: RoleDansLeLieu) => ActusPro;
 };
 
 /** Le statut HTTP de chaque refus (400 pour ce qui n'est pas listé) */

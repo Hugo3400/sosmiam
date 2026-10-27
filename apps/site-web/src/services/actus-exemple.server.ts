@@ -8,30 +8,30 @@ const MALO: AuteurActus = { id: 9102, prenom: "malo.matelot", avatar: "miami:bin
 const INES: AuteurActus = { id: 9103, prenom: "ines.papilles", avatar: "miami:chantilly", ambassadeur: true };
 const SAMI: AuteurActus = { id: 9104, prenom: "sami.tartine", avatar: "miami:bob", ambassadeur: true };
 
-const lieu = (nom: string, type: TypeLieu, emoji: string, quartier: string, ville: string, verifie = true): LieuCiteActus => ({ id: 0, nom, type, emoji, quartier, ville, verifie });
+const lieu = (id: number, nom: string, type: TypeLieu, emoji: string, quartier: string, ville: string, verifie = true): LieuCiteActus => ({ id, nom, type, emoji, quartier, ville, verifie });
 
-const CAPITAINE = lieu("Restaurant du Capitaine Bouiboui", "resto", "🐟", "Écusson", "Montpellier");
-const PATISSERIE_BRIGADE = lieu("Pâtisserie de la Brigade", "patisserie", "🧁", "Comédie", "Montpellier");
-const FOURNEE_MIAMIS = lieu("La Fournée des Miamis", "patisserie", "🥖", "Comédie", "Montpellier");
-const CANTINE_MIAMIS = lieu("La Cantine des Miamis", "resto", "🍲", "Comédie", "Montpellier", false);
-const COMPTOIR_MIAMIS = lieu("Le Comptoir des Miamis", "bar", "🍷", "Écusson", "Montpellier");
-const BISCUITS_BRIGADE = lieu("Les Biscuits de la Brigade", "patisserie", "🍪", "Le Canal", "Sète");
-const PEDALOS_BRIGADE = lieu("Les Pédalos de la Brigade", "sortie", "🚣", "Le Canal", "Sète", false);
-const CREPERIE_CAPITAINE = lieu("La Crêperie du Capitaine Bouiboui", "resto", "🥞", "Quartier haut", "Sète");
-const GLACIER_MIAMIS = lieu("Le Glacier des Miamis", "patisserie", "🍦", "Corniche", "Sète");
-const TARTINES_MIAMIS = lieu("Les Tartines des Miamis", "resto", "🥪", "Croix-Rousse", "Lyon");
-const SALON_CHANTILLY = lieu("Le Salon Chantilly des Miamis", "patisserie", "🍰", "Croix-Rousse", "Lyon");
-const RAVIOLIS_BRIGADE = lieu("Les Raviolis de la Brigade", "resto", "🥟", "Croix-Rousse", "Lyon", false);
-const BOWLING_BRIGADE = lieu("Le Bowling de la Brigade", "sortie", "🎳", "Gerland", "Lyon");
+const CAPITAINE = lieu(-1, "Restaurant du Capitaine Bouiboui", "resto", "🐟", "Écusson", "Montpellier");
+const PATISSERIE_BRIGADE = lieu(-2, "Pâtisserie de la Brigade", "patisserie", "🧁", "Comédie", "Montpellier");
+const FOURNEE_MIAMIS = lieu(-3, "La Fournée des Miamis", "patisserie", "🥖", "Comédie", "Montpellier");
+const CANTINE_MIAMIS = lieu(-4, "La Cantine des Miamis", "resto", "🍲", "Comédie", "Montpellier", false);
+const COMPTOIR_MIAMIS = lieu(-5, "Le Comptoir des Miamis", "bar", "🍷", "Écusson", "Montpellier");
+const BISCUITS_BRIGADE = lieu(-6, "Les Biscuits de la Brigade", "patisserie", "🍪", "Le Canal", "Sète");
+const PEDALOS_BRIGADE = lieu(-7, "Les Pédalos de la Brigade", "sortie", "🚣", "Le Canal", "Sète", false);
+const CREPERIE_CAPITAINE = lieu(-8, "La Crêperie du Capitaine Bouiboui", "resto", "🥞", "Quartier haut", "Sète");
+const GLACIER_MIAMIS = lieu(-9, "Le Glacier des Miamis", "patisserie", "🍦", "Corniche", "Sète");
+const TARTINES_MIAMIS = lieu(-10, "Les Tartines des Miamis", "resto", "🥪", "Croix-Rousse", "Lyon");
+const SALON_CHANTILLY = lieu(-11, "Le Salon Chantilly des Miamis", "patisserie", "🍰", "Croix-Rousse", "Lyon");
+const RAVIOLIS_BRIGADE = lieu(-12, "Les Raviolis de la Brigade", "resto", "🥟", "Croix-Rousse", "Lyon", false);
+const BOWLING_BRIGADE = lieu(-13, "Le Bowling de la Brigade", "sortie", "🎳", "Gerland", "Lyon");
 
-const SANS_SUITE: Pick<ArticleActusExemple, "couverture" | "photos" | "collaboration" | "alcool" | "finLe" | "aLaUne" | "reponseLieu"> = {
+const SANS_SUITE: Pick<ArticleActusExemple, "couverture" | "photos" | "collaboration" | "alcool" | "finLe" | "aLaUne" | "reponsesLieux"> = {
   couverture: null,
   photos: [],
   collaboration: false,
   alcool: false,
   finLe: null,
   aLaUne: false,
-  reponseLieu: null,
+  reponsesLieux: [],
 };
 
 export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
@@ -54,11 +54,14 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     aLaUne: true,
     jaime: 128,
     commentaires: 14,
-    reponseLieu: {
-      nomLieu: CAPITAINE.nom,
-      texte: "Merci pour ce portrait ! La crème brûlée te dit merci aussi. On t'attend jeudi, la soupe sera prête.",
-      repondueLe: "2026-10-25T18:10:00+02:00",
-    },
+    reponsesLieux: [
+      {
+        lieuId: CAPITAINE.id,
+        nomLieu: CAPITAINE.nom,
+        texte: "Merci pour ce portrait ! La crème brûlée te dit merci aussi. On t'attend jeudi, la soupe sera prête.",
+        repondueLe: "2026-10-25T18:10:00+02:00",
+      },
+    ],
   },
   {
     ...SANS_SUITE,
@@ -137,11 +140,14 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     publieLe: "2026-10-20T10:15:00+02:00",
     jaime: 73,
     commentaires: 8,
-    reponseLieu: {
-      nomLieu: BISCUITS_BRIGADE.nom,
-      texte: "Merci pour ce joli portrait ! Les navettes du samedi t'attendent, promis on en garde une.",
-      repondueLe: "2026-10-21T08:30:00+02:00",
-    },
+    reponsesLieux: [
+      {
+        lieuId: BISCUITS_BRIGADE.id,
+        nomLieu: BISCUITS_BRIGADE.nom,
+        texte: "Merci pour ce joli portrait ! Les navettes du samedi t'attendent, promis on en garde une.",
+        repondueLe: "2026-10-21T08:30:00+02:00",
+      },
+    ],
   },
   {
     ...SANS_SUITE,
@@ -161,6 +167,20 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     publieLe: "2026-10-21T16:20:00+02:00",
     jaime: 64,
     commentaires: 7,
+    reponsesLieux: [
+      {
+        lieuId: SALON_CHANTILLY.id,
+        nomLieu: SALON_CHANTILLY.nom,
+        texte: "Troisièmes, mais fiers de l'être ! Le chou à la crème t'attend au goûter, et les fauteuils aussi.",
+        repondueLe: "2026-10-22T10:00:00+02:00",
+      },
+      {
+        lieuId: TARTINES_MIAMIS.id,
+        nomLieu: TARTINES_MIAMIS.nom,
+        texte: "Merci pour la première place ! La tartine chèvre-miel change de garniture à la saison des figues.",
+        repondueLe: "2026-10-23T09:15:00+02:00",
+      },
+    ],
   },
   {
     ...SANS_SUITE,

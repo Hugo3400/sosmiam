@@ -1,42 +1,16 @@
-import type { RubriqueActus } from "../../../../packages/commun/src/regles/actus.ts";
-import type { LieuCiteActus, StatutArticleActus } from "../../../../packages/commun/src/types/actus.ts";
-import { ARTICLES_ACTUS_EXEMPLE, REPONSES_ACTUS_EXEMPLE } from "~/contenus/actus-exemples.ts";
+import type { MotifModeration } from "../../../../packages/commun/src/contenus/motifs-moderation.ts";
+import type { ActusARelire, ArticleARelire, ReponseLieuARelire } from "../../../../packages/commun/src/types/actus.ts";
+import { appeler } from "./client-gestion.ts";
 
-export type ArticleARelire = {
-  id: number;
-  rubrique: RubriqueActus;
-  titre: string;
-  accroche: string;
-  paragraphes: string[];
-  citation: string | null;
-  couverture: string;
-  photos: string[];
-  lieux: LieuCiteActus[];
-  auteur: { id: number; prenom: string; ambassadeur: boolean; ville: string };
-  collaboration: boolean;
-  alcool: boolean;
-  finLe: string | null;
-  envoyeLe: string;
-  statut: StatutArticleActus;
-  retouche: { message: string; le: string } | null;
-  renvoye: boolean;
-  publieLe: string | null;
-  refus: { motif: string; motivation: string; le: string; contestation: string | null } | null;
-};
+export type { ArticleARelire, ReponseLieuARelire };
 
-export type ReponseLieuARelire = {
-  id: number;
-  articleId: number;
-  titreArticle: string;
-  auteurArticle: string;
-  lieu: { id: number; nom: string; emoji: string };
-  texte: string;
-  envoyeLe: string;
-  statut: "en-relecture" | "publie" | "refuse";
-};
+export type PublicationActus = { aLaUne: boolean; alcool: boolean };
 
-export type FileActus = { exemple: boolean; articles: ArticleARelire[]; reponses: ReponseLieuARelire[] };
+export type RefusActus = { motif: MotifModeration; motivation: string };
 
-export async function lireFileActus(): Promise<FileActus> {
-  return { exemple: true, articles: structuredClone(ARTICLES_ACTUS_EXEMPLE), reponses: structuredClone(REPONSES_ACTUS_EXEMPLE) };
-}
+export const lireFileActus = () => appeler<ActusARelire>("GET", "/actus");
+export const publierArticleActus = (id: number, publication: PublicationActus) => appeler<{ ok: true }>("POST", `/actus/${id}/publier`, { corps: publication });
+export const retoucherArticleActus = (id: number, message: string) => appeler<{ ok: true }>("POST", `/actus/${id}/retoucher`, { corps: { message } });
+export const refuserArticleActus = (id: number, refus: RefusActus) => appeler<{ ok: true }>("POST", `/actus/${id}/refuser`, { corps: refus });
+export const publierReponseActus = (id: number) => appeler<{ ok: true }>("POST", `/actus/reponses/${id}/publier`);
+export const refuserReponseActus = (id: number, refus: RefusActus) => appeler<{ ok: true }>("POST", `/actus/reponses/${id}/refuser`, { corps: refus });

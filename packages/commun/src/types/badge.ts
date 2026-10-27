@@ -37,6 +37,9 @@ export type IdBadge =
   | "plume-d-or"
   | "oeil-de-chef"
   | "objectif-gourmand"
+  | "premier-reportage"
+  | "reporter-du-quartier"
+  | "grand-reporter"
   | "chasseur-de-bugs";
 
 /** Un badge tel qu'on le montre (app, logiciel de gestion, et plus tard le site) */

@@ -6,7 +6,7 @@ import { EnTeteArticleActus } from "~/composants/actus/EnTeteArticleActus";
 import { LieuxArticleActus } from "~/composants/actus/LieuxArticleActus";
 import { LireDansLAppActus } from "~/composants/actus/LireDansLAppActus";
 import { MentionsArticleActus } from "~/composants/actus/MentionsArticleActus";
-import { MotDuLieuActus } from "~/composants/actus/MotDuLieuActus";
+import { MotsDesLieuxActus } from "~/composants/actus/MotsDesLieuxActus";
 import { TEXTES_ACTUS } from "~/contenus/actus";
 import { lireIdArticleActus } from "~/fonctions/actus/lire-id-article-actus";
 import { estHoteDEssai } from "~/fonctions/hotes/est-hote-d-essai";
@@ -41,7 +41,7 @@ export default function PageArticleActus({ loaderData }: Route.ComponentProps) {
         <EnTeteArticleActus article={article} />
         <CorpsArticleActus article={article} />
         <LieuxArticleActus lieux={article.lieux} />
-        {article.reponseLieu && <MotDuLieuActus reponse={article.reponseLieu} />}
+        <MotsDesLieuxActus article={article} />
         <MentionsArticleActus article={article} />
         <LireDansLAppActus article={article} />
       </div>

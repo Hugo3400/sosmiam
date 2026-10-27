@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Form, useActionData } from "react-router";
 
 import type { ReponseFormulaire } from "~/composants/compte/FormulaireCompte";
+import { TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE } from "~/contenus/formulaire-compte";
+import { TEXTES_VERIFICATION_EMAIL_PAR_LANGUE } from "~/contenus/verification-email";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Nom du formulaire « Renvoyer le lien » (champ caché « formulaire ») : services/verification-email.server.ts y répond. */
 export const FORMULAIRE_RENVOI = "renvoyer-verification";
@@ -19,15 +22,15 @@ type Props = {
  * Bandeau discret de l'espace tant que l'e-mail n'est pas confirmé, avec « Renvoyer le lien » (formulaire POST : marche
  * sans JavaScript). La réponse (envoyé, attente à respecter) s'affiche dessous, lue par les lecteurs d'écran.
  */
-export function BandeauVerificationEmail({ justeInscrit = false, texte: autreTexte, bouton = "Renvoyer le lien" }: Props) {
+export function BandeauVerificationEmail({ justeInscrit = false, texte: autreTexte, bouton }: Props) {
+  const T = utiliserTextes(TEXTES_VERIFICATION_EMAIL_PAR_LANGUE).bandeau;
+  const { envoi } = utiliserTextes(TEXTES_FORMULAIRE_COMPTE_PAR_LANGUE);
   const donnees = useActionData<ReponseFormulaire>();
   const reponse = donnees?.formulaire === FORMULAIRE_RENVOI ? donnees : undefined;
   const [enAttente, setEnAttente] = useState(false);
   // Chaque réponse (même identique à la précédente) arrête « Envoi… »
   useEffect(() => setEnAttente(false), [donnees]);
-  const texte = autreTexte ?? (justeInscrit
-    ? "On t'a envoyé un lien pour confirmer ton e-mail (il marche 7 jours). Pense à regarder tes indésirables !"
-    : "Confirme ton adresse e-mail : on t'a envoyé un lien.");
+  const texte = autreTexte ?? (justeInscrit ? T.justeInscrit : T.aConfirmer);
   return (
     <div className="mb-8 rounded-2xl border-2 border-dashed border-encre/40 bg-white/70 px-4 py-3">
       <Form method="post" onSubmit={() => setEnAttente(true)} className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -41,7 +44,7 @@ export function BandeauVerificationEmail({ justeInscrit = false, texte: autreTex
           className="rounded-full border-2 border-encre bg-white px-4 py-1.5 text-sm font-semibold transition-[translate,box-shadow] duration-150
             hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brut-petit focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-encre"
         >
-          {enAttente ? "Envoi…" : bouton}
+          {enAttente ? envoi : (bouton ?? T.bouton)}
         </button>
       </Form>
       <p role="status" className={`text-sm font-semibold ${reponse?.ok ? "text-encre" : "text-rouge-texte"} ${reponse?.message ? "mt-2" : ""}`}>
