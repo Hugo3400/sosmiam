@@ -675,3 +675,11 @@ Maquette validée : https://claude.ai/artifact/Qqza5tYMhEfM4kdsNpFgXc (9 plans).
 - **Confiance :** la mention « Collaboration commerciale » si le lieu a offert quelque chose ; jamais d'argent. Loi Évin : jamais d'incitation à boire, le message sanitaire s'ajoute seul sous un article qui parle d'alcool. Photos à l'auteur ou autorisées, sans visage reconnaissable sans accord. On parle des lieux, jamais d'un employé nommé sans son accord.
 - **Langue :** les articles restent en français dans la version anglaise, comme tout ce qu'écrivent les gens.
 - **Avant l'ouverture :** CGU et confidentialité à mettre à jour.
+- **Ajouts du 27 octobre 2026 (Hugo) :**
+  - Le badge des 5 articles s'appelle « Reporter du quartier » : un nom de badge tient en 20 caractères.
+  - Fil Abonnements : les articles ne se glissent pas entre les vidéos plein écran. Un bandeau « 📰 N articles de tes abonnements » ouvre les Actus avec le filtre « Abonnements » : les articles des 30 derniers jours des personnes suivies.
+  - Commentaires : mêmes règles que dans le fil (500 caractères, filtre de mots, réponses sur un niveau, suppression de son commentaire, signalement). Retiré par la modération, un commentaire est gardé 6 mois puis effacé.
+  - Un article refusé ou retiré est gardé 6 mois après la décision, puis effacé.
+  - L'auteur peut supprimer son article. Il disparaît pour tout le monde, est gardé 6 mois pour la modération et les réclamations, puis effacé. La Brigade en est prévenue dans le logiciel. L'auteur garde ses points.
+  - Pas de rôle ambassadeur pour le compte de revue des stores.
+  - Ouverture : sosmiam.fr/actus est ouvert depuis le 27 octobre 2026. L'app ouvre les Actus dans sa version 1.0.3, préparée mais pas encore envoyée en build.

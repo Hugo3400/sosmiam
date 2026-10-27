@@ -43,6 +43,7 @@ import { ModaleRaccourcis } from "~/composants/mise-en-page/ModaleRaccourcis.tsx
 import { RechercheGlobale } from "~/composants/mise-en-page/RechercheGlobale.tsx";
 import { calculerPastilles } from "~/fonctions/alertes/calculer-pastilles.ts";
 import { utiliserAlertes } from "~/hooks/utiliser-alertes.ts";
+import { utiliserFond } from "~/hooks/utiliser-fond.ts";
 import { utiliserRaccourcis } from "~/hooks/utiliser-raccourcis.ts";
 import { utiliserTheme } from "~/hooks/utiliser-theme.ts";
 import { utiliserAlertesServeur } from "~/hooks/utiliser-alertes-serveur.ts";
@@ -81,7 +82,8 @@ export function Application() {
   // Sans souris ni clavier pendant ce temps (réglable), la clé est oubliée : il faut retaper le mot de passe
   const [minutesVerrou, setMinutesVerrou] = useState(lireMinutesVerrou);
   const connecte = phase === "connecte";
-  const { alertes, actualiser: actualiserAlertes } = utiliserAlertes(connecte);
+  const fond = utiliserFond(coffre, connecte);
+  const { alertes, actualiser: actualiserAlertes } = utiliserAlertes(connecte, fond.jeton, fond.jetonRefuse);
   const alertesServeur = utiliserAlertesServeur(connecte);
   const miseAJour = utiliserMiseAJour(connecte);
   utiliserResumeSemaine(connecte);
@@ -112,6 +114,7 @@ export function Application() {
   }, []);
 
   function oublierCePc() {
+    fond.oublier();
     oublierCoffre();
     oublierSessionLocale();
     oublierDeverrouillageRetenu();
@@ -245,12 +248,14 @@ export function Application() {
                 onRaccourcis={() => setAideClavier(true)}
                 coffre={coffre}
                 onCoffreChange={setCoffre}
+                fond={fond}
                 minutesVerrou={minutesVerrou}
                 onMinutesVerrou={(minutes) => {
                   ecrireMinutesVerrou(minutes);
                   setMinutesVerrou(minutes);
                 }}
                 onOublierPoste={() => {
+                  fond.oublier();
                   verrouiller(true);
                   oublierCoffre();
                   setCoffre(null);

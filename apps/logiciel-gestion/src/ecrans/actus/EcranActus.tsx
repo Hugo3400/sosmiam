@@ -32,6 +32,7 @@ const STATUT_DE_LA_VUE: Record<Exclude<VueActus, "reponses">, StatutArticleActus
   publies: "publie",
   refuses: "refuse",
   retires: "retire",
+  supprimes: "supprime",
 };
 
 export function EcranActus({ onDecision }: { onDecision: () => void }) {

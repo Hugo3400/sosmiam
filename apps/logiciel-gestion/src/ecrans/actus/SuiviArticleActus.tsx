@@ -15,6 +15,7 @@ export function SuiviArticleActus({ article }: { article: ArticleARelire }) {
         </>
       )}
       {article.statut === "retire" && <p className="font-bold">{T.retire}</p>}
+      {article.statut === "supprime" && article.supprimeLe && <p className="font-bold">{T.supprime(formaterDate(article.supprimeLe, true))}</p>}
       {article.statut === "publie" && article.publieLe && <p className="font-bold">{T.publie(formaterDate(article.publieLe, true))}</p>}
       {article.statut === "refuse" && article.refus && (
         <>
