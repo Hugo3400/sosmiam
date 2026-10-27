@@ -5,6 +5,7 @@ import { lireLieuListe } from "~/fonctions/page-lieux/lire-lieu-liste";
 import { lireVilleLieux } from "~/fonctions/page-lieux/lire-ville-lieux";
 import { listerLieuxPublics } from "~/services/lieux.server";
 import type { ApercuLieu, CategorieLieu, EpingleLieu, LieuCarte, PageLieux, VilleLieux } from "~/types/lieux";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 const LIEUX_ACCUEIL = 8;
@@ -18,7 +19,7 @@ export type LieuxAccueil = { lieux: LieuCarte[] | null; tirage: boolean };
 async function appelerApi(chemin: string, ip: string | null): Promise<ReponseLieux<Record<string, unknown>>> {
   try {
     const reponse = await fetch(`${ADRESSE_API}${chemin}`, {
-      headers: ip ? { "X-IP-Visiteur": ip } : {},
+      headers: { ...entetesLangue(), ...(ip ? { "X-IP-Visiteur": ip } : {}) },
       signal: AbortSignal.timeout(3000),
     });
     if (reponse.status === 404) return { ok: false, erreur: "absente" };

@@ -1,3 +1,5 @@
+import { entetesLangue } from "./langue-courante.server.ts";
+
 // Bouton « Me localiser » : demande à l'API la commune qui contient une position (côté serveur uniquement).
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 
@@ -12,7 +14,7 @@ export async function localiserCommune(latitude: unknown, longitude: unknown, ip
   try {
     const reponse = await fetch(`${ADRESSE_API}/localisation`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
+      headers: { "Content-Type": "application/json", ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       body: JSON.stringify({ latitude, longitude }),
       signal: AbortSignal.timeout(8000),
     });

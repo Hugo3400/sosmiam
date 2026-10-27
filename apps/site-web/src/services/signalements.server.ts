@@ -1,4 +1,5 @@
 import type { SignalementImageLieu } from "../../../../packages/commun/src/types/signalement.ts";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 
@@ -8,7 +9,7 @@ export async function envoyerSignalementImage(signalement: SignalementImageLieu,
   try {
     const reponse = await fetch(`${ADRESSE_API}/signalements`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
+      headers: { "Content-Type": "application/json", ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       body: JSON.stringify({ ...signalement, source: "site" }),
       signal: AbortSignal.timeout(8000),
     });

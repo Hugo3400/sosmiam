@@ -1,4 +1,5 @@
 import type { DomaineOffreCarriere, NouvelleCandidature, OffreCarriere, TypeOffreCarriere } from "../../../../packages/commun/src/types/carriere.ts";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 const TYPES = new Set<string>(["benevolat", "freelance"] satisfies TypeOffreCarriere[]);
@@ -25,7 +26,7 @@ export function estIdOffre(id: string | undefined): id is string {
 }
 
 function enTetesVisiteur(ipVisiteur: string | null): Record<string, string> {
-  return ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {};
+  return { ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) };
 }
 
 function lireTextes(valeur: unknown): string[] | null {

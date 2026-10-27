@@ -1,3 +1,5 @@
+import { entetesLangue } from "./langue-courante.server.ts";
+
 export type ResultatConfirmation = "ok" | "jeton-invalide" | "trop-de-demandes" | "indisponible";
 
 export function aFormeDeJetonConfirmation(jeton: string | null): jeton is string {
@@ -9,7 +11,7 @@ export async function confirmerNewsletter(jeton: string | null, ipVisiteur: stri
   try {
     const reponse = await fetch(`${process.env.ADRESSE_API ?? "http://127.0.0.1:5192"}/newsletter/confirmation`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
+      headers: { "Content-Type": "application/json", ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       body: JSON.stringify({ jeton }),
       signal: AbortSignal.timeout(5000),
     });

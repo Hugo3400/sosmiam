@@ -13,6 +13,7 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { choisirRedirectionHote } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lireEtatConsentement } from "~/services/consentement.server";
 import { lireLangueRequete } from "~/services/langue.server";
+import { porterLangue } from "~/services/langue-courante.server";
 import { signalerVue } from "~/services/mesure.server";
 // Polices hébergées par le site lui-même (pas d'appel à Google Fonts)
 import "@fontsource-variable/inter";
@@ -38,9 +39,9 @@ export const middleware: Route.MiddlewareFunction[] = [
     if (redirection) throw redirect(redirection.adresse, redirection.statut);
   },
   async ({ request }, suite) => {
-    const { servie, negociee } = lireLangueRequete(request);
+    const { langue, servie, negociee } = lireLangueRequete(request);
     if (!servie) throw data(null, { status: 404 });
-    const reponse = await suite();
+    const reponse = await porterLangue(langue, suite);
     if (negociee && reponse instanceof Response) reponse.headers.append("Vary", "Accept-Language, Cookie");
     return reponse;
   },

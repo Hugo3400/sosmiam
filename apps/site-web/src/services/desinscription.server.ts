@@ -1,3 +1,5 @@
+import { entetesLangue } from "./langue-courante.server.ts";
+
 // Désinscription de la newsletter par le lien signé des mails (page /desinscription) : appels à l'API, côté serveur
 // uniquement (GET /newsletter/desinscription : l'adresse masquée ; POST : la désinscription).
 // Aucun import « ~/… » ici : le test (tests/desinscription.test.ts) lance ce fichier directement avec Node.
@@ -27,7 +29,7 @@ export async function lireDesinscription(jeton: string | null, ipVisiteur: strin
   if (!aFormeDeJeton(jeton)) return { ok: false, erreur: "jeton-invalide" };
   try {
     const reponse = await fetch(adresseApi(jeton), {
-      headers: ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {},
+      headers: { ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       signal: AbortSignal.timeout(5000),
     });
     if (!reponse.ok) return { ok: false, erreur: lireErreur(reponse.status) };
@@ -45,7 +47,7 @@ export async function desinscrireNewsletter(jeton: string | null, ipVisiteur: st
   try {
     const reponse = await fetch(adresseApi(jeton), {
       method: "POST",
-      headers: ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {},
+      headers: { ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       signal: AbortSignal.timeout(5000),
     });
     return reponse.ok ? "ok" : lireErreur(reponse.status);

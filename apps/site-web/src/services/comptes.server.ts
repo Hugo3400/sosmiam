@@ -2,6 +2,7 @@
 // Le jeton de session voyage dans l'en-tête X-Session-Compte, jamais dans une adresse ; l'IP du visiteur (X-IP-Visiteur)
 // ne sert qu'à limiter les essais. Contrat des adresses : apps/api/src/routes/comptes.ts.
 import type { CandidatureFondateur, CompteConnecte, NouvelleCandidature, PropositionLieu } from "~/types/compte";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 
@@ -102,6 +103,7 @@ export async function appelerApiComptes<T extends object>(chemin: string, { meth
     const reponse = await fetch(`${ADRESSE_API}${chemin}`, {
       method: methode,
       headers: {
+        ...entetesLangue(),
         ...(corps === undefined ? {} : { "Content-Type": "application/json" }),
         ...(jeton ? { "X-Session-Compte": jeton } : {}),
         ...(ip ? { "X-IP-Visiteur": ip } : {}),

@@ -1,5 +1,6 @@
 // Lieux publiés : appel à l'API, côté serveur uniquement (l'API n'écoute qu'en local, 127.0.0.1:5192).
 import type { CategorieLieu, LieuPublic } from "~/types/lieux";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 const CATEGORIES = new Set<string>(["resto", "patisserie", "bar", "sortie"] satisfies CategorieLieu[]);
@@ -50,7 +51,7 @@ export type LieuDuCode = { ok: true; lieuId: number } | { ok: false; erreur: "li
 export async function trouverLieuParCode(code: string, ipVisiteur: string | null): Promise<LieuDuCode> {
   try {
     const reponse = await fetch(`${ADRESSE_API}/app/lieux/code/${encodeURIComponent(code)}`, {
-      headers: ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {},
+      headers: { ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       signal: AbortSignal.timeout(3000),
     });
     if (reponse.status === 404) return { ok: false, erreur: "lieu-inconnu" };

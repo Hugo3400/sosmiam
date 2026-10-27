@@ -222,6 +222,7 @@ test("route du site : le corps et les en-têtes partent à l'API locale, sa rép
   assert.equal(entetes["X-Session-Compte"], JETON);
   assert.equal(entetes["X-IP-Visiteur"], "203.0.113.9");
   assert.equal(entetes["Content-Type"], "image/jpeg");
+  assert.equal(entetes["X-Langue"], "fr");
   assert.deepEqual(new Uint8Array(init.body as Uint8Array), corps);
 
   const retrait = fauxFetch(Response.json({ ok: true }));
@@ -230,7 +231,7 @@ test("route du site : le corps et les en-têtes partent à l'API locale, sa rép
   assert.equal(retrait.appels[0]!.adresse, `${API}/pro/lieux/7/logo`);
   assert.equal(retrait.appels[0]!.init.method, "DELETE");
   assert.equal(retrait.appels[0]!.init.body, undefined);
-  assert.deepEqual(retrait.appels[0]!.init.headers, { "X-Session-Compte": JETON });
+  assert.deepEqual(retrait.appels[0]!.init.headers, { "X-Session-Compte": JETON, "X-Langue": "fr" });
 });
 
 test("route du site : les erreurs de l'API sont rendues telles quelles (statut, corps, Retry-After)", async () => {

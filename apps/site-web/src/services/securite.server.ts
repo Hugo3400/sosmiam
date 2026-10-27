@@ -1,4 +1,5 @@
 import type { EntreeTableauHonneur, NouveauSignalementSecurite } from "../../../../packages/commun/src/types/securite.ts";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 const FORME_MOIS = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -17,7 +18,7 @@ function estErreurConnue(valeur: unknown): valeur is ErreurConnue {
 }
 
 function enTetesVisiteur(ipVisiteur: string | null): Record<string, string> {
-  return ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {};
+  return { ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) };
 }
 
 function lireEntree(brute: unknown): EntreeTableauHonneur | null {

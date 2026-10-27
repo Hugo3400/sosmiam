@@ -1,4 +1,5 @@
 import { IMAGES_LIEU, REGLES_IMAGES_LIEU, type ImageLieu } from "../../../../packages/commun/src/regles/images-lieu.ts";
+import { entetesLangue } from "./langue-courante.server.ts";
 
 export const MARGE_CORPS_IMAGE_LIEU = 16 * 1024;
 
@@ -89,7 +90,7 @@ export async function transmettreImageLieu(
   try {
     reponse = await appeler(`${adresseApi}/pro/lieux/${lieuId}/${quelle}`, {
       method: methode,
-      headers: { "X-Session-Compte": jeton, ...(ip ? { "X-IP-Visiteur": ip } : {}), ...(corps ? { "Content-Type": regle.type } : {}) },
+      headers: { "X-Session-Compte": jeton, ...entetesLangue(), ...(ip ? { "X-IP-Visiteur": ip } : {}), ...(corps ? { "Content-Type": regle.type } : {}) },
       body: corps ?? undefined,
       signal: AbortSignal.timeout(DELAI_API_MS),
     });

@@ -165,3 +165,14 @@ test("contenus/anglais : chaque dictionnaire a son jumeau français, sa paire, a
     }
   }
 });
+
+test("langue courante : portée pendant toute la demande, jusqu'aux appels à l'API, et le français hors d'une demande", async () => {
+  const { porterLangue, entetesLangue, lireLangueCourante } = await import("../src/services/langue-courante.server.ts");
+  assert.deepEqual(entetesLangue(), { "X-Langue": "fr" });
+  const vue = await porterLangue("en", async () => {
+    await new Promise((fini) => setTimeout(fini, 5));
+    return { langue: lireLangueCourante(), entetes: entetesLangue() };
+  });
+  assert.deepEqual(vue, { langue: "en", entetes: { "X-Langue": "en" } });
+  assert.equal(lireLangueCourante(), "fr");
+});

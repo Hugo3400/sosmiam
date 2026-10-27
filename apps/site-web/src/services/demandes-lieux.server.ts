@@ -1,3 +1,5 @@
+import { entetesLangue } from "./langue-courante.server.ts";
+
 // « J'inscris mon lieu » : envoi de la demande à l'API, côté serveur uniquement (l'API n'écoute qu'en local, 127.0.0.1:5192).
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 
@@ -11,7 +13,7 @@ export async function envoyerDemandeLieu(demande: Record<string, string>, ipVisi
   try {
     const reponse = await fetch(`${ADRESSE_API}/demandes-lieux`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
+      headers: { "Content-Type": "application/json", ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       body: JSON.stringify(demande),
       signal: AbortSignal.timeout(8000),
     });

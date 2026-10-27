@@ -1,3 +1,5 @@
+import { entetesLangue } from "./langue-courante.server.ts";
+
 // Inscriptions à la newsletter : appel à l'API, côté serveur uniquement (l'API n'écoute qu'en local, 127.0.0.1:5192).
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 
@@ -20,7 +22,7 @@ export async function inscrireNewsletter(demande: DemandeInscription, ipVisiteur
   try {
     const reponse = await fetch(`${ADRESSE_API}/inscriptions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
+      headers: { "Content-Type": "application/json", ...entetesLangue(), ...(ipVisiteur ? { "X-IP-Visiteur": ipVisiteur } : {}) },
       body: JSON.stringify({ ...demande, source: "site" }),
       signal: AbortSignal.timeout(5000),
     });
