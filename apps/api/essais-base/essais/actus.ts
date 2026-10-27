@@ -2,8 +2,10 @@ import "../socle/garde-fou.ts";
 
 import type { NouvelleNotificationCloche } from "../../src/services/effets-sociaux-regles.ts";
 import { creerActusAuteur } from "../../src/services/actus-auteur.ts";
+import { creerActusCommentaires } from "../../src/services/actus-commentaires.ts";
 import { creerActusLecture } from "../../src/services/actus-lecture.ts";
 import { creerActusPro } from "../../src/services/actus-pro.ts";
+import { menagerArticlesActus } from "../../src/services/menage-articles-actus.ts";
 import { enregistrerSignalementActus } from "../../src/services/actus-signalements.ts";
 import { ajouterPointsDans } from "../../src/services/comptes.ts";
 import { listerActusARelire } from "../../src/services/gestion/actus-a-relire.ts";
@@ -189,6 +191,57 @@ const signaleReponse = await base.signalement.findFirstOrThrow({ where: { cible:
 egal(signaleReponse.auteurContenuId, GERANT, "au nom du gérant qui l'a écrite");
 await deciderSignalement(signaleReponse.id, { decision: "retenu", note: null, motif: "pub-cachee", motivation: "Une promotion déguisée." }, undefined, new Date(MAINTENANT));
 egal((await lecture.lire(ID1, true, LEA))?.reponsesLieux, [], "la réponse retirée disparaît de l'article");
+
+const commentaires = creerActusCommentaires(base, horloge);
+const premierCommentaire = await commentaires.commenter(LEA, ID1, "  Testé jeudi grâce à toi, la crème brûlée vaut le détour.  ", null);
+vrai(premierCommentaire.ok, "un commentaire sous un article publié");
+const C1 = premierCommentaire.ok ? premierCommentaire.commentaire.id : 0;
+egal(premierCommentaire.ok && premierCommentaire.commentaire.texte, "Testé jeudi grâce à toi, la crème brûlée vaut le détour.", "le texte est nettoyé des espaces autour");
+egal(await commentaires.commenter(LEA, ID1, "x".repeat(501), null), { ok: false, erreur: "message-refuse" }, "500 caractères au plus");
+egal(await commentaires.commenter(LEA, ID1, "   ", null), { ok: false, erreur: "message-refuse" }, "pas de commentaire vide");
+egal(await commentaires.commenter(LEA, ID3, "Pas encore publié", null), { ok: false, erreur: "introuvable" }, "pas de commentaire sur un article en relecture");
+const reponseZoe = await commentaires.commenter(ZOE, ID1, "Ravie que ça t'ait plu !", C1);
+const C2 = reponseZoe.ok ? reponseZoe.commentaire.id : 0;
+egal(reponseZoe.ok && [reponseZoe.commentaire.reponseA, reponseZoe.commentaire.plume], [C1, true], "l'autrice répond : marquée plume de l'article");
+const sousReponse = await commentaires.commenter(LEA, ID1, "Merci Zoé !", C2);
+egal(sousReponse.ok && sousReponse.commentaire.reponseA, C1, "une réponse à une réponse se range sous le premier commentaire");
+const C3 = sousReponse.ok ? sousReponse.commentaire.id : 0;
+egal(await commentaires.commenter(LEA, ID1, "À un autre article", 999_999), { ok: false, erreur: "introuvable" }, "on ne répond qu'à un commentaire de cet article");
+const page = await commentaires.lister(ID1, { apres: null, avecAlcool: false, compteId: LEA });
+egal(page?.commentaires.map((c) => [c.id, c.reponseA, c.mien]), [[C1, null, true], [C2, C1, false], [C3, C1, true]], "la liste, dans l'ordre, et ce qui est à moi");
+egal((await lecture.lire(ID1, true, null))?.commentaires, 3, "l'article compte ses commentaires");
+egal(await commentaires.supprimer(ZOE, C1), { ok: false, erreur: "introuvable" }, "on ne supprime que ses commentaires");
+egal(await commentaires.supprimer(LEA, C1), { ok: true }, "Léa supprime son commentaire");
+const apresSuppression = await commentaires.lister(ID1, { apres: null, avecAlcool: true, compteId: null });
+egal(apresSuppression?.commentaires.find((c) => c.id === C1), { id: C1, auteur: { id: 0, prenom: "Léa", avatar: null, ambassadeur: false }, texte: "", ecritLe: apresSuppression?.commentaires[0]?.ecritLe, reponseA: null, plume: false, supprime: true }, "avec des réponses, il reste vide, marqué supprimé");
+egal((await base.commentaireArticleActus.findUniqueOrThrow({ where: { id: C1 } })).texte, "", "son texte est effacé");
+egal(await commentaires.supprimer(LEA, C3), { ok: true }, "une réponse se supprime");
+egal(await base.commentaireArticleActus.count({ where: { id: C3 } }), 0, "sans réponse, il part pour de bon");
+egal((await lecture.lire(ID1, true, null))?.commentaires, 1, "le compte suit");
+
+egal(await enregistrerSignalementActus({ cible: "comment-actu", articleId: ID1, lieuId: null, commentaireId: C2, raison: "haine", precision: null, explication: "", signaleParId: LEA, source: "app" }, base), "enregistre", "un commentaire se signale");
+egal(await enregistrerSignalementActus({ cible: "comment-actu", articleId: ID2, lieuId: null, commentaireId: C2, raison: "haine", precision: null, explication: "", signaleParId: GERANT, source: "app" }, base), "introuvable", "avec le bon article seulement");
+const signaleCommentaire = await base.signalement.findFirstOrThrow({ where: { cible: "comment-actu" } });
+egal(signaleCommentaire.auteurContenuId, ZOE, "au nom de qui l'a écrit");
+await deciderSignalement(signaleCommentaire.id, { decision: "retenu", note: null, motif: "haine", motivation: "Propos blessants envers une personne." }, undefined, new Date(MAINTENANT));
+egal((await commentaires.lister(ID1, { apres: null, avecAlcool: true, compteId: null }))?.commentaires.map((c) => c.id), [], "le commentaire retiré disparaît (et le supprimé sans réponse visible avec lui)");
+await essai.sql("UPDATE signalements SET conteste_le = $1, contestation = $2 WHERE id = $3", [new Date(MAINTENANT), "Je citais le lieu.", signaleCommentaire.id]);
+await deciderSignalement(signaleCommentaire.id, { decision: "rejete", note: null, motif: null, motivation: "Rien de blessant." }, undefined, new Date(MAINTENANT));
+egal((await commentaires.lister(ID1, { apres: null, avecAlcool: true, compteId: null }))?.commentaires.map((c) => c.id), [C1, C2], "contestation gagnée : il revient");
+await essai.sql("UPDATE commentaires_articles_actus SET retire_le = $1 WHERE id = $2", [new Date(MAINTENANT - 200 * 86_400_000), C2]);
+egal(await commentaires.menager(new Date(MAINTENANT)), 1, "un commentaire retiré depuis plus de 6 mois est effacé la nuit");
+
+await inserer("suivis_personnes", { suiveur_id: LEA, suivi_id: ZOE, statut: "accepte" });
+await inserer("suivis_personnes", { suiveur_id: GERANT, suivi_id: ZOE, statut: "demande" });
+egal((await lecture.abonnements(LEA)).map((a) => a.id), [ID2, ID1], "Abonnements : les articles publiés des personnes suivies, les plus récents d'abord");
+egal(await lecture.abonnements(GERANT), [], "une demande pas encore acceptée ne compte pas");
+await essai.sql("UPDATE articles_actus SET publie_le = $1 WHERE id = $2", [new Date(MAINTENANT - 31 * 86_400_000), ID2]);
+egal((await lecture.abonnements(LEA)).map((a) => a.id), [ID1], "seulement ceux des 30 derniers jours");
+
+const avantArticles = await base.articleActus.count();
+await essai.sql("UPDATE articles_actus SET statut = 'refuse', refus_le = $1 WHERE id = $2", [new Date(MAINTENANT - 200 * 86_400_000), ID4]);
+egal(await menagerArticlesActus(new Date(MAINTENANT), base), 1, "un article refusé depuis plus de 6 mois est effacé la nuit");
+egal(await base.articleActus.count(), avantArticles - 1, "et lui seul");
 
 const citees = new Set((await base.articleActus.findMany({ select: { couverture: true, photos: true } })).flatMap((a) => [a.couverture, ...a.photos]));
 const avantMenage = stockage.fichiers.size;

@@ -18,4 +18,5 @@ export const CIBLES_MODERATION: Record<string, { libelle: string; le: string; em
   "image-lieu": { libelle: "Bannières et logos", le: "l'image du lieu", emoji: "🖼️" },
   "article-actu": { libelle: "Articles d'Actus", le: "l'article", emoji: "📰", refus: true, retourRelecture: "L'article revient dans « Actus à relire », avec la contestation visible : il ne repart pas en ligne tout seul, tu le relis puis tu le publies." },
   "reponse-actu": { libelle: "Réponses aux articles", le: "la réponse du lieu", emoji: "💬", refus: true, retourRelecture: "La réponse revient dans « Actus à relire » (Réponses des lieux), avec la contestation visible : tu la relis puis tu la publies." },
+  "comment-actu": { libelle: "Commentaires d'articles", le: "le commentaire", emoji: "💬" },
 };

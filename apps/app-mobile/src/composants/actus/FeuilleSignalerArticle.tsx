@@ -2,7 +2,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { ReponseLieuActus } from "@sos-miam/commun/types/actus";
+import type { SignalementArticleActus } from "@sos-miam/commun/types/signalement";
 import { SignalementPublication, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/textes-actus";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -10,17 +10,19 @@ import { envoyerSignalementArticleActus } from "~/fonctions/signalement/envoyer-
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
-type Cible = { quoi: "article" } | { quoi: "reponse"; reponse: ReponseLieuActus };
+type CorpsSignalementActus = SignalementArticleActus extends infer S ? (S extends SignalementArticleActus ? Omit<S, "raison" | "precision" | "explication"> : never) : never;
 
-type Props = { visible: boolean; articleId: number; titre: string; nomLieu: string; reponses: readonly ReponseLieuActus[]; onFermer: () => void };
+export type ChoixSignalementActus = { cle: string; libelle: string; nomLieu: string; sousTitre: string; corps: CorpsSignalementActus };
 
-export function FeuilleSignalerArticle({ visible, articleId, titre, nomLieu, reponses, onFermer }: Props) {
+type Props = { visible: boolean; choix: readonly ChoixSignalementActus[]; onFermer: () => void };
+
+export function FeuilleSignalerArticle({ visible, choix, onFermer }: Props) {
   const T = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE).article.signaler;
   const marges = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const [choisie, setChoisie] = useState<Cible | null>(null);
+  const [choisie, setChoisie] = useState<ChoixSignalementActus | null>(null);
   const [etape, setEtape] = useState<EtapeSignalement>("raison");
-  const cible: Cible | null = reponses.length === 0 ? { quoi: "article" } : choisie;
+  const cible = choix.length === 1 ? choix[0]! : choisie;
 
   const fermer = () => {
     setChoisie(null);
@@ -29,7 +31,7 @@ export function FeuilleSignalerArticle({ visible, articleId, titre, nomLieu, rep
   };
   utiliserInscriptionFeuille(visible, fermer);
 
-  const choisir = (c: Cible) => {
+  const choisir = (c: ChoixSignalementActus) => {
     vibrerLegerement();
     setChoisie(c);
   };
@@ -46,29 +48,25 @@ export function FeuilleSignalerArticle({ visible, articleId, titre, nomLieu, rep
                   <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
                     {T.quoi}
                   </Text>
-                  {[{ quoi: "article" as const }, ...reponses.map((reponse) => ({ quoi: "reponse" as const, reponse }))].map((c) => (
+                  {choix.map((c) => (
                     <Pressable
-                      key={c.quoi === "article" ? "article" : c.reponse.lieuId}
+                      key={c.cle}
                       accessibilityRole="button"
                       onPress={() => choisir(c)}
                       className="min-h-14 justify-center rounded-carte border-2 border-encre bg-carte px-4 active:opacity-80"
                     >
-                      <Text className="font-texte-gras text-base text-encre">{c.quoi === "article" ? T.article : T.reponse(c.reponse.nomLieu)}</Text>
+                      <Text className="font-texte-gras text-base text-encre">{c.libelle}</Text>
                     </Pressable>
                   ))}
                 </View>
               ) : (
                 <SignalementPublication
-                  nomLieu={cible.quoi === "article" ? nomLieu : cible.reponse.nomLieu}
-                  sousTitre={cible.quoi === "article" ? T.sousTitre(titre) : T.sousTitreReponse(cible.reponse.nomLieu)}
+                  nomLieu={cible.nomLieu}
+                  sousTitre={cible.sousTitre}
                   etape={etape}
                   onChangerEtape={setEtape}
-                  onEnvoyer={(choix) =>
-                    void envoyerSignalementArticleActus(
-                      cible.quoi === "article" ? { cible: "article-actu", articleId, ...choix } : { cible: "reponse-actu", articleId, lieuId: cible.reponse.lieuId, ...choix },
-                    ).catch(() => false)
-                  }
-                  onRetourMenu={() => (reponses.length > 0 ? setChoisie(null) : fermer())}
+                  onEnvoyer={(raison) => void envoyerSignalementArticleActus({ ...cible.corps, ...raison } as SignalementArticleActus).catch(() => false)}
+                  onRetourMenu={() => (choix.length > 1 ? setChoisie(null) : fermer())}
                   onFermer={fermer}
                 />
               )}

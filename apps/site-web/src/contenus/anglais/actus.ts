@@ -24,6 +24,13 @@ export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
     lien: "See all the news",
   },
   lecture: (minutes: number) => `${minutes} min read`,
+  voirPlus: "See more",
+  plusRecents: "Back to the latest",
+  indisponible: {
+    titre: "The news is taking a little break",
+    texte: "We can't load it right now. Try again in a moment.",
+    reessayer: "Try again",
+  },
   encart: {
     titre: "Got a place you'd love to write about?",
     texte: "Stories are written in the app, by our ambassadors to start with.",
@@ -38,6 +45,7 @@ export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
     voirFiche: "See the listing",
     voirFicheLu: (nom: string) => `See the listing for ${nom}`,
     motDuLieu: "A word from the place",
+    photo: (rang: number) => `Photo ${rang} from the story`,
     reponseRelue: "Reply from the place, checked by the Brigade",
     signaler: { article: "Report this story", reponse: "Report this reply", reponseDe: (nom: string) => ` from ${nom}` },
     relu: (date: string) => `Checked by the Brigade and published on ${date}.`,

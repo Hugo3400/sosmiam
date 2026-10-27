@@ -14,6 +14,7 @@ export function creerActusApi(client: ClientHttp): ServiceActus {
   return {
     lister: (filtres) => client.demander("GET", `/app/actus${ecrireRecherche(filtres)}`),
     villes: () => client.demander("GET", "/app/actus/villes"),
+    abonnements: () => client.demander("GET", "/app/actus/abonnements"),
     lire: (id) => client.demander("GET", `/app/actus/${id}`),
     aimer: (id, aime) => client.demander(aime ? "POST" : "DELETE", `/app/actus/${id}/jaime`),
     envoyerPhoto: (octets) => client.envoyerOctets("/app/actus/photos", octets, "image/jpeg"),

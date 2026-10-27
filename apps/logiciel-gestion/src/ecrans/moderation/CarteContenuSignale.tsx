@@ -11,6 +11,7 @@ import { formaterDate } from "~/fonctions/texte/formater-date.ts";
 import { ErreurApi } from "~/services/client-gestion.ts";
 import { deciderSignalement, type LieuCite, type Signalement } from "~/services/moderation.ts";
 import { ApercuArticleActus } from "~/ecrans/actus/ApercuArticleActus.tsx";
+import { ApercuCommentaireActus } from "~/ecrans/actus/ApercuCommentaireActus.tsx";
 import { ApercuReponseLieuActus } from "~/ecrans/actus/ApercuReponseLieuActus.tsx";
 import { InstantaneSignale } from "./InstantaneSignale.tsx";
 import { MediaSignale } from "./MediaSignale.tsx";
@@ -86,6 +87,8 @@ export function CarteContenuSignale({ signalements, lieux, onDecide }: Props) {
           <ApercuArticleActus article={premier.article} />
         ) : premier.cible === "reponse-actu" && premier.reponseActus ? (
           <ApercuReponseLieuActus reponse={premier.reponseActus} />
+        ) : premier.cible === "comment-actu" && premier.commentaireActus ? (
+          <ApercuCommentaireActus commentaire={premier.commentaireActus} />
         ) : (
           <InstantaneSignale signalement={premier} lieux={lieux} />
         )}

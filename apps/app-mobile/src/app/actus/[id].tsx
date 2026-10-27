@@ -29,7 +29,7 @@ export default function EcranArticleActus() {
   const T = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE);
   const { langue } = utiliserLangue();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { chargement, article, commentaires, basculerJaime } = utiliserArticleActus(Number(id));
+  const { chargement, article, exemple, basculerJaime } = utiliserArticleActus(Number(id));
   const { lieux } = utiliserLieux();
   const positions = useMemo(() => new Map(lieux.map((l) => [l.id, l.position ?? null])), [lieux]);
 
@@ -77,7 +77,7 @@ export default function EcranArticleActus() {
 
           <LienSignalerArticle articleId={article.id} titre={article.titre} nomLieu={article.lieux[0]?.nom ?? ""} reponses={article.reponsesLieux} />
 
-          <CommentairesArticle commentaires={commentaires} auteurId={article.auteur.id} titre={A.commentaires(article.commentaires)} plume={A.plume} />
+          <CommentairesArticle articleId={article.id} exemple={exemple} nombre={article.commentaires} nomLieu={article.lieux[0]?.nom ?? ""} T={A} />
         </View>
       </ScrollView>
     </View>

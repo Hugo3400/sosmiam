@@ -1,5 +1,5 @@
 import { appeler, parametres } from "./client-gestion.ts";
-import type { ArticleARelire, ReponseLieuARelire } from "./actus.ts";
+import type { ArticleARelire, CommentaireActusSignale, ReponseLieuARelire } from "./actus.ts";
 import type { Media } from "./publications.ts";
 
 export type StatutSignalement = "a-traiter" | "retenu" | "rejete";
@@ -51,6 +51,7 @@ export type Signalement = {
   avis?: AvisDecide | null;
   article?: ArticleARelire | null;
   reponseActus?: ReponseLieuARelire | null;
+  commentaireActus?: CommentaireActusSignale | null;
 };
 
 export type AvisDecide = {

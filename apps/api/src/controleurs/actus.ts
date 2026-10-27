@@ -78,6 +78,10 @@ export function creerControleursActus({ lecture, auteur, photos }: DependancesAc
       envoyerImage(reponse, octets, CACHE_IMAGE);
     },
 
+    async abonnements(_requete: Request, reponse: Response) {
+      reponse.json({ ok: true, articles: await lecture.abonnements(lireCompteId(reponse)) });
+    },
+
     async aimer(requete: Request, reponse: Response) {
       const id = lireIdentifiant(requete.params.id);
       const resultat = id ? await lecture.aimer(lireCompteId(reponse), id, requete.method === "POST") : null;

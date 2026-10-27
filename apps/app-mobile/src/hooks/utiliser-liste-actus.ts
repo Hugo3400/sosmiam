@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { RubriqueActus } from "@sos-miam/commun/regles/actus";
 import type { ArticleActusAffiche } from "~/contenus/type-article-actus";
+import type { FiltreActus } from "~/contenus/type-filtre-actus";
 import { convertirArticleActus } from "~/fonctions/actus/convertir-article-actus";
 import { lireExemplesActus } from "~/fonctions/actus/lire-exemples-actus";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -10,25 +10,28 @@ import { EXEMPLES_ACTUS_EN_SECOURS } from "~/services/actus-visibles";
 
 type EtatListe = { cle: string; articles: ArticleActusAffiche[]; suivant: string | null; enEchec: boolean };
 
-export function utiliserListeActus(rubrique: RubriqueActus | null) {
+export function utiliserListeActus(filtre: FiltreActus) {
+  const rubrique = filtre === "abonnements" ? null : filtre;
   const { service } = utiliserServiceActus();
   const { invite } = utiliserProfil();
-  const cle = `${rubrique ?? "tout"}-${invite ? "invite" : "compte"}`;
+  const cle = `${filtre ?? "tout"}-${invite ? "invite" : "compte"}`;
   const [etat, setEtat] = useState<EtatListe | null>(null);
   const [numero, setNumero] = useState(0);
   const suiteEnCours = useRef(false);
 
   useEffect(() => {
     let actif = true;
-    void service.lister({ rubrique, ville: null, curseur: null }).then((r) => {
+    const lire = filtre === "abonnements" ? service.abonnements().then((r) => (r.ok ? { ...r, suivant: null } : r)) : service.lister({ rubrique, ville: null, curseur: null });
+    void lire.then((r) => {
       if (!actif) return;
       if (r.ok) return setEtat({ cle, articles: r.articles.map(convertirArticleActus), suivant: r.suivant, enEchec: false });
-      setEtat({ cle, articles: EXEMPLES_ACTUS_EN_SECOURS ? lireExemplesActus(rubrique, invite) : [], suivant: null, enEchec: true });
+      const exemples = EXEMPLES_ACTUS_EN_SECOURS && filtre !== "abonnements" ? lireExemplesActus(rubrique, invite) : [];
+      setEtat({ cle, articles: exemples, suivant: null, enEchec: true });
     });
     return () => {
       actif = false;
     };
-  }, [service, rubrique, invite, cle, numero]);
+  }, [service, filtre, rubrique, invite, cle, numero]);
 
   const chargerSuite = useCallback(async () => {
     const curseur = etat?.cle === cle ? etat.suivant : null;

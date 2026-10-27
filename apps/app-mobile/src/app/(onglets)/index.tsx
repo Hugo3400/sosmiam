@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { BandeauActusAbonnements } from "~/composants/actus/BandeauActusAbonnements";
 import { ListeActus } from "~/composants/actus/ListeActus";
 import { BanniereThemeFil } from "~/composants/fil/BanniereThemeFil";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
@@ -20,7 +21,9 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
+import { AUCUN_SUIVI, DELAI_ACCUEIL, DELAI_PRECHARGEMENT, FENETRE_ACCUEIL, raisonsMenu, VISIBILITE } from "~/contenus/reglages-fil";
 import { TAILLE_PAGE_FIL } from "~/contenus/taille-page-fil";
+import type { FiltreActus } from "~/contenus/type-filtre-actus";
 import type { Publication } from "~/contenus/type-publication";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
@@ -42,26 +45,8 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { ACTUS_VISIBLES } from "~/services/actus-visibles";
 
-// Une publication compte comme « à l'écran » dès qu'on en voit la moitié : pendant un glissé, il y en a toujours une
-// (à 60 %, entre 40 et 60 % du geste, aucune ne l'était : la vidéo qu'on quittait se figeait encore à l'écran)
-const VISIBILITE = { itemVisiblePercentThreshold: 50 };
-// Ce que demande chaque choix du menu « ⋯ » (rien pour l'adresse : elle se regarde sans compte)
-const raisonsMenu: Record<ChoixMenu, RaisonCompte | null> = {
-  rescousse: "rescousse",
-  inviter: "partager",
-  adresse: null,
-  envoyer: "envoyer",
-  "pas-interesse": "masquer",
-  signaler: "signaler",
-};
-// La fiche d'un lieu se prépare en coulisses quand tu t'arrêtes un moment sur une publication (pas pendant que tu fais défiler)
-const DELAI_PRECHARGEMENT = 1500;
-// Compte créé depuis le fil : le fil revient à l'écran dans ces quelques secondes (sinon, l'inscription venait d'ailleurs)
-const FENETRE_ACCUEIL = 3000;
-// « Compte créé ! » attend que l'inscription ait fini de s'effacer (VoiceOver annonce d'abord l'écran retrouvé)
-const DELAI_ACCUEIL = 600;
-const AUCUN_SUIVI: readonly string[] = [];
 
 /** Auteur que tu pourrais ne plus suivre : ce que la feuille de confirmation affiche, et la clé de ton suivi */
 type AuteurSuivi = { nom: string; emoji: string; cle: string };
@@ -87,6 +72,7 @@ export default function PourToi() {
   const activite = utiliserActivite();
   const nombreCommentaires = utiliserNombresCommentaires();
   const [onglet, setOnglet] = useState<OngletFil>("tous");
+  const [filtreActus, setFiltreActus] = useState<{ filtre: FiltreActus; numero: number }>({ filtre: null, numero: 0 });
   const [taille, setTaille] = useState({ largeur: 0, hauteur: 0 });
   const [visible, setVisible] = useState<string | null>(null);
   const [hauteurBanniere, setHauteurBanniere] = useState(0);
@@ -383,7 +369,7 @@ export default function PourToi() {
       {focus ? (onglet === "actus" ? <BarreEtatTheme /> : <StatusBar style="light" />) : null}
       {taille.hauteur > 0 ? (
         onglet === "actus" ? (
-          <ListeActus margeHaut={marges.top + hauteurEnTete} margeBas={hauteurBarreOnglets} />
+          <ListeActus key={filtreActus.numero} filtreDepart={filtreActus.filtre} margeHaut={marges.top + hauteurEnTete} margeBas={hauteurBarreOnglets} />
         ) : liste.length > 0 ? (
           <FlatList
             ref={refListe}
@@ -448,6 +434,15 @@ export default function PourToi() {
       ) : null}
       <EnTeteFil onglet={onglet} onChoisir={setOnglet} restantes={activite.restantes} haut={marges.top} invite={invite} onCreerCompte={creerCompte} />
       <BanniereThemeFil visible={surPremiere && onglet !== "actus"} haut={hautIndications} onHauteur={setHauteurBanniere} />
+      {ACTUS_VISIBLES && onglet === "abonnements" && profil ? (
+        <BandeauActusAbonnements
+          haut={hautIndications + (surPremiere ? hauteurBanniere : 0)}
+          onOuvrir={() => {
+            setFiltreActus((f) => ({ filtre: "abonnements", numero: f.numero + 1 }));
+            setOnglet("actus");
+          }}
+        />
+      ) : null}
       <Annonce annonce={annonce} haut={marges.top + hauteurEnTete + 2} onFin={finAnnonce} />
       <MenuPublication
         visible={menu !== null}

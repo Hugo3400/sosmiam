@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
+import { createServer } from "node:http";
 import { registerHooks } from "node:module";
-import { test } from "node:test";
+import type { AddressInfo } from "node:net";
+import { after, beforeEach, test } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import ts from "typescript";
@@ -24,6 +26,32 @@ registerHooks({
   },
 });
 
+const { ARTICLES_ACTUS_EXEMPLE, estPublieExemple, repondreApiActus } = await import("./actus-exemple.ts");
+
+type ReglagesApi = { panne: boolean; options: Parameters<typeof repondreApiActus>[1] };
+const reglagesApi: ReglagesApi = { panne: false, options: {} };
+const appels: { chemin: string; ip: string | undefined }[] = [];
+const serveur = createServer((requete, reponse) => {
+  const chemin = requete.url ?? "";
+  appels.push({ chemin, ip: requete.headers["x-ip-visiteur"] as string | undefined });
+  const repondre = (statut: number, corps: unknown) => void reponse.writeHead(statut, { "Content-Type": "application/json" }).end(JSON.stringify(corps));
+  if (reglagesApi.panne) return repondre(500, { ok: false, erreur: "erreur-serveur" });
+  const resultat = repondreApiActus(chemin, reglagesApi.options);
+  return resultat ? repondre(resultat.statut, resultat.corps) : repondre(404, { ok: false, erreur: "introuvable" });
+});
+await new Promise<void>((pret) => serveur.listen(0, "127.0.0.1", pret));
+after(() => {
+  serveur.closeAllConnections();
+  serveur.close();
+});
+process.env.ADRESSE_API = `http://127.0.0.1:${(serveur.address() as AddressInfo).port}`;
+
+beforeEach(() => {
+  reglagesApi.panne = false;
+  reglagesApi.options = {};
+  appels.length = 0;
+});
+
 const { estHoteDEssai } = await import("../src/fonctions/hotes/est-hote-d-essai.ts");
 const { estPageDoublee } = await import("../src/fonctions/langue/est-page-doublee.ts");
 const { lireFiltresActus } = await import("../src/fonctions/actus/lire-filtres-actus.ts");
@@ -32,8 +60,7 @@ const { estArticleActusAlcool } = await import("../src/fonctions/actus/est-artic
 const { estLieuAvecFiche } = await import("../src/fonctions/actus/est-lieu-avec-fiche.ts");
 const { lireIdArticleActus } = await import("../src/fonctions/actus/lire-id-article-actus.ts");
 const { trierReponsesLieux } = await import("../src/fonctions/actus/trier-reponses-lieux.ts");
-const { listerArticlesActus, lireArticleActus } = await import("../src/services/actus.server.ts");
-const { ARTICLES_ACTUS_EXEMPLE } = await import("../src/services/actus-exemple.server.ts");
+const { listerArticlesActus, chargerArticleActus } = await import("../src/services/actus.server.ts");
 const { MESSAGE_SANITAIRE_ALCOOL } = await import("../src/contenus/legal/prevention.ts");
 
 const { createElement: h } = await import("react");
@@ -61,7 +88,7 @@ const handler = createStaticHandler([
 ]);
 
 async function servir(adresse: string, langueChoisie?: "fr" | "en") {
-  const contexte = await handler.query(new Request(adresse));
+  const contexte = await handler.query(new Request(adresse, { headers: { "x-real-ip": "203.0.113.9" } }));
   assert.ok(!(contexte instanceof Response));
   if (contexte.statusCode !== 200) return { statut: contexte.statusCode, html: "" };
   const langue = langueChoisie ?? (new URL(adresse).pathname.startsWith("/en/") ? "en" : "fr");
@@ -72,7 +99,7 @@ async function servir(adresse: string, langueChoisie?: "fr" | "en") {
 
 const titres = (html: string) => [...html.matchAll(/<h3 lang="fr"[^>]*><a [^>]*>([^<]+)<\/a><\/h3>/g)].map(([, titre]) => titre);
 const titresPublies = (garder: (article: (typeof ARTICLES_ACTUS_EXEMPLE)[number]) => boolean) =>
-  ARTICLES_ACTUS_EXEMPLE.filter((article) => article.statut === "publie" && !estArticleActusAlcool(article) && garder(article)).map((article) => article.titre);
+  ARTICLES_ACTUS_EXEMPLE.filter((article) => estPublieExemple(article) && !estArticleActusAlcool(article) && garder(article)).map((article) => article.titre);
 
 test("estHoteDEssai : l'aperçu et les machines de développement, jamais le vrai site ni ses espaces", () => {
   for (const hote of ["apercu.sosmiam.fr", "APERCU.sosmiam.fr.", "localhost", "localhost:5190", "127.0.0.1:5344", "pro.localhost"]) assert.ok(estHoteDEssai(hote), hote);
@@ -112,18 +139,21 @@ test("/actus : les articles publiés, une seule h1, noindex, les filtres en lien
 });
 
 test("filtres : rubrique et ville lues dans l'adresse, combinées, et jamais une valeur inconnue", async () => {
-  assert.deepEqual(lireFiltresActus(new URLSearchParams("rubrique=bon-plan&ville=Sète")), { rubrique: "bon-plan", ville: "sete" });
-  assert.deepEqual(lireFiltresActus(new URLSearchParams("rubrique=bar&ville=")), { rubrique: null, ville: null });
-  assert.deepEqual(lireFiltresActus(new URLSearchParams("")), { rubrique: null, ville: null });
+  assert.deepEqual(lireFiltresActus(new URLSearchParams("rubrique=bon-plan&ville=Sète&curseur=1761400000000.12")), { rubrique: "bon-plan", ville: "sete", curseur: "1761400000000.12" });
+  assert.deepEqual(lireFiltresActus(new URLSearchParams("rubrique=bar&ville=&curseur=abc")), { rubrique: null, ville: null, curseur: null });
+  assert.deepEqual(lireFiltresActus(new URLSearchParams("")), { rubrique: null, ville: null, curseur: null });
+  assert.equal(ecrireAdresseActus({ rubrique: "bon-plan", ville: null, curseur: "17.3" }), "/actus?rubrique=bon-plan&curseur=17.3");
   assert.equal(ecrireAdresseActus({ rubrique: null, ville: null }), "/actus");
   assert.equal(ecrireAdresseActus({ rubrique: "portrait", ville: "lyon" }), "/actus?rubrique=portrait&ville=lyon");
 
   const bonsPlans = await servir("https://apercu.sosmiam.fr/actus?rubrique=bon-plan");
+  assert.ok(appels.some((appel) => appel.chemin === "/app/actus?rubrique=bon-plan" && appel.ip === "203.0.113.9"));
   assert.deepEqual([...titres(bonsPlans.html)].sort(), titresPublies((article) => article.rubrique === "bon-plan").sort());
   assert.match(bonsPlans.html, /<a [^>]*aria-current="true"[^>]*>Bons plans<\/a>|<a [^>]*href="\/actus\?rubrique=bon-plan"[^>]*aria-current="true"/);
   assert.match(bonsPlans.html, /<input type="hidden" name="rubrique" value="bon-plan"/);
 
   const sete = await servir("https://apercu.sosmiam.fr/actus?ville=sete");
+  assert.ok(appels.some((appel) => appel.chemin === `/app/actus?ville=${encodeURIComponent("Sète")}`));
   assert.deepEqual([...titres(sete.html)].sort(), titresPublies((article) => article.lieux.some((lieu) => lieu.ville === "Sète")).sort());
   assert.match(sete.html, /href="\/actus\?rubrique=portrait&ville=sete"/);
   assert.match(sete.html, /<option value="sete" selected="">Sète<\/option>/);
@@ -151,12 +181,13 @@ test("jamais d'article sur un bar ou l'alcool, ni d'article non publié, sur auc
   assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu], reponsesLieux: [reponse] }), false);
   assert.equal(estArticleActusAlcool({ ...base, lieux: [lieu], reponsesLieux: [{ ...reponse, texte: "Merci ! L'apéro est offert." }] }), true);
 
-  const { articles } = await listerArticlesActus({ rubrique: null, ville: null });
-  assert.ok(articles.every((article) => !estArticleActusAlcool(article) && !article.alcool));
-  const cachees = ARTICLES_ACTUS_EXEMPLE.filter((article) => article.statut !== "publie" || estArticleActusAlcool(article));
+  const liste = await listerArticlesActus({ rubrique: null, ville: null, curseur: null }, null);
+  assert.ok(liste.ok);
+  assert.ok(liste.donnees.articles.every((article) => !estArticleActusAlcool(article) && !article.alcool));
+  const cachees = ARTICLES_ACTUS_EXEMPLE.filter((article) => !estPublieExemple(article) || estArticleActusAlcool(article));
   assert.ok(cachees.some((article) => article.alcool) && cachees.some((article) => article.statut === "en-relecture") && cachees.some((article) => article.statut === "refuse") && cachees.some((article) => article.statut === "retire"));
   for (const article of cachees) {
-    assert.equal(await lireArticleActus(article.id), null, article.titre);
+    assert.deepEqual(await chargerArticleActus(article.id, null), { ok: false, erreur: "introuvable" }, article.titre);
     assert.equal((await servir(`https://apercu.sosmiam.fr/actus/${article.id}`)).statut, 404, article.titre);
   }
   const { html } = await servir("https://apercu.sosmiam.fr/actus");
@@ -178,8 +209,8 @@ test("message sanitaire mot pour mot sous un article marqué alcool, et rien sin
 });
 
 test("« Collaboration commerciale » sur l'article et sa carte quand il l'a, jamais sinon", async () => {
-  const avecCollaboration = ARTICLES_ACTUS_EXEMPLE.filter((article) => article.statut === "publie" && article.collaboration && !estArticleActusAlcool(article));
-  const sansCollaboration = ARTICLES_ACTUS_EXEMPLE.filter((article) => article.statut === "publie" && !article.collaboration && !estArticleActusAlcool(article));
+  const avecCollaboration = ARTICLES_ACTUS_EXEMPLE.filter((article) => estPublieExemple(article) && article.collaboration && !estArticleActusAlcool(article));
+  const sansCollaboration = ARTICLES_ACTUS_EXEMPLE.filter((article) => estPublieExemple(article) && !article.collaboration && !estArticleActusAlcool(article));
   assert.ok(avecCollaboration.length > 0 && sansCollaboration.length > 0);
   for (const article of avecCollaboration) {
     const { html } = await servir(`https://apercu.sosmiam.fr/actus/${article.id}`);
@@ -221,7 +252,7 @@ test("un article : une h1, le contenu en français balisé, lecture seule, « Vo
   assert.equal(estLieuAvecFiche({ id: -3 }), false);
   assert.equal(estLieuAvecFiche({ id: 1.5 }), false);
   assert.equal(estLieuAvecFiche({ id: 12 }), true);
-  const balises = pageArticle.meta({ loaderData: { article: await lireArticleActus(1) } } as never) as { name?: string; content?: string; title?: string }[];
+  const balises = pageArticle.meta({ loaderData: { article: ((await chargerArticleActus(1, null)) as { donnees: unknown }).donnees } } as never) as { name?: string; content?: string; title?: string }[];
   assert.ok(balises.some((balise) => balise.name === "robots" && balise.content === "noindex"));
   assert.ok(balises.some((balise) => balise.title === "Le Capitaine nous a ouvert sa cuisine — SOS Miam"));
 });
@@ -255,7 +286,7 @@ test("le mot des lieux : une réponse par bloc, dans l'ordre des lieux de l'arti
   assert.equal(rendu.match(/Le mot du lieu/g)?.length, 2);
   assert.ok(rendu.indexOf("Mot de Chez Nous (21)") > 0 && rendu.indexOf("Mot de Chez Nous (21)") < rendu.indexOf("Mot de Chez Nous (22)"));
   assert.ok(rendu.indexOf('href="/actus/4/signaler?lieu=21"') < rendu.indexOf('href="/actus/4/signaler?lieu=22"'));
-  const avecDeux = ARTICLES_ACTUS_EXEMPLE.find((article) => article.statut === "publie" && article.reponsesLieux.length > 1);
+  const avecDeux = ARTICLES_ACTUS_EXEMPLE.find((article) => estPublieExemple(article) && article.reponsesLieux.length > 1);
   assert.ok(avecDeux && avecDeux.rubrique === "top-quartier");
   const { html } = await servir(`https://apercu.sosmiam.fr/actus/${avecDeux.id}`);
   assert.equal(html.match(/>Le mot du lieu<\/h2>/g)?.length, avecDeux.reponsesLieux.length);
@@ -266,7 +297,72 @@ test("le mot des lieux : une réponse par bloc, dans l'ordre des lieux de l'arti
   assert.deepEqual(positions, [...positions].sort((a, b) => a - b));
   const ids = [...html.matchAll(/<section aria-labelledby="([^"]+)"[^>]*border-dashed/g)].map(([, id]) => id);
   assert.equal(new Set(ids).size, avecDeux.reponsesLieux.length);
-  const sansReponse = ARTICLES_ACTUS_EXEMPLE.find((article) => article.statut === "publie" && article.reponsesLieux.length === 0 && !estArticleActusAlcool(article));
+  const sansReponse = ARTICLES_ACTUS_EXEMPLE.find((article) => estPublieExemple(article) && article.reponsesLieux.length === 0 && !estArticleActusAlcool(article));
   assert.ok(sansReponse);
   assert.doesNotMatch((await servir(`https://apercu.sosmiam.fr/actus/${sansReponse.id}`)).html, /Le mot du lieu/);
+});
+
+const genererArticles = (nombre: number) =>
+  Array.from({ length: nombre }, (_, rang) => ({
+    ...(ARTICLES_ACTUS_EXEMPLE[1] as (typeof ARTICLES_ACTUS_EXEMPLE)[number]),
+    id: 100 + rang,
+    titre: `Article numéro ${rang + 1}`,
+    aLaUne: false,
+    publieLe: new Date(Date.parse("2026-10-20T10:00:00Z") - rang * 3_600_000).toISOString(),
+  }));
+
+test("pagination : « Voir plus » suit le curseur de l'API, garde les filtres, marche sans JavaScript, et revient aux plus récents", async () => {
+  reglagesApi.options = { articles: genererArticles(25) };
+  const premiere = await servir("https://apercu.sosmiam.fr/actus?rubrique=top-quartier");
+  assert.equal(titres(premiere.html).length, 20);
+  const suivant = /<a [^>]*href="\/actus\?rubrique=top-quartier&curseur=(\d+\.\d+)"[^>]*>Voir plus<\/a>/.exec(premiere.html)?.[1];
+  assert.ok(suivant);
+  assert.doesNotMatch(premiere.html, /Revenir aux plus récents|\d+ articles/);
+  const seconde = await servir(`https://apercu.sosmiam.fr/actus?rubrique=top-quartier&curseur=${suivant}`);
+  assert.ok(appels.some((appel) => appel.chemin === `/app/actus?rubrique=top-quartier&curseur=${suivant}`));
+  assert.deepEqual(titres(seconde.html), ["Article numéro 21", "Article numéro 22", "Article numéro 23", "Article numéro 24", "Article numéro 25"]);
+  assert.doesNotMatch(seconde.html, />Voir plus</);
+  assert.match(seconde.html, /<a [^>]*href="\/actus\?rubrique=top-quartier"[^>]*>Revenir aux plus récents<\/a>/);
+  assert.match((await servir("https://apercu.sosmiam.fr/en/actus?rubrique=top-quartier")).html, /href="\/en\/actus\?rubrique=top-quartier&curseur=\d+\.\d+"[^>]*>See more<\/a>/);
+  assert.ok(!appels.some((appel) => appel.chemin.includes("curseur=abc")));
+  await servir("https://apercu.sosmiam.fr/actus?curseur=abc");
+  assert.ok(appels.some((appel) => appel.chemin === "/app/actus"));
+});
+
+test("API en panne ou de travers : « momentanément indisponible » en 503, jamais une page blanche ; liste vide : l'état vide", async () => {
+  reglagesApi.panne = true;
+  for (const adresse of ["https://apercu.sosmiam.fr/actus", "https://apercu.sosmiam.fr/actus/1"]) {
+    const contexte = await handler.query(new Request(adresse));
+    assert.ok(!(contexte instanceof Response));
+    assert.equal(contexte.statusCode, 503, adresse);
+    const html = renderToString(h(ContexteLangue, { value: { langue: "fr", servies: ["fr", "en"] } }, h(StaticRouterProvider, { router: createStaticRouter(handler.dataRoutes, contexte), context: contexte, hydrate: false }))).replace(/&#x27;/g, "'");
+    assert.match(html, /Les actus font une petite pause/, adresse);
+    assert.equal(html.match(/<h1/g)?.length, 1, adresse);
+    assert.match(html, />Réessayer<\/a>/);
+  }
+  reglagesApi.panne = false;
+  reglagesApi.options = { articles: [] };
+  const vide = await servir("https://apercu.sosmiam.fr/actus");
+  assert.equal(vide.statut, 200);
+  assert.match(vide.html, /Pas encore d'article par ici/);
+  assert.match(vide.html, /0 article</);
+  assert.equal((await servir("https://apercu.sosmiam.fr/actus/1")).statut, 404);
+});
+
+test("lecture prudente : une ligne de forme inattendue ou d'un autre statut est écartée, une image mal formée n'est jamais affichée", async () => {
+  const [premier, second] = ARTICLES_ACTUS_EXEMPLE as [(typeof ARTICLES_ACTUS_EXEMPLE)[number], (typeof ARTICLES_ACTUS_EXEMPLE)[number]];
+  reglagesApi.options = {
+    articles: [
+      premier,
+      { ...second, id: 50, titre: "Titre manquant ailleurs", lieux: "pas une liste" } as never,
+      { ...second, id: 51, titre: "Statut retiré", statut: "retire" },
+      { ...second, id: 52, titre: "Couverture douteuse", couverture: "https://exemple.com/x.jpg", photos: ["/app/actus/images/../../secret.jpg"] },
+    ],
+  };
+  const { html } = await servir("https://apercu.sosmiam.fr/actus");
+  assert.deepEqual([...titres(html)].sort(), [premier.titre, "Couverture douteuse"].sort());
+  assert.match(html, new RegExp(`<img src="${premier.couverture}" alt=""`));
+  assert.doesNotMatch(html, /exemple\.com|secret/);
+  const article = await servir("https://apercu.sosmiam.fr/actus/1");
+  for (const [rang, photo] of premier.photos.entries()) assert.match(article.html, new RegExp(`<img src="${photo}" alt="Photo ${rang + 1} de l'article"`));
 });

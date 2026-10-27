@@ -1,7 +1,8 @@
-import type { ArticleActus, AuteurActus, LieuCiteActus, StatutArticleActus } from "../../../../packages/commun/src/types/actus.ts";
-import type { TypeLieu } from "../../../../packages/commun/src/types/lieu.ts";
+import { ARTICLES_ACTUS_PAR_PAGE } from "../../../packages/commun/src/regles/actus.ts";
+import type { ArticleActus, AuteurActus, LieuCiteActus, StatutArticleActus } from "../../../packages/commun/src/types/actus.ts";
+import type { TypeLieu } from "../../../packages/commun/src/types/lieu.ts";
 
-export type ArticleActusExemple = ArticleActus<null> & { statut: StatutArticleActus };
+export type ArticleActusExemple = ArticleActus & { statut?: StatutArticleActus };
 
 const ZOE: AuteurActus = { id: 9101, prenom: "zoe.croque", avatar: "miami:beret", ambassadeur: true };
 const MALO: AuteurActus = { id: 9102, prenom: "malo.matelot", avatar: "miami:binocles", ambassadeur: true };
@@ -25,7 +26,7 @@ const RAVIOLIS_BRIGADE = lieu(-12, "Les Raviolis de la Brigade", "resto", "🥟"
 const BOWLING_BRIGADE = lieu(-13, "Le Bowling de la Brigade", "sortie", "🎳", "Gerland", "Lyon");
 
 const SANS_SUITE: Pick<ArticleActusExemple, "couverture" | "photos" | "collaboration" | "alcool" | "finLe" | "aLaUne" | "reponsesLieux"> = {
-  couverture: null,
+  couverture: "",
   photos: [],
   collaboration: false,
   alcool: false,
@@ -34,11 +35,10 @@ const SANS_SUITE: Pick<ArticleActusExemple, "couverture" | "photos" | "collabora
   reponsesLieux: [],
 };
 
-export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
+const ARTICLES_BRUTS: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 1,
-    statut: "publie",
     rubrique: "portrait",
     titre: "Le Capitaine nous a ouvert sa cuisine",
     accroche: "Poisson du matin, soupe du soir : visite d'un bistrot de la mer qui ne triche pas.",
@@ -66,7 +66,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 2,
-    statut: "publie",
     rubrique: "top-quartier",
     titre: "3 douceurs à moins de 300 m de la Comédie",
     accroche: "Trois adresses, une seule règle : ne jamais repartir sans avoir goûté.",
@@ -85,7 +84,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 3,
-    statut: "publie",
     rubrique: "bon-plan",
     titre: "La formule du midi de La Cantine des Miamis",
     accroche: "Tout le mois de novembre, le plat du jour et son dessert à petit prix, du lundi au vendredi.",
@@ -106,7 +104,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 4,
-    statut: "publie",
     rubrique: "recit-sortie",
     titre: "Un dimanche à Sète : pédalo, crêpe et glace au retour",
     accroche: "Une journée au bord de l'eau, trois adresses et des mollets qui s'en souviennent encore.",
@@ -125,7 +122,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 5,
-    statut: "publie",
     rubrique: "portrait",
     titre: "Les Biscuits de la Brigade, la fournée qui sent bon le port",
     accroche: "Sablés, navettes et biscuits du jour : une petite boutique où l'on vient pour une chose et repart avec trois.",
@@ -152,7 +148,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 6,
-    statut: "publie",
     rubrique: "top-quartier",
     titre: "Le top 3 gourmand de la Croix-Rousse",
     accroche: "Des tartines, des raviolis et un salon de thé : la colline a de quoi te régaler.",
@@ -185,7 +180,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 7,
-    statut: "publie",
     rubrique: "recit-sortie",
     titre: "Bowling puis raviolis : le récit d'un mardi réussi",
     accroche: "Deux parties de bowling, une revanche ratée et un dîner qui a tout réparé.",
@@ -204,7 +198,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 8,
-    statut: "publie",
     rubrique: "bon-plan",
     titre: "Le goûter tout doux du Salon Chantilly des Miamis",
     accroche: "Jusqu'au 20 décembre, une part de gâteau et un chocolat chaud à prix réduit, en semaine après 16 h.",
@@ -223,7 +216,6 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
     ...SANS_SUITE,
     id: 9,
-    statut: "publie",
     rubrique: "portrait",
     titre: "Le Comptoir des Miamis, le nouveau bar de l'Écusson",
     accroche: "Un comptoir en bois, des tabourets hauts et une carte pensée pour les soirées entre amis.",
@@ -282,3 +274,46 @@ export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
     commentaires: 0,
   },
 ];
+
+export const ecrireImageExemple = (rang: number) => `/app/actus/images/${rang.toString(16).padStart(8, "0")}-0000-4000-8000-000000000000.jpg`;
+
+export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = ARTICLES_BRUTS.map((article) => ({
+  ...article,
+  couverture: ecrireImageExemple(article.id),
+  photos: article.id === 1 ? [ecrireImageExemple(101), ecrireImageExemple(102)] : [],
+}));
+
+export const estPublieExemple = (article: ArticleActusExemple) => article.statut === undefined;
+
+const ecrireCurseur = (article: ArticleActusExemple) => `${Date.parse(article.publieLe)}.${article.id}`;
+
+const trierRecents = (a: ArticleActusExemple, b: ArticleActusExemple) => Date.parse(b.publieLe) - Date.parse(a.publieLe) || b.id - a.id;
+
+export type OptionsApiActus = { articles?: readonly ArticleActusExemple[]; parPage?: number };
+
+export function repondreApiActus(adresse: string, { articles = ARTICLES_ACTUS_EXEMPLE, parPage = ARTICLES_ACTUS_PAR_PAGE }: OptionsApiActus = {}): { statut: number; corps: unknown } | null {
+  const url = new URL(adresse, "http://api.local");
+  if (url.pathname === "/app/actus/villes") {
+    const parVille = new Map<string, Set<number>>();
+    for (const article of articles) for (const lieu of article.lieux) parVille.set(lieu.ville, (parVille.get(lieu.ville) ?? new Set()).add(article.id));
+    return { statut: 200, corps: { ok: true, villes: [...parVille].map(([ville, ids]) => ({ ville, articles: ids.size })) } };
+  }
+  const id = /^\/app\/actus\/(\d+)$/.exec(url.pathname)?.[1];
+  if (id !== undefined) {
+    const article = articles.find((un) => un.id === Number(id) && estPublieExemple(un));
+    return article ? { statut: 200, corps: { ok: true, article } } : { statut: 404, corps: { ok: false, erreur: "article-introuvable" } };
+  }
+  if (url.pathname !== "/app/actus") return null;
+  const rubrique = url.searchParams.get("rubrique");
+  const ville = url.searchParams.get("ville");
+  const curseur = url.searchParams.get("curseur");
+  if (curseur !== null && !/^\d{1,15}\.\d{1,9}$/.test(curseur)) return { statut: 400, corps: { ok: false, erreur: "champ-invalide", champ: "curseur" } };
+  const tries = articles.filter((article) => (!rubrique || article.rubrique === rubrique) && (!ville || article.lieux.some((lieu) => lieu.ville === ville))).sort(trierRecents);
+  const une = !rubrique && !ville && !curseur ? tries.find((article) => article.aLaUne) : undefined;
+  const [temps, dernier] = (curseur ?? "").split(".").map(Number) as [number, number];
+  const plusAncien = (article: ArticleActusExemple) => !curseur || Date.parse(article.publieLe) < temps || (Date.parse(article.publieLe) === temps && article.id < dernier);
+  const reste = tries.filter((article) => article !== une && plusAncien(article));
+  const page = reste.slice(0, parPage);
+  const suivant = reste.length > parPage ? ecrireCurseur(page[page.length - 1] as ArticleActusExemple) : null;
+  return { statut: 200, corps: { ok: true, articles: une ? [une, ...page] : page, suivant } };
+}

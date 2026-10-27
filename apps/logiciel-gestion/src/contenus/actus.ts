@@ -105,6 +105,10 @@ export const TEXTES_ACTUS = {
     reponsePubliee: (lieu: string) => `La réponse de ${lieu} est publiée sous l'article.`,
     reponseRefusee: (lieu: string) => `La réponse de ${lieu} est refusée.`,
   },
+  commentaire: {
+    sur: (titre: string, auteur: string, le: string) => `Sous « ${titre} », de ${auteur}, le ${le}`,
+    supprime: "Supprimé par son auteur depuis le signalement : le texte n'existe plus.",
+  },
   reponses: {
     regle: "Une seule réponse par article, 500 caractères au plus, relue avant d'apparaître. On remercie, on précise, on invite : jamais de promo d'alcool, jamais de mot sur la personne.",
     sur: (titre: string, auteur: string) => `Sous « ${titre} », de ${auteur}`,

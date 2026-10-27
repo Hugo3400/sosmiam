@@ -1,8 +1,8 @@
 import type { MotifModeration } from "../../../../packages/commun/src/contenus/motifs-moderation.ts";
-import type { ActusARelire, ArticleARelire, ReponseLieuARelire } from "../../../../packages/commun/src/types/actus.ts";
+import type { ActusARelire, ArticleARelire, CommentaireActusSignale, ReponseLieuARelire } from "../../../../packages/commun/src/types/actus.ts";
 import { appeler } from "./client-gestion.ts";
 
-export type { ArticleARelire, ReponseLieuARelire };
+export type { ArticleARelire, CommentaireActusSignale, ReponseLieuARelire };
 
 export type PublicationActus = { aLaUne: boolean; alcool: boolean };
 

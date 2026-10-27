@@ -32,6 +32,7 @@ import { effacerLimitationsAnciennes } from "../services/limitations-comptes.ts"
 import { menagerPhotosProfil } from "../services/photos-profil-base.ts";
 import { menagerImagesLieu } from "../services/images-lieu-base.ts";
 import { creerActusCommentaires } from "../services/actus-commentaires.ts";
+import { menagerArticlesActus } from "../services/menage-articles-actus.ts";
 import { faireLeMenagePhotosActus } from "../services/menage-photos-actus.ts";
 import { faireLeMenagePhotosAvis } from "../services/menage-photos-avis.ts";
 import { faireLeMenageCommunaute } from "../services/menage-communaute.ts";
@@ -211,10 +212,12 @@ async function nettoyerPhotosAvis() {
 
 async function nettoyerPhotosActus() {
   try {
-    const effacees = await faireLeMenagePhotosActus();
-    if (effacees > 0) await noterAction("serveur", "Photos des Actus inutilisées effacées (plus de 25 h)", `${effacees} photo(s)`);
+    const articles = await menagerArticlesActus();
+    if (articles > 0) await noterAction("serveur", "Articles des Actus refusés ou retirés effacés (délai de contestation passé)", `${articles} article(s)`);
     const commentaires = await creerActusCommentaires().menager();
     if (commentaires > 0) await noterAction("serveur", "Commentaires des Actus retirés effacés (délai de contestation passé)", `${commentaires} commentaire(s)`);
+    const effacees = await faireLeMenagePhotosActus();
+    if (effacees > 0) await noterAction("serveur", "Photos des Actus inutilisées effacées (plus de 25 h)", `${effacees} photo(s)`);
   } catch (erreur) {
     console.error("Ménage des photos des Actus impossible :", resumerErreur(erreur));
   }

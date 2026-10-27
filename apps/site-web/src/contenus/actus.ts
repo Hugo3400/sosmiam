@@ -24,6 +24,13 @@ export const TEXTES_ACTUS = {
     lien: "Voir toutes les actus",
   },
   lecture: (minutes: number) => `${minutes} min de lecture`,
+  voirPlus: "Voir plus",
+  plusRecents: "Revenir aux plus récents",
+  indisponible: {
+    titre: "Les actus font une petite pause",
+    texte: "On n'arrive pas à les charger pour l'instant. Réessaie dans un instant.",
+    reessayer: "Réessayer",
+  },
   encart: {
     titre: "Toi aussi, tu as un lieu à raconter ?",
     texte: "Les articles s'écrivent dans l'app, par les ambassadeurs pour commencer.",
@@ -38,6 +45,7 @@ export const TEXTES_ACTUS = {
     voirFiche: "Voir la fiche",
     voirFicheLu: (nom: string) => `Voir la fiche de ${nom}`,
     motDuLieu: "Le mot du lieu",
+    photo: (rang: number) => `Photo ${rang} de l'article`,
     reponseRelue: "Réponse du lieu, relue par la Brigade",
     signaler: { article: "Signaler cet article", reponse: "Signaler cette réponse", reponseDe: (nom: string) => ` de ${nom}` },
     relu: (date: string) => `Relu par la Brigade et publié le ${date}.`,

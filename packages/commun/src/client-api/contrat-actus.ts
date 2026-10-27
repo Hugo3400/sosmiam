@@ -6,6 +6,7 @@ export type FiltresListeActus = { rubrique: RubriqueActus | null; ville: string 
 
 export interface ServiceActus {
   lister(filtres: FiltresListeActus): Promise<ReponseApi<{ articles: ArticleActus[]; suivant: string | null }>>;
+  abonnements(): Promise<ReponseApi<{ articles: ArticleActus[] }>>;
   villes(): Promise<ReponseApi<{ villes: { ville: string; articles: number }[] }>>;
   lire(id: number): Promise<ReponseApi<{ article: ArticleActus }>>;
   aimer(id: number, aime: boolean): Promise<ReponseApi<{ jaime: number; aime: boolean }>>;

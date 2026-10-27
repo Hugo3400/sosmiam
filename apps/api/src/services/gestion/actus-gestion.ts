@@ -163,7 +163,7 @@ export function creerActusGestion({ ajouterPointsDans, cloche, base = baseDeDonn
         if (decision === "rejete" && reexamen) await changer("refuse", "en-relecture", signalement.cible === "reponse-actu" ? { refusMotif: null } : {});
         return;
       }
-      if (decision === "retenu") await changer("publie", "retire", signalement.cible === "article-actu" ? { aLaUne: false } : {});
+      if (decision === "retenu") await changer("publie", "retire", signalement.cible === "article-actu" ? { aLaUne: false, refusLe: new Date(horloge()) } : {});
       else if (reexamen) await changer("retire", "publie");
     },
   };

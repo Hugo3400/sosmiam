@@ -43,6 +43,7 @@ export function creerRoutesActus(
   routes.get("/", ...lecture, c.lister);
   routes.get("/villes", ...lecture, c.villes);
   routes.get("/images/:nom", limiterRequetes(LIMITE_IMAGES_ACTUS), c.image);
+  routes.get("/abonnements", ...compte, c.abonnements);
   routes.get("/miens", ...compte, c.mesArticles);
   routes.get("/miens/medias/:nom", ...compte, c.monImage);
   routes.get("/miens/:id", ...compte, c.lireBrouillon);

@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { CommentaireActus } from "@sos-miam/commun/types/actus";
-import { articlesActusExemples, commentairesActusExemples } from "~/contenus/actus-exemples";
+import { articlesActusExemples } from "~/contenus/actus-exemples";
 import type { ArticleActusAffiche } from "~/contenus/type-article-actus";
 import { convertirArticleActus } from "~/fonctions/actus/convertir-article-actus";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServiceActus } from "~/hooks/utiliser-service-actus";
 import { EXEMPLES_ACTUS_EN_SECOURS } from "~/services/actus-visibles";
 
-type EtatArticle = { id: number; article: ArticleActusAffiche | null; commentaires: CommentaireActus[]; exemple: boolean };
-
-const AUCUN: CommentaireActus[] = [];
+type EtatArticle = { id: number; article: ArticleActusAffiche | null; exemple: boolean };
 
 export function utiliserArticleActus(id: number) {
   const { service } = utiliserServiceActus();
@@ -22,9 +19,9 @@ export function utiliserArticleActus(id: number) {
     let actif = true;
     void service.lire(id).then((r) => {
       if (!actif) return;
-      if (r.ok) return setEtat({ id, article: convertirArticleActus(r.article), commentaires: AUCUN, exemple: false });
+      if (r.ok) return setEtat({ id, article: convertirArticleActus(r.article), exemple: false });
       const exemple = EXEMPLES_ACTUS_EN_SECOURS ? articlesActusExemples.find((a) => a.id === id && (!invite || !a.alcool)) ?? null : null;
-      setEtat({ id, article: exemple, commentaires: exemple ? commentairesActusExemples[id] ?? AUCUN : AUCUN, exemple: exemple !== null });
+      setEtat({ id, article: exemple, exemple: exemple !== null });
     });
     return () => {
       actif = false;
@@ -48,5 +45,5 @@ export function utiliserArticleActus(id: number) {
   }, [etat, service]);
 
   const pret = etat?.id === id;
-  return { chargement: !pret, article: pret ? etat.article : null, commentaires: pret ? etat.commentaires : AUCUN, basculerJaime };
+  return { chargement: !pret, article: pret ? etat.article : null, exemple: pret && etat.exemple, basculerJaime };
 }

@@ -21,6 +21,8 @@ export type PageActus = { articles: ArticleActus[]; suivant: string | null };
 
 export type ActusLecture = ReturnType<typeof creerActusLecture>;
 
+const ABONNEMENTS_JOURS = 30;
+
 export function creerActusLecture(base: BaseActusLecture = baseDeDonnees, horloge: () => number = Date.now) {
   const aujourdhui = () => new Date(`${calculerJourParis(horloge())}T00:00:00Z`);
 
@@ -86,6 +88,20 @@ export function creerActusLecture(base: BaseActusLecture = baseDeDonnees, horlog
       if (!ligne) return null;
       const [article] = await presenter([ligne], compteId);
       return article ?? null;
+    },
+
+    async abonnements(compteId: number): Promise<ArticleActus[]> {
+      const lignes = await base.articleActus.findMany({
+        where: {
+          ...visibles(true, true),
+          publieLe: { gte: new Date(horloge() - ABONNEMENTS_JOURS * 86_400_000) },
+          auteur: { suivisRecus: { some: { suiveurId: compteId, statut: "accepte" } } },
+        },
+        orderBy: [{ publieLe: "desc" }, { id: "desc" }],
+        take: ARTICLES_ACTUS_PAR_PAGE,
+        select: SELECTION_ARTICLE_ACTUS,
+      });
+      return presenter(lignes, compteId);
     },
 
     async aimer(compteId: number, id: number, aime: boolean): Promise<{ jaime: number; aime: boolean } | null> {

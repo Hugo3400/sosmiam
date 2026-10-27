@@ -30,7 +30,7 @@ export function EnTeteArticleActus({ article }: { article: ArticleActusSite }) {
         </svg>
         {A.retour}
       </Link>
-      <VisuelArticleActus rubrique={article.rubrique} lieux={article.lieux} className="h-[200px] rounded-carte border-2 border-encre text-[64px] shadow-brut md:h-[280px] md:text-[88px]" />
+      <VisuelArticleActus rubrique={article.rubrique} lieux={article.lieux} couverture={article.couverture} className="h-[200px] rounded-carte border-2 border-encre text-[64px] shadow-brut md:h-[280px] md:text-[88px]" />
       <div className="flex flex-wrap gap-2">
         <PastilleArticleActus>{L.rubriques[article.rubrique]}</PastilleArticleActus>
         {article.collaboration && <MentionCollaborationActus />}

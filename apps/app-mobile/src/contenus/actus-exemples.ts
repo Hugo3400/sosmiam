@@ -141,10 +141,10 @@ export const articlesActusExemples: ArticleActusAffiche[] = [
 
 export const commentairesActusExemples: Record<number, CommentaireActus[]> = {
   1: [
-    { id: 1, auteur: LEA, texte: "Testé samedi grâce à toi, la tielle vaut le détour. La tarte aux figues aussi, évidemment.", ecritLe: "2026-10-26T13:20:00+01:00" },
-    { id: 2, auteur: ZOE, texte: "Ravie que ça t'ait plu !", ecritLe: "2026-10-26T14:05:00+01:00" },
+    { id: 1, auteur: LEA, texte: "Testé samedi grâce à toi, la tielle vaut le détour. La tarte aux figues aussi, évidemment.", ecritLe: "2026-10-26T13:20:00+01:00", reponseA: null, plume: false, supprime: false },
+    { id: 2, auteur: ZOE, texte: "Ravie que ça t'ait plu !", ecritLe: "2026-10-26T14:05:00+01:00", reponseA: 1, plume: true, supprime: false },
   ],
-  2: [{ id: 3, auteur: SAMI, texte: "Le numéro 1 mérite sa place. Je valide à 100 %.", ecritLe: "2026-10-25T10:00:00+02:00" }],
+  2: [{ id: 3, auteur: SAMI, texte: "Le numéro 1 mérite sa place. Je valide à 100 %.", ecritLe: "2026-10-25T10:00:00+02:00", reponseA: null, plume: false, supprime: false }],
 };
 
 export const mesArticlesActusExemples: MonArticleActus<ImageSourcePropType>[] = [

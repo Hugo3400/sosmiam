@@ -12,7 +12,7 @@ export function CarteArticleActus({ article }: { article: ArticleActusSite }) {
   const L = utiliserTextes(LIBELLES_ACTUS_PAR_LANGUE);
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-carte border-2 border-encre bg-white shadow-brut-petit transition-transform focus-within:ring-4 focus-within:ring-encre hover:-translate-y-1 motion-reduce:hover:translate-y-0">
-      <VisuelArticleActus rubrique={article.rubrique} lieux={article.lieux} className="h-[150px] border-b-2 border-encre text-[52px]">
+      <VisuelArticleActus rubrique={article.rubrique} lieux={article.lieux} couverture={article.couverture} className="h-[150px] border-b-2 border-encre text-[52px]">
         {article.aLaUne && (
           <span className="absolute top-3 left-3 rounded-full border-2 border-encre bg-white px-2.5 py-0.5 text-xs font-extrabold">{L.aLaUne}</span>
         )}

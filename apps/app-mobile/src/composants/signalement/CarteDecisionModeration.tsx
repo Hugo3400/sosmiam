@@ -34,6 +34,7 @@ const CIBLES: Readonly<Record<CibleDecisionModeration, { nom: string; feminin: b
   "image-lieu": { nom: "image", feminin: true, dansUnePhrase: "la bannière ou le logo de ton lieu" },
   "article-actu": { nom: "article", feminin: false, dansUnePhrase: "ton article dans les Actus" },
   "reponse-actu": { nom: "réponse à un article", feminin: true, dansUnePhrase: "la réponse de ton lieu sous un article des Actus" },
+  "comment-actu": { nom: "commentaire", feminin: false, dansUnePhrase: "ton commentaire sous un article des Actus" },
 };
 
 /**
