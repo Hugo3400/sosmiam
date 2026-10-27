@@ -52,7 +52,7 @@ export function creerRoutesActus(
   routes.put("/miens/:id", ...ambassadeur, parCompte(LIMITE_ECRITURES_ACTUS), refuserSiLimite, c.retoucher);
   routes.get("/:id/commentaires", ...lecture, k.lister);
   routes.post("/:id/commentaires", ...compte, parCompte(LIMITE_COMMENTAIRES_ACTUS), refuserSiLimite, k.commenter);
-  routes.delete("/commentaires/:commentaireId", ...compte, k.supprimer);
+  routes.delete("/commentaires/:commentaireId", ...compte, parCompte(LIMITE_COMMENTAIRES_ACTUS), k.supprimer);
   routes.post("/:id/jaime", ...compte, parCompte(LIMITE_JAIMES_ACTUS), c.aimer);
   routes.delete("/:id/jaime", ...compte, parCompte(LIMITE_JAIMES_ACTUS), c.aimer);
   routes.get("/:id", ...lecture, c.lire);

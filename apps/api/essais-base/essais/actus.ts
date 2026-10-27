@@ -212,6 +212,11 @@ egal(await commentaires.commenter(LEA, ID1, "À un autre article", 999_999), { o
 const page = await commentaires.lister(ID1, { apres: null, avecAlcool: false, compteId: LEA });
 egal(page?.commentaires.map((c) => [c.id, c.reponseA, c.mien]), [[C1, null, true], [C2, C1, false], [C3, C1, true]], "la liste, dans l'ordre, et ce qui est à moi");
 egal((await lecture.lire(ID1, true, null))?.commentaires, 3, "l'article compte ses commentaires");
+const avecVin = await commentaires.commenter(LEA, ID1, "Et un verre de vin blanc avec, parfait.", null);
+const CV = avecVin.ok ? avecVin.commentaire.id : 0;
+egal((await commentaires.lister(ID1, { apres: null, avecAlcool: false, compteId: null }))?.commentaires.some((c) => c.id === CV), false, "sans compte, un commentaire qui parle d'alcool ne s'affiche pas");
+egal((await commentaires.lister(ID1, { apres: null, avecAlcool: true, compteId: LEA }))?.commentaires.some((c) => c.id === CV), true, "avec un compte, il s'affiche");
+await commentaires.supprimer(LEA, CV);
 egal(await commentaires.supprimer(ZOE, C1), { ok: false, erreur: "introuvable" }, "on ne supprime que ses commentaires");
 egal(await commentaires.supprimer(LEA, C1), { ok: true }, "Léa supprime son commentaire");
 const apresSuppression = await commentaires.lister(ID1, { apres: null, avecAlcool: true, compteId: null });

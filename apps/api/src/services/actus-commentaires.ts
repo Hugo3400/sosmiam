@@ -1,3 +1,4 @@
+import { parleDAlcool } from "../../../../packages/commun/src/fonctions/prevention/parle-d-alcool.ts";
 import { COMMENTAIRE_ACTUS_MAX, COMMENTAIRES_ACTUS_PAR_PAGE } from "../../../../packages/commun/src/regles/actus.ts";
 import { DUREE_CONTESTATION_JOURS } from "../../../../packages/commun/src/regles/signalement.ts";
 import type { CommentaireActus } from "../../../../packages/commun/src/types/actus.ts";
@@ -55,7 +56,7 @@ export function creerActusCommentaires(base: BaseCommentairesActus = baseDeDonne
       });
       const page = lignes.slice(0, COMMENTAIRES_ACTUS_PAR_PAGE);
       return {
-        commentaires: page.map((c) => presenter(c, article.auteurId, o.compteId)),
+        commentaires: page.filter((c) => o.avecAlcool || !parleDAlcool(c.texte)).map((c) => presenter(c, article.auteurId, o.compteId)),
         suite: lignes.length > COMMENTAIRES_ACTUS_PAR_PAGE ? page.at(-1)!.id : null,
       };
     },

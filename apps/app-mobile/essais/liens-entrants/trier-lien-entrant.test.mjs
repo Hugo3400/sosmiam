@@ -195,3 +195,15 @@ test("tout chemin rendu est sûr pour Expo Router (lettres, chiffres, / . _ - ? 
     assert.equal(trier(`sosmiam:/${chemin}`), chemin, adresse);
   }
 });
+
+test("un article des Actus s'ouvre dans l'app, par le site comme par le schéma de l'app", () => {
+  verifier([
+    ["https://sosmiam.fr/actus/12", "/actus/12"],
+    ["sosmiam://actus/12", "/actus/12"],
+    ["https://sosmiam.fr/actus/12?utm_source=instagram", "/actus/12"],
+    ["https://sosmiam.fr/actus", "/"],
+    ["https://sosmiam.fr/actus/0", "/"],
+    ["https://sosmiam.fr/actus/12/signaler", "/"],
+    ["https://sosmiam.fr/actus/1234567890", "/"],
+  ]);
+});

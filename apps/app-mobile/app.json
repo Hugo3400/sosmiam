@@ -3,7 +3,7 @@
     "name": "SOS Miam",
     "slug": "sos-miam",
     "scheme": "sosmiam",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icones/icon.png",
     "userInterfaceStyle": "automatic",
