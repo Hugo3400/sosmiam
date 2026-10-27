@@ -19,6 +19,7 @@ export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
     date: null,
     titre: "Le Capitaine se met sur son trente-et-un",
     points: [
+      { emoji: "📰", titre: "Les Actus des Miamis", detail: "Dans « Pour toi » › Actus, les ambassadeurs racontent leurs lieux : portraits, tops du quartier, bons plans et récits de sortie, relus par la Brigade. J'aime, commentaires, et la fiche du lieu à un toucher." },
       { emoji: "🎃", titre: "Les thèmes de saison", detail: "Noël, la galette, la Fête de la musique… le Capitaine se déguise en haut de « Pour toi ». À couper dans Paramètres › Apparence." },
       { emoji: "🖼️", titre: "Les lieux ont leur bannière", detail: "Une photo en haut de la fiche et un logo à côté du nom, posés par les lieux vérifiés." },
     ],

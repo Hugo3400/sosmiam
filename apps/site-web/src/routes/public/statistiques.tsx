@@ -20,7 +20,7 @@ export function loader({ request }: Route.LoaderArgs) {
 /** Enregistre le choix (cookie de refus, ou son effacement), puis revient sur la page. */
 export async function action({ request }: Route.ActionArgs) {
   const choix = (await request.formData()).get("choix");
-  return redirect("/statistiques", { headers: { "Set-Cookie": creerCookieRefus(choix === "refuser") } });
+  return redirect(new URL(request.url).pathname, { headers: { "Set-Cookie": creerCookieRefus(choix === "refuser") } });
 }
 
 /** Page /statistiques : ce qu'on compte, et le bouton pour ne plus compter ses visites (contenu dans src/contenus/legal/statistiques.ts). */

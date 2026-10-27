@@ -60,6 +60,11 @@
               "scheme": "https",
               "host": "sosmiam.fr",
               "pathPrefix": "/q/"
+            },
+            {
+              "scheme": "https",
+              "host": "sosmiam.fr",
+              "pathPrefix": "/actus/"
             }
           ],
           "category": [

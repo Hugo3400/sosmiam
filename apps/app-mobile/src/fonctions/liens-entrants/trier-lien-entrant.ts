@@ -15,7 +15,7 @@ const SEGMENT_PERMIS = /^[a-z0-9@._-]{1,64}$/i;
 const POINTS_SEULS = /^\.+$/;
 const CODE_INVITATION = /(?:^|&)c=([a-z0-9]{6,64})(?:&|$)/i;
 const PAGES_DE_PSEUDO = new Set(["invitation", "createur"]);
-const PAGES_A_CODE = [/^\/l\/[a-z2-9]{8}$/, /^\/lieux\/[1-9]\d{0,8}$/, /^\/q\/[a-z2-9]{32}$/];
+const PAGES_A_CODE = [/^\/l\/[a-z2-9]{8}$/, /^\/lieux\/[1-9]\d{0,8}$/, /^\/q\/[a-z2-9]{32}$/, /^\/actus\/[1-9]\d{0,8}$/];
 const ENTREES_DES_ESPACES = new Set(["/ambassadeur", "/pro/comptoir", "/pro/reservations"]);
 
 const commencerParBarre = (reste: string) => (reste.startsWith("/") ? reste : `/${reste}`);
