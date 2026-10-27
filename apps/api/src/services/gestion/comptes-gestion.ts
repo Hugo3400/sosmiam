@@ -150,6 +150,17 @@ export async function exporterDonneesCompte(id: number, chiffrement: Chiffrement
       signalementsMiamSafe: { select: { lieuId: true, raison: true, explication: true, statut: true, creeLe: true, traiteLe: true } },
       chartesMiamSafe: { select: { lieuId: true, signeeLe: true, retireeLe: true } },
       rattachementsLieux: { select: { lieuId: true, role: true, preuve: true, siret: true, statut: true, reponse: true, creeLe: true, decideLe: true } },
+      articlesActusEcrits: {
+        select: {
+          id: true, rubrique: true, titre: true, accroche: true, texte: true, citation: true, couverture: true, photos: true, collaboration: true, alcool: true, finLe: true,
+          statut: true, envoyeLe: true, publieLe: true, retoucheMessage: true, retoucheLe: true, refusMotif: true, refusMotivation: true, refusLe: true,
+          lieux: { select: { lieuId: true, rang: true }, orderBy: { rang: "asc" } },
+        },
+        orderBy: [{ envoyeLe: "asc" }, { id: "asc" }],
+      },
+      jaimesArticlesActus: { select: { articleId: true, creeLe: true } },
+      commentairesActusEcrits: { select: { id: true, articleId: true, texte: true, reponseAId: true, creeLe: true, supprimeLe: true, retireLe: true }, orderBy: [{ creeLe: "asc" }, { id: "asc" }] },
+      reponsesActusEcrites: { select: { articleId: true, lieuId: true, texte: true, statut: true, envoyeLe: true, decideLe: true } },
     },
   });
   if (!compte) return null;

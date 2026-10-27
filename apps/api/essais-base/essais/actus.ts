@@ -7,7 +7,9 @@ import { creerActusLecture } from "../../src/services/actus-lecture.ts";
 import { creerActusPro } from "../../src/services/actus-pro.ts";
 import { menagerArticlesActus } from "../../src/services/menage-articles-actus.ts";
 import { enregistrerSignalementActus } from "../../src/services/actus-signalements.ts";
+import { creerChiffrementDonnees } from "../../src/services/chiffrement-donnees.ts";
 import { ajouterPointsDans } from "../../src/services/comptes.ts";
+import { exporterDonneesCompte } from "../../src/services/gestion/comptes-gestion.ts";
 import { listerActusARelire } from "../../src/services/gestion/actus-a-relire.ts";
 import { brancherActusGestion, creerActusGestion } from "../../src/services/gestion/actus-gestion.ts";
 import { deciderSignalement } from "../../src/services/gestion/moderation.ts";
@@ -237,6 +239,13 @@ egal((await lecture.abonnements(LEA)).map((a) => a.id), [ID2, ID1], "Abonnements
 egal(await lecture.abonnements(GERANT), [], "une demande pas encore acceptée ne compte pas");
 await essai.sql("UPDATE articles_actus SET publie_le = $1 WHERE id = $2", [new Date(MAINTENANT - 31 * 86_400_000), ID2]);
 egal((await lecture.abonnements(LEA)).map((a) => a.id), [ID1], "seulement ceux des 30 derniers jours");
+
+const exportZoe = await exporterDonneesCompte(ZOE, creerChiffrementDonnees(new Uint8Array(32).fill(4)));
+egal(exportZoe?.compte.articlesActusEcrits.map((a) => a.id), [ID1, ID2, ID3], "export RGPD : les articles de l'autrice, avec leur statut");
+egal(exportZoe?.compte.commentairesActusEcrits.map((c) => c.id), [C2], "et ses commentaires");
+const exportGerant = await exporterDonneesCompte(GERANT, creerChiffrementDonnees(new Uint8Array(32).fill(4)));
+egal(exportGerant?.compte.reponsesActusEcrites.map((r) => r.articleId), [ID1], "export du gérant : ses réponses aux articles");
+egal((await exporterDonneesCompte(LEA, creerChiffrementDonnees(new Uint8Array(32).fill(4))))?.compte.commentairesActusEcrits.length, 1, "export de Léa : son commentaire vidé y reste, marqué supprimé");
 
 const avantArticles = await base.articleActus.count();
 await essai.sql("UPDATE articles_actus SET statut = 'refuse', refus_le = $1 WHERE id = $2", [new Date(MAINTENANT - 200 * 86_400_000), ID4]);
