@@ -7,7 +7,7 @@ export const TEXTES_THEMES_SAISON_ANGLAIS: Readonly<Record<IdThemeSaison, Textes
     etiquette: "Pink October",
     titre: "The Brigade's gone pink",
     texte: "This month, we're thinking about breast cancer screening, and about everyone it touches.",
-    bouton: "Find out more",
+    bouton: "Find out more (in French)",
     selection: "Places going pink",
     notification: "Pink October: the Brigade's gone pink for breast cancer screening.",
     tenue: "Capitaine Bouiboui wearing a pink ribbon on the lifebuoy",

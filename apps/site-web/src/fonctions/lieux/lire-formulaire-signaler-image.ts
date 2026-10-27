@@ -7,14 +7,21 @@ import {
 import type { SignalementImageLieu } from "../../../../../packages/commun/src/types/signalement.ts";
 import { RAISONS_SIGNALER_IMAGE, TEXTES_SIGNALER_IMAGE } from "~/contenus/signaler-image";
 import type { ImageSignalable } from "~/fonctions/lieux/lister-images-signalables";
+import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 export type ChampSignalerImage = "quelle" | "raison" | "explication";
 
 export type ValeursSignalerImage = { quelle: string; raison: string; precision: string; explication: string };
 
 export type LectureSignalerImage =
-  | { ok: true; signalement: SignalementImageLieu; piege: string }
+  | { ok: true; signalement: SignalementImageLieu; piege: string; valeurs: ValeursSignalerImage }
   | { ok: false; erreurs: Partial<Record<ChampSignalerImage, string>>; valeurs: ValeursSignalerImage };
+
+export type ReponseSignalerImage =
+  | { ok: true }
+  | { ok: false; message: string; champ?: ChampSignalerImage; erreurs?: Partial<Record<ChampSignalerImage, string>>; valeurs?: ValeursSignalerImage };
+
+export const ORDRE_CHAMPS_SIGNALER_IMAGE: readonly ChampSignalerImage[] = ["quelle", "raison", "explication"];
 
 const E = TEXTES_SIGNALER_IMAGE.erreurs;
 
@@ -36,11 +43,11 @@ export function lireFormulaireSignalerImage(formulaire: FormData, lieuId: number
   const valeurs: ValeursSignalerImage = { quelle, raison: raison?.cle ?? "", precision: precision ?? "", explication };
 
   const erreurs: Partial<Record<ChampSignalerImage, string>> = {};
-  if (!estImage(quelle)) erreurs.quelle = E.quelle;
-  if (!raison) erreurs.raison = E.raison;
-  if (explication.length > LONGUEUR_MAX_EXPLICATION_SIGNALEMENT) erreurs.explication = E.explicationLongue;
+  if (!estImage(quelle)) erreurs.quelle = lierPonctuation(E.quelle);
+  if (!raison) erreurs.raison = lierPonctuation(E.raison);
+  if (explication.length > LONGUEUR_MAX_EXPLICATION_SIGNALEMENT) erreurs.explication = lierPonctuation(E.explicationLongue);
   else if (raison && RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(raison.cle) && explication.length < LONGUEUR_MIN_EXPLICATION_SIGNALEMENT) {
-    erreurs.explication = E.explicationCourte;
+    erreurs.explication = lierPonctuation(E.explicationCourte);
   }
   if (!estImage(quelle) || !raison || Object.keys(erreurs).length > 0) return { ok: false, erreurs, valeurs };
 
@@ -49,5 +56,6 @@ export function lireFormulaireSignalerImage(formulaire: FormData, lieuId: number
     ok: true,
     signalement: { cible: "image-lieu", lieuId, quelle, raison: raison.cle, precision, explication },
     piege: typeof piege === "string" ? piege : "",
+    valeurs,
   };
 }

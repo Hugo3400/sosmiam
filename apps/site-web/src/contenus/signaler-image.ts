@@ -102,6 +102,7 @@ export const TEXTES_SIGNALER_IMAGE = {
   },
   piege: "Ne remplis pas ce champ",
   donnees: "Pas besoin de compte : on ne te demande ni ton nom ni ton e-mail, et le lieu ne saura pas que c'est toi.",
+  donneesLien: "Ce qu'on garde, et combien de temps",
   envoyer: "Envoyer le signalement",
   envoi: "Envoi…",
   annuler: "Annuler",

@@ -89,6 +89,18 @@ test("thèmes de saison : le français garde l'espace avant ? et !, et ne parle 
   }
 });
 
+test("thèmes de saison : un lien d'info officiel seulement pour les thèmes sobres, en https, et le bouton dit sa langue si elle change", () => {
+  for (const theme of THEMES_SAISON) {
+    if (!theme.lienInfo) continue;
+    assert.equal(theme.sobre, true, theme.id);
+    assert.match(theme.lienInfo.adresse, /^https:\/\/[a-z0-9.-]+\.[a-z]{2,}\//, theme.id);
+    if (theme.lienInfo.langue !== "fr") assert.match(TEXTES_THEMES_SAISON[theme.id].bouton, /\(en anglais\)$/, theme.id);
+    if (theme.lienInfo.langue !== "en") assert.match(TEXTES_THEMES_SAISON_ANGLAIS[theme.id].bouton, /\(in French\)$/, theme.id);
+  }
+  assert.ok(THEMES_SAISON.find((t) => t.id === "octobre-rose")?.lienInfo);
+  assert.ok(THEMES_SAISON.find((t) => t.id === "movember")?.lienInfo);
+});
+
 test("choisirThemeDuJour : rien un jour sans thème", () => {
   assert.equal(choisirThemeDuJour("2026-09-01"), null);
 });
@@ -134,10 +146,12 @@ test("preparerThemeSaisonApi : la période du jour, les textes dans la langue et
   assert.equal(fr.textes.nom, "Noël");
   assert.deepEqual(fr.couleursSombres, fr.couleurs);
   assert.equal(fr.sobre, false);
+  assert.equal(fr.lienInfo, null);
   assert.equal(preparerThemeSaisonApi(noel, "en").textes.nom, "Christmas");
   const rose = choisirThemeDuJour("2026-10-10");
   assert.ok(rose);
   const api = preparerThemeSaisonApi(rose, "fr");
   assert.equal(api.sobre, true);
+  assert.deepEqual(api.lienInfo?.langue, "fr");
   assert.notDeepEqual(api.couleursSombres, api.couleurs);
 });

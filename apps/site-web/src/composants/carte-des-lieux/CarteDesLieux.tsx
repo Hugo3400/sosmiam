@@ -29,6 +29,7 @@ type Props = {
   grand?: boolean;
   lienListe?: string;
   surDeplacement?: (centre: Position) => void;
+  surEtat?: (etat: EtatCarte) => void;
   avantBoutons?: ReactNode;
   classeBoutons?: string;
   classeAttribution?: string;
@@ -55,6 +56,7 @@ export function CarteDesLieux({
   grand = false,
   lienListe,
   surDeplacement,
+  surEtat,
   avantBoutons,
   classeBoutons = "top-4 right-4",
   classeAttribution,
@@ -65,8 +67,8 @@ export function CarteDesLieux({
   const carte = useRef<CarteMaplibre | null>(null);
   const [etat, setEtat] = useState<EtatCarte>("attente");
   const [message, setMessage] = useState("");
-  const rappels = useRef({ surChoix, surDeplacement });
-  rappels.current = { surChoix, surDeplacement };
+  const rappels = useRef({ surChoix, surDeplacement, surEtat });
+  rappels.current = { surChoix, surDeplacement, surEtat };
   const dernieresEpingles = useRef<readonly EpingleLieu[] | null>(null);
   const unSeul = variante === "un-seul";
 
@@ -121,6 +123,10 @@ export function CarteDesLieux({
       carte.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    rappels.current.surEtat?.(etat);
+  }, [etat]);
 
   useEffect(() => {
     const instance = carte.current;

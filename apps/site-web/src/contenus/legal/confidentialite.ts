@@ -42,6 +42,7 @@ import { sectionSignalementsSociaux } from "~/contenus/legal/confidentialite-sig
 import { sectionPotes } from "~/contenus/legal/confidentialite-social";
 import { sectionCandidatures } from "~/contenus/legal/confidentialite-candidatures";
 import { sectionCarteDesLieux } from "~/contenus/legal/confidentialite-carte-des-lieux";
+import { sectionSignalerImage } from "~/contenus/legal/confidentialite-signaler-image";
 import { sectionChasseAuxBugs } from "~/contenus/legal/confidentialite-securite";
 import { sectionCompteAmbassadeur } from "~/contenus/legal/confidentialite-compte-ambassadeur";
 import { sectionComptePro } from "~/contenus/legal/confidentialite-compte-pro";
@@ -158,6 +159,7 @@ export const documentConfidentialite: DocumentLegal = {
       ],
     },
     sectionCarteDesLieux,
+    sectionSignalerImage,
     {
       id: "newsletter",
       titre: "La newsletter",
@@ -391,7 +393,7 @@ export const documentConfidentialite: DocumentLegal = {
   ],
   chapitres: [
     { id: "qui-on-est", titre: "Qui on est", sections: ["responsable"] },
-    { id: "quand-tu-visites", titre: "Quand tu visites le site", sections: ["journaux", "statistiques", "cloudflare", "carte-des-lieux"] },
+    { id: "quand-tu-visites", titre: "Quand tu visites le site", sections: ["journaux", "statistiques", "cloudflare", "carte-des-lieux", "signaler-image"] },
     { id: "quand-tu-nous-ecris", titre: "Quand tu t'inscris ou nous écris", sections: ["newsletter", "formulaire", "demande-lieu", "candidatures", "chasse-aux-bugs", "messages"] },
     {
       id: "ton-compte-et-l-app",

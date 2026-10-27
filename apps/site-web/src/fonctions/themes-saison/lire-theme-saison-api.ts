@@ -1,9 +1,11 @@
 import type { TextesThemeSaison } from "../../../../../packages/commun/src/contenus/themes-saison.ts";
+import { LANGUES } from "../../../../../packages/commun/src/regles/langues.ts";
 import {
   FAMILLES_THEME_SAISON,
   IDS_THEMES_SAISON,
   TENUES_CAPITAINE,
   type CouleursThemeSaison,
+  type LienInfoThemeSaison,
 } from "../../../../../packages/commun/src/regles/themes-saison.ts";
 import type { ThemeSaisonApi } from "../../../../../packages/commun/src/types/theme-saison.ts";
 
@@ -28,6 +30,16 @@ function lireCouleurs(brut: unknown): CouleursThemeSaison | null {
   return fond && texte && accent && surAccent ? { fond, texte, accent, surAccent } : null;
 }
 
+function lireLienInfo(brut: unknown): LienInfoThemeSaison | null {
+  if (!estObjet(brut) || !estParmi(LANGUES, brut.langue) || typeof brut.adresse !== "string") return null;
+  try {
+    const adresse = new URL(brut.adresse);
+    return adresse.protocol === "https:" && adresse.username === "" && adresse.password === "" ? { adresse: adresse.href, langue: brut.langue } : null;
+  } catch {
+    return null;
+  }
+}
+
 function lireTextes(brut: unknown): TextesThemeSaison | null {
   if (!estObjet(brut)) return null;
   const textes: Record<string, string> = {};
@@ -48,5 +60,5 @@ export function lireThemeSaisonApi(brut: unknown): ThemeSaisonApi | null {
   const fin = lireJour(brut.fin);
   if (!estParmi(IDS_THEMES_SAISON, id) || !estParmi(FAMILLES_THEME_SAISON, famille) || !estParmi(TENUES_CAPITAINE, tenue)) return null;
   if (!couleurs || !textes || !debut || !fin) return null;
-  return { id, famille, tenue, couleurs, couleursSombres: lireCouleurs(brut.couleursSombres) ?? couleurs, sobre: brut.sobre === true, debut, fin, textes };
+  return { id, famille, tenue, couleurs, couleursSombres: lireCouleurs(brut.couleursSombres) ?? couleurs, sobre: brut.sobre === true, lienInfo: lireLienInfo(brut.lienInfo), debut, fin, textes };
 }

@@ -11,6 +11,7 @@ export function preparerThemeSaisonApi({ theme, periode }: ThemeDuJour, langue: 
     couleurs: theme.couleurs,
     couleursSombres: theme.couleursSombres ?? theme.couleurs,
     sobre: theme.sobre === true,
+    lienInfo: theme.lienInfo ?? null,
     debut: periode.debut,
     fin: periode.fin,
     textes: TEXTES_THEMES_SAISON_PAR_LANGUE[langue][theme.id],

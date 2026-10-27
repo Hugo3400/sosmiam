@@ -116,6 +116,19 @@ test("lireThemeSaisonApi : un thème complet passe, une tenue, une couleur ou un
   ]) {
     assert.equal(lireThemeSaisonApi(abime), null, JSON.stringify(abime)?.slice(0, 80));
   }
+  const octobreRose = theme("2026-10-10");
+  assert.equal(octobreRose.lienInfo?.langue, "fr");
+  assert.deepEqual(lireThemeSaisonApi(JSON.parse(JSON.stringify(octobreRose))), octobreRose);
+  for (const lienInfo of [
+    { adresse: "javascript:alert(1)", langue: "fr" },
+    { adresse: "http://www.cancer.fr/", langue: "fr" },
+    { adresse: "https://moi:secret@exemple.fr/", langue: "fr" },
+    { adresse: "pas une adresse", langue: "fr" },
+    { adresse: "https://www.cancer.fr/", langue: "de" },
+    "https://www.cancer.fr/",
+  ]) {
+    assert.equal(lireThemeSaisonApi({ ...octobreRose, lienInfo })?.lienInfo, null, JSON.stringify(lienInfo));
+  }
   assert.ok(TENUES_CAPITAINE.every((tenue) => existsSync(`${import.meta.dirname}/../public/images/tenues-capitaine/${tenue}.svg`)));
 });
 
@@ -170,6 +183,7 @@ test("accueil : un thème sobre a le bandeau seul, et aucun bandeau sans thème"
   assert.equal(sobre.match(/theme-saison-/g)?.length, 2);
   assert.match(sobre, /La Brigade se met en rose/);
   assert.match(sobre, /background-color:#FCE4EE;color:#1A1A1A/);
+  assert.match(sobre, /<a (?=[^>]*href="https:\/\/www\.cancer\.fr\/[^"]*depistage-du-cancer-du-sein")(?=[^>]*hrefLang="fr")(?=[^>]*target="_blank")(?=[^>]*rel="noopener noreferrer")[^>]*>S'informer<\/a>/);
   repondreThemes([]);
   const sans = await servirAccueil();
   assert.doesNotMatch(sans, /theme-saison-|tenues-capitaine/);

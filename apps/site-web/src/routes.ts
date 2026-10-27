@@ -14,6 +14,7 @@ export default [
     // Fiche publique d'un lieu publié (indexée), avec « Vérifié ✓ » ou « Lieu non vérifié »
     route("lieux/:id", "routes/public/fiche-lieu.tsx"),
     route("lieux/:id/carte", "routes/public/carte-du-lieu.tsx"),
+    route("lieux/:id/signaler-image", "routes/public/signaler-image.tsx"),
     // QR de vitrine d'un lieu (sosmiam.fr/l/<code>) : redirige vers sa fiche, ou une petite page aimable (noindex)
     route("l/:code", "routes/public/qr-vitrine.tsx"),
     // Lien d'invitation d'un pote (sosmiam.fr/invitation/<pseudo>#c=<code>) : « Ouvre SOS Miam… » (noindex, sans appel à

@@ -14,6 +14,16 @@ export type NouveautesVersion = {
 
 export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
   {
+    version: "1.0.3",
+    libelle: "1.0.3",
+    date: null,
+    titre: "Le Capitaine se met sur son trente-et-un",
+    points: [
+      { emoji: "🎃", titre: "Les thèmes de saison", detail: "Noël, la galette, la Fête de la musique… le Capitaine se déguise en haut de « Pour toi ». À couper dans Paramètres › Apparence." },
+      { emoji: "🖼️", titre: "Les lieux ont leur bannière", detail: "Une photo en haut de la fiche et un logo à côté du nom, posés par les lieux vérifiés." },
+    ],
+  },
+  {
     version: "1.0.2",
     libelle: "1.0.2",
     date: "23 octobre 2026",

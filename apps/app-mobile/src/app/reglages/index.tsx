@@ -10,11 +10,13 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { ChoixApparence } from "~/composants/reglages/ChoixApparence";
 import { ChoixLangue } from "~/composants/reglages/ChoixLangue";
+import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
 import { TEXTES_LANGUE_PAR_LANGUE } from "~/contenus/textes-langue";
 import { TEXTES_PARAMETRES as T } from "~/contenus/textes-parametres";
+import { TEXTES_THEMES_SAISON_APP_PAR_LANGUE } from "~/contenus/textes-themes-saison-app";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
@@ -24,6 +26,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { utiliserThemesSaisonActifs } from "~/hooks/utiliser-themes-saison-actifs";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
@@ -42,6 +45,8 @@ export default function Parametres() {
   const { reglage: reglageApparence } = utiliserTheme();
   const { reglage: reglageLangue } = utiliserLangue();
   const TL = utiliserTextes(TEXTES_LANGUE_PAR_LANGUE);
+  const TS = utiliserTextes(TEXTES_THEMES_SAISON_APP_PAR_LANGUE);
+  const [themesSaison, changerThemesSaison] = utiliserThemesSaisonActifs();
   const { profil } = utiliserProfil();
   const communaute = utiliserCommunaute();
   const suivisPersonnes = utiliserSuivisPersonnes();
@@ -132,6 +137,7 @@ export default function Parametres() {
 
         <SectionReglages titre={T.apparence.titre} section="parametres-apparence" resume={T.apparence.resume[reglageApparence]}>
           <ChoixApparence />
+          <Interrupteur emoji="🎃" titre={TS.reglageTitre} detail={TS.reglageDetail} valeur={themesSaison} onChanger={changerThemesSaison} />
         </SectionReglages>
 
         {LANGUES_OUVERTES_APP.length > 1 || demo.possible ? (

@@ -1,4 +1,5 @@
 import type { TypeLieu } from "../types/lieu.ts";
+import type { Langue } from "./langues.ts";
 
 export const IDS_THEMES_SAISON = [
   "octobre-rose",
@@ -64,6 +65,8 @@ export type CouleursThemeSaison = {
 
 export type PeriodeThemeSaison = { readonly debut: string; readonly fin: string };
 
+export type LienInfoThemeSaison = { readonly adresse: string; readonly langue: Langue };
+
 export type SelectionThemeSaison = { readonly types: readonly TypeLieu[]; readonly mots: readonly string[] };
 
 export type ThemeSaison = {
@@ -74,6 +77,7 @@ export type ThemeSaison = {
   readonly couleurs: CouleursThemeSaison;
   readonly couleursSombres?: CouleursThemeSaison;
   readonly sobre?: true;
+  readonly lienInfo?: LienInfoThemeSaison;
   readonly villes?: readonly string[];
   readonly selection: SelectionThemeSaison;
   readonly periodes: readonly PeriodeThemeSaison[];

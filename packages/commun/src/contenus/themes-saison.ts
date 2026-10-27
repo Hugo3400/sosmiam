@@ -39,7 +39,7 @@ export const TEXTES_THEMES_SAISON: Readonly<Record<IdThemeSaison, TextesThemeSai
     etiquette: "Movember · tout novembre",
     titre: "La moustache pousse pour une bonne raison",
     texte: "En novembre, on parle de la santé des hommes. Un rendez-vous chez le médecin, ça se prend aussi.",
-    bouton: "S'informer",
+    bouton: "S'informer (en anglais)",
     selection: "Les lieux qui soutiennent Movember",
     notification: "Novembre, c'est Movember : la Brigade se laisse pousser la moustache pour la santé des hommes.",
     tenue: "Le Capitaine Bouiboui avec une moustache",

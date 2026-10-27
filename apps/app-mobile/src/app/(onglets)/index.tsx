@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
+import { BanniereThemeFil } from "~/composants/fil/BanniereThemeFil";
 import { EnTeteFil, HAUTEUR_ENTETE_FIL, HAUTEUR_PASTILLE_VISITE, type OngletFil } from "~/composants/fil/EnTeteFil";
 import { FeuilleCommentaires } from "~/composants/fil/FeuilleCommentaires";
 import { FilVide } from "~/composants/fil/FilVide";
@@ -88,6 +89,7 @@ export default function PourToi() {
   const [onglet, setOnglet] = useState<OngletFil>("tous");
   const [taille, setTaille] = useState({ largeur: 0, hauteur: 0 });
   const [visible, setVisible] = useState<string | null>(null);
+  const [hauteurBanniere, setHauteurBanniere] = useState(0);
   const [coeurs, setCoeurs] = useState<Record<string, number>>({});
   const [bouees, setBouees] = useState<Record<string, number>>({});
   const [menu, setMenu] = useState<Publication | null>(null);
@@ -371,6 +373,7 @@ export default function PourToi() {
   // En visite, la pastille « Crée ton compte » s'ajoute sous les onglets
   const hauteurEnTete = HAUTEUR_ENTETE_FIL + (invite ? HAUTEUR_PASTILLE_VISITE : 0);
   const hautIndications = marges.top + hauteurEnTete + 8;
+  const surPremiere = liste.length === 0 || visible === null || visible === liste[0]?.id;
 
   return (
     <View
@@ -419,7 +422,7 @@ export default function PourToi() {
                   actif={focusDiffere && visible === item.id}
                   envolCoeur={coeurs[item.id] ?? 0}
                   envolBouee={bouees[item.id] ?? 0}
-                  margeHaut={hautIndications}
+                  margeHaut={hautIndications + (surPremiere && item.id === liste[0]?.id ? hauteurBanniere : 0)}
                   margeBas={hauteurBarreOnglets}
                   reduit={infosReduites}
                   reduction={reduction}
@@ -443,6 +446,7 @@ export default function PourToi() {
         )
       ) : null}
       <EnTeteFil onglet={onglet} onChoisir={setOnglet} restantes={activite.restantes} haut={marges.top} invite={invite} onCreerCompte={creerCompte} />
+      <BanniereThemeFil visible={surPremiere} haut={hautIndications} onHauteur={setHauteurBanniere} />
       <Annonce annonce={annonce} haut={marges.top + hauteurEnTete + 2} onFin={finAnnonce} />
       <MenuPublication
         visible={menu !== null}
