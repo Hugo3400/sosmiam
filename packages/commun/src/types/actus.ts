@@ -2,7 +2,7 @@ import type { MotifModeration } from "../contenus/motifs-moderation.ts";
 import type { RubriqueActus } from "../regles/actus.ts";
 import type { TypeLieu } from "./lieu.ts";
 
-export type StatutArticleActus = "en-relecture" | "a-retoucher" | "publie" | "refuse" | "retire";
+export type StatutArticleActus = "en-relecture" | "a-retoucher" | "publie" | "refuse" | "retire" | "supprime";
 
 export type LieuCiteActus = { id: number; nom: string; type: TypeLieu; emoji: string; quartier: string; ville: string; verifie: boolean };
 
@@ -118,6 +118,7 @@ export type ArticleARelire = {
   renvoye: boolean;
   publieLe: string | null;
   refus: { motif: MotifModeration; motivation: string; le: string; contestation: string | null } | null;
+  supprimeLe: string | null;
 };
 
 export type ReponseLieuARelire = {

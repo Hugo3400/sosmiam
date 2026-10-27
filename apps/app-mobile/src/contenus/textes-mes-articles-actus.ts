@@ -8,6 +8,7 @@ const STATUTS: Record<StatutArticleActus, string> = {
   publie: "Publié",
   refuse: "Pas publié",
   retire: "Retiré",
+  supprime: "Supprimé",
 };
 
 export const TEXTES_MES_ARTICLES_ACTUS = {
@@ -27,6 +28,16 @@ export const TEXTES_MES_ARTICLES_ACTUS = {
   retoucher: "Retoucher",
   refus: (motif: string) => `Motif : ${motif}.`,
   contester: "Contester la décision",
+  supprimer: "Supprimer",
+  supprimerLu: (titre: string) => `Supprimer l'article « ${titre} »`,
+  confirmation: {
+    titre: "Supprimer cet article ?",
+    texte: "Il disparaît des Actus, dans l'app comme sur le site, et de tes articles. Tes points restent à toi.",
+    confirmer: "Supprimer",
+    garder: "Le garder",
+  },
+  supprimeAnnonce: "Article supprimé.",
+  supprimeEchec: "L'article n'a pas été supprimé. Vérifie ta connexion et réessaie.",
   retire: "Retiré après un signalement : la modération t'explique pourquoi, et tu peux contester.",
   vide: "Pas encore d'article. Ta première plume t'attend ✍️",
 } as const;

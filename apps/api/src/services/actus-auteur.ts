@@ -11,7 +11,7 @@ import { ecrireAdresseImageActus } from "../fonctions/actus/ecrire-adresse-image
 import { echecActus, type EchecActus } from "./actus-regles.ts";
 import type { PhotosActus } from "./photos-actus.ts";
 
-type BaseActusAuteur = Pick<typeof baseDeDonnees, "$transaction" | "articleActus" | "jaimeArticleActus" | "lieu" | "rattachementLieu">;
+type BaseActusAuteur = Pick<typeof baseDeDonnees, "$transaction" | "articleActus" | "jaimeArticleActus" | "lieu" | "rattachementLieu" | "journalGestion">;
 
 export type ActusAuteur = ReturnType<typeof creerActusAuteur>;
 
@@ -88,7 +88,7 @@ export function creerActusAuteur(photos: Pick<PhotosActus, "verifier">, base: Ba
     async mesArticles(compteId: number): Promise<{ articles: MonArticleActus[]; envoyesCetteSemaine: number }> {
       const [lignes, envoyesCetteSemaine] = await Promise.all([
         base.articleActus.findMany({
-          where: { auteurId: compteId },
+          where: { auteurId: compteId, statut: { not: "supprime" } },
           orderBy: [{ envoyeLe: "desc" }, { id: "desc" }],
           take: MES_ARTICLES_MAX,
           select: {
@@ -118,6 +118,16 @@ export function creerActusAuteur(photos: Pick<PhotosActus, "verifier">, base: Ba
           lieuARepondu: l._count.reponses > 0,
         })),
       };
+    },
+
+    async supprimer(compteId: number, id: number): Promise<{ ok: true } | EchecActus> {
+      const fait = await base.articleActus.updateMany({
+        where: { id, auteurId: compteId, statut: { not: "supprime" } },
+        data: { statut: "supprime", supprimeLe: new Date(horloge()), aLaUne: false },
+      });
+      if (fait.count === 0) return echecActus("introuvable");
+      await base.journalGestion.create({ data: { poste: "app", action: "Article des Actus supprimé par son auteur", detail: `article n° ${id}` } }).catch(() => {});
+      return { ok: true };
     },
 
     async lireBrouillon(compteId: number, id: number): Promise<BrouillonRetoucheActus | null> {

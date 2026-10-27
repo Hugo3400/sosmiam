@@ -50,6 +50,7 @@ export function creerRoutesActus(
   routes.post("/photos", limiterEnvoisMedias(), ...ambassadeur, parCompte(LIMITE_PHOTOS_ACTUS), refuserSiLimite, corpsPhoto, c.deposerPhoto);
   routes.post("/", ...ambassadeur, parCompte(LIMITE_ECRITURES_ACTUS), refuserSiLimite, c.envoyer);
   routes.put("/miens/:id", ...ambassadeur, parCompte(LIMITE_ECRITURES_ACTUS), refuserSiLimite, c.retoucher);
+  routes.delete("/miens/:id", ...compte, parCompte(LIMITE_ECRITURES_ACTUS), c.supprimer);
   routes.get("/:id/commentaires", ...lecture, k.lister);
   routes.post("/:id/commentaires", ...compte, parCompte(LIMITE_COMMENTAIRES_ACTUS), refuserSiLimite, k.commenter);
   routes.delete("/commentaires/:commentaireId", ...compte, parCompte(LIMITE_COMMENTAIRES_ACTUS), k.supprimer);

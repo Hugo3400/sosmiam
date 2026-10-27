@@ -20,6 +20,7 @@ model ArticleActus {
   refusMotif      String?             @map("refus_motif") @db.VarChar(16)
   refusMotivation String?             @map("refus_motivation") @db.VarChar(1000)
   refusLe         DateTime?           @map("refus_le") @db.Timestamptz(0)
+  supprimeLe      DateTime?           @map("supprime_le") @db.Timestamptz(0)
   envoyeLe        DateTime            @default(now()) @map("envoye_le") @db.Timestamptz(0)
   publieLe        DateTime?           @map("publie_le") @db.Timestamptz(0)
   lieux           LieuArticleActus[]

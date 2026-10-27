@@ -22,7 +22,7 @@ export async function listerActusARelire(base: BaseActusARelire = baseDeDonnees,
       select: {
         id: true, rubrique: true, titre: true, accroche: true, texte: true, citation: true, couverture: true, photos: true,
         collaboration: true, alcool: true, finLe: true, envoyeLe: true, statut: true, retoucheMessage: true, retoucheLe: true,
-        renvoye: true, publieLe: true, refusMotif: true, refusMotivation: true, refusLe: true, auteurId: true,
+        renvoye: true, publieLe: true, refusMotif: true, refusMotivation: true, refusLe: true, supprimeLe: true, auteurId: true,
         auteur: { select: { prenom: true, ville: true, ambassadeur: { select: { statut: true, ville: true } } } },
         lieux: {
           orderBy: { rang: "asc" },
@@ -79,6 +79,7 @@ export async function listerActusARelire(base: BaseActusARelire = baseDeDonnees,
       refus: l.refusMotif && l.refusMotivation && l.refusLe
         ? { motif: l.refusMotif as MotifModeration, motivation: l.refusMotivation, le: l.refusLe.toISOString(), contestation: contestations.get(String(l.id)) ?? null }
         : null,
+      supprimeLe: l.supprimeLe?.toISOString() ?? null,
     })),
     reponses: reponses.map((r) => ({
       id: r.id,

@@ -344,8 +344,8 @@ test("API en panne ou de travers : « momentanément indisponible » en 503, jam
   reglagesApi.options = { articles: [] };
   const vide = await servir("https://apercu.sosmiam.fr/actus");
   assert.equal(vide.statut, 200);
-  assert.match(vide.html, /Pas encore d'article par ici/);
-  assert.match(vide.html, /0 article</);
+  assert.match(vide.html, /Les premiers articles arrivent bientôt/);
+  assert.doesNotMatch(vide.html, /Voir toutes les actus|0 article/);
   assert.equal((await servir("https://apercu.sosmiam.fr/actus/1")).statut, 404);
 });
 

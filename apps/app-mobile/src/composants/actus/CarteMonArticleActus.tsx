@@ -23,6 +23,7 @@ const PASTILLES = {
   publie: "border-encre bg-jaune text-nuit",
   refuse: "border-gris bg-ligne text-gris",
   retire: "border-gris bg-ligne text-gris",
+  supprime: "border-gris bg-ligne text-gris",
 } as const;
 
 export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onContester }: Props) {

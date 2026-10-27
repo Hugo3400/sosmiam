@@ -15,6 +15,7 @@ export interface ServiceActus {
   mesArticles(): Promise<ReponseApi<{ articles: MonArticleActus[]; envoyesCetteSemaine: number }>>;
   lireBrouillon(id: number): Promise<ReponseApi<{ brouillon: BrouillonRetoucheActus }>>;
   retoucher(id: number, corps: CorpsArticleActus): Promise<ReponseApi>;
+  supprimerArticle(id: number): Promise<ReponseApi>;
   articlesDuLieu(lieuId: number): Promise<ReponseApi<{ articles: ArticleCitantLieuActus[] }>>;
   repondre(lieuId: number, articleId: number, texte: string): Promise<ReponseApi>;
   commentaires(articleId: number, apres: number | null): Promise<ReponseApi<{ commentaires: CommentaireActus[]; suite: number | null }>>;

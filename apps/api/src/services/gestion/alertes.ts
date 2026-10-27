@@ -11,7 +11,7 @@ import { compterSurveillance } from "./surveillance-visites.ts";
 const UN_JOUR = 86_400_000;
 
 export async function lireAlertes(maintenant = new Date()) {
-  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees, ideesARelire, candidaturesNouvelles, failles, articlesActus, reponsesActus] = await Promise.all([
+  const [aModerer, urgents, contestes, demandes, enAttente, candidatures, missionsFaites, bigSosATraiter, bigSosACloturer, bigSosBientot, suggestions, certifications, mailsNonLus, rattachementsEnAttente, miamSafe, surveillance, avisARelire, reponsesARelire, limitationsContestees, ideesARelire, candidaturesNouvelles, failles, articlesActus, reponsesActus, articlesActusSupprimes] = await Promise.all([
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter" } }),
     baseDeDonnees.signalement.count({ where: { statut: "a-traiter", raison: { in: RAISONS_AVEC_MASQUAGE_IMMEDIAT } } }),
     baseDeDonnees.signalement.count({ where: { contesteLe: { not: null }, reexamineLe: null } }),
@@ -45,6 +45,7 @@ export async function lireAlertes(maintenant = new Date()) {
     baseDeDonnees.signalementSecurite.count({ where: { statut: "nouveau" } }),
     baseDeDonnees.articleActus.count({ where: { statut: "en-relecture" } }),
     baseDeDonnees.reponseLieuActus.count({ where: { statut: "en-relecture" } }),
+    baseDeDonnees.articleActus.count({ where: { statut: "supprime", supprimeLe: { gte: new Date(maintenant.getTime() - 7 * UN_JOUR) } } }),
   ]);
   return {
     moderation: { aTraiter: aModerer, urgents, contestes },
@@ -60,6 +61,7 @@ export async function lireAlertes(maintenant = new Date()) {
     carriere: { nouvelles: candidaturesNouvelles },
     securite: { nouveaux: failles },
     actus: articlesActus + reponsesActus,
+    actusSupprimes: articlesActusSupprimes,
     missionsFaites,
     bigSos: { aTraiter: bigSosATraiter, aCloturer: bigSosACloturer, demarrentBientot: bigSosBientot.map((b) => ({ id: b.id, lieu: b.lieu.nom, debutLe: b.debutLe })) },
   };

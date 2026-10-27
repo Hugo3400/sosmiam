@@ -126,6 +126,13 @@ export function creerControleursActus({ lecture, auteur, photos }: DependancesAc
       reponse.json({ ok: true });
     },
 
+    async supprimer(requete: Request, reponse: Response) {
+      const id = lireIdentifiant(requete.params.id);
+      const r = id ? await auteur.supprimer(lireCompteId(reponse), id) : null;
+      if (!r || !r.ok) return reponse.status(404).json({ ok: false, erreur: "introuvable" });
+      reponse.json({ ok: true });
+    },
+
     async monImage(requete: Request, reponse: Response) {
       const octets = await photos.lireDuCompte(String(requete.params.nom), lireCompteId(reponse));
       if (!octets) return reponse.status(404).json({ ok: false, erreur: "introuvable" });
