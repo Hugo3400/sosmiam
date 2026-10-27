@@ -15,6 +15,7 @@ type Props = {
   onOuvrir: () => void;
   onRetoucher: () => void;
   onContester: () => void;
+  onSupprimer: () => void;
 };
 
 const PASTILLES = {
@@ -26,7 +27,7 @@ const PASTILLES = {
   supprime: "border-gris bg-ligne text-gris",
 } as const;
 
-export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onContester }: Props) {
+export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onContester, onSupprimer }: Props) {
   const { langue } = utiliserLangue();
   const publie = article.statut === "publie";
   const details = publie && article.publieLe
@@ -47,11 +48,20 @@ export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onCont
     </View>
   );
 
+  const supprimer = (
+    <Pressable accessibilityRole="button" accessibilityLabel={T.supprimerLu(article.titre)} hitSlop={6} onPress={onSupprimer} className="min-h-11 justify-center self-end active:opacity-70">
+      <Text className="font-texte-gras text-xs text-gris underline">{T.supprimer}</Text>
+    </Pressable>
+  );
+
   if (publie) {
     return (
-      <Pressable accessibilityRole="button" onPress={onOuvrir} className="rounded-[18px] border-2 border-encre bg-carte p-3 active:opacity-90">
-        {enTete}
-      </Pressable>
+      <View className="gap-1 rounded-[18px] border-2 border-encre bg-carte p-3">
+        <Pressable accessibilityRole="button" onPress={onOuvrir} className="active:opacity-90">
+          {enTete}
+        </Pressable>
+        {supprimer}
+      </View>
     );
   }
 
@@ -84,6 +94,7 @@ export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onCont
           </Pressable>
         </>
       ) : null}
+      {supprimer}
     </View>
   );
 }

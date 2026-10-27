@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ImageSourcePropType } from "react-native";
 
 import type { MonArticleActus } from "@sos-miam/commun/types/actus";
@@ -37,5 +37,12 @@ export function utiliserMesArticlesActus() {
     };
   }, [service, client]);
 
-  return { chargement: etat === null, articles: etat?.articles ?? [], envoyesCetteSemaine: etat?.envoyesCetteSemaine ?? 0, exemples: etat?.exemples ?? false };
+  const supprimer = useCallback(async (id: number): Promise<boolean> => {
+    const r = etat?.exemples ? { ok: true as const } : await service.supprimerArticle(id);
+    if (!r.ok) return false;
+    setEtat((e) => (e ? { ...e, articles: e.articles.filter((a) => a.id !== id) } : e));
+    return true;
+  }, [etat, service]);
+
+  return { chargement: etat === null, articles: etat?.articles ?? [], envoyesCetteSemaine: etat?.envoyesCetteSemaine ?? 0, exemples: etat?.exemples ?? false, supprimer };
 }
