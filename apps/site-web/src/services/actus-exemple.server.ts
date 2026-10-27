@@ -23,7 +23,15 @@ const SALON_CHANTILLY = lieu("Le Salon Chantilly des Miamis", "🍰", "Croix-Rou
 const RAVIOLIS_BRIGADE = lieu("Les Raviolis de la Brigade", "🥟", "Croix-Rousse", "Lyon", false);
 const BOWLING_BRIGADE = lieu("Le Bowling de la Brigade", "🎳", "Gerland", "Lyon");
 
-const SANS_SUITE = { couverture: null, photos: [], collaboration: false, alcool: false, finLe: null, aLaUne: false, reponseLieu: null } as const;
+const SANS_SUITE: Pick<ArticleActusExemple, "couverture" | "photos" | "collaboration" | "alcool" | "finLe" | "aLaUne" | "reponseLieu"> = {
+  couverture: null,
+  photos: [],
+  collaboration: false,
+  alcool: false,
+  finLe: null,
+  aLaUne: false,
+  reponseLieu: null,
+};
 
 export const ARTICLES_ACTUS_EXEMPLE: readonly ArticleActusExemple[] = [
   {
