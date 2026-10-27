@@ -1,6 +1,6 @@
 import type { ImageSourcePropType } from "react-native";
 
-import type { AuteurActus, CommentaireActus, MonArticleActus } from "@sos-miam/commun/types/actus";
+import type { ArticleCitantLieuActus, AuteurActus, CommentaireActus, MonArticleActus } from "@sos-miam/commun/types/actus";
 import type { ArticleActusAffiche } from "~/contenus/type-article-actus";
 
 const ZOE: AuteurActus = { id: 9001, prenom: "Zoé", avatar: "miami:beret", ambassadeur: true };
@@ -207,3 +207,22 @@ export const mesArticlesActusExemples: MonArticleActus<ImageSourcePropType>[] = 
 ];
 
 export const ARTICLES_ENVOYES_SEMAINE_EXEMPLE = 1;
+
+export const articlesCitantLieuExemples: ArticleCitantLieuActus<ImageSourcePropType>[] = [
+  {
+    id: 1,
+    titre: "La Cabane d'Émile, les huîtres les pieds dans l'étang",
+    couverture: require("../../assets/medias-demo/lieu-13-1.jpg"),
+    auteur: "Zoé",
+    publieLe: "2026-10-25T09:30:00+02:00",
+    reponse: { texte: "Merci Zoé ! La tarte aux figues te dit merci aussi. On t'attend à la prochaine marée.", statut: "publie", motif: null, peutReecrire: false },
+  },
+  {
+    id: 2,
+    titre: "Les douceurs du centre de Montpellier, classées par Malo",
+    couverture: require("../../assets/medias-demo/lieu-4-1.jpg"),
+    auteur: "Malo",
+    publieLe: "2026-10-24T17:00:00+02:00",
+    reponse: null,
+  },
+];

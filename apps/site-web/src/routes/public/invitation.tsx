@@ -35,7 +35,7 @@ export function headers() {
 
 /** Aucune balise ne reprend l'adresse : le code ne peut pas fuiter par un aperçu de lien */
 export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const T = choisirTextes(TEXTES_INVITATION_PAR_LANGUE, lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])))).meta;
+  const T = choisirTextes(TEXTES_INVITATION_PAR_LANGUE, lireLangueMeta(matches)).meta;
   const pseudo = loaderData?.pseudo;
   const titre = pseudo ? T.titre(pseudo) : T.introuvable;
   return [

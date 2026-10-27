@@ -32,7 +32,7 @@ import { envoyerSignalementSecurite, listerTableauHonneur } from "~/services/sec
 import { lireIpVisiteur } from "~/services/session-compte.server";
 
 export function meta(donnees?: Route.MetaArgs) {
-  const langue = lireLangueMeta(donnees?.matches.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(donnees?.matches);
   return creerMeta({ ...choisirTextes(TEXTES_META_SECURITE_PAR_LANGUE, langue), langue });
 }
 

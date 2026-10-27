@@ -32,7 +32,7 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export function meta({ matches }: Route.MetaArgs) {
-  return [{ title: choisirTextes(TEXTES_QR_VITRINE_PAR_LANGUE, lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])))).titreMeta }, { name: "robots", content: "noindex" }];
+  return [{ title: choisirTextes(TEXTES_QR_VITRINE_PAR_LANGUE, lireLangueMeta(matches)).titreMeta }, { name: "robots", content: "noindex" }];
 }
 
 /** La page aimable : le QR mène bien à un lieu SOS Miam, que l'app retrouvera (aucun lien de store : l'app n'est pas encore publiée). */

@@ -9,6 +9,7 @@ import type { CharteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
 import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
+import { TEXTES_ACTUS_PRO_PAR_LANGUE } from "~/contenus/textes-actus-pro";
 import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/textes-images-lieu";
 import { resumerReglagesReservations } from "~/fonctions/reservations/resumer-reglages-reservations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
@@ -16,6 +17,7 @@ import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
+import { ACTUS_VISIBLES } from "~/services/actus-visibles";
 
 /** « 5 visites → un tiramisu maison », ou l'invitation à en créer une */
 function decrireProgramme(programme: ProgrammeFidelite | null): string {
@@ -47,6 +49,7 @@ function decrireCharte(charte: CharteMiamSafe | null): string {
 export default function EcranMonLieu() {
   const couleurs = utiliserCouleurs();
   const TI = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE);
+  const TAP = utiliserTextes(TEXTES_ACTUS_PRO_PAR_LANGUE);
   const router = useRouter();
   const { lieuPro } = utiliserModes();
   const { comptoir, miamSafe } = utiliserServices();
@@ -103,6 +106,7 @@ export default function EcranMonLieu() {
             onPress={() => router.push("/pro/reglages-reservations")}
           />
           <LigneMonLieu emoji="⭐" titre="Les avis" detail="Ce que disent les Miamis, et ta réponse publique sous chacun" onPress={() => router.push("/pro/avis")} />
+          {ACTUS_VISIBLES ? <LigneMonLieu emoji="📰" titre={TAP.ligneTitre} detail={TAP.ligneDetail} onPress={() => router.push("/pro/actus")} /> : null}
           <LigneMonLieu emoji="📈" titre="Statistiques de la semaine" detail="Vues de ta fiche, rescousses, visites validées, nouveaux clients" onPress={() => router.push("/pro/statistiques")} />
         </View>
       </ScrollView>

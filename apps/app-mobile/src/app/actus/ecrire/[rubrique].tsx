@@ -58,10 +58,10 @@ export default function EcranEcrireArticleActus() {
   const { modesOuverts } = utiliserModes();
   const { lieux } = utiliserLieux();
   const lieuParId = useMemo(() => new Map(lieux.map((l) => [l.id, l])), [lieux]);
-  const lieuxCites = useMemo(() => brouillon.lieux.flatMap((id) => {
+  const lieuxCites = brouillon.lieux.flatMap((id) => {
     const lieu = lieuParId.get(id);
     return lieu ? [citerLieuActus(lieu)] : [];
-  }), [brouillon.lieux, lieuParId]);
+  });
   const photo = utiliserChoixPhotoActus();
   const [cible, setCible] = useState<"couverture" | "photos" | null>(null);
   const [feuilleLieu, setFeuilleLieu] = useState(false);
@@ -101,7 +101,8 @@ export default function EcranEcrireArticleActus() {
   function envoyer() {
     setTente(true);
     if (!validation.ok) {
-      setAnnonce({ texte: F.aRevoir(validation.champs.length), numero: Date.now() });
+      const texte = F.aRevoir(validation.champs.length);
+      setAnnonce((avant) => ({ texte, numero: (avant?.numero ?? 0) + 1 }));
       return;
     }
     void terminer();

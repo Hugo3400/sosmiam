@@ -13,7 +13,7 @@ import { listerOffresCarriere } from "~/services/carriere.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_CARRIERE_PAR_LANGUE, langue);
   return creerMeta({ titre: T.titreMeta, description: T.description, langue });
 }

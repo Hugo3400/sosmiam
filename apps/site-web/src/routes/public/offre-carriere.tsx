@@ -40,7 +40,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_OFFRE_CARRIERE_PAR_LANGUE, langue);
   if (!loaderData) return [{ title: T.introuvableMeta }, { name: "robots", content: "noindex" }];
   const { offre } = loaderData;

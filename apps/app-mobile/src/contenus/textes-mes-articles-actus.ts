@@ -19,7 +19,7 @@ export const TEXTES_MES_ARTICLES_ACTUS = {
   progressionLue: (badge: string) => `Vers le badge ${badge}`,
   points: (parArticle: number, gagnes: number) => `+${parArticle} points par article publié · déjà +${gagnes}`,
   statuts: STATUTS,
-  envoye: (date: string) => `envoyé ${date}`,
+  envoye: (date: string) => `envoyé le ${date}`,
   publie: (date: string, jaime: number, commentaires: number) => `Publié le ${date} · ${jaime} J'aime · ${commentaires} commentaire${commentaires > 1 ? "s" : ""}`,
   lieuARepondu: "le lieu a répondu",
   brigade: "La Brigade :",

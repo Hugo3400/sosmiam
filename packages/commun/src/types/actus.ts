@@ -74,3 +74,14 @@ export type MonArticleActus<Image = string> = {
   commentaires: number;
   lieuARepondu: boolean;
 };
+
+export type StatutReponseLieuActus = "en-relecture" | "publie" | "refuse";
+
+export type ArticleCitantLieuActus<Image = string> = {
+  id: number;
+  titre: string;
+  couverture: Image;
+  auteur: string;
+  publieLe: string;
+  reponse: { texte: string; statut: StatutReponseLieuActus; motif: MotifModeration | null; peutReecrire: boolean } | null;
+};

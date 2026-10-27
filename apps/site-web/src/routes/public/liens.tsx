@@ -14,7 +14,7 @@ import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function meta({ matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_LIENS_PUBLICS_PAR_LANGUE, langue);
   return creerMeta({ ...T.meta, langue });
 }

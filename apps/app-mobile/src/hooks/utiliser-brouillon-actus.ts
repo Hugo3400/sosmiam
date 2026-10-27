@@ -11,12 +11,13 @@ export function utiliserBrouillonActus(rubrique: RubriqueActus) {
   const [brouillon, setBrouillon] = useState<BrouillonActusSaisi>(() => creerBrouillonActus(rubrique));
   const [pret, setPret] = useState(false);
   const fini = useRef(false);
+  const modifie = useRef(false);
 
   useEffect(() => {
     let actif = true;
     void lireBrouillonActusGarde().then((garde) => {
       if (!actif) return;
-      if (garde?.rubrique === rubrique) setBrouillon(garde);
+      if (garde?.rubrique === rubrique && !modifie.current) setBrouillon(garde);
       setPret(true);
     });
     return () => {
@@ -25,7 +26,7 @@ export function utiliserBrouillonActus(rubrique: RubriqueActus) {
   }, [rubrique]);
 
   useEffect(() => {
-    if (!pret || fini.current) return;
+    if (!pret || fini.current || !modifie.current) return;
     const minuterie = setTimeout(() => {
       if (!fini.current) void garderBrouillonActus(brouillon);
     }, DELAI_GARDE);
@@ -33,6 +34,7 @@ export function utiliserBrouillonActus(rubrique: RubriqueActus) {
   }, [brouillon, pret]);
 
   const changer = useCallback(<K extends keyof BrouillonActusSaisi>(cle: K, valeur: BrouillonActusSaisi[K]) => {
+    modifie.current = true;
     setBrouillon((avant) => ({ ...avant, [cle]: valeur }));
   }, []);
 

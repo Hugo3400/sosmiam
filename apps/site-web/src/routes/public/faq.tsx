@@ -19,7 +19,7 @@ export function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta({ matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_PAGE_FAQ_PAR_LANGUE, langue);
   return creerMeta({ titre: T.titre, description: T.description, langue });
 }

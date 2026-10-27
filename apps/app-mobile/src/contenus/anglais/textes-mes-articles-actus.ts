@@ -11,7 +11,7 @@ export const TEXTES_MES_ARTICLES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_MES_ART
   progressionLue: (badge: string) => `Towards the ${badge} badge`,
   points: (parArticle: number, gagnes: number) => `+${parArticle} points per published story · +${gagnes} so far`,
   statuts: { "en-relecture": "Being checked", "a-retoucher": "Needs a tweak", publie: "Published", refuse: "Not published" },
-  envoye: (date: string) => `sent ${date}`,
+  envoye: (date: string) => `sent on ${date}`,
   publie: (date: string, jaime: number, commentaires: number) => `Published on ${date} · ${jaime} like${jaime === 1 ? "" : "s"} · ${commentaires} comment${commentaires === 1 ? "" : "s"}`,
   lieuARepondu: "the place replied",
   brigade: "The Brigade:",

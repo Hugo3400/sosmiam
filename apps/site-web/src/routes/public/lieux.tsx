@@ -56,7 +56,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_PAGE_LIEUX_PAR_LANGUE, langue);
   if (!loaderData) return creerMeta({ titre: T.titre, description: T.meta.description(null), langue });
   const { filtres, nomVille, page, etat } = loaderData;

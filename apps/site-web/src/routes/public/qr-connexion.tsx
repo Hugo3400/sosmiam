@@ -34,7 +34,7 @@ export function headers() {
 /** Aucune balise ne reprend l'adresse : le code ne peut pas fuiter par un aperçu de lien */
 export function meta({ matches }: Route.MetaArgs) {
   return [
-    { title: choisirTextes(PAGE_Q_PAR_LANGUE, lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])))).titreMeta },
+    { title: choisirTextes(PAGE_Q_PAR_LANGUE, lireLangueMeta(matches)).titreMeta },
     { name: "robots", content: "noindex, nofollow" },
     { name: "referrer", content: "no-referrer" },
   ];

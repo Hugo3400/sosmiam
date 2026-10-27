@@ -55,7 +55,7 @@ export async function action({ request, params }: Route.ActionArgs): Promise<Rep
 }
 
 export function meta({ loaderData, matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_SIGNALER_IMAGE_PAR_LANGUE, langue);
   if (!loaderData) return [{ title: T.meta.introuvable }, { name: "robots", content: "noindex" }];
   return [...creerMeta({ titre: T.meta.titre(loaderData.lieu.nom), description: T.meta.description, langue }), { name: "robots", content: "noindex" }];

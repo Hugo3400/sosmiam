@@ -17,7 +17,7 @@ import { envoyerDemandeLieu } from "~/services/demandes-lieux.server";
 import { lireLangueRequete } from "~/services/langue.server";
 
 export function meta({ matches }: Route.MetaArgs) {
-  const langue = lireLangueMeta(matches.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_DEMANDE_LIEU_PAR_LANGUE, langue);
   return creerMeta({ ...T.meta, langue });
 }

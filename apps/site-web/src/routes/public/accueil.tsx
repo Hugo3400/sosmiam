@@ -27,7 +27,7 @@ import { lireThemeSaisonAccueil } from "~/services/themes-saison.server";
 
 export function meta({ matches }: Route.MetaArgs) {
   // Le titre dit ce qu'est SOS Miam dès le résultat de recherche (un livre jeunesse porte un nom proche) : 60 et 155 caractères au plus
-  const langue = lireLangueMeta(matches?.flatMap((correspondance) => (correspondance ? [correspondance] : [])));
+  const langue = lireLangueMeta(matches);
   const T = choisirTextes(TEXTES_ACCUEIL_PAR_LANGUE, langue);
   return creerMeta({ ...T.meta, langue });
 }
