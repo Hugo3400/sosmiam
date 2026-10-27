@@ -99,7 +99,7 @@ export function FormulaireSignalerArticleActus({ articleId, reponse }: Props) {
 
       <p className="rounded-xl border-2 border-dashed border-encre bg-creme px-4 py-3 text-sm">
         {lierPonctuation(T.donnees)}{" "}
-        <Link to={lien("/confidentialite")} className="font-semibold underline underline-offset-4">
+        <Link to={lien("/confidentialite#actus")} className="font-semibold underline underline-offset-4">
           {T.donneesLien}
         </Link>
       </p>

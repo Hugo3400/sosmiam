@@ -34,6 +34,7 @@
 // l'équipe ; dans l'app : Réglages › Tes données) et l'écran « Décisions de la modération ». L'export fait par l'équipe sur
 // demande (services/gestion/export-social.ts) contient les métadonnées sociales, jamais le texte d'un message.
 import { sectionApp, sectionAppComptes } from "~/contenus/legal/confidentialite-app";
+import { sectionActus } from "~/contenus/legal/confidentialite-actus";
 import { sectionBoiteAIdees, sectionCommunaute, sectionSortiesMiamis } from "~/contenus/legal/confidentialite-communaute";
 import { sectionDonneesApp } from "~/contenus/legal/confidentialite-donnees-app";
 import { sectionMessagerie } from "~/contenus/legal/confidentialite-messagerie";
@@ -254,6 +255,7 @@ export const documentConfidentialite: DocumentLegal = {
     sectionCommunaute,
     sectionSortiesMiamis,
     sectionBoiteAIdees,
+    sectionActus,
     sectionSignalementsSociaux,
     sectionMiamSafe,
     sectionPrevenirUnPote,
@@ -403,7 +405,7 @@ export const documentConfidentialite: DocumentLegal = {
     {
       id: "ta-bande-et-tes-messages",
       titre: "Communauté : ta bande, tes messages et les Miamis",
-      sections: ["potes", "messagerie", "communaute", "sorties-miamis", "boite-a-idees", "signalements-sociaux"],
+      sections: ["potes", "messagerie", "communaute", "sorties-miamis", "boite-a-idees", "actus", "signalements-sociaux"],
     },
     { id: "en-securite", titre: "Miam Safe", sections: ["miam-safe", "prevenir-un-pote"] },
     { id: "jamais", titre: "Ce qu'on ne fait pas", sections: ["ce-qu-on-ne-fait-pas"] },

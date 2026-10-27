@@ -1,5 +1,6 @@
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { sectionAmbassadeursCguAnglais } from "~/contenus/anglais/legal/cgu-ambassadeurs";
+import { sectionActusCguAnglais } from "~/contenus/anglais/legal/cgu-actus";
 import { sectionBoiteAIdeesCguAnglais, sectionCommunauteCguAnglais, sectionQuiEstLaCguAnglais } from "~/contenus/anglais/legal/cgu-communaute";
 import { sectionModerationCguAnglais } from "~/contenus/anglais/legal/cgu-moderation";
 import { sectionProCguAnglais } from "~/contenus/anglais/legal/cgu-pro";
@@ -16,7 +17,7 @@ export const documentCguAnglais: DocumentLegal | null = {
   titre: "Terms of Use",
   description:
     "The rules of the SOS Miam site and app: both free, accounts 18+, your crew and messaging, the Miamis and their open meetups, what you can post, how we moderate and how to reach us.",
-  miseAJour: "25 October 2026",
+  miseAJour: "27 October 2026",
   introduction: [
     "Welcome to SOS Miam! These Terms of Use are the ground rules for the site and the app: what you can do there, what we do on our side and how we sort things out if a problem comes up. We have written them as simply as possible.",
   ],
@@ -119,6 +120,7 @@ export const documentCguAnglais: DocumentLegal | null = {
     sectionCommunauteCguAnglais,
     sectionQuiEstLaCguAnglais,
     sectionBoiteAIdeesCguAnglais,
+    sectionActusCguAnglais,
     {
       id: "publications",
       titre: "What you post in the app",
@@ -296,7 +298,7 @@ export const documentCguAnglais: DocumentLegal | null = {
     { id: "sos-miam-et-ton-compte", titre: "SOS Miam and your account", sections: ["contenu", "age", "compte", "rescousses"] },
     { id: "ambassadeurs-et-pros", titre: "Ambassadors and pros", sections: ["ambassadeurs", "pro"] },
     { id: "ta-bande-et-tes-messages", titre: "Your crew and messaging", sections: ["potes", "messagerie", "commentaires", "pseudos", "photo-profil", "bloquer"] },
-    { id: "les-miamis", titre: "The Miamis", sections: ["communaute", "qui-est-la", "boite-a-idees"] },
+    { id: "les-miamis", titre: "The Miamis", sections: ["communaute", "qui-est-la", "boite-a-idees", "actus"] },
     { id: "publier", titre: "Posting, and getting along", sections: ["publications", "regles-communaute", "moderation"] },
     { id: "bon-usage-et-responsabilites", titre: "Proper use and liability", sections: ["propriete-intellectuelle", "bon-usage", "contributions", "liens", "responsabilite"] },
     { id: "tes-donnees", titre: "Your data and cookies", sections: ["donnees-cookies"] },

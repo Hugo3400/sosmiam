@@ -14,6 +14,7 @@
 // Espace pro (9 octobre 2026, pro.sosmiam.fr) : section « pro » dans cgu-pro.ts.
 import { adresseEspaceAmbassadeur } from "~/contenus/ambassadeurs";
 import { sectionAmbassadeursCgu } from "~/contenus/legal/cgu-ambassadeurs";
+import { sectionActusCgu } from "~/contenus/legal/cgu-actus";
 import { sectionBoiteAIdeesCgu, sectionCommunauteCgu, sectionQuiEstLaCgu } from "~/contenus/legal/cgu-communaute";
 import { sectionModerationCgu } from "~/contenus/legal/cgu-moderation";
 import { sectionProCgu } from "~/contenus/legal/cgu-pro";
@@ -29,7 +30,7 @@ export const documentCgu: DocumentLegal = {
   titre: "Conditions d'utilisation",
   description:
     "Les règles du site et de l'app SOS Miam : gratuits, un compte dès 18 ans, ta bande et la messagerie, les Miamis et leurs sorties, ce que tu peux publier, comment on modère, et comment nous joindre.",
-  miseAJour: "25 octobre 2026",
+  miseAJour: "27 octobre 2026",
   introduction: [
     "Bienvenue sur SOS Miam ! Ces conditions d'utilisation, ce sont les règles du jeu du site et de l'app : ce que tu peux y faire, ce qu'on fait de notre côté, et comment on règle les choses si un souci arrive. On les a écrites le plus simplement possible.",
   ],
@@ -132,6 +133,7 @@ export const documentCgu: DocumentLegal = {
     sectionCommunauteCgu,
     sectionQuiEstLaCgu,
     sectionBoiteAIdeesCgu,
+    sectionActusCgu,
     {
       id: "publications",
       titre: "Ce que tu publies dans l'app",
@@ -309,7 +311,7 @@ export const documentCgu: DocumentLegal = {
     { id: "sos-miam-et-ton-compte", titre: "SOS Miam et ton compte", sections: ["contenu", "age", "compte", "rescousses"] },
     { id: "ambassadeurs-et-pros", titre: "Ambassadeurs et pros", sections: ["ambassadeurs", "pro"] },
     { id: "ta-bande-et-tes-messages", titre: "Ta bande et la messagerie", sections: ["potes", "messagerie", "commentaires", "pseudos", "photo-profil", "bloquer"] },
-    { id: "les-miamis", titre: "Les Miamis", sections: ["communaute", "qui-est-la", "boite-a-idees"] },
+    { id: "les-miamis", titre: "Les Miamis", sections: ["communaute", "qui-est-la", "boite-a-idees", "actus"] },
     { id: "publier", titre: "Publier, et vivre ensemble", sections: ["publications", "regles-communaute", "moderation"] },
     { id: "bon-usage-et-responsabilites", titre: "Bon usage et responsabilités", sections: ["propriete-intellectuelle", "bon-usage", "contributions", "liens", "responsabilite"] },
     { id: "tes-donnees", titre: "Tes données et les cookies", sections: ["donnees-cookies"] },

@@ -1,4 +1,5 @@
 import { sectionAppAnglais, sectionAppComptesAnglais } from "~/contenus/anglais/legal/confidentialite-app";
+import { sectionActusAnglais } from "~/contenus/anglais/legal/confidentialite-actus";
 import { sectionBoiteAIdeesAnglais, sectionCommunauteAnglais, sectionSortiesMiamisAnglais } from "~/contenus/anglais/legal/confidentialite-communaute";
 import { sectionDonneesAppAnglais } from "~/contenus/anglais/legal/confidentialite-donnees-app";
 import { sectionMessagerieAnglais } from "~/contenus/anglais/legal/confidentialite-messagerie";
@@ -219,6 +220,7 @@ export const documentConfidentialiteAnglais: DocumentLegal = {
     sectionCommunauteAnglais,
     sectionSortiesMiamisAnglais,
     sectionBoiteAIdeesAnglais,
+    sectionActusAnglais,
     sectionSignalementsSociauxAnglais,
     sectionMiamSafeAnglais,
     sectionPrevenirUnPoteAnglais,
@@ -368,7 +370,7 @@ export const documentConfidentialiteAnglais: DocumentLegal = {
     {
       id: "ta-bande-et-tes-messages",
       titre: "Community: your crew, your messages and the Miamis",
-      sections: ["potes", "messagerie", "communaute", "sorties-miamis", "boite-a-idees", "signalements-sociaux"],
+      sections: ["potes", "messagerie", "communaute", "sorties-miamis", "boite-a-idees", "actus", "signalements-sociaux"],
     },
     { id: "en-securite", titre: "Miam Safe", sections: ["miam-safe", "prevenir-un-pote"] },
     { id: "jamais", titre: "What we don't do", sections: ["ce-qu-on-ne-fait-pas"] },
