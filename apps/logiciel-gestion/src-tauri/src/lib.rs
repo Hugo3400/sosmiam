@@ -2,8 +2,11 @@
 // et l'enregistrement de fichiers (exports, pièces jointes, Espace presse). Tout le reste (clé, signatures, écrans) est dans
 // l'interface.
 use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use base64::Engine;
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::Manager;
 use tauri_plugin_dialog::DialogExt;
 
@@ -110,25 +113,107 @@ fn deproteger_secret(contenu_base64: String) -> Result<String, String> {
     Ok(texte)
 }
 
+static EN_FOND: AtomicBool = AtomicBool::new(false);
+const ID_BARRE: &str = "barre";
+const ARGUMENT_FOND: &str = "--en-fond";
+
+#[derive(serde::Deserialize)]
+struct LibellesBarre {
+    infobulle: String,
+    ouvrir: String,
+    quitter: String,
+}
+
+fn montrer(app: &tauri::AppHandle) {
+    if let Some(fenetre) = app.get_webview_window("main") {
+        let _ = fenetre.show();
+        let _ = fenetre.unminimize();
+        let _ = fenetre.set_focus();
+    }
+}
+
+#[cfg(desktop)]
+fn regler_demarrage(app: &tauri::AppHandle, actif: bool) -> Result<(), String> {
+    use tauri_plugin_autostart::ManagerExt;
+    let lanceur = app.autolaunch();
+    if actif {
+        lanceur.enable().map_err(|e| e.to_string())
+    } else {
+        let _ = lanceur.disable();
+        Ok(())
+    }
+}
+
+#[cfg(not(desktop))]
+fn regler_demarrage(_app: &tauri::AppHandle, _actif: bool) -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+fn regler_fond(app: tauri::AppHandle, actif: bool, libelles: Option<LibellesBarre>) -> Result<(), String> {
+    EN_FOND.store(actif, Ordering::SeqCst);
+    regler_demarrage(&app, actif)?;
+    if !actif {
+        let _ = app.remove_tray_by_id(ID_BARRE);
+        return Ok(());
+    }
+    if app.tray_by_id(ID_BARRE).is_some() {
+        return Ok(());
+    }
+    let libelles = libelles.ok_or("libellés manquants")?;
+    let ouvrir = MenuItem::with_id(&app, "ouvrir", &libelles.ouvrir, true, None::<&str>).map_err(|e| e.to_string())?;
+    let quitter = MenuItem::with_id(&app, "quitter", &libelles.quitter, true, None::<&str>).map_err(|e| e.to_string())?;
+    let menu = Menu::with_items(&app, &[&ouvrir, &quitter]).map_err(|e| e.to_string())?;
+    let mut barre = TrayIconBuilder::with_id(ID_BARRE)
+        .tooltip(&libelles.infobulle)
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, evenement| match evenement.id.as_ref() {
+            "ouvrir" => montrer(app),
+            "quitter" => app.exit(0),
+            _ => {}
+        })
+        .on_tray_icon_event(|barre, evenement| {
+            if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = evenement {
+                montrer(barre.app_handle());
+            }
+        });
+    if let Some(icone) = app.default_window_icon() {
+        barre = barre.icon(icone.clone());
+    }
+    barre.build(&app).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut application = tauri::Builder::default();
     #[cfg(desktop)]
     {
         application = application
-            .plugin(tauri_plugin_single_instance::init(|app, _arguments, _dossier| {
-                if let Some(fenetre) = app.get_webview_window("main") {
-                    let _ = fenetre.unminimize();
-                    let _ = fenetre.set_focus();
-                }
-            }))
-            .plugin(tauri_plugin_updater::Builder::new().build());
+            .plugin(tauri_plugin_single_instance::init(|app, _arguments, _dossier| montrer(app)))
+            .plugin(tauri_plugin_updater::Builder::new().build())
+            .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec![ARGUMENT_FOND])));
     }
     application
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![enregistrer_fichier, enregistrer_fichier_binaire, proteger_secret, deproteger_secret])
+        .setup(|app| {
+            if !std::env::args().any(|argument| argument == ARGUMENT_FOND) {
+                montrer(app.handle());
+            }
+            Ok(())
+        })
+        .on_window_event(|fenetre, evenement| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = evenement {
+                if EN_FOND.load(Ordering::SeqCst) {
+                    api.prevent_close();
+                    let _ = fenetre.hide();
+                }
+            }
+        })
+        .invoke_handler(tauri::generate_handler![enregistrer_fichier, enregistrer_fichier_binaire, proteger_secret, deproteger_secret, regler_fond])
         .run(tauri::generate_context!())
         .expect("impossible de lancer le logiciel de gestion");
 }
