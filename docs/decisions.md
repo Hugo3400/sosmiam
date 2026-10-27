@@ -658,3 +658,20 @@ Plan de référence : [version-anglaise.md](version-anglaise.md). Glossaire : [g
   - le site et le légal ;
   - les stores.
 
+
+## Actus des Miamis (décidé par Hugo le 27 octobre 2026)
+
+Maquette validée : https://claude.ai/artifact/Qqza5tYMhEfM4kdsNpFgXc (9 plans).
+
+- **Le principe :** des articles qui présentent des lieux publiés, écrits par les ambassadeurs d'abord, puis par tous les Miamis (18 ans et plus). L'ouverture à tous viendra plus tard, sur décision de Hugo.
+- **Quatre rubriques :** Portrait d'un lieu (1 lieu), Le top 5 du quartier (3 à 5 lieux), Bon plan du moment (1 lieu et une date de fin), Récit de sortie (2 à 5 lieux).
+- **Où :** un onglet « Actus » dans « Pour toi », et la page sosmiam.fr/actus (articles publiés seulement).
+- **Relecture :** chaque article passe par la Brigade dans le logiciel de gestion avant d'être publié : Publier, À retoucher (avec un message) ou Refuser (avec un motif, contestable). Un article publié reste signalable.
+- **Le lieu :** un lieu vérifié est prévenu quand un article le cite. Il peut laisser une réponse publique (500 caractères), relue par la Brigade, et signaler l'article. Il ne peut ni écrire sur lui-même ni commander un article.
+- **Les lecteurs :** J'aime, commentaires (mêmes règles que le fil), envoyer à un pote, « Y aller » et « Voir la fiche ». Sans compte : lecture seule, et pas d'article sur un bar ou l'alcool.
+- **Récompenses :** +20 points par article publié. Trois badges : Premier reportage (1 article), Reporter de la Brigade (5), Grand reporter (20).
+- **Limite :** 3 articles envoyés par semaine et par auteur.
+- **Abonnés :** un article publié arrive dans le fil Abonnements de ceux qui suivent l'auteur, sans notification.
+- **Confiance :** la mention « Collaboration commerciale » si le lieu a offert quelque chose ; jamais d'argent. Loi Évin : jamais d'incitation à boire, le message sanitaire s'ajoute seul sous un article qui parle d'alcool. Photos à l'auteur ou autorisées, sans visage reconnaissable sans accord. On parle des lieux, jamais d'un employé nommé sans son accord.
+- **Langue :** les articles restent en français dans la version anglaise, comme tout ce qu'écrivent les gens.
+- **Avant l'ouverture :** CGU et confidentialité à mettre à jour.

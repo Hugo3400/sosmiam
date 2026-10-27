@@ -1,4 +1,4 @@
-import type { IconeEtape } from "~/contenus/comment-ca-marche";
+export type IconeEtape = "chercher" | "sos" | "addition" | "bouee";
 
 const TRACES: Record<Exclude<IconeEtape, "sos">, string[]> = {
   chercher: ["M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14", "m20 20-3.5-3.5"],
