@@ -7,6 +7,7 @@ export const TEXTES_LIMITATION_ANGLAIS: Traduction<typeof TEXTES_LIMITATION> = {
   intro: "The SOS Miam team has restricted your account {fin}. Here's why, what it changes, and how to tell us if you disagree.",
   introAVenir: "The SOS Miam team is going to restrict your account from {debut}, {fin}. Here's why and what it will change.",
   motif: "The rule involved",
+  motifInconnu: "One of the community rules",
   pourquoi: "What the team says",
   coupeTitre: "What has to wait until it ends",
   coupe:

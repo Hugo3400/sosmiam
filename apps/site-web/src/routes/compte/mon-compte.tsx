@@ -97,7 +97,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const ip = lireIpVisiteur(request);
   const [connexions, limitationLue] = await Promise.all([lireConnexionsCompte(jeton, ip), lireLimitation(jeton, ip)]);
   const limitation = limitationLue.ok && limitationLue.limitation
-    ? { vue: limitationLue.limitation, motif: lireMotifLimitation(limitationLue.limitation.motif) }
+    ? { vue: limitationLue.limitation, motif: lireMotifLimitation(limitationLue.limitation.motif, lireLangueRequete(request).langue) }
     : null;
   const actifs = lireFournisseursActifs();
   const attente = lireCookieAttente(request, Date.now());

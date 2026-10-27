@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { BADGES } from "../src/contenus/badges.ts";
+import { BADGES_ANGLAIS } from "../src/contenus/anglais/badges.ts";
 import { compterMesureDefi } from "../src/fonctions/defis/compter-mesure-defi.ts";
 import { parleDAlcool } from "../src/fonctions/prevention/parle-d-alcool.ts";
 import { BADGES_AUTOMATIQUES, type BadgeAutomatique } from "../src/regles/badges-automatiques.ts";
@@ -143,4 +144,15 @@ test("bars : jamais comptés par un badge qui vise un type de lieu ; comptés, c
     "coeur-sur-la-main", "bonne-etoile", "habitue", "mordu-de-miam", "serie-4", "saison-complete", "marathon-du-miam", "un-an-de-miam",
     "noctambule", "fureteur", "explorateur", "baroudeur",
   ]);
+});
+
+test("catalogue anglais : les mêmes badges, dans le même ordre, avec les mêmes emojis, sans ponctuation finale", () => {
+  assert.deepEqual(BADGES_ANGLAIS.map((b) => [b.id, b.emoji]), BADGES.map((b) => [b.id, b.emoji]));
+  const noms = BADGES_ANGLAIS.map((b) => b.nom.toLocaleLowerCase("en"));
+  assert.equal(new Set(noms).size, noms.length);
+  for (const b of BADGES_ANGLAIS) {
+    assert.ok(b.nom.trim() === b.nom && b.texte.trim() === b.texte && b.nom.length > 0 && b.texte.length > 0, b.id);
+    assert.doesNotMatch(b.texte, /[.!?]$/, b.id);
+    assert.doesNotMatch(b.texte, / [:;!?]/, b.id);
+  }
 });

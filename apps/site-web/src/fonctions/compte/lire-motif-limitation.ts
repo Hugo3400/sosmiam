@@ -1,10 +1,9 @@
-import { DETAILS_MOTIFS_MODERATION, type MotifModeration } from "../../../../../packages/commun/src/contenus/motifs-moderation.ts";
+import { DETAILS_MOTIFS_MODERATION_PAR_LANGUE, type MotifModeration } from "../../../../../packages/commun/src/contenus/motifs-moderation.ts";
+import type { Langue } from "../../../../../packages/commun/src/regles/langues.ts";
+import { TEXTES_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
 
-/**
- * Le motif d'une limitation en clair : son nom (« Haine ou harcèlement ») et la règle des CGU mot pour mot. Un code
- * inconnu (une API plus récente que le site) : un nom général, sans règle.
- */
-export function lireMotifLimitation(code: string): { libelle: string; regle: string | null } {
-  const details = Object.hasOwn(DETAILS_MOTIFS_MODERATION, code) ? DETAILS_MOTIFS_MODERATION[code as MotifModeration] : null;
-  return details ? { libelle: details.libelle, regle: details.regle } : { libelle: "Une règle de la communauté", regle: null };
+export function lireMotifLimitation(code: string, langue: Langue): { libelle: string; regle: string | null } {
+  const motifs = DETAILS_MOTIFS_MODERATION_PAR_LANGUE[langue];
+  const details = Object.hasOwn(motifs, code) ? motifs[code as MotifModeration] : null;
+  return details ? { libelle: details.libelle, regle: details.regle } : { libelle: TEXTES_LIMITATION_PAR_LANGUE[langue].motifInconnu, regle: null };
 }

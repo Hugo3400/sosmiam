@@ -61,10 +61,12 @@ test("la fin d'une limitation, à l'heure de Paris (été comme hiver), ou « ju
 });
 
 test("le motif en clair : le nom et la règle des CGU ; un code inconnu reste poli", () => {
-  assert.deepEqual(lireMotifLimitation("haine").libelle, "Haine ou harcèlement");
-  assert.match(lireMotifLimitation("haine").regle ?? "", /^pas de haine ni de harcèlement/);
-  assert.deepEqual(lireMotifLimitation("toString"), { libelle: "Une règle de la communauté", regle: null });
-  assert.deepEqual(lireMotifLimitation("nouveau-motif"), { libelle: "Une règle de la communauté", regle: null });
+  assert.deepEqual(lireMotifLimitation("haine", "fr").libelle, "Haine ou harcèlement");
+  assert.match(lireMotifLimitation("haine", "fr").regle ?? "", /^pas de haine ni de harcèlement/);
+  assert.deepEqual(lireMotifLimitation("toString", "fr"), { libelle: "Une règle de la communauté", regle: null });
+  assert.deepEqual(lireMotifLimitation("nouveau-motif", "fr"), { libelle: "Une règle de la communauté", regle: null });
+  assert.deepEqual(lireMotifLimitation("haine", "en"), { libelle: "Hate or harassment", regle: "no hate or harassment: insults, mockery, discrimination, threats" });
+  assert.deepEqual(lireMotifLimitation("nouveau-motif", "en"), { libelle: "One of the community rules", regle: null });
 });
 
 test("« compte-limite » est reconnu, avec details.jusqua (une date lisible, sinon null : jusqu'à nouvel ordre)", async () => {

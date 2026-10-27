@@ -1,4 +1,6 @@
 import type { BadgeCatalogue } from "../types/badge.ts";
+import type { ParLangue } from "../types/traduction.ts";
+import { BADGES_ANGLAIS } from "./anglais/badges.ts";
 
 /**
  * Le catalogue des badges, partagé par l'app et le logiciel de gestion (et plus tard le site). Donnés d'office par le
@@ -49,3 +51,5 @@ export const BADGES: readonly BadgeCatalogue[] = [
   { id: "grand-reporter", emoji: "🗞️", nom: "Grand reporter", texte: "Fais publier 20 articles dans les Actus : tout le quartier te lit" },
   { id: "chasseur-de-bugs", emoji: "🐞", nom: "Chasseur de bugs", texte: "Signale une vraie faille de sécurité sur la page Chasse aux bugs : la Brigade te doit une fière chandelle" },
 ];
+
+export const BADGES_PAR_LANGUE: ParLangue<readonly BadgeCatalogue[]> = { fr: BADGES, en: BADGES_ANGLAIS };

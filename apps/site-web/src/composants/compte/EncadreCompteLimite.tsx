@@ -49,8 +49,8 @@ export function EncadreCompteLimite({ limitation, motif }: Props) {
         <div>
           <dt className={classeTitreBloc}>{t.motif}</dt>
           <dd>
-            <strong lang={motifFrancais}>{motif.libelle}</strong>
-            {motif.regle && <span lang={motifFrancais} className="text-gris">{lierPonctuation(t.regle(motif.regle))}</span>}
+            <strong>{motif.libelle}</strong>
+            {motif.regle && <span className="text-gris">{lierPonctuation(t.regle(motif.regle))}</span>}
           </dd>
         </div>
         <div>

@@ -885,4 +885,5 @@ Anglais britannique, « you » chaleureux, mêmes règles de ton que le françai
 - **À la une** → **Top story** · traduit
   - Où : premier article de la liste
 - **Premier reportage / Reporter du quartier / Grand reporter** → **First Scoop / Neighbourhood Reporter / Star Reporter** · adapté
-  - Où : badges des Actus, « Mes articles »
+  - Où : badges des Actus, « Mes articles », catalogue anglais (contenus/anglais/badges.ts)
+  - Textes : « Get your first story published in News », « Get 5 stories published in News », « Get 20 stories published in News – the whole neighbourhood reads you ».

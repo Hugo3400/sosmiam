@@ -3,6 +3,9 @@
 // logiciel de gestion, cloche « contenu-retire » avec le code en detail), le logiciel (choix du motif, message à l'auteur)
 // et l'app (la cloche nomme le motif). Ajouter ou renommer un code : prévenir les trois.
 
+import type { ParLangue } from "../types/traduction.ts";
+import { DETAILS_MOTIFS_MODERATION_ANGLAIS } from "./anglais/motifs-moderation.ts";
+
 export const MOTIFS_MODERATION = [
   "fausse-info", "pub-cachee", "arnaque", "haine", "violence", "danger", "vie-privee", "droits", "triche", "usurpation", "illegal",
 ] as const;
@@ -25,4 +28,9 @@ export const DETAILS_MOTIFS_MODERATION: Readonly<Record<MotifModeration, { libel
   triche: { libelle: "Triche ou faux signalements", enClair: "triche", regle: "pas de triche, ni de signalements exprès de publications qui respectent les règles" },
   usurpation: { libelle: "Usurpation", enClair: "usurpation d'identité", regle: "ne pas se faire passer pour quelqu'un d'autre, ou pour un lieu qu'on ne représente pas" },
   illegal: { libelle: "Contenu illégal", enClair: "contenu illégal", regle: "rien d'illégal" },
+};
+
+export const DETAILS_MOTIFS_MODERATION_PAR_LANGUE: ParLangue<typeof DETAILS_MOTIFS_MODERATION> = {
+  fr: DETAILS_MOTIFS_MODERATION,
+  en: DETAILS_MOTIFS_MODERATION_ANGLAIS,
 };

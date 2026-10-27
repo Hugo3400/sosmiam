@@ -1,23 +1,13 @@
 import type { Traduction } from "../../types/traduction.ts";
 import type { TEXTES_COURRIELS_LIMITATIONS } from "../courriels-limitations.ts";
+import { MOTIFS_MODERATION, type MotifModeration } from "../motifs-moderation.ts";
+import { DETAILS_MOTIFS_MODERATION_ANGLAIS } from "./motifs-moderation.ts";
 
 export const TEXTES_COURRIELS_LIMITATIONS_ANGLAIS: Traduction<typeof TEXTES_COURRIELS_LIMITATIONS> = {
   pied: "You're getting this email because the SOS Miam team has made a decision about your account. Got a question? Just reply to this email.",
   ceQuiChange:
     "While it lasts, you can't post anything other people can see (messages, comments, reviews, outings, lists, invitations, a new username or avatar). Reading, getting visits confirmed, Miam Safe, reporting, blocking, your settings, exporting your data and deleting your account all work as usual.",
-  motifs: {
-    "fausse-info": "false information",
-    "pub-cachee": "hidden advertising",
-    arnaque: "a scam",
-    haine: "hateful content",
-    violence: "violence",
-    danger: "putting people at risk",
-    "vie-privee": "invasion of privacy",
-    droits: "copyright",
-    triche: "cheating",
-    usurpation: "impersonation",
-    illegal: "illegal content",
-  },
+  motifs: Object.fromEntries(MOTIFS_MODERATION.map((motif) => [motif, DETAILS_MOTIFS_MODERATION_ANGLAIS[motif].enClair])) as Record<MotifModeration, string>,
   regleParDefaut: "one of the community rules",
   jusquAu: (date: string) => `until ${date}`,
   jusquANouvelOrdre: "until further notice",

@@ -14,6 +14,7 @@ export const TEXTES_LIMITATION = {
   /** {debut} : « 17 octobre 2026 à 9 h » */
   introAVenir: "L'équipe SOS Miam va limiter ton compte à partir du {debut}, {fin}. Voici pourquoi et ce que ça changera.",
   motif: "La règle en cause",
+  motifInconnu: "Une règle de la communauté",
   pourquoi: "Ce que l'équipe t'explique",
   coupeTitre: "Ce qui attend la fin",
   coupe:
