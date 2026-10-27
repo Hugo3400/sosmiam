@@ -63,6 +63,13 @@ export async function copier(texte: string): Promise<void> {
 
 export const peutRetenirMotDePasse = () => isTauri();
 
+export const peutResterEnFond = () => isTauri();
+
+export async function reglerFond(actif: boolean, libelles: { infobulle: string; ouvrir: string; quitter: string }): Promise<void> {
+  if (!isTauri()) return;
+  await invoke("regler_fond", { actif, libelles });
+}
+
 export async function protegerSecret(octets: Uint8Array): Promise<string> {
   return invoke<string>("proteger_secret", { contenuBase64: btoa(String.fromCharCode(...octets)) });
 }
