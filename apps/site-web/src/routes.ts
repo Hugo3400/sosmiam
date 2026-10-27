@@ -106,6 +106,7 @@ export default [
   // Choix des cookies (bandeau, panneau « Choisir », /cookies#mes-choix), avec ou sans JavaScript : POST servi sur les trois
   // hôtes (le cookie du choix vaut pour sosmiam.fr et ses espaces), GET renvoyé vers /cookies#mes-choix
   route("cookies/choix", "routes/ressources/choix-cookies.ts"),
+  route("langue/choix", "routes/ressources/choix-langue.ts"),
   route("kit-media/:fichier", "routes/ressources/telecharger-kit.ts"),
   // Fichiers du kit média pro, réservés aux ambassadeurs certifiés
   route("kit-media-pro/:fichier", "routes/ressources/telecharger-kit-pro.ts"),

@@ -3,9 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from "react-native";
 
 import { BoutonNotifications } from "~/composants/notifications/BoutonNotifications";
+import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/textes-actus";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { ACTUS_VISIBLES } from "~/services/actus-visibles";
 
-export type OngletFil = "abonnements" | "tous" | "sos";
+export type OngletFil = "abonnements" | "tous" | "sos" | "actus";
 
 type Props = {
   onglet: OngletFil;
@@ -57,8 +60,11 @@ type Mesure = { x: number; largeur: number };
  */
 export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerCompte }: Props) {
   const { width: largeur, fontScale } = useWindowDimensions();
+  const TA = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE);
+  const tousLesOnglets = ACTUS_VISIBLES ? [...onglets, { cle: "actus" as const, libelle: TA.onglet, lu: TA.onglet }] : onglets;
+  const clair = onglet === "actus";
   const court = largeur / fontScale < LARGEUR_LIBELLES_LONGS;
-  const mini = largeur / fontScale < LARGEUR_MINI;
+  const mini = largeur / fontScale < (ACTUS_VISIBLES ? LARGEUR_LIBELLES_LONGS : LARGEUR_MINI);
   // Onglets trop larges pour l'écran (iPhone SE, très grand texte) : l'onglet choisi revient au milieu de la bande
   const defilement = useRef<ScrollView>(null);
   const mesures = useRef<Partial<Record<OngletFil, Mesure>>>({});
@@ -106,12 +112,12 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
             <View
               accessible
               accessibilityLabel={`Il te reste ${restantes} rescousse${restantes > 1 ? "s" : ""} cette semaine`}
-              className="flex-row items-center gap-1 self-start rounded-full bg-black/30 px-2.5 py-1.5"
+              className={`flex-row items-center gap-1 self-start rounded-full px-2.5 py-1.5 ${clair ? "bg-carte" : "bg-black/30"}`}
             >
               <Text maxFontSizeMultiplier={AGRANDISSEMENT_MAX_PASTILLE} className="text-base">
                 🛟
               </Text>
-              <Text maxFontSizeMultiplier={AGRANDISSEMENT_MAX_PASTILLE} className="font-texte-gras text-base text-white">
+              <Text maxFontSizeMultiplier={AGRANDISSEMENT_MAX_PASTILLE} className={`font-texte-gras text-base ${clair ? "text-encre" : "text-white"}`}>
                 {restantes}
               </Text>
             </View>
@@ -138,14 +144,14 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
             }}
             contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: mini ? 10 : 16 }}
           >
-            {onglets.map(({ cle, libelle, court: libelleCourt, mini: libelleMini, lu }, i) => {
+            {tousLesOnglets.map(({ cle, libelle, court: libelleCourt, mini: libelleMini, lu }, i) => {
               const actif = cle === onglet;
               // iOS ne connaît pas le rôle « onglet » (VoiceOver le lirait comme du texte) : bouton, avec la position dans le libellé
               return (
                 <Pressable
                   key={cle}
                   accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-                  accessibilityLabel={Platform.OS === "ios" ? `${lu}, onglet ${i + 1} sur ${onglets.length}` : lu}
+                  accessibilityLabel={Platform.OS === "ios" ? `${lu}, onglet ${i + 1} sur ${tousLesOnglets.length}` : lu}
                   accessibilityState={{ selected: actif }}
                   hitSlop={8}
                   onPress={() => onChoisir(cle)}
@@ -153,12 +159,12 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
                     mesures.current[cle] = { x: e.nativeEvent.layout.x, largeur: e.nativeEvent.layout.width };
                     if (actif) apresMesure();
                   }}
-                  className={`min-h-11 justify-center border-b-[3px] ${actif ? "border-jaune" : "border-transparent"}`}
+                  className={`min-h-11 justify-center border-b-[3px] ${actif ? (clair ? "border-encre" : "border-jaune") : "border-transparent"}`}
                 >
                   <Text
                     maxFontSizeMultiplier={AGRANDISSEMENT_MAX}
-                    className={`font-texte-gras text-[15px] ${actif ? "text-white" : "text-white/65"}`}
-                    style={{ textShadowColor: "rgba(0,0,0,0.4)", textShadowRadius: 4 }}
+                    className={`font-texte-gras text-[15px] ${clair ? (actif ? "text-encre" : "text-gris") : actif ? "text-white" : "text-white/65"}`}
+                    style={clair ? undefined : { textShadowColor: "rgba(0,0,0,0.4)", textShadowRadius: 4 }}
                   >
                     {mini && libelleMini ? libelleMini : court && libelleCourt ? libelleCourt : libelle}
                   </Text>
@@ -166,15 +172,15 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
               );
             })}
           </ScrollView>
-          {coupes.gauche ? (
+          {coupes.gauche && !clair ? (
             <LinearGradient pointerEvents="none" colors={FONDU_GAUCHE} start={HORIZONTAL.debut} end={HORIZONTAL.fin} style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: LARGEUR_FONDU }} />
           ) : null}
-          {coupes.droite ? (
+          {coupes.droite && !clair ? (
             <LinearGradient pointerEvents="none" colors={FONDU_DROITE} start={HORIZONTAL.debut} end={HORIZONTAL.fin} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: LARGEUR_FONDU }} />
           ) : null}
         </View>
         <View className="w-11 items-end">
-          <BoutonNotifications variante="sombre" />
+          <BoutonNotifications variante={clair ? "claire" : "sombre"} />
         </View>
       </View>
       {invite ? (

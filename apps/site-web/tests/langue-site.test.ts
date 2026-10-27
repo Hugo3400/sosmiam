@@ -96,6 +96,7 @@ test("choisirRedirectionHote : /en suit sa page vers le bon hôte, et l'accueil 
   assert.equal(choisirRedirectionHote("pro.sosmiam.fr", "/en/bienvenue"), null);
   assert.deepEqual(choisirRedirectionHote("pro.sosmiam.fr", "/en/faq"), { adresse: "https://sosmiam.fr/en/faq", statut: 301 });
   assert.deepEqual(choisirRedirectionHote("ambassadeur.sosmiam.fr", "/"), { adresse: "/programme", statut: 302 });
+  for (const hote of ["sosmiam.fr", "ambassadeur.sosmiam.fr", "pro.sosmiam.fr"]) assert.equal(choisirRedirectionHote(hote, "/langue/choix"), null, hote);
 });
 
 type RouteLue = { id?: string; path?: string; index?: boolean; children?: RouteLue[] };

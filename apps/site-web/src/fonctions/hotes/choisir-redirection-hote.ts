@@ -48,6 +48,7 @@ const DEBUT_WELL_KNOWN = "/.well-known/";
  * hôtes, sans redirection (une redirection 301 ferait perdre le POST, donc le choix)
  */
 const CHOIX_COOKIES = "/cookies/choix";
+const CHOIX_LANGUE = "/langue/choix";
 /** Servis sur les deux hôtes, chacun avec son propre contenu (routes/ressources/robots.ts et plan-du-site.ts) */
 const FICHIERS_MOTEURS = ["/robots.txt", "/sitemap.xml"];
 
@@ -107,7 +108,7 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
 
   if (cle.startsWith(DEBUT_CONNEXION_EXTERNE)) return null;
   if (cle.startsWith(DEBUT_WELL_KNOWN)) return null;
-  if (cle === CHOIX_COOKIES) return null;
+  if (cle === CHOIX_COOKIES || cle === CHOIX_LANGUE) return null;
   if (nomHote === HOTE_SITE && PAGES_COMPTE_SITE.includes(cle)) return null;
   if (cle === "/mon-compte" && nomHote === HOTE_AMBASSADEUR) return { adresse: `/espace/mon-compte${suite}`, statut: 302 };
   if (pagePro && nomHote !== HOTE_PRO) return vers(HOTE_PRO);

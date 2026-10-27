@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 import { LienGererCookies } from "~/composants/cookies/LienGererCookies";
 import { Logo } from "~/composants/interface/Logo";
+import { ChoixLangue } from "~/composants/mise-en-page/ChoixLangue";
 import { MESSAGE_SANITAIRE_ALCOOL } from "~/contenus/legal/prevention";
 import { groupesPiedDePage, type LienPiedDePage } from "~/contenus/liens-pied-de-page";
 import { creerAdresseLien, type EspaceDuLien } from "~/fonctions/hotes/creer-adresse-lien";
@@ -58,6 +59,7 @@ export function PiedDePage({ espace = "principal", accroche = "Fait avec 🧡 po
           <LienDuPied lien={{ texte: "Besoin d'aide ?", adresse: "/prevention", site: "principal" }} espace={espace} />
         </p>
         <p className="mt-2 text-center text-sm opacity-70" suppressHydrationWarning>© {annee} SOS Miam</p>
+        <ChoixLangue />
       </div>
     </footer>
   );
