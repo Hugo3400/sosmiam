@@ -242,7 +242,7 @@ egal((await lecture.abonnements(LEA)).map((a) => a.id), [ID1], "seulement ceux d
 
 const exportZoe = await exporterDonneesCompte(ZOE, creerChiffrementDonnees(new Uint8Array(32).fill(4)));
 egal(exportZoe?.compte.articlesActusEcrits.map((a) => a.id), [ID1, ID2, ID3], "export RGPD : les articles de l'autrice, avec leur statut");
-egal(exportZoe?.compte.commentairesActusEcrits.map((c) => c.id), [C2], "et ses commentaires");
+egal(exportZoe?.compte.commentairesActusEcrits.map((c) => c.id), [], "son commentaire retiré puis effacé la nuit n'y est plus");
 const exportGerant = await exporterDonneesCompte(GERANT, creerChiffrementDonnees(new Uint8Array(32).fill(4)));
 egal(exportGerant?.compte.reponsesActusEcrites.map((r) => r.articleId), [ID1], "export du gérant : ses réponses aux articles");
 egal((await exporterDonneesCompte(LEA, creerChiffrementDonnees(new Uint8Array(32).fill(4))))?.compte.commentairesActusEcrits.length, 1, "export de Léa : son commentaire vidé y reste, marqué supprimé");
