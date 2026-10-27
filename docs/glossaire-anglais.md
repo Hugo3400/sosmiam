@@ -870,3 +870,17 @@ Anglais britannique, « you » chaleureux, mêmes règles de ton que le françai
 - **surprise (expression de l'app)** → **(nom de code)** · gardé
   - Où : Mascotte.tsx, diapo « Un lieu lance un SOS »
   - Jamais affichée en texte.
+
+## Actus des Miamis (proposé le 27 octobre 2026, à valider par Hugo)
+
+- **Actus** → **News** · traduit
+  - Où : onglet de « Pour toi », écran d'un article
+  - Le canal Android « Nouvelles de SOS Miam » reste « News from SOS Miam ».
+- **Portrait d'un lieu / Le top 5 du quartier / Bon plan du moment / Récit de sortie** → **Spotlight on a place / Neighbourhood top 5 / Deal of the moment / Day out** · adapté
+  - Où : rubriques des Actus
+  - Filtres courts : Spotlights, Tops, Deals, Days out.
+- **Ambassadeur·rice** → **Ambassador** · traduit
+  - Où : pastille de l'auteur d'un article
+  - Neutre en anglais ; en français, le genre reste privé, d'où la forme inclusive.
+- **À la une** → **Top story** · traduit
+  - Où : premier article de la liste

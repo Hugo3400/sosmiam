@@ -13,7 +13,7 @@ export function FiltresRubriquesActus({ choisie, onChoisir, T }: Props) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      accessibilityLabel={T.filtres.lu}
+      accessibilityLabel={T.filtresLu}
       contentContainerClassName="gap-2 px-4 pb-2.5 pt-1.5"
     >
       {CHOIX.map((rubrique) => {

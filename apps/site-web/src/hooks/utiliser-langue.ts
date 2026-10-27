@@ -1,13 +1,15 @@
-import { useRouteLoaderData } from "react-router";
+import { createContext, use } from "react";
 
 import { LANGUE_PAR_DEFAUT, type Langue } from "../../../../packages/commun/src/regles/langues.ts";
 
-type DonneesRacine = { langue?: Langue; languesServies?: readonly Langue[] };
+export type LangueDuSite = { langue: Langue; servies: readonly Langue[] };
+
+export const ContexteLangue = createContext<LangueDuSite>({ langue: LANGUE_PAR_DEFAUT, servies: [LANGUE_PAR_DEFAUT] });
 
 export function utiliserLangue(): Langue {
-  return useRouteLoaderData<DonneesRacine>("root")?.langue ?? LANGUE_PAR_DEFAUT;
+  return use(ContexteLangue).langue;
 }
 
 export function utiliserLanguesServies(): readonly Langue[] {
-  return useRouteLoaderData<DonneesRacine>("root")?.languesServies ?? [LANGUE_PAR_DEFAUT];
+  return use(ContexteLangue).servies;
 }

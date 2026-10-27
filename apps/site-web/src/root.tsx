@@ -1,4 +1,4 @@
-import { data, isRouteErrorResponse, Links, Meta, Outlet, redirect, Scripts, ScrollRestoration } from "react-router";
+import { data, isRouteErrorResponse, Links, Meta, Outlet, redirect, Scripts, ScrollRestoration, useRouteLoaderData } from "react-router";
 import type { ReactNode } from "react";
 
 import type { Route } from "./+types/root";
@@ -7,7 +7,7 @@ import { utiliserNonce } from "~/hooks/utiliser-nonce";
 import { GestionnaireConsentement } from "~/composants/cookies/GestionnaireConsentement";
 import { TEXTES_ERREUR_RACINE_PAR_LANGUE } from "~/contenus/erreur-racine";
 import { ecrireCheminLangue } from "~/fonctions/langue/ecrire-chemin-langue";
-import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { ContexteLangue, utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { choisirRedirectionHote } from "~/fonctions/hotes/choisir-redirection-hote";
@@ -64,7 +64,9 @@ export function loader({ request }: Route.LoaderArgs) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const nonce = utiliserNonce();
-  const langue = utiliserLangue();
+  const racine = useRouteLoaderData<typeof loader>("root");
+  const langue = racine?.langue ?? "fr";
+  const servies = racine?.languesServies ?? ["fr"];
   return (
     <html lang={langue}>
       <head>
@@ -75,7 +77,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links nonce={nonce} />
       </head>
       <body>
-        {children}
+        <ContexteLangue value={{ langue, servies }}>{children}</ContexteLangue>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>

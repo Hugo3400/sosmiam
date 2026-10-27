@@ -1,28 +1,11 @@
-import type { RubriqueActus } from "@sos-miam/commun/regles/actus";
+import { LIBELLES_ACTUS } from "@sos-miam/commun/contenus/libelles-actus";
 import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
 import { TEXTES_ACTUS_ANGLAIS } from "~/contenus/anglais/textes-actus";
 
-const RUBRIQUES: Record<RubriqueActus, string> = {
-  portrait: "Portrait d'un lieu",
-  "top-quartier": "Le top 5 du quartier",
-  "bon-plan": "Bon plan du moment",
-  "recit-sortie": "Récit de sortie",
-};
-
-const FILTRES: Record<RubriqueActus, string> = {
-  portrait: "Portraits",
-  "top-quartier": "Tops",
-  "bon-plan": "Bons plans",
-  "recit-sortie": "Récits",
-};
-
 export const TEXTES_ACTUS = {
+  ...LIBELLES_ACTUS,
   onglet: "Actus",
-  rubriques: RUBRIQUES,
-  filtres: { ...FILTRES, tout: "Tout", lu: "Rubriques des Actus" },
-  aLaUne: "À la une",
-  ambassadeur: "Ambassadeur·rice",
-  collaboration: "Collaboration commerciale",
+  filtresLu: "Rubriques des Actus",
   minutes: (n: number) => `${n} min`,
   minutesLecture: (n: number) => `${n} min de lecture`,
   lieux: (n: number) => `${n} lieu${n > 1 ? "x" : ""}`,

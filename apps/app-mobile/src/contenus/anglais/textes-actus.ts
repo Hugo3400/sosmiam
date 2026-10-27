@@ -1,18 +1,11 @@
+import { LIBELLES_ACTUS_ANGLAIS } from "@sos-miam/commun/contenus/anglais/libelles-actus";
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import type { TEXTES_ACTUS } from "~/contenus/textes-actus";
 
 export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
+  ...LIBELLES_ACTUS_ANGLAIS,
   onglet: "News",
-  rubriques: {
-    portrait: "Spotlight on a place",
-    "top-quartier": "Neighbourhood top 5",
-    "bon-plan": "Deal of the moment",
-    "recit-sortie": "Day out",
-  },
-  filtres: { portrait: "Spotlights", "top-quartier": "Tops", "bon-plan": "Deals", "recit-sortie": "Days out", tout: "All", lu: "News sections" },
-  aLaUne: "Top story",
-  ambassadeur: "Ambassador",
-  collaboration: "Collaboration commerciale · paid or gifted partnership",
+  filtresLu: "News sections",
   minutes: (n: number) => `${n} min`,
   minutesLecture: (n: number) => `${n} min read`,
   lieux: (n: number) => `${n} place${n === 1 ? "" : "s"}`,
