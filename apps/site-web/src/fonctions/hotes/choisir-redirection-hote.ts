@@ -2,6 +2,8 @@
 // root.tsx).
 // Aucun import « ~/… » ici : le test (tests/choisir-redirection-hote.test.ts) lance ce fichier directement avec Node.
 
+import { lireLangueChemin } from "../langue/lire-langue-chemin.ts";
+
 /** L'espace ambassadeur (dès 18 ans) a son propre sous-domaine. */
 export const HOTE_AMBASSADEUR = "ambassadeur.sosmiam.fr";
 /** L'espace pro (les lieux gèrent leur fiche) a aussi le sien. */
@@ -96,6 +98,9 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
     // Encodage invalide : on compare tel quel
   }
   cle = cle.toLowerCase().replace(/\/+$/, "") || "/";
+  const { langue, chemin: sansLangue } = lireLangueChemin(cle);
+  const enTete = langue ? `/${langue}` : "";
+  cle = sansLangue;
   const pageEspace = PAGES_ESPACE.includes(cle) || DEBUTS_ESPACE.some((debut) => cle.startsWith(debut));
   const pagePro = PAGES_PRO.includes(cle) || DEBUTS_PRO.some((debut) => cle.startsWith(debut));
   const vers = (hoteCible: string) => ({ adresse: `https://${hoteCible}${page}${suite}`, statut: 301 as const });
@@ -108,11 +113,11 @@ export function choisirRedirectionHote(hote: string, chemin: string): Redirectio
   if (pagePro && nomHote !== HOTE_PRO) return vers(HOTE_PRO);
   if (nomHote === HOTE_SITE) return pageEspace ? vers(HOTE_AMBASSADEUR) : null;
   if (nomHote === HOTE_PRO) {
-    if (cle === "/") return { adresse: `/bienvenue${suite}`, statut: 302 };
+    if (cle === "/") return { adresse: `${enTete}/bienvenue${suite}`, statut: 302 };
     if (pagePro || PAGES_COMPTE.includes(cle) || FICHIERS_MOTEURS.includes(cle)) return null;
     return vers(pageEspace ? HOTE_AMBASSADEUR : HOTE_SITE);
   }
-  if (cle === "/") return { adresse: `/programme${suite}`, statut: 302 };
+  if (cle === "/") return { adresse: `${enTete}/programme${suite}`, statut: 302 };
   if (pageEspace || FICHIERS_MOTEURS.includes(cle)) return null;
   return vers(HOTE_SITE);
 }

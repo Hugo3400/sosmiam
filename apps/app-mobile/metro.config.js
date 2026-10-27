@@ -13,6 +13,7 @@ const remplacementsSansDemo = new Map([
   [path.resolve(__dirname, "src/contenus/publications-exemples.ts"), path.resolve(__dirname, "src/contenus/publications-exemples-production.ts")],
   [path.resolve(__dirname, "src/contenus/photos-avis-demo.ts"), path.resolve(__dirname, "src/contenus/photos-avis-demo-production.ts")],
   [path.resolve(__dirname, "src/contenus/photos-chat-demo.ts"), path.resolve(__dirname, "src/contenus/photos-chat-demo-production.ts")],
+  [path.resolve(__dirname, "src/contenus/actus-exemples.ts"), path.resolve(__dirname, "src/contenus/actus-exemples-production.ts")],
 ]);
 const resoudreAvant = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (contexte, nom, plateforme) => {
