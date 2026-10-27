@@ -36,6 +36,15 @@ export const TEXTES_ACTUS = {
     partage: (titre: string) => `${titre} : à lire dans les Actus de SOS Miam 📰 https://sosmiam.fr/actus`,
     plume: "plume de l'article",
     photoLu: (n: number) => `Photo ${n} de l'article`,
+    signaler: {
+      lien: "Signaler l'article",
+      quoi: "Qu'est-ce que tu signales ?",
+      article: "L'article",
+      reponse: (nom: string) => `La réponse de ${nom}`,
+      sousTitre: (titre: string) => `Article « ${titre} »`,
+      sousTitreReponse: (nom: string) => `Réponse de ${nom}`,
+      fermer: "Fermer",
+    },
   },
 } as const;
 

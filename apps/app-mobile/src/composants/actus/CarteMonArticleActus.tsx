@@ -22,6 +22,7 @@ const PASTILLES = {
   "a-retoucher": "border-encre bg-carte text-encre",
   publie: "border-encre bg-jaune text-nuit",
   refuse: "border-gris bg-ligne text-gris",
+  retire: "border-gris bg-ligne text-gris",
 } as const;
 
 export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onContester }: Props) {
@@ -63,6 +64,14 @@ export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onCont
             {article.retouche.message}
           </Text>
           <Bouton libelle={T.retoucher} petit className="self-start" onPress={onRetoucher} />
+        </>
+      ) : null}
+      {article.statut === "retire" ? (
+        <>
+          <Text className="font-texte text-[13px] leading-5 text-encre">{T.retire}</Text>
+          <Pressable accessibilityRole="button" onPress={onContester} className="min-h-11 justify-center self-start active:opacity-70">
+            <Text className="font-texte-gras text-sm text-encre underline">{T.contester}</Text>
+          </Pressable>
         </>
       ) : null}
       {article.refus ? (

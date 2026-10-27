@@ -7,6 +7,7 @@ const STATUTS: Record<StatutArticleActus, string> = {
   "a-retoucher": "À retoucher",
   publie: "Publié",
   refuse: "Pas publié",
+  retire: "Retiré",
 };
 
 export const TEXTES_MES_ARTICLES_ACTUS = {
@@ -26,6 +27,7 @@ export const TEXTES_MES_ARTICLES_ACTUS = {
   retoucher: "Retoucher",
   refus: (motif: string) => `Motif : ${motif}.`,
   contester: "Contester la décision",
+  retire: "Retiré après un signalement : la modération t'explique pourquoi, et tu peux contester.",
   vide: "Pas encore d'article. Ta première plume t'attend ✍️",
 } as const;
 

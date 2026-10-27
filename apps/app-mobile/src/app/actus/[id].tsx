@@ -8,6 +8,7 @@ import { ActionsArticle } from "~/composants/actus/ActionsArticle";
 import { CommentairesArticle } from "~/composants/actus/CommentairesArticle";
 import { ContenuArticle } from "~/composants/actus/ContenuArticle";
 import { CouvertureArticle } from "~/composants/actus/CouvertureArticle";
+import { LienSignalerArticle } from "~/composants/actus/LienSignalerArticle";
 import { MotDuLieu } from "~/composants/actus/MotDuLieu";
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/textes-actus";
@@ -73,6 +74,8 @@ export default function EcranArticleActus() {
             onAimer={() => void basculerJaime()}
             onEnvoyer={envoyer}
           />
+
+          <LienSignalerArticle articleId={article.id} titre={article.titre} nomLieu={article.lieux[0]?.nom ?? ""} reponses={article.reponsesLieux} />
 
           <CommentairesArticle commentaires={commentaires} auteurId={article.auteur.id} titre={A.commentaires(article.commentaires)} plume={A.plume} />
         </View>

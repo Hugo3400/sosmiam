@@ -36,5 +36,14 @@ export const TEXTES_ACTUS_ANGLAIS: Traduction<typeof TEXTES_ACTUS> = {
     partage: (titre: string) => `${titre}: read it in SOS Miam News 📰 https://sosmiam.fr/actus`,
     plume: "wrote the story",
     photoLu: (n: number) => `Photo ${n} of the story`,
+    signaler: {
+      lien: "Report this story",
+      quoi: "What are you reporting?",
+      article: "The story",
+      reponse: (nom: string) => `The reply from ${nom}`,
+      sousTitre: (titre: string) => `Story “${titre}”`,
+      sousTitreReponse: (nom: string) => `Reply from ${nom}`,
+      fermer: "Close",
+    },
   },
 };

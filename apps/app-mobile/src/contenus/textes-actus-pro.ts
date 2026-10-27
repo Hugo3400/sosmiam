@@ -6,6 +6,7 @@ const REPONSES: Record<StatutReponseLieuActus, string> = {
   "en-relecture": "Ta réponse est en relecture par la Brigade.",
   publie: "Ta réponse est publiée sous l'article.",
   refuse: "Ta réponse n'a pas été publiée.",
+  retire: "Ta réponse a été retirée après un signalement.",
 };
 
 export const TEXTES_ACTUS_PRO = {

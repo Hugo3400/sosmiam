@@ -13,6 +13,7 @@ export const TEXTES_ACTUS_PRO_ANGLAIS: Traduction<typeof TEXTES_ACTUS_PRO> = {
     "en-relecture": "Your reply is being checked by the Brigade.",
     publie: "Your reply is live under the story.",
     refuse: "Your reply wasn't published.",
+    retire: "Your reply was taken down after a report.",
   },
   motif: (motif: string) => `Reason: ${motif}.`,
   reecrire: "Write a new reply",
