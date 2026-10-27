@@ -1,4 +1,7 @@
-import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
+import { type RouteConfig, index, layout, prefix, route } from "@react-router/dev/routes";
+
+const enAnglais = (fichier: string) => ({ id: `en/${fichier.replace(/\.tsx?$/, "")}` });
+const anglaise = (chemin: string, fichier: string) => route(chemin, fichier, enAnglais(fichier));
 
 // Liste des adresses du site. Chaque page a son fichier dans src/routes/<espace>/.
 export default [
@@ -133,6 +136,32 @@ export default [
   route(".well-known/apple-app-site-association", "routes/ressources/association-apple.ts"),
   route(".well-known/assetlinks.json", "routes/ressources/liens-android.ts"),
   route(".well-known/security.txt", "routes/ressources/fichier-security-txt.ts"),
+  ...prefix("en", [
+    layout("routes/public/mise-en-page-publique.tsx", enAnglais("routes/public/mise-en-page-publique.tsx"), [
+      index("routes/public/accueil.tsx", enAnglais("routes/public/accueil.tsx")),
+      anglaise("faq", "routes/public/faq.tsx"),
+      anglaise("inscrire-mon-lieu", "routes/public/inscrire-mon-lieu.tsx"),
+      anglaise("carriere", "routes/public/carriere.tsx"),
+      anglaise("carriere/:id", "routes/public/offre-carriere.tsx"),
+      anglaise("securite", "routes/public/securite.tsx"),
+      anglaise("lieux", "routes/public/lieux.tsx"),
+    ]),
+    layout("routes/public/mise-en-page-legale.tsx", enAnglais("routes/public/mise-en-page-legale.tsx"), [
+      anglaise("mentions-legales", "routes/public/mentions-legales.tsx"),
+      anglaise("confidentialite", "routes/public/confidentialite.tsx"),
+      anglaise("cookies", "routes/public/cookies.tsx"),
+      anglaise("cgu", "routes/public/cgu.tsx"),
+      anglaise("age", "routes/public/age.tsx"),
+      anglaise("accessibilite", "routes/public/accessibilite.tsx"),
+      anglaise("prevention", "routes/public/prevention.tsx"),
+      anglaise("statistiques", "routes/public/statistiques.tsx"),
+    ]),
+    layout("routes/ambassadeur/mise-en-page-ambassadeur.tsx", enAnglais("routes/ambassadeur/mise-en-page-ambassadeur.tsx"), [
+      anglaise("programme", "routes/ambassadeur/programme.tsx"),
+    ]),
+    layout("routes/pro/mise-en-page-pro.tsx", enAnglais("routes/pro/mise-en-page-pro.tsx"), [anglaise("bienvenue", "routes/pro/bienvenue.tsx")]),
+    anglaise("*", "routes/public/introuvable.tsx"),
+  ]),
   // Toute autre adresse : « Page introuvable » (404). Sans cette route, une adresse inconnue ne passe par aucun
   // middleware de root.tsx (ni le partage des hôtes, ni les statistiques) : React Router répond 404 avant eux.
   // Elle reste la DERNIÈRE de la liste (tests/route-introuvable.test.ts).

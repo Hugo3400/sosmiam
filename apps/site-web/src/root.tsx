@@ -1,13 +1,18 @@
-import { isRouteErrorResponse, Links, Meta, Outlet, redirect, Scripts, ScrollRestoration } from "react-router";
+import { data, isRouteErrorResponse, Links, Meta, Outlet, redirect, Scripts, ScrollRestoration } from "react-router";
 import type { ReactNode } from "react";
 
 import type { Route } from "./+types/root";
 import { utiliserFocusApresNavigation } from "~/hooks/utiliser-focus-apres-navigation";
 import { utiliserNonce } from "~/hooks/utiliser-nonce";
 import { GestionnaireConsentement } from "~/composants/cookies/GestionnaireConsentement";
+import { TEXTES_ERREUR_RACINE_PAR_LANGUE } from "~/contenus/erreur-racine";
+import { ecrireCheminLangue } from "~/fonctions/langue/ecrire-chemin-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { choisirRedirectionHote } from "~/fonctions/hotes/choisir-redirection-hote";
 import { lireEtatConsentement } from "~/services/consentement.server";
+import { lireLangueRequete } from "~/services/langue.server";
 import { signalerVue } from "~/services/mesure.server";
 // Polices hébergées par le site lui-même (pas d'appel à Google Fonts)
 import "@fontsource-variable/inter";
@@ -32,6 +37,13 @@ export const middleware: Route.MiddlewareFunction[] = [
     const redirection = choisirRedirectionHote(url.hostname, `${url.pathname}${url.search}`);
     if (redirection) throw redirect(redirection.adresse, redirection.statut);
   },
+  async ({ request }, suite) => {
+    const { servie, negociee } = lireLangueRequete(request);
+    if (!servie) throw data(null, { status: 404 });
+    const reponse = await suite();
+    if (negociee && reponse instanceof Response) reponse.headers.append("Vary", "Accept-Language, Cookie");
+    return reponse;
+  },
   // Statistiques de visite, sans cookie : chaque page servie est signalée à l'API (voir services/mesure.server.ts)
   async ({ request }, suite) => {
     const debut = performance.now();
@@ -46,13 +58,15 @@ export const middleware: Route.MiddlewareFunction[] = [
  * pas, et le choix du cookie « sosmiam-consentement » (services/consentement.server.ts).
  */
 export function loader({ request }: Route.LoaderArgs) {
-  return { consentement: lireEtatConsentement(request) };
+  const { langue, servies } = lireLangueRequete(request);
+  return { consentement: lireEtatConsentement(request), langue, languesServies: servies };
 }
 
 export function Layout({ children }: { children: ReactNode }) {
   const nonce = utiliserNonce();
+  const langue = utiliserLangue();
   return (
-    <html lang="fr">
+    <html lang={langue}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -81,13 +95,13 @@ export default function App({ loaderData }: Route.ComponentProps) {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let titre = "Oups, une erreur";
-  let details = "Quelque chose s'est mal passé. Réessaie dans un instant.";
+  const T = utiliserTextes(TEXTES_ERREUR_RACINE_PAR_LANGUE);
+  const langue = utiliserLangue();
+  let { titre, details } = T.erreur;
   let pile: string | undefined;
 
   if (isRouteErrorResponse(error) && error.status === 404) {
-    titre = "Page introuvable";
-    details = "Cette page s'est fait la malle. Reviens à l'accueil pour trouver ta prochaine table.";
+    ({ titre, details } = T.introuvable);
   } else if (import.meta.env.DEV && error instanceof Error) {
     details = error.message;
     pile = error.stack;
@@ -95,14 +109,14 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
 
   return (
     <>
-      <title>{`${titre} — SOS Miam`}</title>
+      <title>{`${titre}${T.suffixeTitre}`}</title>
       <meta name="robots" content="noindex" />
       <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-start justify-center gap-4 px-4">
         <Mascotte expression="surprise" className="h-28 w-28" />
         <h1 className="text-4xl font-extrabold">{titre}</h1>
         <p className="text-gris">{details}</p>
-        <a href="/" className="rounded-full border-2 border-encre bg-jaune px-6 py-3 font-semibold shadow-brut">
-          Retour à l'accueil
+        <a href={ecrireCheminLangue("/", langue)} className="rounded-full border-2 border-encre bg-jaune px-6 py-3 font-semibold shadow-brut">
+          {T.retour}
         </a>
         {pile && <pre className="w-full overflow-x-auto rounded-xl bg-creme p-4 text-xs"><code>{pile}</code></pre>}
       </main>
