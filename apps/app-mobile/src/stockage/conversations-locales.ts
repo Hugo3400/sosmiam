@@ -1,33 +1,14 @@
-// Chat entre potes (démo) gardé sur le téléphone en attendant l'API : les conversations, et les photos et notes vocales
-// rangées dans les fichiers de l'app (dossier « chat »). Sur le web (aperçu), on garde l'adresse donnée par le navigateur.
-// Sur le téléphone, un message ne garde que « chat/<nom du fichier> » : iOS peut changer le dossier de l'app (mise à jour de l'app
+// Les photos et notes vocales du chat entre potes rangées dans les fichiers de l'app (dossier « chat »), et l'ancienne copie
+// des conversations gardée sur le téléphone avant l'API, effacée avec elles. Sur le web (aperçu), on garde l'adresse donnée
+// par le navigateur. Sur le téléphone, un message ne garde que « chat/<nom du fichier> » : iOS peut changer le dossier de l'app (mise à jour de l'app
 // ou d'Expo Go), on refait donc l'adresse complète à chaque affichage.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory, File, Paths } from "expo-file-system";
 import { Platform } from "react-native";
 
-import type { Conversation } from "@sos-miam/commun/types/conversations";
-
 const CLE = "sosmiam.conversations";
 const DOSSIER = "chat";
 const surLeWeb = Platform.OS === "web";
-
-/** Lit les conversations gardées sur le téléphone (null si rien, ou illisible : la démo repart alors de zéro). */
-export async function lireConversationsLocales(): Promise<Conversation[] | null> {
-  try {
-    const brut = await AsyncStorage.getItem(CLE);
-    if (!brut) return null;
-    const lu: unknown = JSON.parse(brut);
-    return Array.isArray(lu) ? (lu as Conversation[]) : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Enregistre les conversations sur le téléphone. */
-export async function enregistrerConversationsLocales(conversations: Conversation[]): Promise<void> {
-  await AsyncStorage.setItem(CLE, JSON.stringify(conversations));
-}
 
 /**
  * Range une photo ou une note vocale (fichier temporaire) dans le dossier « chat » de l'app et renvoie ce que garde le message :

@@ -24,7 +24,7 @@ export type ResultatInvitationGroupeChat = "ok" | "plein" | "interdit" | "compte
 export type ResultatPhotoGroupeChat = "ok" | "interdit" | "plein" | "reseau";
 
 export type EtatConversations = {
-  /** D'où vient le chat : la démo (le téléphone), le serveur (compte connecté), ou rien (visite, attente) */
+  /** D'où vient le chat : le serveur (compte connecté), ou rien (visite, attente) */
   source: SourceSociale;
   pret: boolean;
   /** Tes conversations (privées et groupes), la plus récente d'abord, sans les personnes bloquées */

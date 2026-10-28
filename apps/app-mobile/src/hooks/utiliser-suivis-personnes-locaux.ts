@@ -5,9 +5,7 @@ import { estComptePrive } from "@sos-miam/commun/regles/est-compte-prive";
 import { peutSuivre } from "@sos-miam/commun/regles/peut-suivre";
 import { CONFIDENTIALITE_PAR_DEFAUT } from "@sos-miam/commun/regles/suivis";
 import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
-import { creerSuivisDemo, DEMANDE_APRES_PASSAGE_PRIVE, reactionsExemples } from "~/contenus/suivis-exemples";
 import { estAjouteEnVrai } from "~/fonctions/communaute/est-ajoute-en-vrai";
-import { appliquerReactionDemo, type ReactionDemo } from "~/fonctions/suivi/appliquer-reaction-demo";
 import { construireCibleSuivi } from "~/fonctions/suivi/construire-cible-suivi";
 import { convertirLiensEnPersonnes } from "~/fonctions/suivi/convertir-liens-en-personnes";
 import { creerLienSuivi } from "~/fonctions/suivi/creer-lien-suivi";
@@ -19,19 +17,17 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
-import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import type { EtatSuivisPersonnes, RelationPersonne, ResultatSuivre } from "~/hooks/utiliser-suivis-personnes";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { effacerSuivisPersonnesLocaux, enregistrerSuivisPersonnesLocaux, lireSuivisPersonnesLocaux, type SuivisPersonnesLocaux } from "~/stockage/suivis-personnes-locaux";
 
 type NomListe = "abonnements" | "demandesEnvoyees" | "abonnes" | "demandesRecues";
 
 const AUCUNE_CLE: readonly string[] = [];
 const contient = (liens: LienSuivi[], id: string) => liens.some((l) => l.id === id);
-/** Hors démo, au départ : aucun lien, compte public (à changer dans tes réglages) */
+/** Au départ : aucun lien, compte public (à changer dans tes réglages) */
 const creerSuivisVides = (): Omit<SuivisPersonnesLocaux, "version" | "profilCreeLe"> => ({
   confidentialite: CONFIDENTIALITE_PAR_DEFAUT,
   abonnements: [],
@@ -45,10 +41,10 @@ const AUCUNE_SUITE = { abonnes: false, abonnements: false } as const;
 const rienAFaire = () => {};
 
 /**
- * Abonnés, abonnements et demandes entre personnes, gardés sur le téléphone (démo et visite ; un compte connecté passe par
+ * Abonnés, abonnements et demandes entre personnes, gardés sur le téléphone (visite ; un compte connecté passe par
  * utiliserSuivisPersonnesCompte). Les règles s'appliquent ici, pas seulement à l'écran : peutSuivre au moment de suivre, de
- * demander ou d'accepter ; listes filtrées à la lecture (bloqués, inconnus, doublons). Pas de démo sans profil (visite sans
- * compte), ni après « Tout effacer » pour le même profil.
+ * demander ou d'accepter ; listes filtrées à la lecture (bloqués, inconnus, doublons). Rien sans profil, ni après « Tout
+ * effacer » pour le même profil.
  */
 export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
   const source = utiliserSourceSociale();
@@ -56,16 +52,14 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
   const activite = utiliserActivite();
   const communaute = utiliserCommunaute();
   const monId = utiliserMonId();
-  const { ajouter } = utiliserNotifications();
   const { lieux: tousLesLieux } = utiliserLieux();
   const { publications: toutesLesPublications } = utiliserPublications();
   const { potes, trouverPote, moyenAjout } = communaute;
   const [etat, setEtat] = useState<SuivisPersonnesLocaux | null>(null);
   const [relu, setRelu] = useState(false);
-  // L'état le plus récent, lu au moment d'un geste ou d'une minuterie (deux appuis rapides ne suivent pas deux fois)
+  // L'état le plus récent, lu au moment d'un geste (deux appuis rapides ne suivent pas deux fois)
   const etatCourant = useRef<SuivisPersonnesLocaux | null>(null);
   const effacePour = useRef<string | null>(null);
-  const minuteries = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const creeLe = profil?.creeLe ?? null;
   const pseudo = profil?.pseudo?.trim() ?? "";
@@ -79,10 +73,8 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
       setEtat(lu);
       setRelu(true);
     });
-    const enCours = minuteries.current;
     return () => {
       actif = false;
-      enCours.forEach(clearTimeout);
     };
   }, []);
 
@@ -94,7 +86,7 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
     if (relu && etat) enregistrerSuivisPersonnesLocaux(etat).catch(() => {});
   }, [relu, etat]);
 
-  /** Change l'état à partir du plus récent ; rien si la démo n'existe pas ou si rien ne change */
+  /** Change l'état à partir du plus récent ; rien s'il n'existe pas encore ou si rien ne change */
   const changer = useCallback((f: (e: SuivisPersonnesLocaux) => SuivisPersonnesLocaux) => {
     const courant = etatCourant.current;
     if (!courant) return;
@@ -104,13 +96,11 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
     setEtat(suivant);
   }, []);
 
-  // Démo créée à la première ouverture d'un profil, jamais pour un profil qu'on vient d'effacer
+  // Créé à la première ouverture d'un profil, jamais pour un profil qu'on vient d'effacer
   useEffect(() => {
     if (!relu || !communaute.pret || creeLe === null || effacePour.current === creeLe) return;
     if (etatCourant.current?.profilCreeLe === creeLe) return;
-    // Hors démo : personne ne te suit encore, et tu ne suis personne
-    const depart = DEMO_VISITES_ACTIVE ? creerSuivisDemo(new Date()) : creerSuivisVides();
-    const neuf: SuivisPersonnesLocaux = { version: 1, profilCreeLe: creeLe, ...depart };
+    const neuf: SuivisPersonnesLocaux = { version: 1, profilCreeLe: creeLe, ...creerSuivisVides() };
     etatCourant.current = neuf;
     setEtat(neuf);
   }, [relu, communaute.pret, creeLe, etat]);
@@ -134,25 +124,7 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
     if (suivant !== etat) changer((e) => (e === etat ? suivant : e));
   }, [pret, etat, contexte, changer]);
 
-  // Démo : une réaction un peu plus tard, revérifiée quand elle arrive (bloqué, ne plus suivre, demande annulée entre-temps…)
-  const plusTard = useCallback(
-    (delai: number, reaction: ReactionDemo) => {
-      const pour = etatCourant.current?.profilCreeLe;
-      minuteries.current.push(
-        setTimeout(() => {
-          const courant = etatCourant.current;
-          if (!courant || courant.profilCreeLe !== pour) return;
-          const { etat: suivant, notification } = appliquerReactionDemo(courant, reaction, contexteCourant.current, new Date().toISOString());
-          if (suivant === courant) return;
-          changer(() => suivant);
-          if (notification) ajouter(notification);
-        }, delai),
-      );
-    },
-    [changer, ajouter],
-  );
-
-  // Sans effet si la personne n'y est pas (deux appuis ne cassent rien), ni avant que la démo de ce profil soit prête
+  // Sans effet si la personne n'y est pas (deux appuis ne cassent rien), ni avant que l'état de ce profil soit prêt
   const retirer = useCallback(
     (liste: NomListe, id: string) => {
       if (pret) changer((e) => (contient(e[liste], id) ? { ...e, [liste]: e[liste].filter((l) => l.id !== id) } : e));
@@ -171,17 +143,14 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
       if (!verdict.permis) return "interdit";
       if (contient(courant.abonnements, id) || contient(courant.demandesEnvoyees, id)) return "deja";
       const lien = creerLienSuivi(id, new Date().toISOString());
-      const reaction = reactionsExemples[id];
       if (verdict.surDemande) {
         changer((e) => ({ ...e, demandesEnvoyees: [...e.demandesEnvoyees, lien] }));
-        if (reaction?.accepteApres !== undefined) plusTard(reaction.accepteApres, { type: "accepte-ta-demande", id });
         return "demande";
       }
       changer((e) => ({ ...e, abonnements: [...e.abonnements, lien] }));
-      if (reaction?.suitEnRetourApres !== undefined && !contient(courant.abonnes, id)) plusTard(reaction.suitEnRetourApres, { type: "suit-en-retour", id });
       return "suivi";
     },
-    [pret, pseudo, changer, plusTard],
+    [pret, pseudo, changer],
   );
 
   const accepterDemande = useCallback(
@@ -210,7 +179,6 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
       if (!pret || !courant || courant.confidentialite === choix) return { acceptees: 0 };
       if (choix === "prive") {
         changer((e) => ({ ...e, confidentialite: "prive" }));
-        plusTard(DEMANDE_APRES_PASSAGE_PRIVE.apres, { type: "demande-a-te-suivre", id: DEMANDE_APRES_PASSAGE_PRIVE.id });
         return { acceptees: 0 };
       }
       // Compte rendu public : les demandes encore valables (ni bloqués ni disparus) deviennent des abonnés, les autres partent sans bruit
@@ -219,12 +187,10 @@ export function utiliserSuivisPersonnesLocaux(): EtatSuivisPersonnes {
       changer((e) => ({ ...e, confidentialite: "public", demandesRecues: [], abonnes: [...e.abonnes, ...acceptees.filter((d) => !contient(e.abonnes, d.id)).map((d) => ({ ...d, depuis: maintenant }))] }));
       return { acceptees: acceptees.length };
     },
-    [pret, changer, plusTard],
+    [pret, changer],
   );
 
   const effacer = useCallback(async () => {
-    minuteries.current.forEach(clearTimeout);
-    minuteries.current.length = 0;
     effacePour.current = creeLe;
     etatCourant.current = null;
     setEtat(null);

@@ -9,7 +9,6 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 import { effacerSessionPerdue, lireSessionPerdue } from "~/stockage/session-perdue";
 
 const fournisseurs: Fournisseur[] = ["apple", "google", "email"];
@@ -24,9 +23,8 @@ const fournisseurs: Fournisseur[] = ["apple", "google", "email"];
 export default function Compte() {
   const router = useRouter();
   const { invite, entrerEnInvite } = utiliserProfil();
-  const { verrouAge, verrouEnLecture, modifier } = utiliserBrouillonInscription();
+  const { verrouAge, verrouEnLecture } = utiliserBrouillonInscription();
   const { connecterAvec, enCours } = utiliserEntreeCompte();
-  const demo = utiliserModeDemo();
   const [entreeEnCours, setEntreeEnCours] = useState(false);
   // Ta session a pris fin sans que tu le demandes : on le dit, une fois, au-dessus des boutons
   const [sessionPerdue, setSessionPerdue] = useState(false);
@@ -39,14 +37,8 @@ export default function Compte() {
   }, []);
   const lienVisite = !invite && !verrouEnLecture && verrouAge === null;
   const choisir = (fournisseur: Fournisseur) => {
-    // Mode démo : un profil gardé sur ce téléphone seulement, jamais de compte sur le serveur
-    if (demo.actif) return continuerEnDemo();
     if (fournisseur === "email") return router.push("/inscription-email");
     void connecterAvec(fournisseur);
-  };
-  const continuerEnDemo = () => {
-    modifier({ connexion: null });
-    router.push("/fais-connaissance");
   };
   // Arrivé directement ici (depuis la visite, qui s'est arrêtée depuis) : le retour mène à la bienvenue
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/bienvenue"));
@@ -87,14 +79,12 @@ export default function Compte() {
         ))}
       </View>
 
-      {demo.actif ? null : (
-        <View className="mt-4 flex-row flex-wrap items-center justify-center gap-x-1">
-          <Text className="font-texte text-base text-gris">Déjà un compte ?</Text>
-          <Pressable accessibilityRole="button" onPress={() => router.push("/connexion")} hitSlop={6} className="min-h-11 justify-center px-1 active:opacity-70">
-            <Text className="font-texte-gras text-base text-encre underline">Me connecter</Text>
-          </Pressable>
-        </View>
-      )}
+      <View className="mt-4 flex-row flex-wrap items-center justify-center gap-x-1">
+        <Text className="font-texte text-base text-gris">Déjà un compte ?</Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/connexion")} hitSlop={6} className="min-h-11 justify-center px-1 active:opacity-70">
+          <Text className="font-texte-gras text-base text-encre underline">Me connecter</Text>
+        </Pressable>
+      </View>
 
       {lienVisite ? (
         <Pressable
@@ -107,30 +97,6 @@ export default function Compte() {
           className="mt-3 min-h-11 items-center justify-center self-center px-4 active:opacity-70"
         >
           <Text className="font-texte-semi text-base text-encre underline">Pas tout de suite, juste jeter un œil 👀</Text>
-        </Pressable>
-      ) : null}
-
-      {demo.possible ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityHint={demo.actif ? "L'app se relance avec les vraies données" : "L'app se relance avec les lieux, les potes et les visites d'exemple"}
-          disabled={demo.enCours}
-          onPress={demo.actif ? demo.sortir : demo.entrer}
-          className="mt-6 flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-carte p-4 active:opacity-70"
-        >
-          <Text className="text-xl">🧪</Text>
-          <Text className="flex-1 font-texte text-[15px] leading-[22px] text-gris">
-            {demo.actif ? (
-              <>
-                <Text className="font-texte-gras text-encre">Mode démo : </Text>tout est inventé, rien ne part sur le serveur.{" "}
-                <Text className="font-texte-gras text-encre underline">{demo.compteDeCote ? `Quitter la démo et revenir sur ${demo.compteDeCote}` : "Quitter la démo"}</Text>
-              </>
-            ) : (
-              <>
-                <Text className="font-texte-gras text-encre underline">Démo</Text> (développement seulement) : des lieux, des potes et des visites d'exemple, sans compte. Ton compte t'attend : tu le retrouves en quittant la démo.
-              </>
-            )}
-          </Text>
         </Pressable>
       ) : null}
 

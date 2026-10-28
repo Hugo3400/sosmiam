@@ -20,7 +20,6 @@ import { TEXTES_THEMES_SAISON_APP_PAR_LANGUE } from "~/contenus/textes-themes-sa
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
-import { utiliserModeDemo } from "~/hooks/utiliser-mode-demo";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
@@ -51,11 +50,9 @@ export default function Parametres() {
   const communaute = utiliserCommunaute();
   const suivisPersonnes = utiliserSuivisPersonnes();
   const effacement = utiliserEffacementLocal();
-  const outilsDemo = effacement.avecDemo;
-  const demo = utiliserModeDemo();
   const { connecte, compte, fermer } = utiliserSession();
   const sourceSociale = utiliserSourceSociale();
-  const avecMessages = sourceSociale === "compte" || sourceSociale === "demo";
+  const avecMessages = sourceSociale === "compte";
   const marges = useSafeAreaInsets();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -104,7 +101,7 @@ export default function Parametres() {
     if (Platform.OS === "web") return void toutEffacer();
     Alert.alert(
       "Tout effacer et recommencer ?",
-      `Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements${outilsDemo ? ", tes réglages de notifications et tes visites de démo" : " et tes réglages de notifications"} vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.`,
+      `Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements et tes réglages de notifications vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.`,
       [
         { text: "Annuler", style: "cancel" },
         { text: "Tout effacer", style: "destructive", onPress: () => void toutEffacer() },
@@ -140,7 +137,7 @@ export default function Parametres() {
           <Interrupteur emoji="🎃" titre={TS.reglageTitre} detail={TS.reglageDetail} valeur={themesSaison} onChanger={changerThemesSaison} />
         </SectionReglages>
 
-        {LANGUES_OUVERTES_APP.length > 1 || demo.possible ? (
+        {LANGUES_OUVERTES_APP.length > 1 || __DEV__ ? (
           <SectionReglages titre={TL.titre} section="parametres-langue" resume={TL.resume[reglageLangue]}>
             <ChoixLangue apercu={!LANGUES_OUVERTES_APP.includes("en")} />
           </SectionReglages>
@@ -210,40 +207,6 @@ export default function Parametres() {
         </SectionReglages>
 
         <SectionTesDonnees connecte={connecte} onEffacer={demanderEffacement} onAnnoncer={annoncer} />
-
-        {demo.possible ? (
-          <SectionReglages titre="Démo">
-            {outilsDemo ? (
-              <LigneReglage
-                emoji="🎬"
-                titre="Coulisses de la démo"
-                detail="Jouer le lieu ou l'ambassadeur, simuler un pépin, tout remettre à zéro"
-                onPress={() => router.push("/reglages/demo")}
-              />
-            ) : null}
-            {/* En démo, pas de compte (donc pas de « Mon compte ») : la connexion par QR se regarde d'ici */}
-            {demo.actif ? (
-              <LigneReglage
-                emoji="📷"
-                titre="Connecter un appareil"
-                detail="La connexion par QR code, en démo : rien ne part sur le serveur"
-                onPress={() => router.push("/reglages/connecter-appareil")}
-              />
-            ) : null}
-            <LigneReglage
-              emoji="🧪"
-              titre={demo.actif ? (demo.compteDeCote ? "Quitter la démo et revenir sur mon compte" : "Quitter la démo") : "Passer en mode démo"}
-              detail={
-                demo.actif
-                  ? demo.compteDeCote
-                    ? `Tu retrouves ${demo.compteDeCote} directement, sans te reconnecter (ce que la démo a gardé est effacé)`
-                    : "L'app se relance avec les vraies données (ce que la démo a gardé est effacé)"
-                  : "Lieux, potes et visites d'exemple (développement seulement). Ton compte est mis de côté : tu le retrouves en quittant la démo"
-              }
-              onPress={demo.actif ? demo.sortir : demo.entrer}
-            />
-          </SectionReglages>
-        ) : null}
 
         {version ? <Text className="text-center font-texte text-xs text-gris">SOS Miam · version {version}</Text> : null}
       </EcranReglage>

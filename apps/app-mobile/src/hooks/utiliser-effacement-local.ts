@@ -7,20 +7,16 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-import { oublierReglagesDemo } from "~/services/demo/reglages-demo-vivants";
 import { effacerBrouillonActus } from "~/stockage/brouillon-actus";
 import { effacerBrouillonsChat } from "~/stockage/brouillons-chat";
 import { effacerEnviesMiamis } from "~/stockage/envies-miamis";
 import { effacerModeApp } from "~/stockage/mode-app";
-import { effacerRolesDemo } from "~/stockage/roles-demo";
 import { effacerSectionsDepliees } from "~/stockage/sections-depliees";
-import { effacerSignalementsLocaux } from "~/stockage/signalements-locaux";
 
 /**
  * Efface tout ce que l'app garde sur ce téléphone (profil, activité, potes, messages, abonnés, notifications, signalements,
- * démo des visites, mode) : « Effacer mes données », la déconnexion et la suppression du compte. L'app repart alors toute
+ * mode) : « Effacer mes données », la déconnexion et la suppression du compte. L'app repart alors toute
  * seule à la bienvenue. Rend vrai si tout est effacé.
  */
 export function utiliserEffacementLocal() {
@@ -32,8 +28,6 @@ export function utiliserEffacementLocal() {
   const notifications = utiliserNotifications();
   const telephone = utiliserAppareilPush();
   const { oublier: oublierPosition } = utiliserPositionActuelle();
-  // Les outils de la démo des visites (en développement seulement) ; null dans une version publiée
-  const outilsDemo = utiliserOutilsDemo();
   const [enCours, setEnCours] = useState(false);
   const occupe = useRef(false);
 
@@ -49,18 +43,10 @@ export function utiliserEffacementLocal() {
       await conversations.effacer();
       await effacerBrouillonsChat();
       await effacerBrouillonActus();
-      // Avant le profil : sans lui, la démo des abonnés et des notifications ne se recrée pas
       await suivisPersonnes.effacer();
       await notifications.effacer();
-      await effacerSignalementsLocaux();
       await effacerEnviesMiamis();
       await telephone.effacerReglages();
-      // La démo des visites : visites, tampons, réservations et avis de démo, rôles joués, réglages des Coulisses
-      if (outilsDemo) {
-        await outilsDemo.remettreAZero();
-        await oublierReglagesDemo();
-        await effacerRolesDemo();
-      }
       await effacerModeApp();
       await effacerSectionsDepliees();
       // En dernier : sans profil, l'app repart toute seule à la bienvenue
@@ -74,5 +60,5 @@ export function utiliserEffacementLocal() {
     }
   }
 
-  return { toutEffacer, enCours, avecDemo: outilsDemo !== null };
+  return { toutEffacer, enCours };
 }

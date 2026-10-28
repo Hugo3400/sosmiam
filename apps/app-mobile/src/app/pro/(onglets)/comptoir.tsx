@@ -24,7 +24,6 @@ import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserComptoir } from "~/hooks/utiliser-comptoir";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
-import { utiliserOutilsDemo } from "~/hooks/utiliser-services";
 
 const nomDe = (d: { prenom: string; initialeNom: string | null }) => (d.initialeNom ? `${d.prenom} ${d.initialeNom}.` : d.prenom);
 
@@ -37,7 +36,6 @@ export default function EcranComptoir() {
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { lieuPro } = utiliserModes();
-  const demo = utiliserOutilsDemo() !== null;
   const comptoir = utiliserComptoir(lieuPro?.id ?? null);
   const { etat } = comptoir;
   const [maintenant, setMaintenant] = useState(() => new Date());

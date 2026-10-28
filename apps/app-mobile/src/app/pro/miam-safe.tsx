@@ -14,7 +14,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
-import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserServices } from "~/hooks/utiliser-services";
 import { oublierMiamSafeLieu } from "~/services/memoire-miam-safe-lieux";
 
 type Geste = "signer" | "quitter";
@@ -34,7 +34,6 @@ export default function EcranMiamSafePro() {
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
   const { miamSafe } = utiliserServices();
-  const demo = utiliserOutilsDemo() !== null;
   const lieuId = lieuPro?.id ?? null;
   const gerant = lieuPro?.role === "gerant";
   const [charte, setCharte] = useState<CharteMiamSafe | null | undefined>(undefined);

@@ -15,7 +15,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
-import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserServices } from "~/hooks/utiliser-services";
 import { ACTUS_VISIBLES } from "~/services/actus-visibles";
 
 /** « 5 visites → un tiramisu maison », ou l'invitation à en créer une */
@@ -52,7 +52,6 @@ export default function EcranMonLieu() {
   const router = useRouter();
   const { lieuPro } = utiliserModes();
   const { comptoir, miamSafe } = utiliserServices();
-  const demo = utiliserOutilsDemo() !== null;
   const [programme, setProgramme] = useState<ProgrammeFidelite | null | undefined>(undefined);
   const [carte, setCarte] = useState<CarteLieu | null | undefined>(undefined);
   const [charte, setCharte] = useState<CharteMiamSafe | null | undefined>(undefined);

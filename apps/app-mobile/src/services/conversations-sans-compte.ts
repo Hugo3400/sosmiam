@@ -1,0 +1,45 @@
+import type { EtatConversations } from "~/hooks/utiliser-conversations";
+import { effacerConversationsLocales } from "~/stockage/conversations-locales";
+
+const RIEN_A_SUIVRE = () => () => {};
+const AUCUN_EN_PAUSE: ReadonlySet<string> = new Set();
+
+export const CONVERSATIONS_SANS_COMPTE: EtatConversations = {
+  source: "visite",
+  pret: true,
+  conversations: [],
+  trouverConversation: () => null,
+  nonLus: 0,
+  nonLusDe: () => 0,
+  peutDiscuterAvec: () => false,
+  ouvrirPrive: async () => null,
+  creerGroupe: async () => ({ erreur: "participants" }),
+  invitations: [],
+  repondreInvitation: async () => false,
+  suivreFil: RIEN_A_SUIVRE,
+  chargerPlusAnciens: () => {},
+  renvoyer: () => {},
+  envoisEnPause: AUCUN_EN_PAUSE,
+  retirerEnPause: () => {},
+  couper: () => {},
+  effacerPourMoi: () => {},
+  supprimerMessage: () => {},
+  envoyerTexte: () => "interdit",
+  modifierMessage: async () => "non-modifiable",
+  epingler: async () => "reseau",
+  envoyerLieu: () => "interdit",
+  envoyerPhotos: async () => "interdit",
+  envoyerVocal: async () => "interdit",
+  envoyerGif: () => "interdit",
+  chercherGifs: async () => ({ erreur: "indisponible" }),
+  envoyerSondage: () => "interdit",
+  voterSondage: async () => "clos",
+  renommerGroupe: async () => "interdit",
+  inviterAuGroupe: async () => "interdit",
+  changerPhotoGroupe: async () => "interdit",
+  listerPartages: async () => null,
+  basculerReaction: () => {},
+  marquerLu: () => {},
+  quitterGroupe: () => {},
+  effacer: effacerConversationsLocales,
+};

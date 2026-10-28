@@ -36,7 +36,7 @@ import { utiliserJoursFermesPro } from "~/hooks/utiliser-jours-fermes-pro";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserReponsesReservationsPro } from "~/hooks/utiliser-reponses-reservations-pro";
-import { utiliserOutilsDemo, utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserServices } from "~/hooks/utiliser-services";
 
 export default function EcranReservationsPro() {
   const couleurs = utiliserCouleurs();
@@ -45,7 +45,6 @@ export default function EcranReservationsPro() {
   const focus = useIsFocused();
   const { lieuPro } = utiliserModes();
   const { comptoir } = utiliserServices();
-  const demo = utiliserOutilsDemo() !== null;
   const { maintenantMs, recaler } = utiliserHorlogeMinute();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
