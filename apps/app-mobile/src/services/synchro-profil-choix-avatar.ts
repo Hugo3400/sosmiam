@@ -1,7 +1,6 @@
 import type { Profil } from "@sos-miam/commun/types/profil";
 import { lireAvatarPhoto } from "@sos-miam/commun/validation/lire-avatar-photo";
 import { lireAvatarPublic } from "~/fonctions/compte/lire-avatar-public";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { oublierMarques, type EtatPhotoSynchro, type Memoire } from "~/services/synchro-profil-memoire";
 import { AVATAR_PAR_DEFAUT, type Avatar } from "~/stockage/avatar-local";
 import type { ChampSynchro, SynchroProfil } from "~/stockage/synchro-profil";
@@ -22,7 +21,7 @@ type OutilsChoix = {
 type EtatAvant = Pick<SynchroProfil, "aEnvoyer" | "retraitPhoto">;
 
 export function creerChoixAvatar(o: OutilsChoix) {
-  const partageable = () => o.lireProfil() !== null && !DEMO_VISITES_ACTIVE;
+  const partageable = () => o.lireProfil() !== null;
 
   function retirerMarqueAvatar(m: Memoire) {
     if (!m.etat.aEnvoyer.some((x) => x.champ === "avatar")) return;

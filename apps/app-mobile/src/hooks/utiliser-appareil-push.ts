@@ -6,13 +6,12 @@ import { demanderAutorisationNotifications } from "~/fonctions/notifications/dem
 import { lireJetonTelephone } from "~/fonctions/notifications/lire-jeton-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { creerTelephoneNotifications } from "~/services/telephone-notifications";
 import { lireCleApercuPourServeur } from "~/stockage/cle-apercu";
 
 /**
  * Le téléphone et les notifications : l'inscrire sur le serveur (jeton natif, plateforme, ta ville ; lié à ton compte si tu
- * es connecté) ou l'en retirer. Rien en démo (pas de serveur).
+ * es connecté) ou l'en retirer.
  */
 export function utiliserAppareilPush() {
   const { client, connecte } = utiliserSession();
@@ -24,7 +23,6 @@ export function utiliserAppareilPush() {
       creerTelephoneNotifications({
         appareils: creerAppareilsApi(client),
         ville,
-        demo: DEMO_VISITES_ACTIVE,
         plateforme: Platform.OS,
         lireJeton: lireJetonTelephone,
         demanderAutorisation: demanderAutorisationNotifications,

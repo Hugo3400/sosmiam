@@ -1,10 +1,8 @@
 import { clientApiSignalements } from "~/services/client-api-signalements";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { lireSignalementsAEnvoyer, remplacerSignalementsAEnvoyer } from "~/stockage/signalements-a-envoyer";
 
 /** Au lancement : renvoie les signalements restés sur le téléphone faute de réseau ; ceux qui ne partent toujours pas attendent. */
 export async function renvoyerSignalementsEnAttente(): Promise<void> {
-  if (DEMO_VISITES_ACTIVE) return;
   const enAttente = await lireSignalementsAEnvoyer();
   if (enAttente.length === 0) return;
   const restants = [];

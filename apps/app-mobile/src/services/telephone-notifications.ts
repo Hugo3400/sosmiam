@@ -10,7 +10,6 @@ import { effacerReglagesNotifications, lireReglagesNotifications } from "~/stock
 type OutilsTelephone = {
   appareils: ServiceAppareils;
   ville: string | null;
-  demo: boolean;
   plateforme: string;
   lireJeton: () => Promise<LectureJetonTelephone>;
   demanderAutorisation: () => Promise<void>;
@@ -24,7 +23,6 @@ export function creerTelephoneNotifications(o: OutilsTelephone) {
     envoyerChoixTelephone(
       choix,
       {
-        demo: o.demo,
         ville: o.ville,
         plateforme: o.plateforme,
         lireActives: async () => (await lireReglagesNotifications()).actives,
@@ -45,7 +43,6 @@ export function creerTelephoneNotifications(o: OutilsTelephone) {
     couper: () => choisir("couper"),
     renvoyer: () => renvoi.renvoyer(envoyer),
     async inscrire() {
-      if (o.demo) return;
       await o.demanderAutorisation();
       const reglages = await lireReglagesNotifications();
       await choisir(deduireChoixTelephone(reglages.actives, reglages.types.offre));

@@ -3,7 +3,6 @@ import { useEffect, useRef } from "react";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { poserSessionPerdue } from "~/stockage/session-perdue";
 
 /**
@@ -20,7 +19,7 @@ export function utiliserFinDeSession(): void {
   const enCours = useRef(false);
 
   useEffect(() => {
-    if (DEMO_VISITES_ACTIVE || !session.pret || chargement) return;
+    if (!session.pret || chargement) return;
     const lancement = auLancement.current;
     auLancement.current = false;
     if (enCours.current || !profil || session.connecte) return;

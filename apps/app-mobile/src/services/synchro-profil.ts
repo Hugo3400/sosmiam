@@ -16,7 +16,6 @@ import { preparerModificationsProfil } from "~/fonctions/compte/preparer-modific
 import { sontProfilsIdentiques } from "~/fonctions/compte/sont-profils-identiques";
 import { trierRefusProfil } from "~/fonctions/compte/trier-refus-profil";
 import type { ChangementsInfos, ResultatInfos } from "~/hooks/utiliser-profil";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { creerExplicationPseudo } from "~/services/synchro-profil-pseudo";
 import { creerCopieAvatar } from "~/services/synchro-profil-avatar";
 import { creerChoixAvatar } from "~/services/synchro-profil-choix-avatar";
@@ -56,7 +55,7 @@ export type OutilsSynchro = {
 /**
  * Le moteur de la synchro du profil d'un compte connecté (branché par utiliserSynchroProfil) : une seule demande à la fois
  * (le couloir : Mes infos attend la fin d'un envoi en cours), les écritures du profil l'une après l'autre (le verrou : une
- * fusion ne passe jamais sur des envies cochées pendant le voyage). Démo : tout reste sur le téléphone.
+ * fusion ne passe jamais sur des envies cochées pendant le voyage).
  */
 export function creerMoteurSynchroProfil(o: OutilsSynchro) {
   // Le profil à jour, même entre deux rendus (celui de l'écran le suit) ; l'avatar aussi, à part
@@ -382,7 +381,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       generation += 1;
       arreterTout();
     },
-    /** Compte connecté hors démo, avec un profil : la synchro tourne ; sinon, aucune demande */
+    /** Compte connecté, avec un profil : la synchro tourne ; sinon, aucune demande */
     activer(oui: boolean) {
       if (oui === actif) return;
       actif = oui;
@@ -423,8 +422,6 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
     },
     modifierInfos(changements: ChangementsInfos): Promise<ResultatInfos> {
       if (rienAChanger(changements)) return Promise.resolve({ ok: true, parti: true });
-      // Démo : enregistré pour de bon sur le téléphone, rien n'attend le réseau
-      if (DEMO_VISITES_ACTIVE) return ecrireSurTelephone(changements, false).then(() => ({ ok: true, parti: true }));
       if (!actif || !memoire.pret) {
         // Tout début du lancement (session ou état pas encore relus) : le pseudo attend le réseau, le reste attend ici
         if (changements.pseudo !== undefined) return Promise.resolve({ ok: false, refus: "pseudo-sans-reseau" });
@@ -448,7 +445,7 @@ export function creerMoteurSynchroProfil(o: OutilsSynchro) {
       await sousVerrou(async () => {
         const local = lireProfil();
         if (!local) return;
-        if (!DEMO_VISITES_ACTIVE) await marquerAvantEcriture(["envies"]);
+        await marquerAvantEcriture(["envies"]);
         await ecrireProfil({ ...local, envies });
       });
       lancer();

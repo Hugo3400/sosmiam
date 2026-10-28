@@ -9,7 +9,6 @@ import type { ChoixTelephone } from "~/stockage/choix-offres-a-renvoyer";
 const LECTURE_JETON_MAX_MS = 10_000;
 
 type OutilsEnvoiTelephone = {
-  demo: boolean;
   ville: string | null;
   plateforme: string;
   lireActives: () => Promise<boolean>;
@@ -44,7 +43,6 @@ async function retirerTelephone(garde: string | null, o: OutilsEnvoiTelephone, v
 }
 
 export async function envoyerChoixTelephone(choix: ChoixTelephone, o: OutilsEnvoiTelephone, valable: () => boolean = () => true): Promise<IssueEnvoiOffres> {
-  if (o.demo) return "sans-suite";
   const garde = await o.lireJetonGarde();
   if (choix === "couper" || !(await o.lireActives())) return retirerTelephone(garde, o, valable);
   const offres = choix === "oui";
