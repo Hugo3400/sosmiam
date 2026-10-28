@@ -6,9 +6,6 @@ export const TEXTES_MISE_A_JOUR = {
     bouton: "Mettre à jour",
     versionInstallee: "Ta version : {version}",
     annonceLecteurEcran: "Mise à jour nécessaire pour continuer sur SOS Miam",
-    mentionApercu: "Aperçu de la démo : dans la vraie vie, cet écran ne se ferme pas tant que l'app n'est pas à jour.",
-    sortirApercu: "Sortir de l'aperçu",
-    indiceSortirApercu: "Referme l'aperçu et revient aux coulisses de la démo",
   },
   nouvelle: {
     surtitre: "Du nouveau à bord",

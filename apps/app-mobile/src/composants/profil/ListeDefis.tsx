@@ -12,7 +12,7 @@ import { utiliserDefis } from "~/hooks/utiliser-defis";
 const DEFIS_VISIBLES = 2;
 
 /**
- * Les défis du moment, chacun avec son avancée : ceux du serveur avec un compte, ceux d'exemple en démo (utiliserDefis).
+ * Les défis du moment, chacun avec son avancée : ceux du serveur avec un compte (utiliserDefis).
  * Rien tant qu'ils ne sont pas lus ; un mot si aucun n'est publié, ou si la lecture a raté avant d'en avoir montré.
  */
 export function ListeDefis() {

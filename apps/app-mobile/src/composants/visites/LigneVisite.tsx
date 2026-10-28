@@ -56,7 +56,7 @@ function decrireMoment(iso: string): { court: string; lu: string } {
   };
 }
 
-/** Les étiquettes de la visite : points et tampon, où en est l'avis, ce qui n'a pas marché, et « Démo » */
+/** Les étiquettes de la visite : points et tampon, où en est l'avis, et ce qui n'a pas marché */
 function listerPuces(visite: Visite): Puce[] {
   const puces: Puce[] = [];
   const contestation: Puce = { texte: "🔎 Contestée · on regarde", lu: "Contestée : on regarde ça de près", ton: "blanc" };
@@ -99,7 +99,7 @@ function listerPuces(visite: Visite): Puce[] {
 
 /**
  * Une visite, en carte : l'emoji et le nom du lieu, le jour et l'heure (visibles seulement par toi), la façon de valider,
- * puis les étiquettes (« +15 », « Tampon », « Donner mon avis », « Avis donné », « Pas validée · C'est une erreur ? », « Démo »).
+ * puis les étiquettes (« +15 », « Tampon », « Donner mon avis », « Avis donné », « Pas validée · C'est une erreur ? »).
  * Une demande annulée ou endormie reste en retrait. Un seul élément pour VoiceOver, qui lit tout d'une traite.
  */
 export function LigneVisite({ visite, onPress }: Props) {

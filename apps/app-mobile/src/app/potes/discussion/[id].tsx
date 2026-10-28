@@ -111,7 +111,7 @@ export default function EcranDiscussion() {
   const groupe = conversation.type === "groupe";
   const poteId = groupe ? null : (conversation.participants.find((p) => p !== monId) ?? null);
   const pote = poteId ? trouverPote(poteId) : null;
-  // Compte connecté : le serveur dit si tu peux écrire ; démo : membre d'un groupe, ou pote de ta bande en privé
+  // Compte connecté : le serveur dit si tu peux écrire ; sinon : membre d'un groupe, ou pote de ta bande en privé
   const ecriturePermise = conversation.ouverte ?? (groupe || (poteId !== null && conversations.peutDiscuterAvec(poteId)));
   const voirProfil = (qui: string) => {
     setMenuOuvert(false);

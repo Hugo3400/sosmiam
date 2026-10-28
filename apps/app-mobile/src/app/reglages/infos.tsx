@@ -41,7 +41,7 @@ const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible
 const EXPLICATION_DATE_COMPTE = lierPonctuation(
   "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Écris-nous à bonjour@sosmiam.fr, on la corrige avec toi.",
 );
-// Sans compte connecté (la démo), le profil n'existe que sur le téléphone : personne ne peut corriger la date à ta place
+// Sans compte connecté, le profil n'existe que sur le téléphone : personne ne peut corriger la date à ta place
 const EXPLICATION_DATE_TELEPHONE = lierPonctuation(
   "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Ce profil n'existe que sur ton téléphone, on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », dans Paramètres › Tes données (le reste repart aussi à zéro).",
 );
@@ -54,8 +54,7 @@ type RefusAffiche = { champ: "prenom" | "pseudo" | "nom"; valeur: string; texte:
  * Pseudo : mêmes règles qu'à l'inscription. Un profil créé avant Potes n'en a pas : il peut en choisir un (ou s'en faire proposer un),
  * mais une fois choisi, il ne peut plus être vidé. Avec un compte, le serveur fait foi : il dit si le pseudo est libre pendant que
  * tu tapes, et l'enregistrement attend sa réponse (sans réseau, le reste attend sur le téléphone et part tout seul ; un nouveau
- * pseudo, lui, doit être vérifié). Ses refus s'affichent sous la bonne case. En démo, tout reste sur le téléphone (« déjà pris » :
- * les potes d'exemple).
+ * pseudo, lui, doit être vérifié). Ses refus s'affichent sous la bonne case.
  */
 export default function ReglagesInfos() {
   const couleurs = utiliserCouleurs();
@@ -115,7 +114,7 @@ export default function ReglagesInfos() {
         ? PRENOM_INTERDIT
         : (refusPrenom?.texte ?? null);
   const prenomValable = erreurPrenom === null && prenomNettoye.length <= LONGUEUR_MAX_PRENOM;
-  // Sans pseudo, on peut rester sans (profil d'avant Potes) ; en démo, « déjà pris » veut dire le pseudo d'un pote d'exemple
+  // Sans pseudo, on peut rester sans (profil d'avant Potes)
   const erreurPseudoLocale =
     pseudoNettoye === ""
       ? pseudoActuel

@@ -1,7 +1,7 @@
 // L'activité du compte connecté (rescousses, lieux gardés, J'aime, masques, suivis), copie de la dernière réponse de l'API
 // (/app/activite), et les gestes pas encore partis faute de réseau (gardes, J'aime, masques et suivis : jamais de rescousse).
 // Elle sert à ouvrir l'app tout de suite et hors ligne ; l'API fait toujours foi. Effacée dès que le compte n'est plus
-// connecté (déconnexion, session expirée, démo) : une seule clé suffit. Rien de sensible : AsyncStorage suffit.
+// connecté (déconnexion, session expirée) : une seule clé suffit. Rien de sensible : AsyncStorage suffit.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { calculerProchainLundiParis } from "@sos-miam/commun/fonctions/temps/calculer-prochain-lundi-paris";

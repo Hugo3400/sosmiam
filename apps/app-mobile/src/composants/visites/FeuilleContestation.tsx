@@ -27,7 +27,7 @@ type Props = {
 
 type Etape = "ecrire" | "envoi" | "envoyee";
 
-/** Comme le serveur de démo : au-delà, le mot serait coupé */
+/** Comme le serveur : au-delà, le mot serait coupé */
 const MOT_MAX = 500;
 /** Le compteur n'apparaît qu'à l'approche de la limite */
 const COMPTEUR_DES = 400;

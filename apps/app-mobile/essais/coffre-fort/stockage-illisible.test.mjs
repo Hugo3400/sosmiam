@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { lireCodeInvitation } from "~/stockage/code-invitation";
-import { lireCompteDeCote } from "~/stockage/compte-de-cote";
 import { lireProfilLocal } from "~/stockage/profil-local";
 import { lireJetonSession } from "~/stockage/session-compte";
 import * as D from "./banc/donnees.mjs";
@@ -14,7 +13,6 @@ test("AsyncStorage illisible (téléphone verrouillé, fichier abîmé) : rien n
 
   assert.equal(await lireJetonSession(), null);
   assert.equal(await lireProfilLocal(), null);
-  assert.equal(await lireCompteDeCote(), null);
   const code = await lireCodeInvitation();
   assert.notEqual(code, D.CODE_D_AVANT);
   assert.deepEqual(D.effacements(), []);

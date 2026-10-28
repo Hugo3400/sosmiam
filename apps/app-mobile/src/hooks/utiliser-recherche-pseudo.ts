@@ -19,10 +19,9 @@ export type EtatRecherchePseudo = {
 };
 
 /**
- * Chercher quelqu'un par le début de son pseudo (avec ou sans « @ », 2 lettres au moins), le pseudo exact en tête. Démo : dans
- * les potes d'exemple, tout de suite. Compte connecté : POST /app/personnes/recherche, 300 ms après la dernière frappe (le
- * texte part dans le corps, jamais dans l'adresse) ; une réponse arrivée après une frappe plus récente est ignorée. Les
- * personnes bloquées n'apparaissent jamais.
+ * Chercher quelqu'un par le début de son pseudo (avec ou sans « @ », 2 lettres au moins), le pseudo exact en tête. Compte
+ * connecté : POST /app/personnes/recherche, 300 ms après la dernière frappe (le texte part dans le corps, jamais dans
+ * l'adresse) ; une réponse arrivée après une frappe plus récente est ignorée. Les personnes bloquées n'apparaissent jamais.
  */
 export function utiliserRecherchePseudo(texte: string): EtatRecherchePseudo {
   const source = utiliserSourceSociale();

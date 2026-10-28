@@ -23,7 +23,7 @@ export type BrouillonInscription = {
   dateNaissance: string | null;
   ville: string | null;
   envies: Partial<Record<CategorieEnvie, string[]>>;
-  /** null : profil gardé sur le téléphone seulement (démo, ou avant les comptes) */
+  /** null : profil gardé sur le téléphone seulement (avant les comptes) */
   connexion: ConnexionInscription | null;
   /** La case « newsletter » de « C'est prêt » : cochée par défaut, décochable (lue seulement à la création du compte) */
   newsletter: boolean;

@@ -52,13 +52,13 @@ export default function RacineApp() {
     {/* La session du compte (jeton du coffre-fort, compte relu sur le serveur) : au-dessus de tout ce qui s'en sert */}
     <FournisseurSession>
     <FournisseurProfil>
-      {/* L'activité (rescousses, lieux gardés, J'aime, suivis) : celle de la démo sur le téléphone, sinon celle du compte sur
-          l'API. Au-dessus du fil, qui ne compte pas ton J'aime deux fois (le compteur de l'API le compte déjà) */}
+      {/* L'activité (rescousses, lieux gardés, J'aime, suivis) : celle du compte, sur l'API. Au-dessus du fil, qui ne compte
+          pas ton J'aime deux fois (le compteur de l'API le compte déjà) */}
       <FournisseurActivite>
-      {/* Les lieux (exemples en démo, sinon le serveur) : sous le profil, pour les distances depuis ta ville */}
+      {/* Les lieux (du serveur) : sous le profil, pour les distances depuis ta ville */}
       <FournisseurLieux>
       <FournisseurPositionActuelle>
-      {/* Le fil (exemples en démo, sinon le serveur) : vignettes, profils et notifications s'en servent aussi */}
+      {/* Le fil (du serveur) : vignettes, profils et notifications s'en servent aussi */}
       <FournisseurPublications>
       {/* Visite sans compte : la feuille « Crée ton compte » des gestes réservés aux inscrits */}
       <FournisseurInvite>

@@ -40,7 +40,7 @@ const ERREUR_DU_CHAMP: Record<ChampNouvelleSortie, ErreurNouvelleSortie> = {
  * Tes sorties quand un compte est connecté : GET /app/sorties (tes sorties et les « Tu viens ? » en attente), relu quand le
  * pouls dit que les sorties ont bougé. Les gestes (voter, proposer, quitter, retirer) s'affichent tout de suite, puis la
  * sortie rendue par le serveur remplace la nôtre ; une relecture partie avant un geste ne l'efface pas. La discussion de
- * chaque sortie est une conversation (utiliserDiscussionSortie). Inactif (démo, visite, attente) : rien n'est lu.
+ * chaque sortie est une conversation (utiliserDiscussionSortie). Inactif (visite, attente) : rien n'est lu.
  */
 export function utiliserSortiesCompte(actif: boolean, { monId, noterPersonne, estMasque }: Dependances): SortiesCompte {
   const { sociaux } = utiliserSession();
@@ -121,7 +121,7 @@ export function utiliserSortiesCompte(actif: boolean, { monId, noterPersonne, es
     [tant, remplacer, relirePouls, lire],
   );
 
-  // Connexion : tout est lu une fois ; déconnexion (ou démo) : tout est oublié
+  // Connexion : tout est lu une fois ; déconnexion : tout est oublié
   useEffect(() => {
     generation.current += 1;
     gestes.current.clear();

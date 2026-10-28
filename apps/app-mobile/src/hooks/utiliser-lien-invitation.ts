@@ -6,7 +6,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { lireCodeInvitation } from "~/stockage/code-invitation";
 
-// Démo : le code du téléphone, lu une seule fois par ouverture de l'app (partout le même lien)
+// Sans compte : le code du téléphone, lu une seule fois par ouverture de l'app (partout le même lien)
 let lectureLocale: Promise<string> | null = null;
 let codeLocal: string | null = null;
 
@@ -15,14 +15,14 @@ export type EtatLienInvitation = {
   lien: string | null;
   /** Le lien n'a pas pu être lu (réseau, pas encore de pseudo côté serveur) ; null sinon */
   erreur: ErreurService | null;
-  /** « Changer mon lien » (compte connecté) : l'ancien lien et l'ancien QR code ne marchent plus ; null en démo */
+  /** « Changer mon lien » (compte connecté) : l'ancien lien et l'ancien QR code ne marchent plus ; null sans compte */
   changer: (() => Promise<ErreurService | null>) | null;
 };
 
 /**
  * Ton lien d'invitation et le code secret qu'il porte. Compte connecté : créé et gardé chiffré par le serveur, sans date de
- * fin, le même sur tous tes téléphones (GET /app/bande/invitation), et changé d'un geste. Démo : un code tiré une fois et
- * gardé dans le coffre-fort du téléphone, vérifié nulle part.
+ * fin, le même sur tous tes téléphones (GET /app/bande/invitation), et changé d'un geste. Sans compte : un code tiré une
+ * fois et gardé dans le coffre-fort du téléphone, vérifié nulle part.
  */
 export function utiliserLienInvitation(pseudo: string): EtatLienInvitation {
   const source = utiliserSourceSociale();

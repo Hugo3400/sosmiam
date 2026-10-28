@@ -43,7 +43,7 @@ export type EtatConversations = {
    * « reseau » : pas parti, réessaie
    */
   creerGroupe: (titre: string, emoji: string, potes: string[]) => Promise<{ id: string } | { erreur: "titre" | "participants" | "compte-limite" | "reseau" }>;
-  /** Les invitations à rejoindre un groupe qui attendent ta réponse (compte connecté ; vides en démo) */
+  /** Les invitations à rejoindre un groupe qui attendent ta réponse (compte connecté) */
   invitations: InvitationGroupeChat[];
   /** « Rejoindre le groupe ? » : oui (tu vois la suite, pas l'historique) ou non (en silence). Faux si ça n'a pas marché */
   repondreInvitation: (id: string, rejoint: boolean) => Promise<boolean>;
@@ -55,7 +55,7 @@ export type EtatConversations = {
   renvoyer: (conversationId: string, messageId: string) => void;
   /**
    * Les messages (état « echec ») que le serveur a refusés parce que ton compte est limité : pas une panne, ils ne repartent
-   * pas (ni d'eux-mêmes, ni touchés) ; la bulle le dit et ouvre le pourquoi. Vide en démo
+   * pas (ni d'eux-mêmes, ni touchés) ; la bulle le dit et ouvre le pourquoi
    */
   envoisEnPause: ReadonlySet<string>;
   /**
@@ -89,7 +89,7 @@ export type EtatConversations = {
   marquerLu: (conversationId: string) => void;
   /** Quitte un groupe : il disparaît de tes conversations et du téléphone, avec ses photos et notes vocales */
   quitterGroupe: (conversationId: string) => void;
-  /** Efface tout le chat du téléphone (la démo repartira de zéro) */
+  /** Efface tout le chat du téléphone */
   effacer: () => Promise<void>;
 };
 

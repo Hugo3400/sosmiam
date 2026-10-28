@@ -42,14 +42,14 @@ export type EtatProfil = {
   /** Arrête la visite sans compte (retour à l'inscription) */
   quitterInvite: () => Promise<void>;
   /**
-   * Installe un profil complet (inscription, connexion, reprise après la démo) : il vient du serveur ou vient d'y partir,
+   * Installe un profil complet (inscription, connexion) : il vient du serveur ou vient d'y partir,
    * donc rien ne part et les changements en attente sont oubliés. La visite sans compte, s'il y en avait une, s'arrête.
    * Pour changer un profil déjà là, c'est modifierInfos ou modifierEnvies.
    */
   enregistrer: (profil: Profil) => Promise<void>;
   /**
    * Mes infos (prénom, pseudo, nom, ville). Avec un compte, le serveur fait foi : on attend sa réponse (15 s au plus), et
-   * sans réseau, le changement attend sur le téléphone (sauf le pseudo, qui doit être vérifié). En démo : sur le téléphone.
+   * sans réseau, le changement attend sur le téléphone (sauf le pseudo, qui doit être vérifié).
    */
   modifierInfos: (changements: ChangementsInfos) => Promise<ResultatInfos>;
   /** Mes envies : enregistrées tout de suite sur le téléphone ; avec un compte, elles partent ensuite (jamais les régimes) */

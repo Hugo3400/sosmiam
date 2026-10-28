@@ -73,7 +73,7 @@ export function oublierEnvoiChat(uri: string): void {
   }
 }
 
-/** Efface tout le cache des médias du chat (déconnexion, suppression du compte, entrée ou sortie de la démo) */
+/** Efface tout le cache des médias du chat (déconnexion, suppression du compte) */
 export function effacerMediasChatCompte(): void {
   if (surLeWeb) return;
   try {

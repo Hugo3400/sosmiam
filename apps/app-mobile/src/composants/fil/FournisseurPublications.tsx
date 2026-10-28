@@ -28,10 +28,10 @@ function noterAimees(deja: AimeesALaLecture, publications: PublicationApi[], con
 }
 
 /**
- * La source du fil « Pour toi » et de tout ce qui montre une publication (vignettes, profils, notifications). Mode démo :
- * les publications d'exemple. Sinon : celles du serveur (GET /app/publications), page après page, avec la première page
- * gardée sur le téléphone pour s'ouvrir tout de suite et hors ligne. Le compteur de J'aime du serveur compte déjà le tien :
- * chaque page lue note s'il y était (jaimesServeur de l'activité), pour que le fil ne le compte jamais deux fois.
+ * La source du fil « Pour toi » et de tout ce qui montre une publication (vignettes, profils, notifications) : les
+ * publications du serveur (GET /app/publications), page après page, avec la première page gardée sur le téléphone pour
+ * s'ouvrir tout de suite et hors ligne. Le compteur de J'aime du serveur compte déjà le tien : chaque page lue note s'il y
+ * était (jaimesServeur de l'activité), pour que le fil ne le compte jamais deux fois.
  */
 export function FournisseurPublications({ children }: { children: ReactNode }) {
   const { contenu, connecte } = utiliserSession();

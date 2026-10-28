@@ -1,5 +1,5 @@
 /**
- * Qui suit cette personne de la démo : ceux qui la suivent dans le graphe d'exemple, plus toi (monId) si tu la suis.
+ * Qui suit cette personne : ceux qui la suivent dans le graphe, plus toi (monId) si tu la suis.
  * Identifiants seulement : à filtrer ensuite (bloqués, inconnus).
  */
 export function listerAbonnesDe(id: string, graphe: Readonly<Record<string, readonly string[]>>, mesAbonnements: readonly string[], monId: string): string[] {

@@ -181,7 +181,7 @@ export default function Explorer() {
     [lieuxTries, texteRecherche, filtres.type, filtres.ville, filtres.budgets, ouvertA],
   );
   // « À quelques km » sans savoir d'où (ni position, ni ville connue) : aucun lieu n'est près de toi, et ce ne sont pas les
-  // filtres (en démo, les lieux gardent leurs km d'exemple : la liste n'est pas vide pour ça)
+  // filtres
   const fauteDeDepart = zone?.portee === "proche" && zone.centre === null && distancesInconnues;
   const choixZone = useMemo(
     (): ChoixZone => (filtres.ville ? { portee: null, rayonKm: rayon, ville: filtres.ville } : { portee, rayonKm: rayon, ville: null }),

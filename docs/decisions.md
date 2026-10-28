@@ -363,7 +363,7 @@
 - **Masquage immédiat d'un contenu « choquant » sous conditions** : la personne qui signale a un e-mail confirmé, un compte d'au moins 7 jours et aucun signalement rejeté sur ce contenu ; sinon, le contenu reste visible jusqu'à la décision du modérateur.
 - **Compte supprimé** : ses messages restent chez les autres, signés « Compte supprimé », jusqu'à l'effacement de la conversation (1 an sans message) ; ses photos et vocaux suivent la règle des 90 jours.
 
-## Plus de données de démo, sauf avec le bouton « Démo » (décidé le 14 octobre 2026)
+## Plus de données de démo, sauf avec le bouton « Démo » (décidé le 14 octobre 2026, remplacé le 28 octobre 2026 : mode démo retiré)
 - **Par défaut, l'app lit les vraies données** : les lieux publiés (`/app/lieux`, et un lieu seul par `/app/lieux/:id` s'il manque), le fil (`/app/publications`, page après page) et la carte d'un lieu (`/app/lieux/:id/carte`). La dernière liste des lieux et la première page du fil sont gardées sur le téléphone pour s'ouvrir tout de suite et hors ligne.
 - **Rien d'inventé hors démo** : pas de potes, de conversations, d'abonnés, de notifications ni de visites d'exemple. Potes, messages et abonnés démarrent vides en attendant leur API ; ce qu'une ancienne démo avait gardé sur un téléphone est oublié.
 - **Un bouton « Démo »** (écran du compte et Réglages) allume tout le mode démo d'un coup : lieux, fil, potes, visites, rôles pro et ambassadeur d'exemple, faux serveur sur le téléphone, sans compte. Allumer ou quitter la démo efface le téléphone et relance l'app (jamais de mélange entre démo et vraies données). Ton compte n'est pas déconnecté pour autant (demandé par Hugo le 14 octobre 2026) : sa session est mise de côté dans le coffre-fort pendant la démo, et « Quitter la démo et revenir sur <ton e-mail> » le rouvre directement, sans retaper ton mot de passe.
@@ -683,3 +683,9 @@ Maquette validée : https://claude.ai/artifact/Qqza5tYMhEfM4kdsNpFgXc (9 plans).
   - L'auteur peut supprimer son article. Il disparaît pour tout le monde, est gardé 6 mois pour la modération et les réclamations, puis effacé. La Brigade en est prévenue dans le logiciel. L'auteur garde ses points.
   - Pas de rôle ambassadeur pour le compte de revue des stores.
   - Ouverture : sosmiam.fr/actus est ouvert depuis le 27 octobre 2026. L'app ouvre les Actus dans sa version 1.0.3, préparée mais pas encore envoyée en build.
+
+## Mode démo retiré de l'app (décidé par Hugo, fait le 28 octobre 2026)
+- **Plus de mode démo** : le bouton « Démo », les Coulisses, le faux serveur du téléphone, les rôles pro et ambassadeur joués, les lieux, publications, potes, conversations, abonnés, notifications, visites, réservations, défis et articles des Actus d'exemple, et leurs médias (`assets/medias-demo`) sont retirés. L'app lit toujours le serveur ; sans compte, la visite reste vide et ses gestes demandent un compte.
+- **Ce qui n'existait que dans la démo part avec elle** : les étiquettes proposées sur la fiche d'un lieu et le filtre « Étiquette » d'Explorer (l'API ne les a pas encore ; les règles restent dans `packages/commun`), les points et badges comptés sur le téléphone, la connexion par QR code simulée, la fausse position à 30 m d'un lieu, et le « compte mis de côté » pour revenir de la démo.
+- **Ce qui reste en développement seulement** : le choix de la langue, tant que l'anglais n'est pas ouvert (`__DEV__`).
+- Les visites et réservations rendues par l'API n'ont plus de champ `demo` (il valait toujours `false`).

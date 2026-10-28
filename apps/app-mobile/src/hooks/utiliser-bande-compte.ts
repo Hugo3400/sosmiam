@@ -66,7 +66,7 @@ const cle = (cible: CibleMasque, id: string) => `${cible}:${id}`;
 /**
  * Ta bande quand un compte est connecté : tout vient de l'API (/app/social/moi, /app/bande, /app/blocages, /app/masques),
  * relu quand le pouls dit que la bande ou les demandes ont bougé. Les gestes (retirer, bloquer, masquer) s'affichent tout de
- * suite, puis la bande est relue. Inactif (démo, visite, attente) : rien n'est lu, rien n'est gardé.
+ * suite, puis la bande est relue. Inactif (visite, attente) : rien n'est lu, rien n'est gardé.
  */
 export function utiliserBandeCompte(actif: boolean): BandeCompte {
   const { sociaux } = utiliserSession();
@@ -114,7 +114,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
     if (tant(g) && r.ok) setMasques(new Set(r.masques.map((m: MasqueSocial) => cle(m.cible, m.cibleId))));
   }, [sociaux, tant]);
 
-  // Connexion : tout est lu une fois ; déconnexion (ou démo) : tout est oublié
+  // Connexion : tout est lu une fois ; déconnexion : tout est oublié
   useEffect(() => {
     generation.current += 1;
     if (!actif) {

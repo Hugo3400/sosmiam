@@ -13,7 +13,7 @@ const ATTENTE_MS = 600;
 
 /**
  * Le pseudo tapé dans Mes infos est-il libre ? Demandé au serveur (GET /comptes/pseudo-disponible) 600 ms après la dernière
- * frappe, seulement si `aVerifier` (compte connecté hors démo, pseudo changé, de bonne forme et sans gros mot). Une réponse
+ * frappe, seulement si `aVerifier` (compte connecté, pseudo changé, de bonne forme et sans gros mot). Une réponse
  * arrivée après une autre frappe est ignorée ; les réponses sont gardées le temps de l'écran (revenir à un pseudo déjà
  * vérifié ne redemande rien, une réponse ratée non plus). `misDeCote` : ton ancien pseudo retiré par l'équipe (le serveur
  * dit juste « pas libre »).

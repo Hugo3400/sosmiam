@@ -33,7 +33,7 @@ const ERREURS = {
 /**
  * La carte de fidélité du lieu (gérant) : ce qu'il offre, au bout de combien de visites, avec l'aperçu de ce que verront
  * ses clients. Une récompense avec de l'alcool s'affiche avec le message de prévention ; sa version sans alcool est
- * facultative (la fidélité demande un compte : seule la démo la montre, en visite sans compte).
+ * facultative (la fidélité demande un compte).
  */
 export default function EcranFidelitePro() {
   const couleurs = utiliserCouleurs();

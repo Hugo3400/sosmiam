@@ -13,14 +13,10 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserOuvertureStore } from "~/hooks/utiliser-ouverture-store";
 import { VERSION_INSTALLEE } from "~/services/version-installee";
 
-type Props = {
-  onSortirApercu?: () => void;
-};
-
 const T = TEXTES_MISE_A_JOUR.obligatoire;
 const DELAI_FOCUS_TITRE = 700;
 
-export function EcranMiseAJourObligatoire({ onSortirApercu }: Props) {
+export function EcranMiseAJourObligatoire() {
   const marges = useSafeAreaInsets();
   const refTitre = useRef<Text>(null);
   const store = utiliserOuvertureStore();
@@ -51,12 +47,6 @@ export function EcranMiseAJourObligatoire({ onSortirApercu }: Props) {
             ) : null}
           </View>
           {VERSION_INSTALLEE ? <Text className="font-texte text-xs text-gris">{remplirModele(T.versionInstallee, { version: VERSION_INSTALLEE })}</Text> : null}
-          {onSortirApercu ? (
-            <View className="mt-4 w-full max-w-[420px] gap-3 rounded-carte border-2 border-dashed border-encre bg-jaune-clair p-4">
-              <Text className="text-center font-texte text-sm leading-5 text-encre">{lierPonctuation(T.mentionApercu)}</Text>
-              <Bouton libelle={T.sortirApercu} variante="blanc" petit indice={T.indiceSortirApercu} onPress={onSortirApercu} />
-            </View>
-          ) : null}
         </ScrollView>
       </View>
     </CoucheMiseAJour>

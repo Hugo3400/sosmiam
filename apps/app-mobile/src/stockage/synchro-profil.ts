@@ -3,7 +3,7 @@
 // côté, et l'annonce à montrer sur le profil. Rien de sensible : des noms de champs, des pseudos et des avatars publics,
 // jamais le nom, la date de naissance ni la ville (ils restent dans le coffre-fort, avec le profil). AsyncStorage suffit,
 // une seule clé.
-// Effacé avec le profil (déconnexion, suppression, démo) : les marques d'un compte ne suivent jamais le suivant.
+// Effacé avec le profil (déconnexion, suppression) : les marques d'un compte ne suivent jamais le suivant.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**

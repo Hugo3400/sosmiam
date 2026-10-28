@@ -12,7 +12,7 @@ type Props = {
   children?: ReactNode;
 };
 
-/** Le message au milieu de « Décisions de la modération » : aucune décision, lecture ratée, ou pas de compte (démo, visite). */
+/** Le message au milieu de « Décisions de la modération » : aucune décision, lecture ratée, ou pas de compte (visite). */
 export function MessageDecisionsModeration({ emoji, titre, texte, children }: Props) {
   return (
     <View accessibilityLiveRegion="polite" className="items-center gap-2 px-2 py-6">

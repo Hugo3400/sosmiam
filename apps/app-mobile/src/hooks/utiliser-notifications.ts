@@ -6,9 +6,9 @@ import type { PersonneResume } from "@sos-miam/commun/types/social";
 import type { NotificationSuivi, NouvelleNotificationSuivi } from "@sos-miam/commun/types/suivis";
 
 /**
- * Une notification de la cloche du serveur (compte connecté) que la démo ne connaît pas : bande, sorties, groupes, listes,
- * commentaires et modération. « … te suit » et « demande acceptée » gardent la forme de la démo (NotificationSuivi).
- * Le texte est écrit par l'app (decrireNotificationSuivi).
+ * Une notification de la cloche du serveur (compte connecté), d'un type que NotificationSuivi n'a pas : bande, sorties,
+ * groupes, listes, commentaires et modération. « … te suit » et « demande acceptée » gardent la forme de
+ * NotificationSuivi. Le texte est écrit par l'app (decrireNotificationSuivi).
  */
 export type NotificationCloche = {
   type: "cloche";
@@ -21,7 +21,7 @@ export type NotificationCloche = {
   detail: string | null;
 };
 
-/** Ce que montre l'écran Notifications : la démo, plus les types de la cloche du serveur */
+/** Ce que montre l'écran Notifications : NotificationSuivi, plus les types de la cloche du serveur */
 export type NotificationApp = NotificationSuivi | NotificationCloche;
 
 export type ResultatEffacementCloche = { ok: true; effacees: number } | { ok: false; erreur: ErreurService };

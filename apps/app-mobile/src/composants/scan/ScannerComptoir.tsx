@@ -183,7 +183,7 @@ export function ScannerComptoir() {
         {allumee ? <BoutonLampe allumee={lampe} onBasculer={() => setLampe((l) => !l)} /> : null}
       </View>
 
-      {/* En bas : la consigne, l'autre chemin, la démo, ou le message d'échec */}
+      {/* En bas : la consigne, l'autre chemin, ou le message d'échec */}
       <View style={{ position: "absolute", left: 16, right: 16, bottom: marges.bottom + 16 }} className="gap-4">
         {echec ? (
           <View className="rounded-carte border-2 border-encre bg-creme p-4">

@@ -2,27 +2,24 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { lireCodeInvitation } from "~/stockage/code-invitation";
-import { lireCompteDeCote } from "~/stockage/compte-de-cote";
 import { lireProfilLocal } from "~/stockage/profil-local";
 import { enregistrerJetonSession, lireJetonSession } from "~/stockage/session-compte";
 import { lireVerrouAge } from "~/stockage/verrou-age";
 import * as D from "./banc/donnees.mjs";
 
-test("première ouverture après une réinstallation (AsyncStorage vide) : session, compte de côté, code et profil d'avant oubliés avant toute lecture", async () => {
-  const coffre = D.remplirCoffre();
+test("première ouverture après une réinstallation (AsyncStorage vide) : session, code et profil d'avant oubliés avant toute lecture", async () => {
+  D.remplirCoffre();
   const magasin = D.remplirMagasin();
 
-  const [jeton, profil, deCote] = await Promise.all([lireJetonSession(), lireProfilLocal(), lireCompteDeCote()]);
+  const [jeton, profil] = await Promise.all([lireJetonSession(), lireProfilLocal()]);
   assert.equal(jeton, null);
   assert.equal(profil, null);
-  assert.equal(deCote, null);
-  assert.deepEqual(D.effacements(), [D.CODE_INVITATION, D.COMPTE_DE_COTE, D.PROFIL, D.SESSION].sort());
+  assert.deepEqual(D.effacements(), [D.CODE_INVITATION, D.PROFIL, D.SESSION].sort());
   const premiereLecture = globalThis.__journalCoffre.findIndex((e) => e.operation === "lire");
   const dernierEffacement = globalThis.__journalCoffre.findLastIndex((e) => e.operation === "effacer");
   assert.ok(dernierEffacement < premiereLecture, "une lecture est passée avant la fin de l'effacement");
   assert.equal(magasin.get(D.MARQUE), D.MARQUE_A_JOUR);
   assert.equal(magasin.get("sosmiam.invite"), "1", "la visite sans compte reste");
-  assert.equal(coffre.get(D.MODE_DEMO).valeur, "1", "le drapeau du mode démo n'est pas un secret : il reste");
 });
 
 test("le verrou d'âge survit à la réinstallation, exprès", async () => {

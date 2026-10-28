@@ -1,22 +1,22 @@
-// Notifications de l'app (« … te suit », demande acceptée, nouveauté d'un compte suivi), gardées sur le téléphone
-// en attendant l'API (démo). Rien de sensible : AsyncStorage suffit. Un type inconnu (comme l'ancienne « majorite ») est oublié à la lecture.
+// Notifications de l'app (« … te suit », demande acceptée, nouveauté d'un compte suivi), gardées sur le téléphone (visite).
+// Rien de sensible : AsyncStorage suffit. Un type inconnu (comme l'ancienne « majorite ») est oublié à la lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import type { NotificationSuivi } from "@sos-miam/commun/types/suivis";
 
-/** Limite technique de la démo : au-delà, les plus anciennes partent */
+/** Limite technique : au-delà, les plus anciennes partent */
 export const NOMBRE_MAX_NOTIFICATIONS = 50;
 
 export type NotificationsLocales = {
   /** Version du format, pour les reprises futures */
   version: 1;
-  /** Profil.creeLe du profil pour lequel la démo a été créée : un autre profil repart d'une démo neuve */
+  /** Profil.creeLe du profil pour lequel elles ont été gardées : un autre profil repart de zéro */
   profilCreeLe: string;
   /** De la plus récente à la plus ancienne, NOMBRE_MAX_NOTIFICATIONS au plus */
   notifications: NotificationSuivi[];
   /** Dernière visite de l'écran Notifications (ISO), null avant la première */
   vuesLe: string | null;
-  /** Clés « lieu: » et « createur: » déjà annoncées une fois (démo « a posté ») : elles ne déclenchent plus rien */
+  /** Clés « lieu: » et « createur: » déjà annoncées une fois (« a posté ») : elles ne déclenchent plus rien */
   clesAnnoncees: string[];
 };
 
@@ -42,7 +42,7 @@ function lireNotification(brute: unknown): NotificationSuivi | null {
   }
 }
 
-/** Lit les notifications gardées sur le téléphone (null si rien, ou illisible : la démo repart alors de zéro). */
+/** Lit les notifications gardées sur le téléphone (null si rien, ou illisible : on repart alors de zéro). */
 export async function lireNotificationsLocales(): Promise<NotificationsLocales | null> {
   try {
     const brut = await AsyncStorage.getItem(CLE);

@@ -129,7 +129,7 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
       derniereOuverte = cle;
       noterNotificationOuverte();
       try {
-        // Ouverte : on l'oublie, pour ne pas la rouvrir au prochain affichage de la pile (après « Quitter la démo »)
+        // Ouverte : on l'oublie, pour ne pas la rouvrir au prochain affichage de la pile
         Notifications.clearLastNotificationResponse();
       } catch {
         // Pas disponible ici : l'identifiant gardé suffit

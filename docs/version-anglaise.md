@@ -54,7 +54,7 @@ Aujourd'hui, rien n'est prêt : pas de détection de langue, pas de colonne `lan
 - **Le code hors React.** Le magasin `services/langue-actuelle.ts` sert les clients HTTP, la catégorie « Répondre » et
   les 4 canaux Android, réenregistrés à chaque changement.
 - **Interrupteur.** `LANGUES_OUVERTES_APP = ["fr"]` dans `packages/commun/src/regles/langues.ts`. Tant que l'anglais
-  n'y est pas, la règle rend `fr`, et l'écran Langue n'apparaît que dans les Coulisses de la démo.
+  n'y est pas, la règle rend `fr`, et le choix de la langue n'apparaît qu'en développement (`__DEV__`).
 - **Ressources natives, dans le seul build d'ouverture** : les 8 textes de permission (clé `locales` d'app.json), les
   langues déclarées (iOS et Android 13+) et `CFBundleDevelopmentRegion` à `fr`. Tout est à vérifier dans la doc Expo
   v57. Les fenêtres système suivent la langue d'iOS, pas le réglage de l'app : c'est une limite connue. Ces écrans ne

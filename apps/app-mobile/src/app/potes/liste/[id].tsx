@@ -63,7 +63,7 @@ export default function EcranListePartagee() {
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
 
-  // Compte connecté : on lit la liste en entier (ses lieux, ses co-auteurs) ; démo : rien
+  // Compte connecté : on lit la liste en entier (ses lieux, ses co-auteurs)
   useEffect(() => {
     if (id) communaute.lireListe(id);
     // lireListe change à chaque relecture de la communauté : seulement à l'ouverture

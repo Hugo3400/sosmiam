@@ -14,11 +14,11 @@ export const MAX_PARTICIPANTS_GROUPE = 20;
 export const LONGUEUR_MAX_TITRE_GROUPE = 40;
 
 /**
- * Les potes ajoutés « en vrai » (par lien, QR code, ou la bande d'exemple), pas par pseudo :
- * ils voient en entier ton profil même s'il est privé (calculerVisibiliteProfil). Démo seulement : avec l'API, la bande se
- * fait toujours avec l'accord des deux, et c'est calculerNiveauProfil qui décide.
+ * Les potes ajoutés « en vrai » (par lien ou QR code), pas par pseudo : ils voient en entier ton profil même s'il est privé
+ * (calculerVisibiliteProfil). Avec l'API, la bande se fait toujours avec l'accord des deux, et c'est calculerNiveauProfil qui
+ * décide.
  */
-export const MOYENS_AJOUT_EN_VRAI: readonly string[] = ["lien", "qr", "exemple"];
+export const MOYENS_AJOUT_EN_VRAI: readonly string[] = ["lien", "qr"];
 
 /** Les réactions telles que l'API les range (5 codes fixes, sans texte), dans l'ordre de REACTIONS_CHAT */
 export const CODES_REACTIONS = ["coeur", "rire", "miam", "pouce", "surprise"] as const satisfies readonly CodeReaction[];

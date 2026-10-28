@@ -26,7 +26,7 @@ const PAR_DEFAUT: ReglagesSociaux = { trouvable: true, suggerable: true, activit
  * Réglages › Confidentialité, bloc « Ta bande » : « Qu'on me trouve par mon pseudo » (trouvable), « Me proposer à d'autres »
  * (suggerable), « Montrer mon activité à ma bande » (activitePartagee) et « Notifications de ma bande » (pushSocial). Lus
  * sur le serveur (GET /app/social/moi) et changés par PATCH /app/social/moi, qui crée ton profil social s'il manque (il
- * faut un pseudo). Démo et visite : pas disponibles.
+ * faut un pseudo). Visite : pas disponibles.
  */
 export function utiliserReglagesSociaux(): EtatReglagesSociaux {
   const source = utiliserSourceSociale();

@@ -10,7 +10,7 @@ export type LectureListe = "attente" | "lue" | "ratee";
 export type EtatVisites = {
   /** Faux jusqu'à la première lecture (vrai tout de suite sans compte : il n'y a rien à lire) */
   pret: boolean;
-  /** D'où viennent les données : la démo, l'API, ou rien encore (version publiée sans comptes) */
+  /** D'où viennent les données : l'API, ou rien encore (version publiée sans comptes) */
   source: SourceServices;
   /** Ta demande d'addition en attente, s'il y en a une */
   enCours: Visite | null;

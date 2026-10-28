@@ -59,7 +59,7 @@ const HAUTEUR_CHAMP_GERANT = 112;
 /**
  * Les commentaires d'une publication, dans une feuille qui monte du bas comme sur TikTok (la vidéo reste visible au-dessus) :
  * la réponse du lieu en tête, puis les plus aimés ; réponses repliables ; champ en bas avec mentions ; options de chaque commentaire.
- * Démo : les commentaires du téléphone ; visite et compte : ceux du serveur (utiliserCommentairesPublication).
+ * Visite et compte : les commentaires du serveur (utiliserCommentairesPublication).
  * En visite sans compte, on lit tout ; écrire, répondre, aimer et les options posent « Crée ton compte » par-dessus la liste
  * (sans la refermer : après « Plus tard », on reprend la lecture là où on en était). Pas d'appui long sur un commentaire.
  * Le gérant du lieu peut répondre au nom du lieu, et masquer un commentaire (il part en modération, « Annuler » juste après).

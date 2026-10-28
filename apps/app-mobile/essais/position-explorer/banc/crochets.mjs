@@ -18,13 +18,9 @@ const DOUBLES = {
   "~/hooks/utiliser-communaute": "effacements.mjs",
   "~/hooks/utiliser-conversations": "effacements.mjs",
   "~/hooks/utiliser-notifications": "effacements.mjs",
-  "~/hooks/utiliser-services": "effacements.mjs",
   "~/hooks/utiliser-suivis-personnes": "effacements.mjs",
-  "~/services/demo/reglages-demo-vivants": "effacements.mjs",
   "~/stockage/envies-miamis": "effacements.mjs",
   "~/stockage/mode-app": "effacements.mjs",
-  "~/stockage/roles-demo": "effacements.mjs",
-  "~/stockage/signalements-locaux": "effacements.mjs",
 };
 
 export async function resolve(specifier, context, next) {

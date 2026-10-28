@@ -42,7 +42,7 @@ function ouvrirPageLegale(adresse: string) {
 
 /**
  * Onglet « Profil » : toi, qui tu suis, ton palier Ambassadeur, tes bouées de la semaine, tes défis, tes badges et tes adresses.
- * Avec un compte, points, palier, défis et badges sont ceux du serveur ; en démo, ils sont comptés sur ce téléphone.
+ * Avec un compte, points, palier, défis et badges sont ceux du serveur.
  * Sans compte, on montre ce qui t'attend, avec les pages légales (elles restent ouvertes à tout le monde).
  */
 export default function Profil() {

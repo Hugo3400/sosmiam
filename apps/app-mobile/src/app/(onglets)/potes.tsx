@@ -29,8 +29,8 @@ const lireEspace = (valeur: string | string[] | undefined) => ESPACES.find((e) =
 
 /**
  * Onglet « Potes » : tes sorties (et les lieux reçus de tes potes), ta bande (classement, activité) et vos listes partagées, par
- * morceaux (« Voir plus »). Ce que tu retires disparaît pour toi seulement, avec « Annuler » en bas. Démo pour l'instant. Sans
- * compte, on montre ce qui t'attend.
+ * morceaux (« Voir plus »). Ce que tu retires disparaît pour toi seulement, avec « Annuler » en bas. Sans compte, on montre ce
+ * qui t'attend.
  */
 export default function Potes() {
   const couleurs = utiliserCouleurs();
@@ -59,7 +59,7 @@ export default function Potes() {
     if (demande) setEspace(demande);
   }, [espaceDemande]);
 
-  // Compte connecté : ouvrir Potes crée ton profil social s'il manque (une fois par lancement ; sans effet en démo ou en visite)
+  // Compte connecté : ouvrir Potes crée ton profil social s'il manque (une fois par lancement ; sans effet en visite)
   useEffect(() => {
     if (!invite) ouvrirProfilSocial();
   }, [invite, ouvrirProfilSocial]);
@@ -88,7 +88,7 @@ export default function Potes() {
     );
   }
 
-  // Le temps de lire la communauté sur le téléphone (sinon la démo de départ clignoterait)
+  // Le temps de lire la communauté sur le téléphone
   if (!profil || !pret) return <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]} />;
 
   function choisir(nouveau: OngletPotes) {

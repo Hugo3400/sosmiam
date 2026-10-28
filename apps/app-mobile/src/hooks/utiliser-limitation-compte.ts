@@ -14,7 +14,7 @@ export type EtatLimitationCompte = {
   pret: boolean;
   /** La lecture a raté (réseau) : on ne sait pas si le compte est limité */
   ratee: boolean;
-  /** La limitation en cours, sinon celle à venir, sinon null ; toujours null sans compte (démo, visite) */
+  /** La limitation en cours, sinon celle à venir, sinon null ; toujours null sans compte (visite) */
   limitation: LimitationCompteApi | null;
   /** Une seule fois, pendant la limitation : 10 à 1 000 caractères (espaces autour retirés) */
   contester: (texte: string) => Promise<ResultatContestationLimitation>;
@@ -26,8 +26,8 @@ const REFUS_A_RELIRE: readonly ErreurService[] = ["deja-conteste", "aucune-limit
 
 /**
  * « Ton compte est limité » (décision de Hugo du 15/10/2026) : la limitation du compte connecté, lue sur l'API à l'ouverture
- * de l'écran qui s'en sert (Décisions de la modération) et quand on le demande, et sa contestation. Démo et visite : rien,
- * aucune demande ne part.
+ * de l'écran qui s'en sert (Décisions de la modération) et quand on le demande, et sa contestation. Visite : rien, aucune
+ * demande ne part.
  */
 export function utiliserLimitationCompte(): EtatLimitationCompte {
   const source = utiliserSourceSociale();

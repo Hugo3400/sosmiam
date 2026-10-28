@@ -6,7 +6,7 @@ type SourceHasard = { getRandomValues?: (tableau: Uint8Array) => Uint8Array };
 
 /**
  * Tire au hasard un code secret d'invitation (12 caractères, minuscules et chiffres), à ranger une fois pour toutes sur le téléphone.
- * Prend le hasard du système quand il est là ; sinon Math.random (suffisant pour la démo : l'API créera les vrais codes).
+ * Prend le hasard du système quand il est là ; sinon Math.random (suffisant : avec un compte, c'est l'API qui crée le code).
  */
 export function creerCodeInvitation(): string {
   const hasard = (globalThis as { crypto?: SourceHasard }).crypto;

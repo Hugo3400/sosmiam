@@ -5,7 +5,7 @@ type Entree = {
   monId: string;
   /** Ta bande (identifiants, sans les personnes bloquées) */
   bande: readonly string[];
-  /** La bande de chaque personne connue (démo : bandesExemples) */
+  /** La bande de chaque personne connue */
   bandes: Readonly<Record<string, readonly string[]>>;
   /** Vrai si on peut te proposer cette personne (pas toi, pas bloquée ni signalée, pas déjà suivie ou demandée, permise par la règle, pas masquée) */
   estCandidat: (id: string) => boolean;

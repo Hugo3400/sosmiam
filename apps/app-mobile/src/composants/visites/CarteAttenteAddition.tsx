@@ -26,7 +26,7 @@ const INTERVALLE_HORLOGE = 15_000;
 
 /**
  * Addition demandée, en attente du lieu : le code à montrer en payant (avec ton prénom et ton emoji, comme les voit l'équipe),
- * le temps qu'il reste, les points en jeu pendant un SOS, de quoi jouer le lieu en démo, et « Annuler ma demande ».
+ * le temps qu'il reste, les points en jeu pendant un SOS, et « Annuler ma demande ».
  */
 export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props) {
   const services = utiliserServices();

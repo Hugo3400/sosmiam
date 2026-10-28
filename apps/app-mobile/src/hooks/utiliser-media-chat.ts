@@ -21,9 +21,9 @@ const enCours = new Map<string, Promise<"pret" | "expire" | "absent">>();
 const lireFichierMessage = (fichier: string, source: string) => (source === "compte" || fichier.startsWith("exemple:") ? fichier : retrouverFichierChat(fichier));
 
 /**
- * La photo ou la note vocale d'un message. Démo : le fichier gardé sur le téléphone. Compte connecté : ton propre envoi en
- * cours a déjà son fichier ; sinon, le média est téléchargé une fois depuis le serveur (avec ta session, jamais dans
- * l'adresse) puis gardé en cache. Un message qui n'est plus visible, ou dont le média a expiré, voit son fichier effacé.
+ * La photo ou la note vocale d'un message. Compte connecté : ton propre envoi en cours a déjà son fichier ; sinon, le
+ * média est téléchargé une fois depuis le serveur (avec ta session, jamais dans l'adresse) puis gardé en cache. Un message
+ * qui n'est plus visible, ou dont le média a expiré, voit son fichier effacé.
  */
 export function utiliserMediaChat(conversationId: string, message: MessageChat): EtatMediaChat {
   const source = utiliserSourceSociale();

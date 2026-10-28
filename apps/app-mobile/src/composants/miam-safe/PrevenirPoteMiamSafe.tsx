@@ -27,7 +27,7 @@ const HEURES = DUREE_PARTAGE_POSITION_MINUTES / 60;
 /**
  * « Prévenir un pote » de ta bande : il reçoit une notification urgente (« Léa ne se sent pas en sécurité à… ») et, si tu
  * le veux, voit ta position pendant 1 h dans son app, arrêtable à tout moment. On ne fait JAMAIS croire qu'il est prévenu :
- * l'écran du partage dit si la notification est vraiment partie. Sans compte connecté (démo) ou sans potes, rien ne part, et
+ * l'écran du partage dit si la notification est vraiment partie. Sans compte connecté ou sans potes, rien ne part, et
  * on le dit. Les secours restent juste en dessous.
  */
 export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props) {
@@ -52,14 +52,12 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
       <View className="gap-4">
         <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">
-            {source === "attente" || !pret ? "Ta bande arrive…" : source === "visite" ? "Il te faut ton compte" : "Rien ne part en démo"}
+            {source === "attente" || !pret ? "Ta bande arrive…" : "Il te faut ton compte"}
           </Text>
           <Text className="font-texte text-base leading-6 text-encre">
             {source === "attente" || !pret
               ? "Un instant. Si ça traîne, appelle plutôt un proche."
-              : source === "visite"
-                ? `Prévenir un pote depuis SOS Miam, ça passe par ton compte et ta bande. Là, tout de suite, appelle plutôt un proche et dis-lui que tu es ${direChezLieu(nomLieu)}.`
-                : `En démo, aucune notification ne part pour de vrai. Là, appelle plutôt un proche et dis-lui que tu es ${direChezLieu(nomLieu)}.`}
+              : `Prévenir un pote depuis SOS Miam, ça passe par ton compte et ta bande. Là, tout de suite, appelle plutôt un proche et dis-lui que tu es ${direChezLieu(nomLieu)}.`}
           </Text>
         </View>
         <NumerosUrgence />

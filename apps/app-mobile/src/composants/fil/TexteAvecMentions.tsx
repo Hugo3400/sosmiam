@@ -9,7 +9,7 @@ type Props = {
   className?: string;
   /**
    * Visite et compte connecté : les mentions retrouvées par le serveur (le pseudo tel qu'écrit, et le profil qu'il ouvre).
-   * Absent (démo) : toute « @pseudo » valable passe en gras, sans lien.
+   * Absent : toute « @pseudo » valable passe en gras, sans lien.
    */
   mentions?: readonly { pseudo: string; id: string }[];
   /** Une mention du serveur touchée : son profil (la feuille se referme d'abord) */

@@ -24,7 +24,7 @@ export type EtatDecisionsModeration = {
 /**
  * « Décisions de la modération » (règlement européen sur les services numériques) : ce que l'équipe a décidé sur tes
  * contenus et sur tes signalements, avec la règle en cause et son explication, jamais qui a signalé ; et la contestation.
- * Compte connecté seulement (démo et visite : rien). Lu à l'ouverture de l'écran.
+ * Compte connecté seulement (visite : rien). Lu à l'ouverture de l'écran.
  */
 export function utiliserDecisionsModeration(): EtatDecisionsModeration {
   const source = utiliserSourceSociale();

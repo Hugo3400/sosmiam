@@ -22,7 +22,7 @@ const CIBLES_CACHEES = ["commentaire", "message", "liste"] as const;
  * Tes signalements de contenus sociaux quand un compte est connecté (POST /app/signalements) : le contenu disparaît tout de
  * suite de ton écran, puis le signalement part à la modération. Sans réseau, il attend sur le téléphone et repart à la
  * prochaine occasion (lancement, ou quand le pouls revient). Ce que tu as déjà signalé est relu sur le serveur
- * (GET /app/signalements/miens) pour rester caché d'un téléphone à l'autre. Inactif (démo, visite, attente) : rien.
+ * (GET /app/signalements/miens) pour rester caché d'un téléphone à l'autre. Inactif (visite, attente) : rien.
  */
 export function utiliserSignalementsCompte(actif: boolean): SignalementsCompte {
   const { sociaux, compte } = utiliserSession();

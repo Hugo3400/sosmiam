@@ -14,12 +14,11 @@ const APP = new URL("../../../src/", import.meta.url);
 const COMMUN = new URL("../../../../../packages/commun/src/", import.meta.url);
 const DOUBLURES = new URL("../doublures/", import.meta.url);
 
-/** Les modules du téléphone (stockage, mode démo) remplacés par une doublure */
+/** Les modules du téléphone (stockage) remplacés par une doublure */
 const DOUBLES = {
   "@react-native-async-storage/async-storage": "async-storage.mjs",
   "~/stockage/profil-local": "profil-local.mjs",
   "~/stockage/avatar-local": "avatar-local.mjs",
-  "~/services/demo/demo-visites-active": "demo-visites-active.mjs",
 };
 
 function lireRemplacements() {

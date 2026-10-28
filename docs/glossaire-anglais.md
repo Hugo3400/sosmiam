@@ -354,8 +354,6 @@ Anglais britannique, « you » chaleureux, mêmes règles de ton que le françai
 - **étiquettes** → **tags** · traduit
   - Où : textes-etiquettes.ts, sorties
   - « 24 caractères au plus : fais court et gourmand ! » → « 24 characters max – keep it short and tasty! » ; « Pas d'étiquette sur l'alcool : on garde ça pour le comptoir. » → « No tags about alcohol – we'll leave that to the bar staff. »
-- **Coulisses (mode démo)** → **Behind the scenes** · traduit
-  - Où : Mode démo
   - Seule l'interface de la démo se traduit ; ses contenus restent en français.
 - **Infos pratiques** → **Good to know** · adapté
   - Où : Fiche du lieu

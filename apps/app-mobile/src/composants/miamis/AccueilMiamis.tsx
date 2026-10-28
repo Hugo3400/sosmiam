@@ -9,7 +9,7 @@ export function AccueilMiamis() {
   const { ouvert, raison } = utiliserAccesMiamis();
   if (ouvert) return <ContenuAccueilMiamis />;
   if (raison === "attente") return null;
-  const message = raison === "demo" ? TEXTES_ACCES_MIAMIS.demo : TEXTES_ACCES_MIAMIS.visite;
+  const message = TEXTES_ACCES_MIAMIS.visite;
   return (
     <View className="px-5">
       <EtatMiamis emoji={message.emoji} titre={message.titre} texte={message.texte} />

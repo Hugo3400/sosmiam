@@ -10,7 +10,7 @@ const RELECTURE_MS = 30_000;
 
 /**
  * « Prévenir un pote » : les partages de position en cours qu'un pote t'a envoyés, relus toutes les 30 s et à chaque retour
- * de l'app au premier plan. Seulement avec un compte connecté (en démo, rien ne se partage) ; vide sinon.
+ * de l'app au premier plan. Seulement avec un compte connecté ; vide sinon.
  */
 export function utiliserPartagesRecusMiamSafe(): PartagePositionMiamSafe[] {
   const { miamSafe } = utiliserServices();

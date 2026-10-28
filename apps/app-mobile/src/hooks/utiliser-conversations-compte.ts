@@ -122,12 +122,12 @@ export function utiliserConversationsCompte(actif: boolean): EtatConversations {
     [sociaux, tant, noterPersonnes, garderConversation],
   );
 
-  // Connexion : la liste est lue ; déconnexion (ou démo) : tout est oublié
+  // Connexion : la liste est lue ; déconnexion : tout est oublié
   useEffect(() => {
     generation.current += 1;
     departs.current.clear();
     if (!actif) {
-      // Déconnexion (ou entrée en démo) : les photos et notes vocales téléchargées partent avec le reste
+      // Déconnexion : les photos et notes vocales téléchargées partent avec le reste
       if (etaitActif.current) effacerMediasChatCompte();
       etaitActif.current = false;
       setListe([]);

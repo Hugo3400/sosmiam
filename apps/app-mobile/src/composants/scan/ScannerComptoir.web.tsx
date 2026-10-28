@@ -19,15 +19,14 @@ const ETAPES = {
 } as const;
 
 /**
- * Aperçu web (même rôle que ScannerComptoir.tsx sur téléphone) : pas de caméra, seulement l'explication et, en démo,
- * le scan simulé, qui suit le même chemin qu'un vrai scan. C'est le chemin des tests automatiques.
+ * Aperçu web (même rôle que ScannerComptoir.tsx sur téléphone) : pas de caméra, seulement l'explication.
  */
 export function ScannerComptoir() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const fermer = utiliserFermerPile("/scan");
   const marges = useSafeAreaInsets();
-  const { preparer, traiterTexte, etape, echec, effacerEchec, propsFeuille } = utiliserValidationComptoir();
+  const { preparer, etape, echec, effacerEchec, propsFeuille } = utiliserValidationComptoir();
 
   const prepare = useRef(false);
   useEffect(() => {

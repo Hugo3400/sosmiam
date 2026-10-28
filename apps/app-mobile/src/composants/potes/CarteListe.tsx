@@ -28,7 +28,7 @@ const MAX_VIGNETTES = 3;
 /** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipal }: Props) {
   const couleurs = utiliserCouleurs();
-  // Compte connecté : le nombre du serveur (la liste n'est souvent lue qu'en résumé) ; démo : ses lieux encore dans l'app
+  // Compte connecté : le nombre du serveur (la liste n'est souvent lue qu'en résumé) ; sinon : ses lieux encore dans l'app
   const nombre = liste.serveur ? compterLieuxListe(liste) : lieux.length;
   const abonnes = compterAbonnesListe(liste);
   const lieuxTexte = `${nombre} lieu${nombre > 1 ? "x" : ""}`;

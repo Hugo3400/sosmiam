@@ -22,22 +22,10 @@ export type DiscussionSortie = {
   chargerPlusAnciens: () => void;
 };
 
-const MINUTE_MS = 60_000;
-const RAPPEL_AVANT_MINUTES = 60;
-const TEXTE_RAPPEL_DEMO = "Rappel : c'est dans 1 h ! Bon appétit la bande.";
-
-function ajouterRappelDemo(sortie: Sortie, messages: MessageSortieEnrichi[], maintenant: number): MessageSortieEnrichi[] {
-  const debut = new Date(sortie.quand).getTime();
-  if (Number.isNaN(debut) || debut <= maintenant || debut - maintenant > RAPPEL_AVANT_MINUTES * MINUTE_MS) return messages;
-  const date = new Date(debut - RAPPEL_AVANT_MINUTES * MINUTE_MS).toISOString();
-  const rappel: MessageSortieEnrichi = { id: `rappel-${sortie.id}`, auteur: "", texte: TEXTE_RAPPEL_DEMO, date, systeme: "rappel-sortie" };
-  return [...messages, rappel].sort((a, b) => a.date.localeCompare(b.date));
-}
-
 /**
- * La discussion d'une sortie, la même pour l'écran en démo et avec un compte. Démo : les messages gardés dans la sortie.
- * Compte connecté : sa conversation dans la messagerie (sortie.conversationId), lue puis relue tant que l'écran est au
- * premier plan, marquée lue à chaque nouveau message. Une photo, une note ou un lieu s'y résument en une ligne.
+ * La discussion d'une sortie. Sans conversation : les messages gardés dans la sortie. Compte connecté : sa conversation
+ * dans la messagerie (sortie.conversationId), lue puis relue tant que l'écran est au premier plan, marquée lue à chaque
+ * nouveau message. Une photo, une note ou un lieu s'y résument en une ligne.
  */
 export function utiliserDiscussionSortie(sortie: Sortie | null): DiscussionSortie {
   const communaute = utiliserCommunaute();
@@ -69,7 +57,7 @@ export function utiliserDiscussionSortie(sortie: Sortie | null): DiscussionSorti
         return mentions.length > 0 ? { ...m, mentions } : m;
       });
       return {
-        messages: sortie ? ajouterRappelDemo(sortie, messages, Date.now()) : messages,
+        messages,
         envoyer: (texte) => (sortie ? communaute.envoyerMessage(sortie.id, texte) : "interdit"),
         renvoyer: () => {},
         plusAnciens: false,

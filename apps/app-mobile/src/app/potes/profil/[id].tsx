@@ -142,7 +142,7 @@ export default function ProfilPote() {
     const erreur = await communaute.retirerDemandeBande(pote.id);
     annoncer(erreur ? "Ça n'a pas marché cette fois. Réessaie dans un instant ?" : pourquoi === "refuse" ? "C'est noté, en toute discrétion." : "Demande annulée.");
   };
-  // Par le profil, c'est une demande (démo : ajouté tout de suite) ; s'il t'avait déjà demandé, vous voilà potes
+  // Par le profil, c'est une demande ; s'il t'avait déjà demandé, vous voilà potes
   const ajouter = async () => {
     const resultat = await communaute.demanderAjout(pote.id);
     annoncer(
@@ -263,7 +263,6 @@ export default function ProfilPote() {
         {estMoi ? (
           <SectionReglages titre="Partager mon profil">
             <View className="gap-3 pt-1">
-              {/* En démo, CodeQrInvitation dit dessous que le lien ne sert que dans l'app */}
               <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton QR code et ton lien : tes potes t'ajoutent avec, sans chercher ton pseudo.")}</Text>
               <CodeQrInvitation pseudo={pote.pseudo} libellePartage="Partager mon profil" />
             </View>

@@ -1,6 +1,6 @@
-// Ce que la personne fait dans l'app en MODE DÉMO (rescousses, lieux gardés, J'aime, publications masquées, lieux et
-// créateurs suivis), gardé sur le téléphone. Hors démo, l'activité du compte vient de l'API (copie dans activite-compte.ts)
-// et celle-ci n'est jamais relue : elle est effacée.
+// Ce que la personne faisait dans l'app avant l'API (rescousses, lieux gardés, J'aime, publications masquées, lieux et
+// créateurs suivis), gardé sur le téléphone. L'activité du compte vient de l'API (copie dans activite-compte.ts) et
+// celle-ci n'est jamais relue : elle est effacée.
 // Rien de sensible : AsyncStorage suffit.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

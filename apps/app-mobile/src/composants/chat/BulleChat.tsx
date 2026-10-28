@@ -102,7 +102,7 @@ export function BulleChat(props: Props) {
   );
 
   const coeurMis = (message.reactions[T_MESSAGES.emojiDoubleToucher] ?? []).includes(monId);
-  // Le fichier de la photo ou de la note : sur le téléphone (démo, ton envoi en cours), ou téléchargé depuis le serveur
+  // Le fichier de la photo ou de la note : sur le téléphone (ton envoi en cours), ou téléchargé depuis le serveur
   const media = utiliserMediaChat(conversationId, message);
   const fichier = media.fichier;
   // Un message caché (supprimé, modération…) ou pas encore parti ne reçoit pas de réaction

@@ -26,7 +26,6 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications, type NotificationApp, type ResultatEffacementCloche } from "~/hooks/utiliser-notifications";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 /** Une ligne de l'écran : la notification, sa phrase, la personne dans le rond, et « Retirer » (arrivée par ton lien) */
@@ -38,14 +37,13 @@ const DELAI_APRES_MENU = 500;
  * Notifications (la cloche du fil et du Profil) : les demandes pour rejoindre ta bande et les demandes d'abonnement, à
  * accepter ou refuser, puis « … te suit », les demandes acceptées, la bande, les sorties, les groupes, les listes, les
  * commentaires, la modération et les nouveautés des comptes suivis, rangées par période. Ce qui est arrivé depuis ta visite
- * précédente est mis en avant ; ouvrir l'écran marque tout comme vu. Démo : rien ne part sur ton téléphone.
+ * précédente est mis en avant ; ouvrir l'écran marque tout comme vu.
  */
 export default function Notifications() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { trouverPote, demandesRecues: demandesBande } = utiliserCommunaute();
-  const source = utiliserSourceSociale();
   const notifications = utiliserNotifications();
   const suivis = utiliserSuivisPersonnes();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);

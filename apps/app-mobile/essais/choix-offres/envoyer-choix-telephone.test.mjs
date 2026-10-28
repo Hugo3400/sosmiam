@@ -12,7 +12,6 @@ function creerOutils(o = {}) {
   const journal = [];
   let garde = o.garde === undefined ? JETON_NATIF : o.garde;
   const outils = {
-    demo: false,
     ville: "Montpellier",
     plateforme: "ios",
     lireActives: async () => o.actives ?? true,
@@ -100,14 +99,6 @@ test("navigateur : pas de plateforme de téléphone, rien ne part", async () => 
   const t = creerOutils({ garde: JETON_GARDE, lu: { ok: false, raison: "indisponible" }, outils: { plateforme: "web" } });
   assert.equal(await envoyerChoixTelephone("non", t.outils), "sans-suite");
   assert.deepEqual(requetes(t.journal), []);
-});
-
-test("démo : rien n'est lu, rien ne part", async () => {
-  for (const choix of ["oui", "non", "couper"]) {
-    const t = creerOutils({ outils: { demo: true } });
-    assert.equal(await envoyerChoixTelephone(choix, t.outils), "sans-suite");
-    assert.deepEqual(t.journal, []);
-  }
 });
 
 test("couper : le jeton gardé est désinscrit, puis oublié", async () => {

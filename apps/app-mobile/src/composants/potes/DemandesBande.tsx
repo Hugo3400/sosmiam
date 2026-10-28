@@ -10,7 +10,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 
 /**
  * « Ils veulent rejoindre ta bande » : les demandes reçues par pseudo, à accepter (vous voilà potes) ou à laisser de côté (sans
- * prévenir la personne). Rien quand il n'y en a pas (et jamais en démo, où l'on ajoute sans demande).
+ * prévenir la personne). Rien quand il n'y en a pas.
  */
 export function DemandesBande() {
   const router = useRouter();

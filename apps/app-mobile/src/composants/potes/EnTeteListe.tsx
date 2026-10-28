@@ -14,7 +14,7 @@ type Props = {
   auteur: Pote | null;
   /** Tu en es l'auteur */
   estAMoi: boolean;
-  /** Démo : abonnés connus et pas bloqués (toi compris si tu la suis). Compte connecté : null, le serveur ne donne que leur nombre */
+  /** Abonnés connus et pas bloqués (toi compris si tu la suis). Compte connecté : null, le serveur ne donne que leur nombre */
   abonnes: Pote[] | null;
   /** Combien la suivent (compterAbonnesListe), quand on ne les connaît pas */
   nombreAbonnes: number;

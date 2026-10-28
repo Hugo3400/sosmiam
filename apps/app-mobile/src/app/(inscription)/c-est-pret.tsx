@@ -15,7 +15,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 /**
  * Étape 4 sur 4 : récapitulatif, puis le compte est créé sur le serveur (e-mail, Apple ou Google) ou complété (compte du
  * site), et le profil enregistré sur le téléphone (la racine bascule alors vers les onglets). Les régimes restent sur le
- * téléphone. En démo (sans connexion), seulement le profil du téléphone.
+ * téléphone.
  */
 export default function CEstPret() {
   const router = useRouter();
@@ -56,7 +56,7 @@ export default function CEstPret() {
     }
   }
 
-  /** Le compte sur le serveur (rien en démo) ; faux s'il n'a pas pu être créé (l'erreur est montrée, et on renvoie au bon écran) */
+  /** Le compte sur le serveur ; faux s'il n'a pas pu être créé (l'erreur est montrée, et on renvoie au bon écran) */
   async function creerLeCompte(): Promise<boolean> {
     const connexion = brouillon.connexion;
     if (!connexion || !profil) return true;
@@ -116,7 +116,7 @@ export default function CEstPret() {
             : "🔒 Tes infos restent sur ton téléphone, dans son coffre-fort chiffré."}
         </Text>
       </View>
-      {/* La newsletter : seulement quand un compte est créé (pas pour compléter un compte du site, ni en démo) */}
+      {/* La newsletter : seulement quand un compte est créé (pas pour compléter un compte du site) */}
       {brouillon.connexion && brouillon.connexion.type !== "completer" ? (
         <View className="mt-4">
           <CaseNewsletter cochee={brouillon.newsletter} onChanger={(newsletter) => modifier({ newsletter })} />

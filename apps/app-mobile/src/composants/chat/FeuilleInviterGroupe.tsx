@@ -22,7 +22,7 @@ type Props = {
 
 export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvites }: Props) {
   const { potes } = utiliserCommunaute();
-  const { inviterAuGroupe, peutDiscuterAvec, source } = utiliserConversations();
+  const { inviterAuGroupe, peutDiscuterAvec } = utiliserConversations();
   const [choisis, setChoisis] = useState<string[]>([]);
   const [envoi, setEnvoi] = useState(false);
   const [souci, setSouci] = useState<string | null>(null);
@@ -39,7 +39,6 @@ export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvite
   const invites = conversation.invites ?? [];
   const possibles = potes.filter((p) => peutDiscuterAvec(p.id) && !conversation.participants.includes(p.id) && !invites.includes(p.id));
   const places = Math.max(0, MAX_PARTICIPANTS_GROUPE - conversation.participants.length - invites.length);
-  const demo = source !== "compte";
 
   async function inviter() {
     if (envoi || choisis.length === 0) return;
@@ -54,7 +53,7 @@ export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvite
       return;
     }
     const prenoms = listerPrenoms(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
-    onInvites(demo ? T.invitesRejoignent(prenoms, choisis.length) : T.invitesEnvoyees(prenoms, choisis.length));
+    onInvites(T.invitesEnvoyees(prenoms, choisis.length));
   }
 
   return (
@@ -72,7 +71,7 @@ export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvite
             <Bouton
               libelle={envoi ? "Un instant…" : T.inviter(choisis.length)}
               desactive={envoi || choisis.length === 0}
-              indice={demo ? T.inviterIndiceDemo : T.inviterIndiceCompte}
+              indice={T.inviterIndiceCompte}
               onPress={() => void inviter()}
             />
           ) : null}

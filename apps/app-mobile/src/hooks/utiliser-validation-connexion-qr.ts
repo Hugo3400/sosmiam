@@ -69,7 +69,7 @@ export function utiliserValidationConnexionQr(service: ServiceConnexionQr, codeD
       const recu = Date.now();
       setMaintenant(recu);
       // L'API dit combien de secondes il reste (depuis le PREMIER scan, jamais après la fin du QR) : on la croit, sans
-      // comparer d'horloges ; sans elle (ancien serveur, démo), on compte depuis notre premier scan
+      // comparer d'horloges ; sans elle (ancien serveur), on compte depuis notre premier scan
       const jusqua = r.demande.repondreDansS !== undefined ? recu + r.demande.repondreDansS * 1000 : premier + DELAI_ACCEPTATION_QR_S * 1000;
       setEtape({
         type: "confirmer",

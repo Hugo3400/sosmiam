@@ -28,7 +28,7 @@ export type PersonneLiee = { pote: Pote; depuis: string };
 export type SensSuivi = "abonnes" | "abonnements";
 
 export type EtatSuivisPersonnes = {
-  /** D'où viennent les suivis : le téléphone (démo, visite) ou le serveur (compte connecté) */
+  /** D'où viennent les suivis : le téléphone (visite) ou le serveur (compte connecté) */
   source: SourceSociale;
   /** Faux tant que le stockage, la communauté et le profil ne sont pas relus (et toujours pendant la visite sans compte) : rien à afficher (ni bouton ni compteur) */
   pret: boolean;

@@ -27,7 +27,7 @@ const visitesFetees = new Set<number>();
 const DELAI_FOCUS_MS = 450;
 
 /**
- * Une visite (modal), suivie en direct. Addition en attente : le code à montrer en payant, et en démo de quoi jouer le lieu.
+ * Une visite (modal), suivie en direct. Addition en attente : le code à montrer en payant.
  * Validée : la petite fête juste après (scan du comptoir, réponse du lieu pendant que l'écran est ouvert, ou première
  * ouverture dans le quart d'heure), sinon le résumé. Refusée, expirée, annulée ou retirée : ce qui s'est passé et quoi faire.
  * À chaque changement d'état, le lecteur d'écran se place sur le titre (la fête, elle, se lit d'un bloc).

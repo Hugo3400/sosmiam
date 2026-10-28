@@ -6,8 +6,6 @@ export const TEXTES_REGLAGES_RESERVATIONS = {
   chargement: "On ouvre ton carnet de réservations…",
   lectureEchecTitre: "Ton carnet ne s'ouvre pas",
   lectureEchecTexte: "On n'a pas pu lire tes réglages. Vérifie ta connexion, puis réessaie.",
-  demoTitre: "Pas encore dans la démo",
-  demoTexte: "Les réglages des réservations se testent avec un vrai compte : la démo garde ses horaires d'exemple.",
   bientotTitre: "Ça arrive très vite",
   bientotTexte: "Tes services, tes couverts et ton délai de réponse se régleront ici très bientôt. En attendant, tes réservations marchent comme avant, depuis l'onglet Réservations.",
   reessayer: "Réessayer",

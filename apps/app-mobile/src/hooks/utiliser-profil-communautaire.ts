@@ -15,7 +15,7 @@ export type EtatProfilCommunautaire = {
 /**
  * Le profil d'une personne, lu sur le serveur avec un compte connecté (GET /app/personnes/:id) : ce que ton niveau permet
  * (bande, public ou privé). Une fois lu, la communauté connaît la personne (trouverPote), avec ce que la bande voit en plus
- * (ville, points, lieux sauvés…), et les suivis connaissent sa relation avec toi (noterProfil). Démo, visite ou toi-même :
+ * (ville, points, lieux sauvés…), et les suivis connaissent sa relation avec toi (noterProfil). Visite ou toi-même :
  * rien à lire, la communauté du téléphone suffit. Une personne inconnue, sans profil social, ou qui t'a bloqué : profil null
  * (on ne dit jamais lequel des trois).
  */

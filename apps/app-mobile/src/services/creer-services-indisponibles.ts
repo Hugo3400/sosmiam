@@ -1,6 +1,6 @@
 // Les services quand rien ne peut valider une visite (version publiée sans API) : les listes répondent vides, la lecture
 // d'un lieu, du comptoir ou d'une ressource et toutes les actions répondent « service-indisponible » (« Ça arrive avec
-// les comptes »). Aucune fausse visite « vérifiée ». Sert aussi, au lot 0, pour ce que la démo ne fait pas encore.
+// les comptes »). Aucune fausse visite « vérifiée ».
 import type { Services } from "@sos-miam/commun/client-api/services";
 import type { ResumeAvis } from "@sos-miam/commun/types/avis";
 

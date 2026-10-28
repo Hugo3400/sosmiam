@@ -72,7 +72,6 @@ function creerMonde() {
     creerTelephoneNotifications({
       appareils: { inscrire: serveur.inscrire, desinscrire: serveur.desinscrire },
       ville: "Montpellier",
-      demo: false,
       plateforme: "ios",
       lireJeton,
       demanderAutorisation,

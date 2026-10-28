@@ -34,8 +34,7 @@ const oublierModeInvite = () => effacerModeInvite().catch(() => {});
 /**
  * Lit le profil, l'avatar et la visite sans compte au démarrage et les met à disposition de toute l'app (voir utiliserProfil).
  * Une visite sans compte ne reprend pas si un profil existe ou si un verrou d'âge est posé sur ce téléphone (retour à l'inscription).
- * Avec un compte connecté (hors démo), le profil se synchronise avec le serveur, qui fait foi (utiliserSynchroProfil), et
- * ton avatar avec.
+ * Avec un compte connecté, le profil se synchronise avec le serveur, qui fait foi (utiliserSynchroProfil), et ton avatar avec.
  */
 export function FournisseurProfil({ children }: { children: ReactNode }) {
   const session = utiliserSession();

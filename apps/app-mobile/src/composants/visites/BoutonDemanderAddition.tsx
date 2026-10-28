@@ -42,7 +42,7 @@ const A_REESSAYER: readonly ErreurService[] = [
   "hors-ligne",
 ];
 
-// Une étape qui dure plus que ça est dite à VoiceOver (en démo, tout va trop vite pour la peine)
+// Une étape qui dure plus que ça est dite à VoiceOver
 const DELAI_ANNONCE_ETAPE = 700;
 
 /**

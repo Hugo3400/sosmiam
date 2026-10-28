@@ -29,7 +29,7 @@ type Dependances = {
  * Les lieux envoyés entre potes quand un compte est connecté (« Envoyer à un pote ») : chaque envoi est un message « lieu »
  * dans votre discussion privée (/app/lieux-envoyes). Reçus et envoyés : la première page (30), relue quand le pouls dit que
  * les messages ont bougé. Un envoi s'affiche tout de suite ; « vu » et « retirer de ta vue » aussi (ton pote n'en sait rien).
- * Inactif (démo, visite, attente) : rien n'est lu.
+ * Inactif (visite, attente) : rien n'est lu.
  */
 export function utiliserLieuxEnvoyesCompte(actif: boolean, { monId, noterPersonne, bloques, estMasque, masquer, demasquer }: Dependances): LieuxEnvoyesCompte {
   const { sociaux } = utiliserSession();
@@ -49,7 +49,7 @@ export function utiliserLieuxEnvoyesCompte(actif: boolean, { monId, noterPersonn
     if (e.ok) setEnvoyes((avant) => [...avant.filter((l) => l.id.startsWith("envoi:") && !e.lieux.some((x) => x.conversationId === l.conversationId && x.lieuId === l.lieuId)), ...e.lieux]);
   }, [sociaux, tant, noterPersonne]);
 
-  // Connexion : tout est lu une fois ; déconnexion (ou démo) : tout est oublié
+  // Connexion : tout est lu une fois ; déconnexion : tout est oublié
   useEffect(() => {
     generation.current += 1;
     if (!actif) {

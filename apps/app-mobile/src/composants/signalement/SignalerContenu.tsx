@@ -27,8 +27,8 @@ const CIBLES_CACHEES: readonly SignalementContenu["cible"][] = ["commentaire", "
 /**
  * Signaler un commentaire, un message, un lieu envoyé par un pote, une liste, un profil, une sortie ou un groupe, à placer
  * dans une feuille : la raison, les précisions et le pourquoi (mêmes étapes que pour une publication), puis merci. Avec un
- * compte, le signalement part à l'équipe, qui dira sa décision (Réglages › Décisions de la modération) ; en démo, il reste
- * sur le téléphone. À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
+ * compte, le signalement part à l'équipe, qui dira sa décision (Réglages › Décisions de la modération) ; sans compte, il
+ * reste sur le téléphone. À l'ouverture et à chaque étape, le lecteur d'écran est placé sur le titre.
  */
 export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   const couleurs = utiliserCouleurs();
@@ -48,7 +48,7 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   }, [raison, envoye]);
 
   if (envoye) {
-    // Avec un compte, le signalement est parti au serveur ; en démo (et sans compte), il reste sur le téléphone
+    // Avec un compte, le signalement est parti au serveur ; sans compte, il reste sur le téléphone
     const avecCompte = source === "compte";
     const cache = CIBLES_CACHEES.includes(cible);
     const titre = avecCompte ? "Merci, on regarde ça" : "Merci, c'est noté";

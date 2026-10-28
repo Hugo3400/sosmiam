@@ -9,7 +9,7 @@ import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 
 type Props = {
   lieu: Lieu;
-  /** Distance depuis ta position, en mètres ; absente en démo ou dans la recherche */
+  /** Distance depuis ta position, en mètres ; absente dans la recherche */
   distanceM?: number | null;
 };
 

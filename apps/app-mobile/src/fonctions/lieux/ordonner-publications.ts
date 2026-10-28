@@ -21,8 +21,7 @@ export function ordonnerPublications(
 ): Publication[] {
   const parId = new Map(lieux.map((lieu) => [lieu.id, lieu]));
   const cles = new Set(suivis);
-  // Un score par lieu, calculé une fois : depuis ta ville (ou la distance d'exemple en démo) ; un lieu pas encore placé :
-  // au centre de sa ville
+  // Un score par lieu, calculé une fois : depuis ta ville ; un lieu pas encore placé : au centre de sa ville
   const scores = new Map(profil ? lieux.map((lieu) => [lieu.id, calculerScoreLieu(lieu, profil, estimerKmPourClasser(lieu, depart))]) : []);
   const score = (p: Publication) => scores.get(p.lieuId) ?? 0;
   const suivie = (p: Publication) => Number(cles.has(calculerCleSuivi(p.auteur, p.lieuId)) || cles.has(calculerCleSuivi({ type: "lieu" }, p.lieuId)));

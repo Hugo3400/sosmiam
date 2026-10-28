@@ -1,4 +1,4 @@
-// La communauté telle que la voit le téléphone (démo) : ta bande, les personnes bloquées, les sorties, les listes,
+// La communauté telle que la voit le téléphone : ta bande, les personnes bloquées, les sorties, les listes,
 // l'activité, les lieux envoyés entre potes, les commentaires et tes signalements. Gardée sur le téléphone en attendant l'API.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -21,13 +21,13 @@ export type CommunauteLocale = {
   moyens: Record<string, "lien" | "qr" | "pseudo">;
   /** Ce que tu as retiré de ta vue, pour toi seulement (sorties passées, listes à découvrir, activité de ta bande), par identifiant */
   masques: string[];
-  /** Version des exemples de la démo déjà reçus (absent : 1) ; voir ajouterNouveauxExemples */
+  /** Version des exemples déjà reçus par une ancienne version de l'app (absent : 1) */
   exemples?: number;
 };
 
 const CLE = "sosmiam.communaute";
 
-/** Lit la communauté gardée sur le téléphone (null si rien, ou illisible : la démo repart alors de zéro). */
+/** Lit la communauté gardée sur le téléphone (null si rien, ou illisible : on repart alors de zéro). */
 export async function lireCommunauteLocale(): Promise<CommunauteLocale | null> {
   try {
     const brut = await AsyncStorage.getItem(CLE);

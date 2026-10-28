@@ -1,6 +1,6 @@
 import type { DefiAffiche } from "~/contenus/type-defi-affiche";
 
-/** 0 : ceux qui avancent ; 1 : ceux qui attendent (pas commencés, ou pas comptés dans la démo) ; 2 : les réussis */
+/** 0 : ceux qui avancent ; 1 : ceux qui attendent (pas commencés, ou pas comptés) ; 2 : les réussis */
 const lireRang = (defi: DefiAffiche) => (defi.etat === "reussi" ? 2 : defi.etat === "a-venir" || defi.attente !== null ? 1 : 0);
 
 /**

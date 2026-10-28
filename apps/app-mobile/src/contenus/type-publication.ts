@@ -23,16 +23,13 @@ export type Publication = {
   legende: string;
   /** Absent tant que le média n'est pas prêt : le fil affiche alors le dégradé et l'emoji du lieu */
   media?: MediaPublication;
-  /** J'aime de tout le monde, le tien compris s'il était déjà sur le serveur (exemples : jamais le tien) */
+  /** J'aime de tout le monde, le tien compris s'il était déjà sur le serveur */
   jaimes: number;
-  /**
-   * J'aime des autres, sans le tien, au moment où la publication a été lue : le fil y ajoute le tien s'il y est. Absent sur
-   * les exemples (jaimes ne compte jamais le tien)
-   */
+  /** J'aime des autres, sans le tien, au moment où la publication a été lue : le fil y ajoute le tien s'il y est */
   jaimesAutres?: number;
   commentaires: number;
   /** Média libre qui illustre le lieu sans y avoir été filmé : étiquette « Vidéo / Photos d'illustration » */
   illustration?: boolean;
-  /** Date de mise en ligne (ISO 8601) : absente sur les exemples */
+  /** Date de mise en ligne (ISO 8601) */
   publieeLe?: string;
 };

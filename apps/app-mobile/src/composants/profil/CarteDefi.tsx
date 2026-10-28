@@ -6,7 +6,7 @@ import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 type Props = {
-  /** Un défi du serveur, ou un défi d'exemple de la démo (utiliserDefis) */
+  /** Un défi du serveur (utiliserDefis) */
   defi: DefiAffiche;
 };
 
@@ -19,7 +19,7 @@ const POUR_LA_GLOIRE = "Pour la gloire";
  */
 export function CarteDefi({ defi }: Props) {
   const reussi = defi.etat === "reussi";
-  // Sans jauge : pas encore commencé, ou défi d'exemple que la démo ne sait pas compter
+  // Sans jauge : pas encore commencé
   const aVenir = !reussi && defi.etat === "a-venir";
   const enAttente = !reussi && !aVenir && defi.attente !== null;
   const fait = reussi ? defi.objectif : Math.min(defi.fait, defi.objectif);

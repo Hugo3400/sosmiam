@@ -2,7 +2,6 @@ import { createContext, useContext } from "react";
 
 import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
 import type { PlaceClassement } from "@sos-miam/commun/fonctions/potes/calculer-classement";
-import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { ActivitePote, ListePartagee, Pote, Recommandation, Sortie } from "@sos-miam/commun/types/potes";
 import type { MoyenInvitation } from "@sos-miam/commun/client-api/contrat-bande";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
@@ -66,7 +65,7 @@ export type ErreurNouvelleListe = "titre" | "description" | "trop" | "compte-lim
 export type SurRefusGeste = (erreur: ErreurService) => void;
 
 export type EtatCommunaute = {
-  /** D'où vient la bande : la démo, le serveur (compte connecté), ou rien encore (visite, attente) */
+  /** D'où vient la bande : le serveur (compte connecté), ou rien encore (visite, attente) */
   source: SourceSociale;
   /** Faux tant que la communauté n'est pas lue (sur le téléphone, ou sur le serveur avec un compte) */
   pret: boolean;
@@ -76,16 +75,16 @@ export type EtatCommunaute = {
   potes: Pote[];
   /** N'importe qui par son identifiant (toi, ta bande, les autres personnes connues), ou null */
   trouverPote: (id: string) => Pote | null;
-  /** Recherche par pseudo dans les potes d'exemple (démo) ; avec un compte, c'est utiliserRecherchePseudo qui demande au serveur */
+  /** Recherche par pseudo : avec un compte, c'est utiliserRecherchePseudo qui demande au serveur */
   chercherParPseudo: (texte: string) => ResultatRecherchePote[];
   /**
    * Rejoindre la bande de quelqu'un par son lien ou son QR code (pseudo et code secret lus par lireLienInvitation) : vous voilà
-   * potes tout de suite. Démo : le code n'est vérifié nulle part
+   * potes tout de suite
    */
   rejoindreParInvitation: (pseudo: string, code: string, moyen: MoyenInvitation) => Promise<ResultatAjoutBande>;
-  /** Par son pseudo : une demande que l'autre accepte (ou, s'il t'avait déjà demandé, vous voilà potes). Démo : ajouté tout de suite */
+  /** Par son pseudo : une demande que l'autre accepte (ou, s'il t'avait déjà demandé, vous voilà potes) */
   demanderAjout: (id: string) => Promise<ResultatAjoutBande>;
-  /** Les demandes de bande qu'on t'a faites, et les tiennes en attente (vides en démo) */
+  /** Les demandes de bande qu'on t'a faites, et les tiennes en attente */
   demandesRecues: Pote[];
   demandesEnvoyees: Pote[];
   /** Accepter sa demande : vous voilà potes. Rend l'erreur, ou null */
@@ -102,9 +101,9 @@ export type EtatCommunaute = {
   relireBande: () => void;
   retirerPote: (id: string) => void;
   /**
-   * Comment ce pote de ta bande a été ajouté : « pseudo », « exemple » (bande de la démo), ou undefined (pas ou plus dans ta bande).
-   * Démo : un lien ou un QR code rend « lien-non-verifie » ou « qr-non-verifie », qui ne comptent pas « en vrai » tant que l'API
-   * ne vérifie pas leur code secret.
+   * Comment ce pote de ta bande a été ajouté : « lien » (compte connecté), « pseudo », ou undefined (pas ou plus dans ta bande).
+   * Sans compte : un lien ou un QR code rend « lien-non-verifie » ou « qr-non-verifie », qui ne comptent pas « en vrai » tant que
+   * l'API ne vérifie pas leur code secret.
    */
   moyenAjout: (id: string) => string | undefined;
   bloques: Pote[];
@@ -116,23 +115,23 @@ export type EtatCommunaute = {
   sorties: Sortie[];
   trouverSortie: (id: string) => Sortie | null;
   /**
-   * Crée la sortie : chaque invité reçoit « Tu viens ? » (compte connecté) ou la rejoint tout de suite (démo). cle : tirée
-   * une fois à l'ouverture de l'écran, pour qu'un second appui ne crée pas deux sorties
+   * Crée la sortie : chaque invité reçoit « Tu viens ? » (compte connecté). cle : tirée une fois à l'ouverture de l'écran,
+   * pour qu'un second appui ne crée pas deux sorties
    */
   creerSortie: (sortie: NouvelleSortie, cle?: string) => Promise<{ id: string } | { erreur: ErreurNouvelleSortie }>;
-  /** Compte connecté : relit cette sortie (à l'ouverture de son écran) ; démo : rien */
+  /** Compte connecté : relit cette sortie (à l'ouverture de son écran) */
   lireSortie: (id: string) => void;
   /** Vote (ou retire ton vote) pour un lieu ; sans effet une fois le vote fini */
   voter: (sortieId: string, lieuId: number) => void;
   /** « interdit » : lieu inconnu, ou vote déjà fini */
   proposerLieu: (sortieId: string, lieuId: number, surRefus?: SurRefusGeste) => "ok" | "deja" | "max" | "interdit";
-  /** Démo seulement : avec un compte, la discussion passe par la messagerie (utiliserDiscussionSortie) */
+  /** Avec un compte, la discussion passe par la messagerie (utiliserDiscussionSortie) */
   envoyerMessage: (sortieId: string, texte: string) => ResultatTexte;
   /** Termine le vote tout de suite (seulement l'organisateur) */
   terminerVote: (sortieId: string) => void;
   /** Quitter la sortie (et sa discussion) ; l'organisateur qui part passe la main au plus ancien participant */
   quitterSortie: (sortieId: string) => void;
-  /** Les invitations à une sortie qui attendent ta réponse (compte connecté ; vides en démo) */
+  /** Les invitations à une sortie qui attendent ta réponse (compte connecté) */
   invitationsSorties: InvitationSortie[];
   /** « Carrément ! » (vient : tu entres dans le vote et la discussion) ou « Pas cette fois » (en silence). Faux si ça n'a pas marché */
   repondreInvitationSortie: (id: string, vient: boolean) => Promise<boolean>;
@@ -151,14 +150,14 @@ export type EtatCommunaute = {
   modifierListe: (listeId: string, changements: Partial<NouvelleListeCommunaute>) => Promise<ErreurService | null>;
   /** L'auteur supprime sa liste */
   supprimerListe: (listeId: string) => Promise<ErreurService | null>;
-  /** Compte connecté : lit la liste en entier (ses lieux, ses co-auteurs), à l'ouverture de son écran ; démo : rien */
+  /** Compte connecté : lit la liste en entier (ses lieux, ses co-auteurs), à l'ouverture de son écran */
   lireListe: (listeId: string) => void;
   /** Compte connecté : des listes lues ailleurs (le profil d'une personne) ; trouvées ensuite dans listes */
   noterListes: (listes: ListeResumeApi[]) => void;
   basculerSuiviListe: (listeId: string) => void;
   ajouterLieuListe: (listeId: string, lieuId: number, surRefus?: SurRefusGeste) => void;
   retirerLieuListe: (listeId: string, lieuId: number) => void;
-  /** Les listes qu'on t'invite à remplir, en attente de ta réponse (compte connecté ; vides en démo) */
+  /** Les listes qu'on t'invite à remplir, en attente de ta réponse (compte connecté) */
   invitationsListes: ListePartagee[];
   /** Accepter (tu peux y ajouter des lieux) ou refuser en silence. Faux si ça n'a pas marché */
   repondreCoAuteur: (listeId: string, accepte: boolean) => Promise<boolean>;
@@ -202,7 +201,7 @@ export type EtatCommunaute = {
   signaler: (signalement: Omit<SignalementContenu, "date">) => void;
   /** Vrai si tu as déjà signalé ce commentaire, ce message, ce lieu envoyé, cette liste ou ce profil */
   estSignale: (cibleId: string) => boolean;
-  /** Efface toute la communauté du téléphone (la démo repartira de zéro) */
+  /** Efface toute la communauté du téléphone */
   effacer: () => Promise<void>;
 };
 

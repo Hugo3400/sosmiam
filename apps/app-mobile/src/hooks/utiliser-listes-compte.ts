@@ -139,7 +139,7 @@ export function utiliserListesCompte(actif: boolean, { monId, noterPersonne }: D
     [tant, garder, lire],
   );
 
-  // Connexion : tout est lu une fois ; déconnexion (ou démo) : tout est oublié
+  // Connexion : tout est lu une fois ; déconnexion : tout est oublié
   useEffect(() => {
     generation.current += 1;
     if (!actif) {

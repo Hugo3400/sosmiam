@@ -44,7 +44,6 @@ export const REFUS_LIMITATION_MIAMIS = {
 } as const;
 
 export const TEXTES_ACCES_MIAMIS = {
-  demo: { emoji: "🧪", titre: "Les Miamis ne jouent pas la démo", texte: "Ici, tout est vrai : de vraies sorties, de vraies idées, de vrais Miamis. Quitte la démo et connecte-toi pour les rejoindre." },
   visite: { emoji: "👋", titre: "Les Miamis t'attendent", texte: "Crée ton compte pour rejoindre des sorties, voter pour les idées et dire coucou aux Miamis de ta ville." },
   bientot: { emoji: "🛠️", titre: "Les Miamis arrivent", texte: "La Brigade branche les sorties des Miamis, la boîte à idées et « Qui est là ? » sur le serveur. Encore un peu de patience !" },
   reessayer: "Réessayer",

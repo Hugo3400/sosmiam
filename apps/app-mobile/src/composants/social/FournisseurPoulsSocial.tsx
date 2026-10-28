@@ -17,10 +17,10 @@ const estMemePouls = (avant: PoulsSocial | null, apres: PoulsSocial) => avant !=
 
 /**
  * Le pouls de la partie sociale (GET /app/social/pouls) : quelques compteurs et signatures qui disent aux fournisseurs du
- * compte quoi relire. Seulement avec un compte connecté, hors mode démo, et app au premier plan : tout de suite à
- * l'ouverture, à la connexion et au retour dans l'app, puis toutes les 30 secondes, et à chaque notification reçue app
- * ouverte (le message arrive aussitôt dans la discussion ouverte). En arrière-plan, rien ne tourne (les notifications
- * prennent le relais). Une lecture à la fois ; hors ligne, on garde le dernier pouls et le tour suivant
+ * compte quoi relire. Seulement avec un compte connecté et app au premier plan : tout de suite à l'ouverture, à la
+ * connexion et au retour dans l'app, puis toutes les 30 secondes, et à chaque notification reçue app ouverte (le
+ * message arrive aussitôt dans la discussion ouverte). En arrière-plan, rien ne tourne (les notifications prennent le
+ * relais). Une lecture à la fois ; hors ligne, on garde le dernier pouls et le tour suivant
  * réessaie. Le pouls ne crée jamais le profil social. Déconnecté : il est oublié, et une réponse partie avant ne compte plus.
  */
 export function FournisseurPoulsSocial({ children }: { children: ReactNode }) {

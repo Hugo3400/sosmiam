@@ -20,7 +20,7 @@ import { effacerJetonSession, enregistrerJetonSession, lireJetonSession } from "
 /**
  * La session du compte unique : le jeton (coffre-fort du téléphone), le compte relu sur le serveur au démarrage et au retour
  * dans l'app, et le client HTTP de l'API qui s'en sert. Une session que l'API dit expirée est oubliée tout de suite. Sans
- * compte connecté, rien ne change : l'app tourne comme avant (démo en développement).
+ * compte connecté, rien ne change : l'app tourne comme avant.
  */
 export function FournisseurSession({ children }: { children: ReactNode }) {
   const [pret, setPret] = useState(false);
@@ -49,7 +49,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
       ),
     [oublier],
   );
-  // Les services sociaux (potes, messages, cloche…) en version API : la démo garde son code local, une visite n'a rien
+  // Les services sociaux (potes, messages, cloche…) en version API : une visite n'a rien
   const services = useMemo(
     () => ({ comptes: creerCompteApi(client), contenu: creerContenuApi(client), activite: creerActiviteApi(client), sociaux: creerServicesSociauxApi(client) }),
     [client],

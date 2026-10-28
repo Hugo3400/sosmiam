@@ -6,8 +6,8 @@ import type { NotificationApp } from "~/hooks/utiliser-notifications";
 
 /**
  * Une notification de la cloche du serveur, au format de l'écran Notifications. « … te suit » et « demande acceptée »
- * prennent la forme de la démo (la clé de la personne qui agit) ; sans elle (compte supprimé), il n'y a rien à dire. Un type
- * que cette version de l'app ne connaît pas encore est laissé de côté plutôt que mal affiché.
+ * prennent la forme de NotificationSuivi (la clé de la personne qui agit) ; sans elle (compte supprimé), il n'y a rien à
+ * dire. Un type que cette version de l'app ne connaît pas encore est laissé de côté plutôt que mal affiché.
  */
 export function convertirNotificationCloche(n: NotificationClocheApi): NotificationApp | null {
   if (![...TYPES_CLOCHE, ...TYPES_CLOCHE_COMMUNAUTE].some((type) => type === n.type)) return null;

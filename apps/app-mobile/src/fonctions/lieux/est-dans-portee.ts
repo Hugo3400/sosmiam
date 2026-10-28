@@ -9,7 +9,7 @@ import { trouverVilleFrance } from "~/fonctions/geo/trouver-ville-france";
  * Vrai si le lieu est dans la zone regardée par Explorer :
  * - à quelques km : à vol d'oiseau depuis ta position ou ta ville ; un lieu dont on ne connaît pas la distance n'y est
  *   jamais (pas encore placé sur la carte, ou on ne sait pas où tu es : ni position, ni ville connue). Sans point de
- *   départ, seule la démo garde ses km d'exemple ; ailleurs, la liste est vide et Explorer dit pourquoi ;
+ *   départ, la liste est vide et Explorer dit pourquoi ;
  * - ta région : la région de sa ville si on la connaît, sinon le rectangle de la région (région inconnue : tout passe) ;
  * - toute la France : toujours.
  */

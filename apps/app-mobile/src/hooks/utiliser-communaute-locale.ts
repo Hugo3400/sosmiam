@@ -27,7 +27,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { effacerCommunauteLocale, enregistrerCommunauteLocale, lireCommunauteLocale, type CommunauteLocale } from "~/stockage/communaute-locale";
 
-/** Personne pour l'instant : tes vrais potes viennent du serveur avec un compte ; « exemples: 0 » la distingue d'une ancienne démo */
+/** Personne pour l'instant : tes vrais potes viennent du serveur avec un compte ; « exemples: 0 » la distingue d'un état ancien */
 const creerEtatVide = (): CommunauteLocale => ({
   version: 1,
   bande: [],
@@ -54,7 +54,7 @@ const choisirGagnant = (propositions: PropositionSortie[]) => choisirLieuGagnant
 
 /**
  * La communauté gardée sur le téléphone (le code de FournisseurCommunaute d'avant le lot A2) : potes, sorties, listes,
- * activité, lieux envoyés entre potes et commentaires : vide au départ, et ce qu'une ancienne démo avait gardé sur le
+ * activité, lieux envoyés entre potes et commentaires : vide au départ, et ce qu'une ancienne version avait gardé sur le
  * téléphone est oublié. Ces données te désignent par ID_MOI (« moi ») ;
  * les écrans, eux, lisent ton identifiant par utiliserMonId. Avec un compte, FournisseurCommunaute remplace la bande par
  * celle du serveur (utiliserBandeCompte) et garde le reste d'ici jusqu'aux lots suivants (sorties, listes, commentaires).
@@ -71,7 +71,7 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
   useEffect(() => {
     lireCommunauteLocale().then((lue) => {
       charge.current = true;
-      // Un état gardé par une ancienne démo (exemples reçus) repart à vide
+      // Un état gardé par une ancienne version (exemples reçus) repart à vide
       if (lue && lue.exemples === 0) setEtat(lue);
       setPret(true);
     });
@@ -96,7 +96,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         gardes: activite.gardes,
         badges: compte?.badges ?? [],
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [profil, avatar, compte, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
   );
 

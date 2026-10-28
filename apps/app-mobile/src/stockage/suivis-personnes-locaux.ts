@@ -1,4 +1,4 @@
-// Suivre entre personnes (démo) : abonnés, abonnements, demandes et ton choix public / privé, gardés sur le téléphone en attendant l'API.
+// Suivre entre personnes : abonnés, abonnements, demandes et ton choix public / privé, gardés sur le téléphone (visite).
 // Les lieux et créateurs suivis restent dans l'activité (sosmiam.activite) : ici, seulement les personnes.
 // Rien de sensible : AsyncStorage suffit. Les anciens champs « etaitMineur » et « surveillance » sont ignorés à la lecture.
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,7 +7,7 @@ import type { Confidentialite, LienSuivi } from "@sos-miam/commun/types/suivis";
 
 export type SuivisPersonnesLocaux = {
   version: 1;
-  /** Profil.creeLe du profil pour lequel la démo a été créée : un autre profil repart d'une démo neuve */
+  /** Profil.creeLe du profil pour lequel ces suivis ont été gardés : un autre profil repart de zéro */
   profilCreeLe: string;
   /** Ton choix : public ou privé */
   confidentialite: Confidentialite;
@@ -39,7 +39,7 @@ function lireLiens(valeur: unknown): LienSuivi[] {
   return liens;
 }
 
-/** Lit les suivis entre personnes gardés sur le téléphone (null si rien, ou illisible : la démo repart alors de zéro). */
+/** Lit les suivis entre personnes gardés sur le téléphone (null si rien, ou illisible : on repart alors de zéro). */
 export async function lireSuivisPersonnesLocaux(): Promise<SuivisPersonnesLocaux | null> {
   try {
     const brut = await AsyncStorage.getItem(CLE);

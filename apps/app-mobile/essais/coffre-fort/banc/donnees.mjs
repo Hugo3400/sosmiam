@@ -3,11 +3,9 @@ export const MARQUE_A_JOUR = "appareil-seul";
 export const MARQUE_D_AVANT = "1";
 
 export const SESSION = "sosmiam.session";
-export const COMPTE_DE_COTE = "sosmiam.compte-de-cote";
 export const CODE_INVITATION = "sosmiam.code-invitation";
 export const PROFIL = "sosmiam.profil";
 export const VERROU_AGE = "sosmiam.verrou-age";
-export const MODE_DEMO = "sosmiam.mode-demo";
 
 export const JETON_D_AVANT = "jeton-de-la-personne-d-avant-0123456789";
 export const JETON_NEUF = "jeton-tout-neuf-de-cette-installation-42";
@@ -27,11 +25,9 @@ export const APPAREIL_SEUL = "AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY";
 export function remplirCoffre() {
   const coffre = (globalThis.__coffre = new Map());
   coffre.set(SESSION, { valeur: JETON_D_AVANT, accessible: "AFTER_FIRST_UNLOCK" });
-  coffre.set(COMPTE_DE_COTE, { valeur: JSON.stringify({ jeton: JETON_D_AVANT, email: "lea@exemple.fr" }), accessible: "AFTER_FIRST_UNLOCK" });
   coffre.set(CODE_INVITATION, { valeur: CODE_D_AVANT, accessible: "WHEN_UNLOCKED" });
   coffre.set(PROFIL, { valeur: JSON.stringify(PROFIL_D_AVANT), accessible: "WHEN_UNLOCKED" });
   coffre.set(VERROU_AGE, { valeur: VERROU, accessible: "WHEN_UNLOCKED" });
-  coffre.set(MODE_DEMO, { valeur: "1", accessible: "WHEN_UNLOCKED" });
   globalThis.__journalCoffre = [];
   return coffre;
 }

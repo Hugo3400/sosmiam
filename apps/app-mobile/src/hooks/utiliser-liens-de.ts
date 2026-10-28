@@ -9,7 +9,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSuivisPersonnes, type SensSuivi } from "~/hooks/utiliser-suivis-personnes";
 
 export type EtatLiensDe = {
-  /** null : en cours de lecture ; « ferme » : réservé à sa bande (compte connecté) ou à ses abonnés (démo) */
+  /** null : en cours de lecture ; « ferme » : réservé à sa bande (compte connecté) */
   liste: Pote[] | "ferme" | null;
   /** Combien attendent encore sur le serveur (0 : tout est là) */
   restants: number;
@@ -25,7 +25,7 @@ const rienAFaire = () => {};
 /**
  * Les abonnés ou les abonnements d'une autre personne. Compte connecté : lus sur le serveur, 50 par page
  * (GET /app/personnes/:id/abonnes ou /abonnements), seulement si tu es dans sa bande (« ferme » sinon, comme le serveur, qui
- * répond « profil-prive ») ; la communauté connaît ensuite ces personnes. Démo, visite ou toi : utiliserSuivisPersonnes.
+ * répond « profil-prive ») ; la communauté connaît ensuite ces personnes. Visite ou toi : utiliserSuivisPersonnes.
  */
 export function utiliserLiensDe(id: string, sens: SensSuivi): EtatLiensDe {
   const suivis = utiliserSuivisPersonnes();

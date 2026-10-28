@@ -6,7 +6,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 import { poserSessionPerdue } from "~/stockage/session-perdue";
 
 /**
- * Hors démo, un profil sur le téléphone sans session n'a plus de sens : ton compte vit sur le serveur. Quand le serveur dit
+ * Un profil sur le téléphone sans session n'a plus de sens : ton compte vit sur le serveur. Quand le serveur dit
  * la session expirée (déconnecté partout, mot de passe changé, compte supprimé ailleurs), ou qu'au lancement il reste un
  * profil sans session, l'app oublie ce qu'elle gardait et revient à l'accueil, où « Me connecter » t'attend avec un mot
  * pour dire pourquoi. Une déconnexion demandée, elle, efface déjà tout de son côté.

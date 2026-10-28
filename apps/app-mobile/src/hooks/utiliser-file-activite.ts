@@ -330,7 +330,7 @@ export function utiliserFileActivite({ actif, service, surRescousseConfirmee, su
     void pomper();
   }, [pomper]);
 
-  /** Oublie tout (mémoire, copie du compte et activité de la démo), sans rien demander au serveur */
+  /** Oublie tout (mémoire, copie du compte et activité d'avant l'API), sans rien demander au serveur */
   const effacer = useCallback(async () => {
     generation.current += 1;
     if (minuterie.current) clearTimeout(minuterie.current);

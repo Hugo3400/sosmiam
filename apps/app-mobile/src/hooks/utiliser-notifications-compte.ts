@@ -34,7 +34,7 @@ const plusRecente = (a: string | null, b: string | null) => (a === null ? b : b 
  * La cloche quand un compte est connecté : GET /app/cloche (30 dernières, sans les personnes bloquées), relue quand la
  * signature du pouls change, plus les « a posté » des lieux et créateurs suivis, calculés sur le fil du téléphone. « Vu »
  * part au serveur (le même sur tous tes téléphones) et reste aussi sur celui-ci : sans profil social, le serveur ne le garde
- * pas. La communauté connaît ensuite les personnes qui agissent. Inactif (démo, visite, attente) : rien n'est lu.
+ * pas. La communauté connaît ensuite les personnes qui agissent. Inactif (visite, attente) : rien n'est lu.
  */
 export function utiliserNotificationsCompte(actif: boolean): EtatNotifications {
   const { sociaux, compte } = utiliserSession();

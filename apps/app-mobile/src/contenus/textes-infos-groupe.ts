@@ -50,10 +50,8 @@ export const TEXTES_INFOS_GROUPE = {
   inviterSousTitre: (max: number) => `Des potes de ta bande, jusqu'à ${max} personnes dans le groupe, toi compris.`,
   inviter: (n: number) => (n > 0 ? `Inviter (${n})` : "Inviter"),
   inviterIndiceCompte: "Chacun reçoit une invitation à rejoindre le groupe",
-  inviterIndiceDemo: "Ils rejoignent le groupe tout de suite",
   personneAInviter: "Toute ta bande est déjà là : le groupe affiche complet côté potes !",
   invitesEnvoyees: (prenoms: string, n: number) => `📨 C'est envoyé : ${prenoms} ${n > 1 ? "reçoivent" : "reçoit"} une invitation à rejoindre le groupe`,
-  invitesRejoignent: (prenoms: string, n: number) => `🎉 ${prenoms} ${n > 1 ? "rejoignent" : "rejoint"} le groupe !`,
   groupePlein: "Le groupe est plein : 20 personnes au plus, toi compris.",
   plusLa: "Ce groupe n'est plus là : tu l'as peut-être quitté. Tes autres discussions t'attendent !",
 } as const;

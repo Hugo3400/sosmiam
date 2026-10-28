@@ -4,7 +4,7 @@ import type { SortieApi } from "@sos-miam/commun/types/sorties";
 /**
  * Une sortie telle que l'API la rend, au format des écrans (les personnes par leur identifiant public : trouverPote les
  * connaît). La discussion est la conversation conversationId : messages reste vide. Un vote clos avant l'heure (par
- * l'organisateur) finit maintenant, comme dans la démo, pour qu'estVoteTermine dise la même chose partout.
+ * l'organisateur) finit maintenant, pour qu'estVoteTermine dise la même chose partout.
  */
 export function convertirSortieApi(s: SortieApi, maintenant: Date): Sortie {
   const closAvantLHeure = s.voteTermine && Date.parse(s.finVote) > maintenant.getTime();

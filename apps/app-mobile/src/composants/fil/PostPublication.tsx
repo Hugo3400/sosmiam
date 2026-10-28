@@ -262,7 +262,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
 
       <LinearGradient colors={["rgba(0,0,0,0.35)", "transparent"]} pointerEvents="none" style={{ position: "absolute", left: 0, right: 0, top: 0, height: 140 }} />
 
-      {/* Média libre d'exemple : on le dit clairement (lu par VoiceOver dans la description ci-dessous) */}
+      {/* Média libre d'illustration : on le dit clairement (lu par VoiceOver dans la description ci-dessous) */}
       {media && publication.illustration ? (
         <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ top: margeHaut }} className="absolute left-4 flex-row items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5">
           <Text className="text-xs">{media.type === "video" ? "🎬" : "📷"}</Text>

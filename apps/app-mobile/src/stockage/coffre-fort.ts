@@ -4,7 +4,7 @@ import { Platform } from "react-native";
 
 const MARQUE_INSTALLATION = "sosmiam.installation";
 const COFFRE_FORT_DE_CET_APPAREIL = "appareil-seul";
-const SECRETS_DU_COMPTE = ["sosmiam.session", "sosmiam.compte-de-cote", "sosmiam.code-invitation"];
+const SECRETS_DU_COMPTE = ["sosmiam.session", "sosmiam.code-invitation"];
 const PROFIL_DU_COMPTE = "sosmiam.profil";
 
 export const OPTIONS_COFFRE_FORT: SecureStore.SecureStoreOptions = {

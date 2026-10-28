@@ -34,7 +34,7 @@ const sans = (liens: LienSuiviApi[], id: string) => liens.filter((l) => l.person
  * Tes abonnés, tes abonnements et les demandes quand un compte est connecté : tout vient de l'API (/app/suivis-personnes),
  * relu quand le pouls dit que les demandes ou la cloche ont bougé (une demande, un nouvel abonné, une demande acceptée). Les
  * gestes s'affichent tout de suite, puis la route part et tout est relu. relationAvec suit la lecture la plus récente : les
- * listes, ou le profil de la personne lu juste après (noterProfil). Inactif (démo, visite, attente) : rien n'est lu.
+ * listes, ou le profil de la personne lu juste après (noterProfil). Inactif (visite, attente) : rien n'est lu.
  */
 export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonnes {
   const { sociaux } = utiliserSession();
@@ -84,7 +84,7 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
     vues.forEach((l) => noterPersonne(l.personne));
   }, [sociaux, tant, noterPersonne]);
 
-  // Connexion : tout est lu une fois ; déconnexion (ou démo) : tout est oublié
+  // Connexion : tout est lu une fois ; déconnexion : tout est oublié
   useEffect(() => {
     generation.current += 1;
     suitesEnCours.current.clear();
@@ -413,7 +413,7 @@ export function utiliserSuivisPersonnesCompte(actif: boolean): EtatSuivisPersonn
         setMasquees((avant) => [...avant, cle]);
         void sociaux.social.masquer("suggestion", cle, true);
       },
-      // Tes suivis restent sur le serveur : seul ce que le téléphone gardait d'avant (démo, visite) part
+      // Tes suivis restent sur le serveur : seul ce que le téléphone gardait d'avant (visite) part
       effacer: effacerSuivisPersonnesLocaux,
     };
   }, [pret, lectureSuivis, communaute, monId, resume, pages, ordreListes, profils, gestes, masquees, pagesSuivies, sociaux, faire, changerCompteurs, changerConfidentialite, chargerSuite, noterProfil]);

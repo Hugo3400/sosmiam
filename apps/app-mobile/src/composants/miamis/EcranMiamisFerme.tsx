@@ -18,7 +18,7 @@ type Props = {
 export function EcranMiamisFerme({ raison, titre, retourSansHistorique, libelleRetour }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
-  const message = raison === "demo" ? TEXTES_ACCES_MIAMIS.demo : raison === "visite" ? TEXTES_ACCES_MIAMIS.visite : TEXTES_ACCES_MIAMIS.bientot;
+  const message = raison === "visite" ? TEXTES_ACCES_MIAMIS.visite : TEXTES_ACCES_MIAMIS.bientot;
   const revenir = retourSansHistorique ? () => (router.canGoBack() ? router.back() : router.replace(retourSansHistorique)) : undefined;
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>

@@ -12,8 +12,8 @@ import type { LectureListe } from "~/hooks/utiliser-visites";
 export type ResultatRescousse = "donnee" | "annulee" | "epuisee" | "non-verifie" | "sans-session";
 
 /**
- * La rescousse confirmée (ou pas) : par l'API avec un compte, tout de suite en démo. Seule cette réponse dit si tu es le
- * premier sauveteur. Un refus (pas de réseau, plus de rescousse…) défait le geste : l'activité affichée revient en arrière.
+ * La rescousse confirmée (ou pas) : par l'API avec un compte. Seule cette réponse dit si tu es le premier sauveteur. Un
+ * refus (pas de réseau, plus de rescousse…) défait le geste : l'activité affichée revient en arrière.
  */
 export type FinRescousse = { ok: true; premierSauveteur: boolean } | { ok: false; erreur: ErreurService; details?: DetailsErreur };
 
@@ -22,7 +22,7 @@ export type EtatActivite = {
   restantes: number;
   /** Rescousses données depuis l'inscription (et pas reprises) */
   rescoussesDonnees: number;
-  /** Rescousses données ce mois-ci (à l'heure de Paris avec un compte ; semaines commencées ce mois-ci en démo), pour le classement entre potes */
+  /** Rescousses données ce mois-ci (à l'heure de Paris avec un compte), pour le classement entre potes */
   rescoussesDuMois: number;
   /** Lieux sauvés au moins une fois, du plus récent au plus ancien */
   lieuxSauves: number[];
@@ -35,7 +35,7 @@ export type EtatActivite = {
   /** Lieux et créateurs suivis (« lieu:<id> », « createur:<pseudo> », voir calculerCleSuivi), du plus récent au plus ancien */
   suivis: string[];
   /**
-   * Vrai une fois l'activité connue : relue sur le téléphone (démo, ou copie du compte), sinon après la première lecture
+   * Vrai une fois l'activité connue : relue sur le téléphone (copie du compte), sinon après la première lecture
    * de l'API, même ratée ; tout de suite en visite sans compte. Avant : une activité vide.
    */
   chargee: boolean;
@@ -45,7 +45,7 @@ export type EtatActivite = {
   /**
    * Publications aimées d'après la dernière réponse de l'API, sans les gestes pas encore partis ; null tant qu'on ne la
    * connaît pas. Le nombre de J'aime de l'API compte déjà le tien : le fil s'en sert pour ne pas le compter deux fois.
-   * Vide en démo et en visite (les compteurs ne comptent jamais le tien).
+   * Vide en visite (les compteurs ne comptent jamais le tien).
    */
   jaimesServeur: readonly string[] | null;
   aSauve: (idLieu: number) => boolean;
@@ -67,7 +67,7 @@ export type EtatActivite = {
   estSuivi: (cle: string) => boolean;
   /** Suit le lieu ou le créateur, ou arrête de le suivre ; renvoie vrai s'il est maintenant suivi */
   basculerSuivi: (cle: string) => boolean;
-  /** Efface l'activité gardée sur le téléphone (démo et copie du compte, sans rien demander au serveur) */
+  /** Efface l'activité gardée sur le téléphone (copie du compte et activité d'avant l'API, sans rien demander au serveur) */
   effacer: () => Promise<void>;
 };
 
@@ -75,7 +75,7 @@ export const ContexteActivite = createContext<EtatActivite | null>(null);
 
 /**
  * Rescousses de la semaine, lieux gardés, J'aime, publications masquées et suivis (fourni par FournisseurActivite, à la
- * racine) : ceux de la démo sur le téléphone, ou ceux du compte connecté sur l'API.
+ * racine) : ceux du compte connecté, sur l'API.
  */
 export function utiliserActivite(): EtatActivite {
   const etat = useContext(ContexteActivite);

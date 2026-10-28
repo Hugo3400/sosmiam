@@ -27,7 +27,7 @@ const REFUS_A_RELIRE = ["deja-contestee", "contestation-hors-delai", "decision-i
  * limité » s'il l'est (jusqu'à quand, la règle, l'explication, ce qui marche toujours, « Contester »), puis une carte par
  * décision sur tes contenus et sur tes signalements, avec la règle en cause, l'explication de l'équipe et « Contester »
  * pendant 6 mois. Jamais qui a signalé. Ouvert aussi depuis la cloche (contenu masqué, retiré, signalement examiné, compte
- * limité) et l'annonce d'une écriture refusée (« Voir pourquoi »). Démo et visite : ce qui arrivera ici avec un compte.
+ * limité) et l'annonce d'une écriture refusée (« Voir pourquoi »). Visite : ce qui arrivera ici avec un compte.
  */
 export default function DecisionsModeration() {
   const couleurs = utiliserCouleurs();

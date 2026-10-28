@@ -6,8 +6,8 @@ import { calculerScoreLieu } from "~/fonctions/lieux/calculer-score-lieu";
 import { estimerKmPourClasser } from "~/fonctions/lieux/estimer-km-pour-classer";
 
 /**
- * Un lieu et sa distance : depuis ta position (« Autour de moi »), sinon depuis le centre de ta ville, sinon sa distance
- * d'exemple ; null si on ne la connaît pas (lieu pas encore placé sur la carte) : rien ne s'affiche.
+ * Un lieu et sa distance : depuis ta position (« Autour de moi »), sinon depuis le centre de ta ville ; null si on ne la
+ * connaît pas (lieu pas encore placé sur la carte) : rien ne s'affiche.
  */
 export type LieuExplorer = { lieu: Lieu; km: number | null };
 

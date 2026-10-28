@@ -9,10 +9,10 @@ const LONGUEUR_MAX_PRENOM = 40;
 /**
  * Le profil du téléphone mis à jour avec celui du serveur, qui fait foi, sauf pour les champs de `garderLocal` (changés sur
  * ce téléphone, pas encore partis). Les régimes et la date de création restent ceux du téléphone (les régimes ne vont
- * jamais au serveur : RGPD, article 9 ; la date de création sert de clé à la démo des suivis et des notifications). Ce que
- * le serveur ne connaît pas (date de naissance, ville d'un compte du site) reste aussi celui du téléphone. Le pseudo est
- * celui du serveur, sauf s'il attend de partir (téléphone d'avant la synchro). null : le résultat ne serait pas un profil
- * valable (rien à écrire).
+ * jamais au serveur : RGPD, article 9 ; la date de création sert de clé aux suivis et aux notifications gardés sur le
+ * téléphone). Ce que le serveur ne connaît pas (date de naissance, ville d'un compte du site) reste aussi celui du
+ * téléphone. Le pseudo est celui du serveur, sauf s'il attend de partir (téléphone d'avant la synchro). null : le résultat
+ * ne serait pas un profil valable (rien à écrire).
  */
 export function fusionnerProfilServeur(local: Profil, serveur: ProfilServeur, garderLocal: ReadonlySet<ChampSynchro>): Profil | null {
   const prenomServeurLisible = serveur.prenom.trim() !== "" && serveur.prenom.length <= LONGUEUR_MAX_PRENOM;

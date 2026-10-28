@@ -27,10 +27,10 @@ function decrireEchec(fin: Extract<FinRescousse, { ok: false }>, donnee: boolean
 
 /**
  * L'appui sur « rescousse », avec les mêmes règles et les mêmes mots dans le fil et sur la fiche d'un lieu : donnée,
- * reprise, plus de rescousse, lieu pas encore vérifié. La réponse est immédiate ; la confirmation (de l'API avec un compte,
- * tout de suite en démo) dit si tu es le premier sauveteur, ou défait la rescousse si elle n'a pas pu partir. Pour un lieu
- * tout juste arrivé, l'annonce attend cette confirmation (3 s au plus, sinon « Merci »). À appeler une fois le compte vérifié
- * (exiger « rescousse »). `surDonnee` : la bouée qui s'envole, dans le fil.
+ * reprise, plus de rescousse, lieu pas encore vérifié. La réponse est immédiate ; la confirmation de l'API dit si tu es le
+ * premier sauveteur, ou défait la rescousse si elle n'a pas pu partir. Pour un lieu tout juste arrivé, l'annonce attend cette
+ * confirmation (3 s au plus, sinon « Merci »). À appeler une fois le compte vérifié (exiger « rescousse »). `surDonnee` : la
+ * bouée qui s'envole, dans le fil.
  */
 export function utiliserGesteRescousse(annoncer: (texte: string) => void) {
   const activite = utiliserActivite();

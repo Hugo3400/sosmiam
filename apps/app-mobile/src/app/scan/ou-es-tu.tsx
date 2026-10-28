@@ -89,7 +89,6 @@ export default function TuEsChezQui() {
     else setLecture(r.erreur === "annulee" ? { etat: "annulee" } : { etat: "echec", erreur: r.erreur });
   }, [lire]);
 
-  // Avec ta vraie position seulement : en démo, chaque lieu fait comme si tu y étais
   useEffect(() => {
     if (!indisponible) void lirePosition();
   }, [indisponible, lirePosition]);
@@ -98,7 +97,7 @@ export default function TuEsChezQui() {
   const tresProches = proches.filter((p) => p.distanceM < RAYON_EVIDENT_M);
   const evident = tresProches.length === 1 ? tresProches[0] : null;
   const autour = proches.filter((p) => p !== evident);
-  // Démo : toute la liste, filtrée si l'on tape ; vraie position : la recherche ne sort qu'à partir de 2 lettres
+  // La recherche ne sort qu'à partir de 2 lettres
   const assezDeLettres = normaliserRecherche(recherche).length >= LETTRES_RECHERCHE;
   const trouves = assezDeLettres ? chercher(validants, recherche) : [];
 

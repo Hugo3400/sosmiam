@@ -23,8 +23,8 @@ const MARGE_EXPIRATION_MS = 500;
 
 /**
  * Une visite suivie en direct pendant que son écran est ouvert : relue à l'ouverture, à chaque changement prévenu par les
- * services (démo : le lieu qui répond), au retour au premier plan, à l'heure où l'addition expire, et, avec l'API, toutes
- * les 4 s tant que l'addition attend et que l'écran est affiché. Une relecture ratée garde la visite déjà affichée.
+ * services, au retour au premier plan, à l'heure où l'addition expire, et, avec l'API, toutes les 4 s tant que l'addition
+ * attend et que l'écran est affiché. Une relecture ratée garde la visite déjà affichée.
  */
 export function utiliserVisiteEnDirect(id: number | null): EtatVisiteEnDirect {
   const services = utiliserServices();

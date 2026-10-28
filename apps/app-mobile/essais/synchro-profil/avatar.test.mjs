@@ -1,6 +1,5 @@
 // L'avatar dans la synchro du profil (règles 1 à 6) : l'état gardé relu, un emoji ou un Miami qui part, une photo qui
-// reste sur le téléphone, la relecture du serveur, les refus, l'effacement ; puis deux courses. Le mode démo (règle 6) est
-// dans demo.test.mjs.
+// reste sur le téléphone, la relecture du serveur, les refus, l'effacement ; puis deux courses.
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { lireSynchroProfil } from "~/stockage/synchro-profil";

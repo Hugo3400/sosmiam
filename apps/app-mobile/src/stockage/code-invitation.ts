@@ -1,7 +1,7 @@
 // Ton code secret d'invitation : tiré au hasard une seule fois, puis gardé dans le coffre-fort du téléphone (Trousseau iOS,
 // Keystore Android), comme le profil. Il va dans ton lien et ton QR code (« #c=<code> ») : sans lui, un lien d'invitation
-// se fabriquerait avec ton seul pseudo, qui est public. Démo : rien ne le vérifie encore. Quand les comptes arriveront, c'est
-// l'API qui le créera, le vérifiera et pourra le renouveler.
+// se fabriquerait avec ton seul pseudo, qui est public. Rien ne le vérifie : avec un compte, c'est l'API qui crée ton code,
+// le vérifie et peut le renouveler.
 // Sur le web (aperçu de développement seulement), pas de coffre-fort : AsyncStorage.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
@@ -27,7 +27,7 @@ export async function lireCodeInvitation(): Promise<string> {
   try {
     await (surLeWeb ? AsyncStorage.setItem(CLE, code) : SecureStore.setItemAsync(CLE, code, OPTIONS_COFFRE_FORT));
   } catch {
-    // Pas rangé : le lien changera à la prochaine ouverture, rien de grave dans la démo
+    // Pas rangé : le lien changera à la prochaine ouverture, rien de grave
   }
   return code;
 }

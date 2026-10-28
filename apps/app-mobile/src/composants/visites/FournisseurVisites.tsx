@@ -23,8 +23,8 @@ function sansPlantage<T>(promesse: Promise<T>): Promise<T | null> {
 
 /**
  * Lit tes visites, ta demande en cours, tes avis à donner, tes cartes de fidélité et tes réservations, et les met
- * à disposition de toute l'app (voir utiliserVisites). Relu quand les services préviennent d'un changement (démo : à chaque
- * geste, du client comme du lieu) et à chaque retour au premier plan. Sans compte, rien n'est lu.
+ * à disposition de toute l'app (voir utiliserVisites). Relu quand les services préviennent d'un changement et à chaque
+ * retour au premier plan. Sans compte, rien n'est lu.
  */
 export function FournisseurVisites({ children }: { children: ReactNode }) {
   const services = utiliserServices();

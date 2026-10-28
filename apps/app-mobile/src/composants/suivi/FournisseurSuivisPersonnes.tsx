@@ -6,7 +6,7 @@ import { utiliserSuivisPersonnesCompte } from "~/hooks/utiliser-suivis-personnes
 import { utiliserSuivisPersonnesLocaux } from "~/hooks/utiliser-suivis-personnes-locaux";
 
 /**
- * Abonnés, abonnements et demandes entre personnes, lus par utiliserSuivisPersonnes. Démo et visite : le téléphone. Compte
+ * Abonnés, abonnements et demandes entre personnes, lus par utiliserSuivisPersonnes. Visite : le téléphone. Compte
  * connecté : le serveur. Les deux hooks sont toujours appelés et un seul Provider est rendu : passer de la visite au compte
  * ne remonte jamais les écrans.
  */

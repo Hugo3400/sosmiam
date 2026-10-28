@@ -257,7 +257,7 @@ export default function PourToi() {
 
   function signaler(choix: ChoixSignalement) {
     if (!menu) return;
-    // À la modération (sans dire qui signale) ; sans réseau, il attend sur le téléphone ; en démo, il y reste
+    // À la modération (sans dire qui signale) ; sans réseau, il attend sur le téléphone
     void envoyerSignalementPublication({ publicationId: menu.id, lieuId: menu.lieuId, ...choix, date: new Date().toISOString() });
     masquerPublication(menu.id);
   }

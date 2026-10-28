@@ -78,7 +78,7 @@ export default function EcranSortie() {
     return () => clearInterval(minuterie);
   }, []);
 
-  // Compte connecté : on relit la sortie à l'ouverture (propositions, votes, invités) ; démo : rien
+  // Compte connecté : on relit la sortie à l'ouverture (propositions, votes, invités)
   useEffect(() => {
     if (id) lireSortie(id);
     // lireSortie change à chaque relecture de la communauté : seulement à l'ouverture

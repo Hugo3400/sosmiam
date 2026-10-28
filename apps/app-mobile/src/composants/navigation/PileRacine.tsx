@@ -18,7 +18,6 @@ import { utiliserInvitationEnAttente } from "~/hooks/utiliser-invitation-en-atte
 import { utiliserPastilleIcone } from "~/hooks/utiliser-pastille-icone";
 import { utiliserInscriptionTelephone } from "~/hooks/utiliser-inscription-telephone";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { utiliserRepriseCompte } from "~/hooks/utiliser-reprise-compte";
 import { SuiviEcranOuvert } from "~/composants/navigation/SuiviEcranOuvert";
 
 /**
@@ -28,8 +27,7 @@ import { SuiviEcranOuvert } from "~/composants/navigation/SuiviEcranOuvert";
  * Les modes pro et ambassadeur sont des piles posées par-dessus les onglets perso (qui restent montés dessous), ouvertes
  * seulement à qui a le rôle : un rôle retiré ferme ses écrans et ramène au mode perso.
  * Toute nouvelle route doit être rangée sous une garde : une route oubliée ici serait ouverte à tout le monde.
- * L'écran de démarrage reste affiché tant que les polices, le profil et les modes ne sont pas prêts (et, après « Quitter la
- * démo », tant que le compte mis de côté n'est pas rouvert).
+ * L'écran de démarrage reste affiché tant que les polices, le profil et les modes ne sont pas prêts.
  */
 export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const couleurs = utiliserCouleurs();
@@ -37,9 +35,7 @@ export function PileRacine({ policesChargees }: { policesChargees: boolean }) {
   const modes = utiliserModes();
   const etatVersion = utiliserEtatVersion();
   const versionBloquee = etatVersion.etat === "obligatoire";
-  // Après « Quitter la démo » : le compte mis de côté se rouvre avant d'afficher quoi que ce soit
-  const reprise = utiliserRepriseCompte();
-  const pret = policesChargees && !chargement && modes.pret && !reprise;
+  const pret = policesChargees && !chargement && modes.pret;
   // Notifications : le téléphone s'inscrit sur le serveur, et toucher une notification ouvre son écran (une fois la pile affichée)
   utiliserInscriptionTelephone(pret);
   utiliserPastilleIcone();
