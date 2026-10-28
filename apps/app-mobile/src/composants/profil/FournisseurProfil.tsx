@@ -7,7 +7,6 @@ import { preparerPhotoProfil } from "~/fonctions/compte/preparer-photo-profil";
 import { ContexteProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSynchroProfil } from "~/hooks/utiliser-synchro-profil";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { AVATAR_PAR_DEFAUT, effacerAvatarLocal, garderPhotoAvatar, lireAvatarLocal, supprimerPhotoAvatar, type Avatar } from "~/stockage/avatar-local";
 import { effacerModeInvite, enregistrerModeInvite, lireModeInvite } from "~/stockage/mode-invite";
 import { effacerProfilLocal, lireProfilLocal } from "~/stockage/profil-local";
@@ -44,7 +43,7 @@ export function FournisseurProfil({ children }: { children: ReactNode }) {
   const [avatar, setAvatar] = useState<Avatar>(AVATAR_PAR_DEFAUT);
   // La synchro garde la copie à jour du profil et de l'avatar (relue au retour de chaque réponse du serveur) et les écrit sur le téléphone
   const synchro = utiliserSynchroProfil({
-    actif: !DEMO_VISITES_ACTIVE && session.pret && session.connecte && profil !== null,
+    actif: session.pret && session.connecte && profil !== null,
     afficherProfil: setProfilAffiche,
     afficherAvatar: setAvatar,
   });

@@ -5,7 +5,6 @@ import { LANGUES_OUVERTES_APP } from "@sos-miam/commun/regles/langues";
 import type { ReglageLangue } from "~/contenus/type-langue";
 import { choisirLangueApp } from "~/fonctions/langue/choisir-langue-app";
 import { ContexteLangue, type EtatLangue } from "~/hooks/utiliser-langue";
-import { DEMO_POSSIBLE } from "~/services/demo/demo-visites-active";
 import { poserLangueActuelle } from "~/services/langue-actuelle";
 import { lireLanguesTelephone } from "~/services/langues-telephone";
 import { enregistrerReglageLangue, lireReglageLangue } from "~/stockage/langue";
@@ -35,7 +34,7 @@ export function FournisseurLangue({ children }: { children: ReactNode }) {
     void enregistrerReglageLangue(nouveau);
   }, []);
 
-  const langue = choisirLangueApp(reglage ?? "automatique", codesTelephone.split(","), LANGUES_OUVERTES_APP, DEMO_POSSIBLE);
+  const langue = choisirLangueApp(reglage ?? "automatique", codesTelephone.split(","), LANGUES_OUVERTES_APP, __DEV__);
   poserLangueActuelle(langue);
 
   const valeur = useMemo<EtatLangue>(() => ({ langue, reglage: reglage ?? "automatique", changerReglage }), [langue, reglage, changerReglage]);

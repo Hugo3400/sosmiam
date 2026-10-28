@@ -21,7 +21,6 @@ import { resumerCelebration } from "~/fonctions/visites/resumer-celebration";
 import { utiliserPointsTotaux } from "~/hooks/utiliser-points-totaux";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { estRecompenseVisiteAlcool } from "~/fonctions/visites/est-recompense-visite-alcool";
 
@@ -60,9 +59,9 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
   const { visites } = utiliserVisites();
   const dejaComptee = visites.some((v) => v.id === visite.id && v.statut === "validee");
   const avantCalcule = dejaComptee ? pointsTotaux - visite.points : pointsTotaux;
-  // Figés dès que tes points sont connus (le compte relu, hors démo) : les relectures qui suivent la fête ne changent plus le palier
+  // Figés dès que tes points sont connus (le compte relu) : les relectures qui suivent la fête ne changent plus le palier
   const { compte } = utiliserSession();
-  const pointsConnus = DEMO_VISITES_ACTIVE || compte !== null;
+  const pointsConnus = compte !== null;
   const [avantFige, setAvantFige] = useState<number | null>(null);
   if (avantFige === null && pointsConnus) setAvantFige(avantCalcule);
   const avant = avantFige ?? avantCalcule;

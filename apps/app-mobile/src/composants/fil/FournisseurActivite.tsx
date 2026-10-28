@@ -16,13 +16,13 @@ const ACTIVITE_VIDE = creerActiviteApiVide();
 const AUCUN_JAIME: readonly string[] = [];
 
 /**
- * Hors démo, l'activité vient de l'API : celle du compte connecté (utiliserFileActivite : affichée tout de suite, confirmée
+ * L'activité vient de l'API : celle du compte connecté (utiliserFileActivite : affichée tout de suite, confirmée
  * ensuite, gestes rejouables gardés hors ligne). Sans session (visite sans compte, ou session expirée) : une activité vide,
  * rien n'est lu ni écrit, et chaque geste demande d'abord un compte. Tant que le jeton n'est pas relu : vide, pas encore
  * chargée (le fil attend tes suivis pour se trier). Un seul composant pour les trois cas : se connecter ou se déconnecter
  * ne remonte jamais l'app. Rien n'est repris du téléphone : un compte part de son activité sur le serveur.
  */
-export function FournisseurActiviteCompte({ children }: { children: ReactNode }) {
+export function FournisseurActivite({ children }: { children: ReactNode }) {
   const { pret, connecte, activite: service, rafraichir, compte: compteLu } = utiliserSession();
   const source = !pret ? "attente" : connecte ? "compte" : "vide";
   const compte = source === "compte";
@@ -58,7 +58,7 @@ export function FournisseurActiviteCompte({ children }: { children: ReactNode })
   const file = utiliserFileActivite({ actif: compte, service, surRescousseConfirmee: relireCompte, surReponse });
   const { ajouter, lireAffichee, effacer } = file;
 
-  // L'activité gardée sur le téléphone avant l'API (sosmiam.activite) n'est jamais relue hors démo
+  // L'activité gardée sur le téléphone avant l'API (sosmiam.activite) n'est jamais relue
   useEffect(() => {
     effacerActiviteLocale().catch(() => {});
   }, []);
