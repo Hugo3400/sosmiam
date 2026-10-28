@@ -1,6 +1,5 @@
 // Une publication du fil « Pour toi » : une vidéo ou des photos d'un lieu, postées par le lieu ou par un créateur.
-// Mode démo : des exemples (médias libres Mixkit dans assets/medias-demo) ; sinon, celles du serveur (PublicationApi, converties
-// par fonctions/publications/convertir-publication-api.ts).
+// Celles du serveur (PublicationApi, converties par fonctions/publications/convertir-publication-api.ts).
 import type { ImageSourcePropType } from "react-native";
 import type { VideoSource } from "expo-video";
 

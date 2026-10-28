@@ -1,8 +1,6 @@
 import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { nomPublicContientMotInterdit } from "@sos-miam/commun/validation/nom-public-contient-mot-interdit";
 
-import { potesExemples } from "~/contenus/potes-exemples";
-
 // Place gardée pour les chiffres : la racine fait au plus 16 caractères, le pseudo au plus 20
 const LONGUEUR_MAX_RACINE = 16;
 // Racine de secours quand le prénom n'a aucune lettre latine (« 李 ») ou qu'il tombe sur un mot interdit
@@ -11,7 +9,7 @@ const ESSAIS = 30;
 
 /**
  * Propose un pseudo à partir du prénom : en minuscules, sans accents, suivi de chiffres au hasard (« Léa-Rose » → « lea.rose42 »),
- * de la forme FORME_PSEUDO (estPseudoValide) et différent des pseudos des potes d'exemple. L'unicité pour de vrai se vérifiera avec les comptes (API).
+ * de la forme FORME_PSEUDO (estPseudoValide). Son unicité se vérifie avec le compte (API).
  */
 export function proposerPseudo(prenom: string, hasard: () => number = Math.random): string {
   const racine =
@@ -29,13 +27,12 @@ export function proposerPseudo(prenom: string, hasard: () => number = Math.rando
       .replace(/^\.+|\.+$/g, "") || RACINE_DE_SECOURS;
   // Même filtre que l'écran qui valide le pseudo : le prénom « Con » ne doit pas faire proposer « con42 », refusé ensuite
   const base = nomPublicContientMotInterdit(racine) ? RACINE_DE_SECOURS : racine;
-  const pris = new Set(potesExemples.map((pote) => pote.pseudo));
 
   for (let essai = 0; essai < ESSAIS; essai++) {
     // 2 chiffres d'abord (« lea42 »), 3 si ça coince
     const chiffres = essai < ESSAIS / 2 ? 10 + Math.floor(hasard() * 90) : 100 + Math.floor(hasard() * 900);
     const candidat = `${base}${chiffres}`;
-    if (estPseudoValide(candidat) && !pris.has(candidat)) return candidat;
+    if (estPseudoValide(candidat)) return candidat;
   }
   // Ne devrait jamais arriver (hasard truqué) : un pseudo de secours, valable lui aussi
   return `${RACINE_DE_SECOURS}${Date.now() % 100_000}`;

@@ -11,12 +11,12 @@ import { utiliserCommentairesActus } from "~/hooks/utiliser-commentaires-actus";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 
-type Props = { articleId: number; exemple: boolean; nombre: number; nomLieu: string; T: Traduction<typeof TEXTES_ACTUS>["article"] };
+type Props = { articleId: number; nombre: number; nomLieu: string; T: Traduction<typeof TEXTES_ACTUS>["article"] };
 
-export function CommentairesArticle({ articleId, exemple, nombre, nomLieu, T }: Props) {
+export function CommentairesArticle({ articleId, nombre, nomLieu, T }: Props) {
   const { profil } = utiliserProfil();
   const exiger = utiliserCompteRequis();
-  const { commentaires, aUneSuite, chargerSuite, envoyer, supprimer } = utiliserCommentairesActus(articleId, exemple);
+  const { commentaires, aUneSuite, chargerSuite, envoyer, supprimer } = utiliserCommentairesActus(articleId);
   const [reponseA, setReponseA] = useState<CommentaireActus | null>(null);
   const [signale, setSignale] = useState<ChoixSignalementActus | null>(null);
   const avecCompte = profil !== null;

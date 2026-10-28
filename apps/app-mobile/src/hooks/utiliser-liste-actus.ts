@@ -3,10 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ArticleActusAffiche } from "~/contenus/type-article-actus";
 import type { FiltreActus } from "~/contenus/type-filtre-actus";
 import { convertirArticleActus } from "~/fonctions/actus/convertir-article-actus";
-import { lireExemplesActus } from "~/fonctions/actus/lire-exemples-actus";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServiceActus } from "~/hooks/utiliser-service-actus";
-import { EXEMPLES_ACTUS_EN_SECOURS } from "~/services/actus-visibles";
 
 type EtatListe = { cle: string; articles: ArticleActusAffiche[]; suivant: string | null; enEchec: boolean };
 
@@ -25,8 +23,7 @@ export function utiliserListeActus(filtre: FiltreActus) {
     void lire.then((r) => {
       if (!actif) return;
       if (r.ok) return setEtat({ cle, articles: r.articles.map(convertirArticleActus), suivant: r.suivant, enEchec: false });
-      const exemples = EXEMPLES_ACTUS_EN_SECOURS && filtre !== "abonnements" ? lireExemplesActus(rubrique, invite) : [];
-      setEtat({ cle, articles: exemples, suivant: null, enEchec: true });
+      setEtat({ cle, articles: [], suivant: null, enEchec: true });
     });
     return () => {
       actif = false;

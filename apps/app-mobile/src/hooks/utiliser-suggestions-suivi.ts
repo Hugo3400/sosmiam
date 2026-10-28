@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
-import { bandesExemples } from "~/contenus/suivis-exemples";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { suggererCreateurs } from "~/fonctions/suivi/suggerer-createurs";
@@ -72,7 +71,7 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
         // Celles qui te suivent déjà, en tête et avec « Te suit » : la carte n'a que le nom et la raison pour le dire
         // (son bouton compact affiche « Suivre », pas « Suivre en retour »)
         const teSuivent = abonnes.map((a) => a.pote.id).filter(estCandidat).map((id) => ({ id, raison: "Te suit" }));
-        const potesDePotes = suggererPersonnes({ monId, bande: potes.map((p) => p.id), bandes: bandesExemples, estCandidat, prenomDe }).filter((s) => !teSuivent.some((t) => t.id === s.id));
+        const potesDePotes = suggererPersonnes({ monId, bande: potes.map((p) => p.id), bandes: {}, estCandidat, prenomDe }).filter((s) => !teSuivent.some((t) => t.id === s.id));
         return [...teSuivent, ...potesDePotes].flatMap(({ id, raison }) => {
           const pote = trouverPote(id);
           return pote

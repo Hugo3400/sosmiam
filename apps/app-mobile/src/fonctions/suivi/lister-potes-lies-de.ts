@@ -1,12 +1,13 @@
 import type { Pote } from "@sos-miam/commun/types/potes";
 
-import { grapheSuivisExemples } from "~/contenus/suivis-exemples";
 import { listerAbonnementsDe } from "~/fonctions/suivi/lister-abonnements-de";
 import { listerAbonnesDe } from "~/fonctions/suivi/lister-abonnes-de";
 
+const AUCUN_LIEN_CONNU: Readonly<Record<string, readonly string[]>> = {};
+
 /**
- * Les abonnés ou les abonnements d'une autre personne de la démo (graphe d'exemple, et toi selon tes liens avec elle),
- * sans personne bloquée ni inconnue. monId : ton identifiant (utiliserMonId).
+ * Les abonnés ou les abonnements d'une autre personne gardée sur le téléphone (toi selon tes liens avec elle : ses autres
+ * liens ne sont connus que du serveur), sans personne bloquée ni inconnue. monId : ton identifiant (utiliserMonId).
  */
 export function listerPotesLiesDe(
   id: string,
@@ -15,8 +16,8 @@ export function listerPotesLiesDe(
 ): Pote[] {
   const ids =
     sens === "abonnes"
-      ? listerAbonnesDe(id, grapheSuivisExemples, contexte.mesAbonnements, contexte.monId)
-      : listerAbonnementsDe(id, grapheSuivisExemples, contexte.mesAbonnes, contexte.monId);
+      ? listerAbonnesDe(id, AUCUN_LIEN_CONNU, contexte.mesAbonnements, contexte.monId)
+      : listerAbonnementsDe(id, AUCUN_LIEN_CONNU, contexte.mesAbonnes, contexte.monId);
   return ids.flatMap((autre) => {
     const pote = contexte.bloques.has(autre) ? null : contexte.trouverPote(autre);
     return pote ? [pote] : [];
