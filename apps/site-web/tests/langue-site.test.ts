@@ -21,6 +21,7 @@ const { listerLanguesServies } = await import("../src/fonctions/langue/lister-la
 const { estPageDoublee } = await import("../src/fonctions/langue/est-page-doublee.ts");
 const { choisirLanguePage } = await import("../src/fonctions/langue/choisir-langue-page.ts");
 const { ecrireCheminLangue } = await import("../src/fonctions/langue/ecrire-chemin-langue.ts");
+const { proposerLanguePage } = await import("../src/fonctions/langue/proposer-langue-page.ts");
 const { lireCookieLangue } = await import("../src/fonctions/langue/lire-cookie-langue.ts");
 const { ecrireCookieLangue } = await import("../src/fonctions/langue/ecrire-cookie-langue.ts");
 const { choisirRedirectionHote } = await import("../src/fonctions/hotes/choisir-redirection-hote.ts");
@@ -59,6 +60,21 @@ test("choisirLanguePage : l'adresse décide pour /en, le français pour les page
   assert.equal(choisirLanguePage(demande("https://apercu.sosmiam.fr/lieux/3", "sosmiam-langue=de", "de"), deux).langue, "fr");
   assert.equal(choisirLanguePage(demande("https://apercu.sosmiam.fr/lieux/3"), deux).negociee, true);
   assert.deepEqual(choisirLanguePage(demande("https://sosmiam.fr/lieux/3?langue=en", "sosmiam-langue=en", "en"), ["fr"]), { langue: "fr", servie: true, negociee: false });
+});
+
+test("proposerLanguePage : l'anglais proposé sur une page doublée en français, d'après le choix ou le navigateur, jamais sans raison", () => {
+  const deux = ["fr", "en"] as const;
+  assert.deepEqual(proposerLanguePage(demande("https://sosmiam.fr/faq", null, "en-GB"), ["fr"]), { proposee: null, evaluee: false });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/lieux/3", null, "en-GB"), deux), { proposee: null, evaluee: false });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/faq", null, "en-GB,en;q=0.9"), deux), { proposee: "en", evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/faq", null, "fr-FR,en;q=0.5"), deux), { proposee: null, evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/faq"), deux), { proposee: null, evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/faq", "sosmiam-langue=fr", "en-GB"), deux), { proposee: null, evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/faq", "sosmiam-langue=en"), deux), { proposee: "en", evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/en/faq", null, "en-GB"), deux), { proposee: null, evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/en/faq", null, "fr-FR"), deux), { proposee: null, evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/en/faq", "sosmiam-langue=fr"), deux), { proposee: "fr", evaluee: true });
+  assert.deepEqual(proposerLanguePage(demande("https://apercu.sosmiam.fr/carriere/abc.data", null, "en"), deux), { proposee: "en", evaluee: true });
 });
 
 test("ecrireCheminLangue : /en devant les pages doublées seulement", () => {

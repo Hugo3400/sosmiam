@@ -5,6 +5,7 @@ import type { Route } from "./+types/root";
 import { utiliserFocusApresNavigation } from "~/hooks/utiliser-focus-apres-navigation";
 import { utiliserNonce } from "~/hooks/utiliser-nonce";
 import { GestionnaireConsentement } from "~/composants/cookies/GestionnaireConsentement";
+import { PropositionLangue } from "~/composants/mise-en-page/PropositionLangue";
 import { TEXTES_ERREUR_RACINE_PAR_LANGUE } from "~/contenus/erreur-racine";
 import { ecrireCheminLangue } from "~/fonctions/langue/ecrire-chemin-langue";
 import { ContexteLangue, utiliserLangue } from "~/hooks/utiliser-langue";
@@ -39,10 +40,10 @@ export const middleware: Route.MiddlewareFunction[] = [
     if (redirection) throw redirect(redirection.adresse, redirection.statut);
   },
   async ({ request }, suite) => {
-    const { langue, servie, negociee } = lireLangueRequete(request);
+    const { langue, servie, negociee, proposition } = lireLangueRequete(request);
     if (!servie) throw data(null, { status: 404 });
     const reponse = await porterLangue(langue, suite);
-    if (negociee && reponse instanceof Response) reponse.headers.append("Vary", "Accept-Language, Cookie");
+    if ((negociee || proposition.evaluee) && reponse instanceof Response) reponse.headers.append("Vary", "Accept-Language, Cookie");
     return reponse;
   },
   // Statistiques de visite, sans cookie : chaque page servie est signalée à l'API (voir services/mesure.server.ts)
@@ -59,8 +60,8 @@ export const middleware: Route.MiddlewareFunction[] = [
  * pas, et le choix du cookie « sosmiam-consentement » (services/consentement.server.ts).
  */
 export function loader({ request }: Route.LoaderArgs) {
-  const { langue, servies } = lireLangueRequete(request);
-  return { consentement: lireEtatConsentement(request), langue, languesServies: servies };
+  const { langue, servies, proposition } = lireLangueRequete(request);
+  return { consentement: lireEtatConsentement(request), langue, languesServies: servies, langueProposee: proposition.proposee };
 }
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -92,6 +93,7 @@ export default function App({ loaderData }: Route.ComponentProps) {
   // Bandeau et réglages des cookies sur toutes les pages, des trois hôtes (caché tant qu'aucune catégorie n'est active)
   return (
     <GestionnaireConsentement etat={loaderData.consentement}>
+      {loaderData.langueProposee && <PropositionLangue proposee={loaderData.langueProposee} />}
       <Outlet />
     </GestionnaireConsentement>
   );
