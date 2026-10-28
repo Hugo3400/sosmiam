@@ -15,6 +15,16 @@ import { ecrireNombreCouvertsLangue } from "~/fonctions/langue/ecrire-nombre-cou
 import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
 import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
 import { formaterMomentRelatifLangue } from "~/fonctions/langue/formater-moment-relatif-langue";
+import { ecrireAttente } from "~/fonctions/dates/ecrire-attente";
+import { ecrireMoisAnnee } from "~/fonctions/dates/ecrire-mois-annee";
+import { formaterIlYA } from "~/fonctions/dates/formater-il-y-a";
+import { ecrireAttenteLangue } from "~/fonctions/langue/ecrire-attente-langue";
+import { ecrireMoisAnneeLangue } from "~/fonctions/langue/ecrire-mois-annee-langue";
+import { formaterIlYALangue } from "~/fonctions/langue/formater-il-y-a-langue";
+import { formaterPrixLuLangue } from "~/fonctions/langue/formater-prix-lu-langue";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
+import { formaterPrixLu } from "~/fonctions/prix/formater-prix-lu";
+import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { ecrireNombreCouverts } from "~/fonctions/reservations/ecrire-nombre-couverts";
@@ -63,4 +73,33 @@ test("en anglais : « at » devant un lieu, people et covers, point décimal, he
     { court: "1 Oct", lu: "1 October" },
     { court: "3 Mar 2025", lu: "3 March 2025" },
   ]);
+});
+
+test("il y a, attente, prénoms, prix lu et mois : le français ne bouge pas, l'anglais suit le glossaire", () => {
+  const ilYA = [new Date(2026, 9, 28, 14, 59, 40), new Date(2026, 9, 28, 14, 55), new Date(2026, 9, 28, 14, 59), new Date(2026, 9, 28, 13, 0), new Date(2026, 9, 28, 11, 0), ...INSTANTS];
+  for (const instant of ilYA) assert.deepEqual(formaterIlYALangue(instant.toISOString(), "fr", MAINTENANT), formaterIlYA(instant.toISOString(), MAINTENANT));
+  for (const ms of [1, 60_000, 61_000, 3_600_000, 3_660_000, 7_200_000, 9_000_000]) assert.equal(ecrireAttenteLangue(ms, "fr"), ecrireAttente(ms));
+  for (const prenoms of [[], ["Inès"], ["Inès", "Jade"], ["Inès", "Jade", "Tom"]]) assert.equal(listerPrenomsLangue(prenoms, "fr"), listerPrenoms(prenoms));
+  for (const prix of [12, 4.5, 4.05, 1, 0.8, 0.01]) assert.equal(formaterPrixLuLangue(prix, "fr"), formaterPrixLu(prix));
+  for (const mois of ["2026-10", "2025-01", "2026-13", "abc"]) assert.equal(ecrireMoisAnneeLangue(mois, "fr"), ecrireMoisAnnee(mois));
+
+  assert.deepEqual(formaterIlYALangue(new Date(2026, 9, 28, 14, 59, 40).toISOString(), "en", MAINTENANT), { court: "just now", lu: "just now" });
+  assert.deepEqual(formaterIlYALangue(new Date(2026, 9, 28, 14, 59).toISOString(), "en", MAINTENANT), { court: "1 min ago", lu: "1 minute ago" });
+  assert.deepEqual(formaterIlYALangue(new Date(2026, 9, 28, 14, 55).toISOString(), "en", MAINTENANT), { court: "5 min ago", lu: "5 minutes ago" });
+  assert.deepEqual(formaterIlYALangue(new Date(2026, 9, 28, 13, 0).toISOString(), "en", MAINTENANT), { court: "2 hours ago", lu: "2 hours ago" });
+  assert.deepEqual(formaterIlYALangue(new Date(2026, 9, 27, 21, 0).toISOString(), "en", MAINTENANT), { court: "yesterday", lu: "yesterday" });
+  assert.deepEqual(formaterIlYALangue(new Date(2026, 9, 1, 12, 0).toISOString(), "en", MAINTENANT), { court: "1 Oct", lu: "1 October" });
+  assert.equal(ecrireAttenteLangue(60_000, "en"), "1\u00a0minute");
+  assert.equal(ecrireAttenteLangue(300_000, "en"), "5\u00a0minutes");
+  assert.equal(ecrireAttenteLangue(3_600_000, "en"), "1\u00a0hour");
+  assert.equal(ecrireAttenteLangue(7_200_000, "en"), "2\u00a0hours");
+  assert.equal(ecrireAttenteLangue(3_900_000, "en"), "1\u00a0hr\u00a05\u00a0min");
+  assert.equal(listerPrenomsLangue(["Inès", "Jade", "Tom"], "en"), "Inès, Jade and Tom");
+  assert.equal(listerPrenomsLangue(["Inès", "Jade"], "en"), "Inès and Jade");
+  assert.equal(formaterPrixLuLangue(1, "en"), "1 euro");
+  assert.equal(formaterPrixLuLangue(4.5, "en"), "4 euros 50");
+  assert.equal(formaterPrixLuLangue(0.01, "en"), "1 cent");
+  assert.equal(formaterPrixLuLangue(0.8, "en"), "80 cents");
+  assert.equal(ecrireMoisAnneeLangue("2026-10", "en"), "October 2026");
+  assert.equal(ecrireMoisAnneeLangue("abc", "en"), "abc");
 });
