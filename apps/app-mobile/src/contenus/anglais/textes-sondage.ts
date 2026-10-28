@@ -1,0 +1,38 @@
+import { MAX_LIEUX_SONDAGE, MIN_LIEUX_SONDAGE } from "@sos-miam/commun/regles/chat";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_SONDAGE } from "~/contenus/textes-sondage";
+
+export const TEXTES_SONDAGE_ANGLAIS: Traduction<typeof TEXTES_SONDAGE> = {
+  question: "Where shall we eat?",
+  explication: `Pick ${MIN_LIEUX_SONDAGE} to ${MAX_LIEUX_SONDAGE} places. The crew votes, and the winner opens the get-together, already filled in.`,
+  chercher: "A place, a dish, a neighbourhood…",
+  chercherLu: "Search for a place",
+  aucunLieu: "No places match. Try another word.",
+  finDuVote: "Voting ends",
+  envoyer: (n: number) => (n > 0 ? `Send the poll (${n} place${n === 1 ? "" : "s"})` : "Send the poll"),
+  indiceEnvoyer: `You need between ${MIN_LIEUX_SONDAGE} and ${MAX_LIEUX_SONDAGE} places`,
+  choisi: "Chosen",
+  pasChoisi: "Not chosen",
+  plein: `${MAX_LIEUX_SONDAGE} places is already quite a dilemma – remove one to add another.`,
+  pasAssez: `Pick at least ${MIN_LIEUX_SONDAGE} places, or the vote's over before it starts 😄`,
+  finPassee: "That's too soon for voting to end – pick another time.",
+  lieuxRefuses: "One of the places isn't available any more. Pick another!",
+  pasParti: "The poll couldn't be sent: this chat isn't open to you any more.",
+  envoye: "🗳️ Poll sent – may the best place win!",
+  reserveGroupes: "“Where shall we eat?” polls are started in a group of friends.",
+  piedOuvert: "The winning place opens the get-together, already filled in.",
+  gagnant: "Winner",
+  voteFini: "Voting's over",
+  tonVote: "your vote",
+  voix: (n: number) => `${n} vote${n === 1 ? "" : "s"}`,
+  voter: "Tap to vote",
+  retirer: "Tap again to remove your vote",
+  changer: "Tap to change your vote",
+  creerSortie: "Create the get-together",
+  indiceCreerSortie: "The winning place and the group are already filled in",
+  lieuParti: "This place isn't here any more",
+  sondageClos: "🗳️ Voting's over – go and see who won!",
+  voteRate: "Your vote didn't go through – your connection's having a nap. Try again in a moment 📡",
+  voteMis: (nom: string) => `Voted for ${nom}`,
+  voteRetire: "Vote removed",
+};

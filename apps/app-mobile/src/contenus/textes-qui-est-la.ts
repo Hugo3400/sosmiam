@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { REFUS_LIMITATION_QUI_EST_LA_ANGLAIS, TEXTES_QUI_EST_LA_ANGLAIS } from "~/contenus/anglais/textes-qui-est-la";
+
 export const TEXTES_QUI_EST_LA = {
   titre: "Qui est là ?",
   intro: (ville: string) =>
@@ -50,3 +53,6 @@ export const REFUS_LIMITATION_QUI_EST_LA = {
   coucou: "Ton compte est limité : les coucous attendront la fin de la limitation.",
   apparaitre: "Ton compte est limité : apparaître dans « Qui est là ? » attendra la fin de la limitation.",
 } as const;
+
+export const TEXTES_QUI_EST_LA_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_QUI_EST_LA>> = { fr: TEXTES_QUI_EST_LA, en: TEXTES_QUI_EST_LA_ANGLAIS };
+export const REFUS_LIMITATION_QUI_EST_LA_PAR_LANGUE: ParLangue<Traduction<typeof REFUS_LIMITATION_QUI_EST_LA>> = { fr: REFUS_LIMITATION_QUI_EST_LA, en: REFUS_LIMITATION_QUI_EST_LA_ANGLAIS };

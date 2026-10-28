@@ -1,4 +1,6 @@
 import { MAX_PHOTOS_ALBUM } from "@sos-miam/commun/regles/chat";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { PASTILLES_GIF_ANGLAIS, TEXTES_MEDIAS_CHAT_ANGLAIS } from "~/contenus/anglais/textes-medias-chat";
 
 export const TEXTES_MEDIAS_CHAT = {
   titreFeuille: (nom: string) => `Envoyer ${nom}`,
@@ -67,3 +69,6 @@ export const PASTILLES_GIF = [
   { cle: "merci", libelle: "Merci", mot: "merci" },
   { cle: "on-y-va", libelle: "On y va", mot: "on y va" },
 ] as const;
+
+export const TEXTES_MEDIAS_CHAT_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MEDIAS_CHAT>> = { fr: TEXTES_MEDIAS_CHAT, en: TEXTES_MEDIAS_CHAT_ANGLAIS };
+export const PASTILLES_GIF_PAR_LANGUE: ParLangue<Traduction<typeof PASTILLES_GIF>> = { fr: PASTILLES_GIF, en: PASTILLES_GIF_ANGLAIS };

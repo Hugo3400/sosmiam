@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_INFOS_GROUPE_ANGLAIS } from "~/contenus/anglais/textes-infos-groupe";
+
 export const TEXTES_INFOS_GROUPE = {
   titre: "Infos du groupe",
   changerPhoto: "Changer la photo du groupe",
@@ -55,3 +58,5 @@ export const TEXTES_INFOS_GROUPE = {
   groupePlein: "Le groupe est plein : 20 personnes au plus, toi compris.",
   plusLa: "Ce groupe n'est plus là : tu l'as peut-être quitté. Tes autres discussions t'attendent !",
 } as const;
+
+export const TEXTES_INFOS_GROUPE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_INFOS_GROUPE>> = { fr: TEXTES_INFOS_GROUPE, en: TEXTES_INFOS_GROUPE_ANGLAIS };

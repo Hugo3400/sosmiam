@@ -1,4 +1,6 @@
 import { MAX_LIEUX_SONDAGE, MIN_LIEUX_SONDAGE, QUESTION_SONDAGE } from "@sos-miam/commun/regles/chat";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_SONDAGE_ANGLAIS } from "~/contenus/anglais/textes-sondage";
 
 export const TEXTES_SONDAGE = {
   question: QUESTION_SONDAGE,
@@ -34,3 +36,5 @@ export const TEXTES_SONDAGE = {
   voteMis: (nom: string) => `Vote pour ${nom}`,
   voteRetire: "Vote retiré",
 } as const;
+
+export const TEXTES_SONDAGE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_SONDAGE>> = { fr: TEXTES_SONDAGE, en: TEXTES_SONDAGE_ANGLAIS };

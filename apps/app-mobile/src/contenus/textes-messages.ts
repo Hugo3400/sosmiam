@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_MESSAGES_ANGLAIS } from "~/contenus/anglais/textes-messages";
+
 export const TEXTES_MESSAGES = {
   nouveauMessage: "Nouveau message",
   indiceNouveauMessage: "Écris à un pote de ta bande",
@@ -47,3 +50,5 @@ export const TEXTES_MESSAGES = {
   sectionToutes: "Toutes",
   epingleeLu: "épinglée",
 } as const;
+
+export const TEXTES_MESSAGES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MESSAGES>> = { fr: TEXTES_MESSAGES, en: TEXTES_MESSAGES_ANGLAIS };

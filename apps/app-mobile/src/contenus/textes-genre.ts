@@ -1,4 +1,6 @@
 import type { ChoixGenre } from "@sos-miam/commun/types/genre";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { OPTIONS_GENRE_ANGLAIS, TEXTES_GENRE_ANGLAIS } from "~/contenus/anglais/textes-genre";
 
 export const TEXTES_GENRE = {
   titre: "Mon genre",
@@ -30,3 +32,6 @@ export const OPTIONS_GENRE: readonly { id: ChoixGenre; nom: string; effet: strin
   { id: "autre", nom: "Autres", effet: "Tu vois aussi les sorties « Autres genres »." },
   { id: "ne-pas-dire", nom: "Je préfère ne pas le dire", effet: "Tu vois les sorties ouvertes à tous, pas les sorties réservées." },
 ];
+
+export const TEXTES_GENRE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_GENRE>> = { fr: TEXTES_GENRE, en: TEXTES_GENRE_ANGLAIS };
+export const OPTIONS_GENRE_PAR_LANGUE: ParLangue<Traduction<typeof OPTIONS_GENRE>> = { fr: OPTIONS_GENRE, en: OPTIONS_GENRE_ANGLAIS };

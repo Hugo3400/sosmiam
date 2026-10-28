@@ -1,3 +1,12 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  REFUS_LIMITATION_MIAMIS_ANGLAIS,
+  TEXTES_ACCES_MIAMIS_ANGLAIS,
+  TEXTES_ACCUEIL_MIAMIS_ANGLAIS,
+  TEXTES_ESPACE_COMMUNAUTE_ANGLAIS,
+  TEXTES_MES_ENVIES_ANGLAIS,
+} from "~/contenus/anglais/textes-miamis";
+
 export const TEXTES_ESPACE_COMMUNAUTE = {
   titre: "Communauté",
   messages: "Messages",
@@ -49,3 +58,9 @@ export const TEXTES_ACCES_MIAMIS = {
   reessayer: "Réessayer",
   retour: "Retour",
 } as const;
+
+export const TEXTES_ESPACE_COMMUNAUTE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ESPACE_COMMUNAUTE>> = { fr: TEXTES_ESPACE_COMMUNAUTE, en: TEXTES_ESPACE_COMMUNAUTE_ANGLAIS };
+export const TEXTES_ACCUEIL_MIAMIS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ACCUEIL_MIAMIS>> = { fr: TEXTES_ACCUEIL_MIAMIS, en: TEXTES_ACCUEIL_MIAMIS_ANGLAIS };
+export const TEXTES_MES_ENVIES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MES_ENVIES>> = { fr: TEXTES_MES_ENVIES, en: TEXTES_MES_ENVIES_ANGLAIS };
+export const REFUS_LIMITATION_MIAMIS_PAR_LANGUE: ParLangue<Traduction<typeof REFUS_LIMITATION_MIAMIS>> = { fr: REFUS_LIMITATION_MIAMIS, en: REFUS_LIMITATION_MIAMIS_ANGLAIS };
+export const TEXTES_ACCES_MIAMIS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ACCES_MIAMIS>> = { fr: TEXTES_ACCES_MIAMIS, en: TEXTES_ACCES_MIAMIS_ANGLAIS };
