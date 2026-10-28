@@ -8,7 +8,6 @@ import { MAX_LIEUX_SONDAGE, MIN_LIEUX_SONDAGE } from "@sos-miam/commun/regles/ch
 import { LigneLieuSondage } from "~/composants/chat/LigneLieuSondage";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Pastille } from "~/composants/interface/Pastille";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { TEXTES_SONDAGE as T } from "~/contenus/textes-sondage";
 import { calculerFinsSondage, type FinSondage } from "~/fonctions/chat/calculer-fins-sondage";
 import { chercherLieuxSondage } from "~/fonctions/chat/chercher-lieux-sondage";
@@ -72,7 +71,6 @@ export default function EcranNouveauSondage() {
         {lierPonctuation(T.question)}
       </Text>
       <Text className="font-texte text-[15px] leading-[22px] text-gris">{lierPonctuation(T.explication)}</Text>
-      <BandeauDemoPotes />
       <View className="min-h-12 flex-row items-center gap-2.5 rounded-full border-2 border-encre bg-carte px-4">
         <Ionicons name="search" size={18} color={couleurs.gris} />
         <TextInput

@@ -8,7 +8,6 @@ import { LONGUEUR_MAX_TITRE_GROUPE, MAX_PARTICIPANTS_GROUPE } from "@sos-miam/co
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixEmojiSortie } from "~/composants/potes/ChoixEmojiSortie";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
@@ -93,7 +92,6 @@ export default function NouveauGroupe() {
           <Text className="mb-4 mt-2 font-texte text-base leading-6 text-gris">
             {lierPonctuation("La team brunch, les fans de tielle ou toute la bande : un groupe, et vous papotez tous ensemble.")}
           </Text>
-          <BandeauDemoPotes className="mb-6" />
 
           <SectionReglages titre="Le nom">
             <View className="gap-4 pt-2">

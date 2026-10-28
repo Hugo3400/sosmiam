@@ -7,11 +7,10 @@ import { choisirModeARestaurer } from "~/fonctions/modes/choisir-mode-a-restaure
 import { ContexteModes, type EtatModes } from "~/hooks/utiliser-modes";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE as DEMO } from "~/services/demo/demo-visites-active";
 import { effacerModeApp, enregistrerModeApp, lireModeApp, MODE_APP_PAR_DEFAUT, type ModeAppGarde } from "~/stockage/mode-app";
-import { effacerRolesDemo, enregistrerRolesDemo, lireRolesDemo, ROLES_VIDES } from "~/stockage/roles-demo";
 
 const SEUL_MODE_PERSO: ModeApp[] = ["perso"];
+const ROLES_VIDES: RolesCompte = { ambassadeur: null, pro: [] };
 
 // Au démarrage, on attend que la pile d'écrans soit montée pour rouvrir le dernier mode ; au-delà, on reste en mode perso
 const ATTENTE_PILE_MAX = 5000;
@@ -28,38 +27,33 @@ function contientOnglets(etat: EtatNavigation): boolean {
 /**
  * Modes de l'app : perso pour tout le monde ; pro (équipe d'un lieu) et ambassadeur pour les comptes qui ont le rôle (une
  * visite sans compte n'a que perso).
- * Avec un vrai compte connecté, les rôles sont les siens (relus par le serveur) ; sinon, en démo, ceux joués dans les
- * Coulisses, et aucun hors démo.
+ * Avec un vrai compte connecté, les rôles sont les siens (relus par le serveur) ; sans compte, aucun.
  * Le dernier mode est gardé sur le téléphone : au lancement, s'il est encore ouvert, on y revient une fois la navigation prête.
  * Un rôle qui disparaît (ou un profil effacé) ramène au mode perso ; la garde de PileRacine ferme alors les écrans du mode.
  */
 export function FournisseurModes({ children }: { children: ReactNode }) {
   const { profil, chargement } = utiliserProfil();
   const navigation = useNavigationContainerRef();
-  const [rolesDemo, setRoles] = useState<RolesCompte>(ROLES_VIDES);
   const [garde, setGarde] = useState<ModeAppGarde>(MODE_APP_PAR_DEFAUT);
   const [relu, setRelu] = useState(false);
   const pret = relu && !chargement;
 
   useEffect(() => {
-    Promise.all([DEMO ? lireRolesDemo() : Promise.resolve(ROLES_VIDES), lireModeApp()])
-      .then(([rolesLus, gardeLue]) => {
-        setRoles(rolesLus);
-        setGarde(gardeLue);
-      })
+    lireModeApp()
+      .then(setGarde)
       .catch(() => {})
       .finally(() => setRelu(true));
   }, []);
 
-  // Un vrai compte connecté : ses rôles à lui (rattachements validés, statut d'ambassadeur), relus par le serveur, jamais ceux de la démo
+  // Un vrai compte connecté : ses rôles à lui (rattachements validés, statut d'ambassadeur), relus par le serveur
   const { compte, connecte, pret: sessionPrete } = utiliserSession();
   const rolesConnus = relu && sessionPrete && (!connecte || compte !== null);
   const roles = useMemo<RolesCompte>(
     () =>
       compte
         ? { ambassadeur: compte.ambassadeur?.statut ?? null, pro: compte.pro.lieuxValides.map((l) => ({ id: l.lieuId, nom: l.nom, emoji: l.emoji, role: l.role })) }
-        : rolesDemo,
-    [compte, rolesDemo],
+        : ROLES_VIDES,
+    [compte],
   );
   const modesOuverts = useMemo(() => (profil ? listerModesOuverts(roles) : SEUL_MODE_PERSO), [profil, roles]);
   const proOuvert = modesOuverts.includes("pro");
@@ -73,14 +67,12 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
     enregistrerModeApp(nouvelle).catch(() => {});
   }, []);
 
-  // Profil effacé (« Tout effacer ») : les rôles de démo et le mode partent avec lui
+  // Profil effacé (« Tout effacer ») : le mode part avec lui
   const avaitUnProfil = useRef(false);
   useEffect(() => {
     if (chargement) return;
     if (avaitUnProfil.current && profil === null) {
-      setRoles(ROLES_VIDES);
       setGarde(MODE_APP_PAR_DEFAUT);
-      effacerRolesDemo().catch(() => {});
       effacerModeApp().catch(() => {});
     }
     avaitUnProfil.current = profil !== null;
@@ -164,17 +156,6 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
     router.dismissTo("/profil");
   }, [garde, memoriser]);
 
-  const changerRolesDemo = useMemo(
-    () =>
-      DEMO
-        ? async (nouveaux: RolesCompte) => {
-            setRoles(nouveaux);
-            await enregistrerRolesDemo(nouveaux);
-          }
-        : null,
-    [],
-  );
-
   const valeur = useMemo<EtatModes>(
     () => ({
       pret,
@@ -185,11 +166,10 @@ export function FournisseurModes({ children }: { children: ReactNode }) {
       entrerEnModePro,
       entrerEnModeAmbassadeur,
       revenirAuModePerso,
-      changerRolesDemo,
       rolesConnus,
       annulerRestauration,
     }),
-    [pret, roles, modesOuverts, lieuPro, choisirLieuPro, entrerEnModePro, entrerEnModeAmbassadeur, revenirAuModePerso, changerRolesDemo, rolesConnus, annulerRestauration],
+    [pret, roles, modesOuverts, lieuPro, choisirLieuPro, entrerEnModePro, entrerEnModeAmbassadeur, revenirAuModePerso, rolesConnus, annulerRestauration],
   );
 
   return <ContexteModes.Provider value={valeur}>{children}</ContexteModes.Provider>;

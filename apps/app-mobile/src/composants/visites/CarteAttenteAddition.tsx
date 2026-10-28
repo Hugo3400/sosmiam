@@ -5,7 +5,6 @@ import { calculerPointsVisite } from "@sos-miam/commun/fonctions/visites/calcule
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { CodeRapprochement } from "~/composants/visites/CodeRapprochement";
-import { PanneauSimulationLieu } from "~/composants/visites/PanneauSimulationLieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { decrireAttenteAddition } from "~/fonctions/visites/decrire-attente-addition";
@@ -80,8 +79,6 @@ export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props
           </Text>
         </View>
       ) : null}
-
-      <PanneauSimulationLieu visite={visite} />
 
       <Pressable
         accessibilityRole="button"

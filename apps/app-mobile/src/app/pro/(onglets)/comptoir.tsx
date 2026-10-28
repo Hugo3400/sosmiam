@@ -9,7 +9,6 @@ import { DEMANDES_AVANT_SAISIE_CODE } from "@sos-miam/commun/regles/visites";
 import type { DemandeComptoir, ValidationRecente } from "@sos-miam/commun/types/comptoir";
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
-import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { CarteCeSoir } from "~/composants/pro/CarteCeSoir";
 import { AlertesMiamSafeComptoir } from "~/composants/pro/AlertesMiamSafeComptoir";
 import { BoutonMontrerQr } from "~/composants/pro/BoutonMontrerQr";
@@ -84,7 +83,6 @@ export default function EcranComptoir() {
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-3">
         <EnTeteMode mode="pro" titre="Comptoir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
-        {demo ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
         <AlertesMiamSafeComptoir lieuId={lieuPro.id} onRepondre={annoncer} />
         {/* Ce soir : SOS du soir et message du moment, pour toute l'équipe (« Mon lieu » n'est qu'au gérant) */}
         <CarteCeSoir lieuId={lieuPro.id} />

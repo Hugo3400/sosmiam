@@ -4,7 +4,6 @@ import { AppState } from "react-native";
 import type { ZoneGeo } from "@sos-miam/commun/contenus/regions-france";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Lieu, LieuApi } from "@sos-miam/commun/types/lieu";
-import { lieuxExemples } from "~/contenus/lieux-exemples";
 import { RAYON_PROCHE_KM } from "~/contenus/portee-explorer";
 import { arrondirZoneALaGrille } from "~/fonctions/geo/arrondir-zone-a-la-grille";
 import { calculerZoneAutour } from "~/fonctions/geo/calculer-zone-autour";
@@ -13,7 +12,6 @@ import { creerConvertisseurLieux } from "~/fonctions/lieux/creer-convertisseur-l
 import { ContexteLieux, type EtatLieux, type LectureLieu } from "~/hooks/utiliser-lieux";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { enregistrerLieuxServeur, lireLieuxServeur } from "~/stockage/lieux-serveur";
 
 // Une relecture au retour dans l'app, au plus toutes les 10 minutes
@@ -34,7 +32,7 @@ const estLieuDisparu = (erreur: ErreurService) => erreur === "lieu-inconnu" || e
 type ZoneGardee = { zone: ZoneGeo; demandee: number; depuisTaPosition: boolean };
 
 /**
- * La source des lieux de toute l'app. Mode démo : les lieux d'exemple. Sinon : les lieux publiés sur le serveur (GET
+ * La source des lieux de toute l'app : les lieux publiés sur le serveur (GET
  * /app/lieux), avec la copie gardée sur le téléphone pour s'ouvrir tout de suite et hors ligne. Les distances se calculent
  * sur le téléphone. Sans zone, le serveur n'en rend que 1 000 : on lit aussi ceux autour de ta ville, et ceux de la zone
  * qu'Explorer regarde (chargerZone). Toute zone envoyée est d'abord arrondie à la grille (arrondirZoneALaGrille) : jamais ta
@@ -96,7 +94,6 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
   );
 
   const recharger = useCallback(async () => {
-    if (DEMO_VISITES_ACTIVE) return;
     derniereLecture.current = Date.now();
     const r = await contenu.listerLieux();
     if (!r.ok) return setHorsLigne(true);
@@ -110,10 +107,6 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
 
   const chargerLieu = useCallback(
     async (id: number): Promise<LectureLieu> => {
-      if (DEMO_VISITES_ACTIVE) {
-        const exemple = lieuxExemples.find((l) => l.id === id);
-        return exemple ? { ok: true, lieu: exemple } : { ok: false, raison: "inconnu" };
-      }
       const r = await contenu.lireLieu(id);
       // Seul un « lieu inconnu » dit que le lieu n'existe pas : le reste (réseau, serveur) se retente plus tard
       if (!r.ok) return { ok: false, raison: estLieuDisparu(r.erreur) ? "inconnu" : "hors-ligne" };
@@ -125,7 +118,6 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
 
   const chargerZone = useCallback(
     (demandee: ZoneGeo, depuisTaPosition = false) => {
-      if (DEMO_VISITES_ACTIVE) return;
       // Ici, et pas chez qui appelle : aucune zone ne part sans être arrondie à la grille
       const zone = arrondirZoneALaGrille(demandee);
       const cle = cleZone(zone);
@@ -160,7 +152,6 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
   }, [depart, chargerZone]);
 
   useEffect(() => {
-    if (DEMO_VISITES_ACTIVE) return;
     let actif = true;
     lireLieuxServeur().then((copie) => {
       if (actif && copie) setLus((deja) => deja ?? copie);
@@ -177,7 +168,6 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
 
   const convertir = useMemo(() => creerConvertisseurLieux(depart), [depart]);
   const lieux = useMemo<Lieu[]>(() => {
-    if (DEMO_VISITES_ACTIVE) return lieuxExemples;
     // La liste d'abord, puis les lieux lus par zone, puis ceux lus un par un : chaque lieu une seule fois
     const dejaLa = new Set<number>();
     const tous: LieuApi[] = [];
@@ -194,8 +184,7 @@ export function FournisseurLieux({ children }: { children: ReactNode }) {
     () => ({
       lieux,
       trouverLieu: (id) => parId.get(id),
-      pret: DEMO_VISITES_ACTIVE || lus !== null || horsLigne,
-      source: DEMO_VISITES_ACTIVE ? "demo" : "serveur",
+      pret: lus !== null || horsLigne,
       horsLigne,
       recharger,
       chargerLieu,

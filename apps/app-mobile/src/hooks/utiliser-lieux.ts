@@ -6,13 +6,12 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 export type LectureLieu = { ok: true; lieu: Lieu } | { ok: false; raison: "inconnu" | "hors-ligne" };
 
 export type EtatLieux = {
-  /** Tous les lieux connus (démo : les exemples ; sinon : les lieux publiés lus sur le serveur), avant le filtre d'âge */
+  /** Les lieux publiés lus sur le serveur, avant le filtre d'âge */
   lieux: Lieu[];
   /** Un lieu par son identifiant, ou undefined s'il n'est pas dans la liste */
   trouverLieu: (id: number) => Lieu | undefined;
   /** Faux tant que rien n'est encore lu (ni la copie du téléphone, ni le serveur) */
   pret: boolean;
-  source: "demo" | "serveur";
   /** Le serveur n'a pas répondu (la copie du téléphone reste affichée) */
   horsLigne: boolean;
   /** Relit la liste sur le serveur (ouverture, retour dans l'app), et avec elle les zones déjà lues */

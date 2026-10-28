@@ -10,7 +10,6 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { CarteInvitationListe } from "~/composants/potes/CarteInvitationListe";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { EnTeteListe } from "~/composants/potes/EnTeteListe";
@@ -288,8 +287,6 @@ export default function EcranListePartagee() {
               <Text className="font-texte-semi text-base text-rouge-texte underline">{estAMoi ? "Supprimer la liste" : "Ne plus remplir cette liste"}</Text>
             </Pressable>
           ) : null}
-
-          <BandeauDemoPotes />
         </ScrollView>,
       )}
 

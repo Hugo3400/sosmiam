@@ -15,7 +15,6 @@ import { PartagesGroupe } from "~/composants/chat/PartagesGroupe";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
 import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
 import { decrireMembresGroupe } from "~/fonctions/chat/decrire-membres-groupe";
@@ -141,8 +140,6 @@ export default function EcranInfosGroupe() {
           onRetirerPhoto={() => void changerPhoto(null)}
           onRenommer={() => setRenommer(true)}
         />
-
-        <BandeauDemoPotes />
 
         <ActionsGroupe
           admin={admin}

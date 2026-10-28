@@ -5,7 +5,7 @@ import type { LieuGere, ModeApp, RolesCompte } from "@sos-miam/commun/types/role
 export type EtatModes = {
   /** Faux tant que le profil, les rôles et le dernier mode ne sont pas relus */
   pret: boolean;
-  /** Rôles du compte (démo : ceux des Coulisses ; sans démo, aucun en attendant le compte unique) */
+  /** Rôles du compte connecté, relus par le serveur ; aucun sans compte */
   roles: RolesCompte;
   /** Toujours « perso » en premier ; une visite sans compte n'a que « perso » */
   modesOuverts: ModeApp[];
@@ -19,8 +19,6 @@ export type EtatModes = {
   entrerEnModeAmbassadeur: () => void;
   /** Mémorise le mode perso, puis revient au Profil (sous les écrans du mode) */
   revenirAuModePerso: () => void;
-  /** Change les rôles joués dans la démo (Coulisses) ; null hors démo */
-  changerRolesDemo: ((roles: RolesCompte) => Promise<void>) | null;
   rolesConnus: boolean;
   annulerRestauration: () => void;
 };
@@ -29,7 +27,7 @@ export const ContexteModes = createContext<EtatModes | null>(null);
 
 /**
  * Les modes de l'app (perso, pro, ambassadeur) et de quoi en changer, fournis par FournisseurModes à la racine.
- * Changer de mode ne donne aucun droit : le serveur (ou la démo) revérifie les rôles à chaque demande.
+ * Changer de mode ne donne aucun droit : le serveur revérifie les rôles à chaque demande.
  */
 export function utiliserModes(): EtatModes {
   const etat = useContext(ContexteModes);

@@ -121,16 +121,16 @@ export default function PourToi() {
 
   const age = profil ? calculerAge(profil.dateNaissance) : null;
   const { lieux: tousLesLieux } = utiliserLieux();
-  const { publications: toutesLesPublications, horsLigne: filHorsLigne, source: sourceFil, aUneSuite, chargerSuite } = utiliserPublications();
+  const { publications: toutesLesPublications, horsLigne: filHorsLigne, aUneSuite, chargerSuite } = utiliserPublications();
   const lieux = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const lieuParId = useMemo(() => new Map(lieux.map((lieu) => [lieu.id, lieu])), [lieux]);
   const publications = useMemo(
     () => ordonnerParPage(
       toutesLesPublications,
-      sourceFil === "serveur" ? TAILLE_PAGE_FIL : Number.POSITIVE_INFINITY,
+      TAILLE_PAGE_FIL,
       (page) => ordonnerPublications(page, lieux, profil, suivisDuTri, depart),
     ),
-    [toutesLesPublications, sourceFil, lieux, profil, suivisDuTri, depart],
+    [toutesLesPublications, lieux, profil, suivisDuTri, depart],
   );
 
   const { estMasquee } = activite;

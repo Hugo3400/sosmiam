@@ -8,7 +8,6 @@ import { ContenuMessages } from "~/composants/chat/ContenuMessages";
 import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { EcranInvite } from "~/composants/invite/EcranInvite";
 import { AccueilMiamis } from "~/composants/miamis/AccueilMiamis";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixPseudoManquant } from "~/composants/potes/ChoixPseudoManquant";
 import { EnTetePotes } from "~/composants/potes/EnTetePotes";
 import { OngletsPotes, type OngletPotes } from "~/composants/potes/OngletsPotes";
@@ -155,7 +154,6 @@ export default function Potes() {
           <EnTetePotes moi={moi} espace={espace} onChoisirEspace={choisirEspace} />
           {/* Profils créés avant Potes, ou le serveur qui attend ton pseudo : pas encore de pseudo */}
           {profil.pseudo && !pseudoRequis ? null : <ChoixPseudoManquant />}
-          <BandeauDemoPotes />
         </View>
         <OngletsPotes
           onglet={onglet}

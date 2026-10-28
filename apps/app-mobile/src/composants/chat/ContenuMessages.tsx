@@ -8,7 +8,6 @@ import { FeuilleNouveauMessage } from "~/composants/chat/FeuilleNouveauMessage";
 import { LigneConversation } from "~/composants/chat/LigneConversation";
 import { RechercheDiscussions } from "~/composants/chat/RechercheDiscussions";
 import { Bouton } from "~/composants/interface/Bouton";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { filtrerConversations } from "~/fonctions/chat/filtrer-conversations";
@@ -108,7 +107,6 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
               ))}
             </View>
             {conversations.length > 0 ? <RechercheDiscussions valeur={recherche} onChange={setRecherche} /> : null}
-            <BandeauDemoPotes />
             {invitations.map((invitation) => (
               <CarteInvitationGroupe key={invitation.id} invitation={invitation} />
             ))}

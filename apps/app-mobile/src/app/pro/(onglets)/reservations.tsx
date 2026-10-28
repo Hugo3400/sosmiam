@@ -10,7 +10,6 @@ import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 import { Annonce } from "~/composants/interface/Annonce";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
-import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { CarteReservationPro } from "~/composants/pro/CarteReservationPro";
 import { FeuilleRefusReservation } from "~/composants/pro/FeuilleRefusReservation";
 import { CarteMessageReservations } from "~/composants/reservations/CarteMessageReservations";
@@ -162,7 +161,6 @@ export default function EcranReservationsPro() {
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-3">
         <EnTeteMode mode="pro" titre={T.titre} sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
-        {demo ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
         <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.sousTitre)}</Text>
         {lus ? <EnTeteReservationsPro acceptation={lus.reglages.acceptation} gerant={gerant} onReglages={() => router.push("/pro/reglages-reservations")} /> : null}
         {lus ? (

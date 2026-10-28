@@ -7,7 +7,6 @@ import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
 import { CarteMessageSysteme } from "~/composants/chat/CarteMessageSysteme";
 import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { BulleMessage } from "~/composants/potes/BulleMessage";
 import { MenuMessage } from "~/composants/potes/MenuMessage";
 import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
@@ -163,7 +162,6 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                 <Text className="font-texte-gras text-sm text-encre">{"Voir les messages d'avant"}</Text>
               </Pressable>
             ) : null}
-            <BandeauDemoPotes />
             <Text
               accessibilityLabel="Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler."
               className="text-center font-texte text-[13px] leading-[18px] text-gris"

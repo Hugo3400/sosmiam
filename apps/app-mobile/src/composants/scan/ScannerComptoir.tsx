@@ -6,7 +6,6 @@ import { AccessibilityInfo, ActivityIndicator, Linking, Pressable, Text, useWind
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonLampe } from "~/composants/scan/BoutonLampe";
-import { BoutonSimulerScan } from "~/composants/scan/BoutonSimulerScan";
 import { ViseurScan } from "~/composants/scan/ViseurScan";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
@@ -193,7 +192,6 @@ export function ScannerComptoir() {
         ) : (
           <>
             {allumee ? <Text className="text-center font-texte-gras text-lg text-white">{lierPonctuation("Vise le QR que te montre l'équipe")}</Text> : null}
-            <BoutonSimulerScan onTexte={traiter} desactive={occupe} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Pas de QR ? Demande l'addition"

@@ -2,13 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { AppState } from "react-native";
 
 import type { PublicationApi } from "@sos-miam/commun/types/publication";
-import { publicationsExemples } from "~/contenus/publications-exemples";
 import type { Publication } from "~/contenus/type-publication";
 import { convertirPublicationApi } from "~/fonctions/publications/convertir-publication-api";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { ContextePublications, type EtatPublications } from "~/hooks/utiliser-publications";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { enregistrerPublicationsServeur, lirePublicationsServeur } from "~/stockage/publications-serveur";
 import { TAILLE_PAGE_FIL } from "~/contenus/taille-page-fil";
 
@@ -62,7 +60,6 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
   }
 
   const recharger = useCallback(async () => {
-    if (DEMO_VISITES_ACTIVE) return;
     derniereLecture.current = Date.now();
     const r = await contenu.listerPublications(null, TAILLE_PAGE_FIL);
     if (!r.ok) return setHorsLigne(true);
@@ -75,7 +72,7 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
   }, [contenu]);
 
   const chargerSuite = useCallback(async () => {
-    if (DEMO_VISITES_ACTIVE || !suite || enCours.current) return;
+    if (!suite || enCours.current) return;
     enCours.current = true;
     try {
       const r = await contenu.listerPublications(suite, TAILLE_PAGE_FIL);
@@ -95,7 +92,6 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
   }, [contenu, suite]);
 
   useEffect(() => {
-    if (DEMO_VISITES_ACTIVE) return;
     let actif = true;
     lirePublicationsServeur().then((copie) => {
       if (!actif || !copie) return;
@@ -114,7 +110,7 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
   }, [recharger]);
 
   const publications = useMemo<Publication[]>(
-    () => (DEMO_VISITES_ACTIVE ? publicationsExemples : (lues ?? []).map((p) => convertirPublicationApi(p, aimees[p.id] ?? false))),
+    () => (lues ?? []).map((p) => convertirPublicationApi(p, aimees[p.id] ?? false)),
     [lues, aimees],
   );
   const parId = useMemo(() => new Map(publications.map((p) => [p.id, p] as const)), [publications]);
@@ -123,10 +119,9 @@ export function FournisseurPublications({ children }: { children: ReactNode }) {
     () => ({
       publications,
       trouverPublication: (id) => parId.get(id),
-      pret: DEMO_VISITES_ACTIVE || lues !== null || horsLigne,
-      source: DEMO_VISITES_ACTIVE ? "demo" : "serveur",
+      pret: lues !== null || horsLigne,
       horsLigne,
-      aUneSuite: !DEMO_VISITES_ACTIVE && suite !== null,
+      aUneSuite: suite !== null,
       chargerSuite,
       recharger,
     }),

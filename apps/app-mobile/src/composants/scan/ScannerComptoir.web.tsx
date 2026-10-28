@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BoutonSimulerScan } from "~/composants/scan/BoutonSimulerScan";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -83,7 +82,6 @@ export function ScannerComptoir() {
         </View>
       ) : (
         <View className="gap-4">
-          <BoutonSimulerScan onTexte={(texte) => traiterTexte(texte)} desactive={etape !== "repos"} />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Pas de QR ? Demande l'addition"

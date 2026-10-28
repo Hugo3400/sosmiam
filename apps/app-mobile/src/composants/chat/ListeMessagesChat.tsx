@@ -19,7 +19,6 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { AstuceDoubleToucher } from "~/composants/chat/AstuceDoubleToucher";
 import { BulleChat } from "~/composants/chat/BulleChat";
 import { MenuMessageChat } from "~/composants/chat/MenuMessageChat";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
 import type { ConversationEnrichie, MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { construireLignesDiscussion, type LigneDiscussion } from "~/fonctions/chat/construire-lignes-discussion";
@@ -279,7 +278,6 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
             <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
           </Pressable>
         ) : null}
-        <BandeauDemoPotes />
         <Text
           accessibilityLabel={`${confidentialite.replace("🔒 ", "")} Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler.`}
           className="text-center font-texte text-[13px] leading-[18px] text-gris"

@@ -7,7 +7,6 @@ import type { CarteLieu } from "@sos-miam/commun/types/carte";
 import type { ProgrammeFidelite } from "@sos-miam/commun/types/fidelite";
 import type { CharteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
-import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { LigneMonLieu } from "~/composants/pro/LigneMonLieu";
 import { TEXTES_ACTUS_PRO_PAR_LANGUE } from "~/contenus/textes-actus-pro";
 import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/textes-images-lieu";
@@ -79,7 +78,6 @@ export default function EcranMonLieu() {
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-3">
         <EnTeteMode mode="pro" titre="Mon lieu" sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
-        {demo ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
 
         <View accessible accessibilityLabel="Lieu vérifié : il a un compte SOS Miam. Il valide les visites, lance des SOS et répond aux avis." className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-jaune p-4">
           <Text className="text-2xl">✓</Text>

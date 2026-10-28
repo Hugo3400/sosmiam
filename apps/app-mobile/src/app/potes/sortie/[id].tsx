@@ -9,7 +9,6 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { DiscussionSortie, type LigneDiscussion } from "~/composants/potes/DiscussionSortie";
 import { EnTeteSortie } from "~/composants/potes/EnTeteSortie";
 import { MembresSortie } from "~/composants/potes/MembresSortie";
@@ -215,7 +214,6 @@ export default function EcranSortie() {
 
           {onglet === "vote" ? (
             <ScrollView className="flex-1" contentContainerClassName="gap-4 px-5 pt-4" contentContainerStyle={{ paddingBottom: marges.bottom + 24 }}>
-              <BandeauDemoPotes />
               <VoteSortie
                 sortie={sortie}
                 voteFini={voteFini}

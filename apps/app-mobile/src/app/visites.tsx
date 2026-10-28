@@ -8,7 +8,6 @@ import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
-import { BandeauDemoVisites } from "~/composants/scan/BandeauDemoVisites";
 import { EnTeteMesVisites } from "~/composants/visites/EnTeteMesVisites";
 import { LigneVisite } from "~/composants/visites/LigneVisite";
 import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
@@ -155,8 +154,6 @@ export default function MesVisites() {
             {lierPonctuation("Ton carnet de bonnes adresses, mois par mois. Les jours et les heures ne sont visibles que par toi.")}
           </Text>
         </View>
-
-        {source === "demo" ? <BandeauDemoVisites /> : null}
 
         {contenu()}
       </ScrollView>

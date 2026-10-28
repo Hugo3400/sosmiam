@@ -8,7 +8,6 @@ import type { CharteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
-import { BandeauDemoPro } from "~/composants/pro/BandeauDemoPro";
 import { EngagementsCharteMiamSafe } from "~/composants/pro/EngagementsCharteMiamSafe";
 import { EtatCharteMiamSafe } from "~/composants/pro/EtatCharteMiamSafe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -107,7 +106,6 @@ export default function EcranMiamSafePro() {
         <Text className="font-texte text-base leading-6 text-gris">
           {lierPonctuation("Quand un client ne se sent pas en sécurité, il sait qu'il peut compter sur ton équipe. Le badge Miam Safe le dit sur ta fiche, gratuitement.")}
         </Text>
-        {demo && lieuPro ? <BandeauDemoPro nomLieu={lieuPro.nom} /> : null}
 
         <EtatCharteMiamSafe charte={lieuId === null ? null : charte} erreur={lieuId === null ? "Ouvre le mode pro de ton lieu pour voir sa charte." : erreurLecture} onReessayer={relire} />
 

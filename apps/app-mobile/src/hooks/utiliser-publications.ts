@@ -3,12 +3,11 @@ import { createContext, useContext } from "react";
 import type { Publication } from "~/contenus/type-publication";
 
 export type EtatPublications = {
-  /** Les publications connues (démo : les exemples ; sinon : celles lues sur le serveur, page après page) */
+  /** Les publications lues sur le serveur, page après page */
   publications: Publication[];
   trouverPublication: (id: string) => Publication | undefined;
   /** Faux tant que rien n'est encore lu (ni la copie du téléphone, ni le serveur) */
   pret: boolean;
-  source: "demo" | "serveur";
   /** Le serveur n'a pas répondu (la copie du téléphone reste affichée) */
   horsLigne: boolean;
   /** Il reste des pages plus anciennes sur le serveur */

@@ -18,7 +18,6 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
-import { BandeauDemoPotes } from "~/composants/potes/BandeauDemoPotes";
 import { ChoixEmojiSortie } from "~/composants/potes/ChoixEmojiSortie";
 import { ChoixFinVote, type OptionFinVote } from "~/composants/potes/ChoixFinVote";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
@@ -196,7 +195,6 @@ export default function NouvelleSortie() {
           <Text className="mb-4 mt-2 font-texte text-base leading-6 text-gris">
             {lierPonctuation("Tu proposes des lieux, la bande vote, et tout le monde se retrouve au bon endroit. Simple, non ?")}
           </Text>
-          <BandeauDemoPotes className="mb-6" />
 
           <SectionReglages titre="Le nom">
             <View className="gap-4 pt-2">
