@@ -1,7 +1,8 @@
 import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
-import { TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   modifie: boolean;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export function PiedReglagesReservations({ modifie, enregistrement, onToutAnnuler, onEnregistrer }: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
   return (
     <View className="gap-2 border-t border-ligne bg-creme px-5 pt-3" style={{ paddingBottom: 12 }}>
       {modifie ? (

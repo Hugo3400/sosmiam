@@ -18,8 +18,8 @@ import { BandeDemandeRecue } from "~/composants/suivi/BandeDemandeRecue";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
 import { EncadreComptePrive } from "~/composants/suivi/EncadreComptePrive";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { eliderDe } from "~/fonctions/texte/elider-de";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_PROFIL_POTE_PAR_LANGUE } from "~/contenus/textes-ecran-profil-pote";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -29,12 +29,13 @@ import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer"
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Demande confirmation avant une action qui compte ; sur le web (aperçu de développement), Alert n'existe pas : on agit directement */
-const confirmer = (titre: string, message: string, action: string, faire: () => void) => {
+const confirmer = (titre: string, message: string, action: string, annuler: string, faire: () => void) => {
   if (Platform.OS === "web") return faire();
   Alert.alert(titre, message, [
-    { text: "Annuler", style: "cancel" },
+    { text: annuler, style: "cancel" },
     { text: action, style: "destructive", onPress: faire },
   ]);
 };
@@ -47,6 +48,8 @@ const confirmer = (titre: string, message: string, action: string, faire: () => 
  * Personne bloquée ou inconnue : un message et le retour.
  */
 export default function ProfilPote() {
+  const T = utiliserTextes(TEXTES_ECRAN_PROFIL_POTE_PAR_LANGUE);
+  const REFUS_LIMITATION = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const navigation = useNavigation();
@@ -84,7 +87,7 @@ export default function ProfilPote() {
   // Compte privé : la demande est acceptée pendant que tu regardes son profil, qui s'ouvre en direct
   const jeSuisAvant = useRef(jeSuis);
   useEffect(() => {
-    if (jeSuisAvant.current === "demande" && jeSuis === "suivi" && pote) annoncer(`${pote.prenom} a accepté ta demande : bienvenue dans ses bons plans !`);
+    if (jeSuisAvant.current === "demande" && jeSuis === "suivi" && pote) annoncer(T.demandeAcceptee(pote.prenom));
     jeSuisAvant.current = jeSuis;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- seulement quand ton lien avec cette personne change
   }, [jeSuis]);
@@ -98,25 +101,25 @@ export default function ProfilPote() {
 
   if (!pote || (!estMoi && !bloque && !relation)) {
     return (
-      <EcranReglage titre="Personne à l'horizon" sousTitre="On ne trouve pas ce profil : la personne a peut-être quitté SOS Miam, ou le lien s'est emmêlé.">
-        <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
+      <EcranReglage titre={T.introuvableTitre} sousTitre={T.introuvableTexte}>
+        <Bouton libelle={T.retour} variante="blanc" onPress={revenir} />
       </EcranReglage>
     );
   }
 
   if (bloque) {
     return (
-      <EcranReglage titre={`Tu as bloqué ${pote.prenom}`} sousTitre="Cette personne n'est plus dans ta bande, et tu ne vois plus ses messages ni ses commentaires.">
+      <EcranReglage titre={T.bloqueTitre(pote.prenom)} sousTitre={T.bloqueTexte}>
         <View className="gap-4">
-          <Bouton libelle="Retour" onPress={revenir} />
+          <Bouton libelle={T.retour} onPress={revenir} />
           <Bouton
-            libelle="Débloquer"
+            libelle={T.debloquer}
             variante="blanc"
-            indice="Tu reverras ses messages et ses commentaires. Débloquer ne remet personne dans ta bande."
+            indice={T.debloquerDetail}
             onPress={() =>
-              confirmer(`Débloquer ${pote.prenom} ?`, "Tu reverras ses messages et ses commentaires. Débloquer ne remet personne dans ta bande.", "Débloquer", () => {
+              confirmer(T.debloquerTitre(pote.prenom), T.debloquerDetail, T.debloquer, T.annuler, () => {
                 communaute.debloquer(pote.id);
-                AccessibilityInfo.announceForAccessibility(`Tu as débloqué ${pote.prenom}.`);
+                AccessibilityInfo.announceForAccessibility(T.debloque(pote.prenom));
               })
             }
           />
@@ -136,25 +139,25 @@ export default function ProfilPote() {
   const demandeBandeEnvoyee = communaute.demandesEnvoyees.some((p) => p.id === id);
   const accepterDemande = async () => {
     const erreur = await communaute.accepterDemandeBande(pote.id);
-    annoncer(erreur ? "Ça n'a pas marché cette fois. Réessaie dans un instant ?" : `${prenom} a rejoint ta bande !`);
+    annoncer(erreur ? T.rate : T.aRejoint(prenom));
   };
   const retirerDemande = async (pourquoi: "refuse" | "annule") => {
     const erreur = await communaute.retirerDemandeBande(pote.id);
-    annoncer(erreur ? "Ça n'a pas marché cette fois. Réessaie dans un instant ?" : pourquoi === "refuse" ? "C'est noté, en toute discrétion." : "Demande annulée.");
+    annoncer(erreur ? T.rate : pourquoi === "refuse" ? T.refusDiscret : T.demandeAnnulee);
   };
   // Par le profil, c'est une demande ; s'il t'avait déjà demandé, vous voilà potes
   const ajouter = async () => {
     const resultat = await communaute.demanderAjout(pote.id);
     annoncer(
       resultat.type === "ajoute" || resultat.type === "deja"
-        ? `${prenom} fait partie de ta bande !`
+        ? T.ajoute(prenom)
         : resultat.type === "demande"
-          ? `Demande envoyée à ${prenom} : dès qu'elle est acceptée, vous êtes dans la même bande.`
+          ? T.demandeEnvoyee(prenom)
           : resultat.type === "demandes-fermees"
-            ? `${prenom} ne reçoit pas de demandes par pseudo : demande-lui plutôt son lien ou son QR code !`
+            ? T.demandesFermees(prenom)
             : resultat.type === "erreur" && resultat.erreur === "compte-limite"
               ? REFUS_LIMITATION.bande
-              : "Impossible de l'ajouter pour l'instant. Réessaie dans un instant ?",
+              : T.ajoutRate,
     );
   };
 
@@ -162,7 +165,7 @@ export default function ProfilPote() {
   const ecrire = async () => {
     const conversation = await ouvrirPrive(pote.id);
     if (!conversation) {
-      annoncer(`${prenom} n'est pas dans ta bande : ajoutez-vous d'abord, et la discussion s'ouvre !`);
+      annoncer(T.pasDansBande(prenom));
       return;
     }
     const cible = { pathname: "/potes/discussion/[id]", params: { id: conversation } } as const;
@@ -176,25 +179,25 @@ export default function ProfilPote() {
 
   const retirer = () =>
     confirmer(
-      `Retirer ${prenom} de ta bande ?`,
-      "Pas de drame : tu pourras l'y remettre quand tu veux.",
-      "Retirer",
+      T.retirerTitre(prenom),
+      T.retirerDetail,
+      T.retirer,
+      T.annuler,
       () => {
         communaute.retirerPote(pote.id);
-        annoncer(`${prenom} ne fait plus partie de ta bande.`);
+        annoncer(T.retire(prenom));
       },
     );
 
   const bloquer = () =>
     confirmer(
-      `Bloquer ${prenom} ?`,
-      dansBande
-        ? `${prenom} sortira de ta bande, vous ne vous suivrez plus, et tu ne verras plus ses messages ni ses commentaires.`
-        : "Vous ne vous suivrez plus, et tu ne verras plus ses messages ni ses commentaires.",
-      "Bloquer",
+      T.bloquerTitre(prenom),
+      dansBande ? T.bloquerDetailBande(prenom) : T.bloquerDetail,
+      T.bloquer,
+      T.annuler,
       () => {
         communaute.bloquer(pote.id);
-        AccessibilityInfo.announceForAccessibility(`Tu as bloqué ${prenom}.`);
+        AccessibilityInfo.announceForAccessibility(T.bloque(prenom));
       },
     );
 
@@ -207,24 +210,24 @@ export default function ProfilPote() {
         suivreVisible ? <BoutonSuivreProfil key="suivre" cle={`personne:${pote.id}`} nom={prenom} emoji={pote.avatar} onAnnoncer={annoncer} taille="grand" /> : null,
         suivreVisible && ajoutable ? (
           <Text key="difference" className="text-center font-texte text-sm leading-5 text-gris">
-            {lierPonctuation("Suivre, c'est voir passer ses listes et ses lieux. Ma bande, c'est pour sortir ensemble et discuter.")}
+            {lierPonctuation(T.difference)}
           </Text>
         ) : null,
         // Sa demande de bande : l'accepter ou la refuser (il n'est pas prévenu d'un refus)
         ajoutable && demandeBandeRecue ? (
           <View key="demande-bande" className="gap-3 rounded-2xl border-2 border-encre bg-jaune-clair p-4">
-            <Text className="font-texte-gras text-base text-encre">{lierPonctuation(`${prenom} veut rejoindre ta bande`)}</Text>
-            <Bouton libelle="Accepter" petit indice={`${prenom} rejoint ta bande`} onPress={() => void accepterDemande()} />
-            <Bouton libelle="Pas maintenant" variante="blanc" petit indice={`${prenom} n'est pas prévenu`} onPress={() => void retirerDemande("refuse")} />
+            <Text className="font-texte-gras text-base text-encre">{lierPonctuation(T.veutRejoindre(prenom))}</Text>
+            <Bouton libelle={T.accepter} petit indice={T.accepterIndice(prenom)} onPress={() => void accepterDemande()} />
+            <Bouton libelle={T.pasMaintenant} variante="blanc" petit indice={T.pasMaintenantIndice(prenom)} onPress={() => void retirerDemande("refuse")} />
           </View>
         ) : null,
         ajoutable && demandeBandeEnvoyee ? (
-          <Bouton key="annuler-demande" libelle="Demande envoyée · l'annuler" variante="blanc" indice={`Retire ta demande à ${prenom}`} onPress={() => void retirerDemande("annule")} />
+          <Bouton key="annuler-demande" libelle={T.annulerDemande} variante="blanc" indice={T.annulerDemandeIndice(prenom)} onPress={() => void retirerDemande("annule")} />
         ) : null,
         ajoutable && !demandeBandeRecue && !demandeBandeEnvoyee ? (
-          <Bouton key="ajouter" libelle={`Ajouter ${prenom} à ma bande`} variante="blanc" indice="Pour organiser des sorties et vous envoyer des lieux" onPress={() => void ajouter()} />
+          <Bouton key="ajouter" libelle={T.ajouter(prenom)} variante="blanc" indice={T.ajouterIndice} onPress={() => void ajouter()} />
         ) : null,
-        dansBande ? <Bouton key="ecrire" libelle={`Écrire à ${prenom}`} indice="Ouvre votre conversation privée" onPress={() => void ecrire()} /> : null,
+        dansBande ? <Bouton key="ecrire" libelle={T.ecrire(prenom)} indice={T.ecrireIndice} onPress={() => void ecrire()} /> : null,
         message ? (
           <Text key="message" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-center font-texte-semi text-sm text-encre">
             {lierPonctuation(message)}
@@ -238,7 +241,7 @@ export default function ProfilPote() {
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={12}
           onPress={revenir}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -261,17 +264,17 @@ export default function ProfilPote() {
         {complet ? <ListesDuProfil auteurId={pote.id} prenom={prenom} estMoi={estMoi} /> : <EncadreComptePrive prenom={prenom} demandeEnvoyee={jeSuis === "demande"} />}
 
         {estMoi ? (
-          <SectionReglages titre="Partager mon profil">
+          <SectionReglages titre={T.partager}>
             <View className="gap-3 pt-1">
-              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton QR code et ton lien : tes potes t'ajoutent avec, sans chercher ton pseudo.")}</Text>
-              <CodeQrInvitation pseudo={pote.pseudo} libellePartage="Partager mon profil" />
+              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.partagerTexte)}</Text>
+              <CodeQrInvitation pseudo={pote.pseudo} libellePartage={T.partager} />
             </View>
           </SectionReglages>
         ) : (
           <View>
-            {dansBande ? <LigneReglage emoji="👋" titre="Retirer de ma bande" detail="Vous restez potes dans la vraie vie, hein" onPress={retirer} /> : null}
-            <LigneReglage emoji="🚫" titre="Bloquer" detail="Plus de messages ni de commentaires de sa part" danger onPress={bloquer} />
-            <LigneReglage emoji="🚩" titre="Signaler" detail="Faux profil, harcèlement, contenu gênant…" onPress={() => setSignalementOuvert(true)} />
+            {dansBande ? <LigneReglage emoji="👋" titre={T.retirerBande} detail={T.retirerBandeDetail} onPress={retirer} /> : null}
+            <LigneReglage emoji="🚫" titre={T.bloquer} detail={T.bloquerLigneDetail} danger onPress={bloquer} />
+            <LigneReglage emoji="🚩" titre={T.signaler} detail={T.signalerDetail} onPress={() => setSignalementOuvert(true)} />
           </View>
         )}
       </ScrollView>
@@ -279,7 +282,7 @@ export default function ProfilPote() {
       <Modal visible={signalementOuvert} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={() => setSignalementOuvert(false)}>
         {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi du signalement */}
         <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => setSignalementOuvert(false)} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+          <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={() => setSignalementOuvert(false)} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
           <Animated.View
             accessibilityViewIsModal
             onAccessibilityEscape={() => setSignalementOuvert(false)}
@@ -289,7 +292,7 @@ export default function ProfilPote() {
             <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
               <PoigneeFeuille geste={geste} />
               <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-                <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil ${eliderDe(prenom)}`} onTermine={() => setSignalementOuvert(false)} />
+                <SignalerContenu cible="profil" cibleId={pote.id} sujet={T.sujetSignalement(prenom)} onTermine={() => setSignalementOuvert(false)} />
               </ScrollView>
             </View>
           </Animated.View>

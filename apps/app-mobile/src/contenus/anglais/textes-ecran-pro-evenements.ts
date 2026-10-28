@@ -27,7 +27,7 @@ export const TEXTES_ECRAN_EVENEMENT_ANGLAIS: Traduction<typeof TEXTES_ECRAN_EVEN
   champTitre: "Title",
   champTitreExemple: "Jazz manouche by the fire",
   type: "What is it?",
-  description: "Description",
+  description: "Details",
   facultatif: "optional",
   descriptionExemple: "What's in store for foodies, the programme, anything worth knowing",
   quand: "When",

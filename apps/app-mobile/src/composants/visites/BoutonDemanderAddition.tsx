@@ -9,25 +9,24 @@ import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { FeuilleEchecVisite, type EchecVisite } from "~/composants/visites/FeuilleEchecVisite";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import type { ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { TEXTES_DEMANDE_ADDITION_PAR_LANGUE } from "~/contenus/textes-demande-addition";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
   variante?: "jaune" | "blanc";
   libelle?: string;
+  ici?: boolean;
   surJaune?: boolean;
 };
 
 type Etape = "repos" | "position" | "envoi";
-
-const TEXTES_ETAPE: Record<Exclude<Etape, "repos">, string> = {
-  position: "On regarde où tu es…",
-  envoi: "On envoie ta demande…",
-};
 
 /** Ce qui vaut la peine d'être retenté tout de suite (position floue, réseau, un peu loin…) */
 const A_REESSAYER: readonly ErreurService[] = [
@@ -50,8 +49,11 @@ const DELAI_ANNONCE_ETAPE = 700;
  * envoie la demande et ouvre l'écran du code. Si ça coince (position, réseau, une addition déjà en attente…), une feuille
  * dit pourquoi, avec « Réessayer », « Ouvrir les réglages » ou « Voir ma demande ». Une seule demande à la fois.
  */
-export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "Demander l'addition SOS Miam", surJaune = false }: Props) {
+export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle, ici = false, surJaune = false }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDE_ADDITION_PAR_LANGUE);
+  const textesEtape: Record<Exclude<Etape, "repos">, string> = { position: T.positionEnCours, envoi: T.envoiEnCours };
   const router = useRouter();
   const services = utiliserServices();
   const demanderCompte = utiliserDemandeCompte();
@@ -70,9 +72,10 @@ export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "De
 
   useEffect(() => {
     if (etape === "repos") return;
-    const attente = setTimeout(() => AccessibilityInfo.announceForAccessibility(TEXTES_ETAPE[etape]), DELAI_ANNONCE_ETAPE);
+    const annonce = etape === "position" ? T.positionEnCours : T.envoiEnCours;
+    const attente = setTimeout(() => AccessibilityInfo.announceForAccessibility(annonce), DELAI_ANNONCE_ETAPE);
     return () => clearTimeout(attente);
-  }, [etape]);
+  }, [etape, T]);
 
   const { lire } = position;
   const demander = useCallback(async () => {
@@ -110,12 +113,12 @@ export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "De
   }, [services, router]);
 
   const actions: ActionEchecVisite[] = [];
-  if (echec?.erreur === "demande-en-cours") actions.push({ libelle: "Voir ma demande", onPress: () => void voirMaDemande() });
+  if (echec?.erreur === "demande-en-cours") actions.push({ libelle: T.voirMaDemande, onPress: () => void voirMaDemande() });
   if (echec?.erreur === "position-bloquee" || echec?.erreur === "position-approximative") {
-    actions.push({ libelle: "Ouvrir les réglages", onPress: () => void Linking.openSettings().catch(() => {}) });
+    actions.push({ libelle: T.ouvrirReglages, onPress: () => void Linking.openSettings().catch(() => {}) });
   }
   if (echec && A_REESSAYER.includes(echec.erreur)) {
-    actions.push({ libelle: "Réessayer", variante: actions.length > 0 ? "blanc" : "jaune", onPress: () => void demander() });
+    actions.push({ libelle: T.reessayer, variante: actions.length > 0 ? "blanc" : "jaune", onPress: () => void demander() });
   }
 
   return (
@@ -123,23 +126,23 @@ export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "De
       <ZoneClaire active={surJaune}>
         {etape === "repos" ? (
           <Bouton
-            libelle={libelle}
+            libelle={ici ? T.demanderIci : (libelle ?? T.demander)}
             // Dans « Tu es chez qui ? », chaque ligne dit « Demander l'addition ici » : VoiceOver, lui, entend le lieu
-            libelleLu={libelle.endsWith(" ici") ? `${libelle.slice(0, -" ici".length)} ${direChezLieu(lieu.nom)}` : undefined}
+            libelleLu={ici ? T.demanderIciLu(direChezLieuLangue(lieu.nom, langue)) : undefined}
             variante={variante}
-            indice={`On vérifie que tu es bien ${direChezLieu(lieu.nom)}, puis tu reçois un code à montrer en payant`}
+            indice={T.demanderIndice(direChezLieuLangue(lieu.nom, langue))}
             onPress={() => void demander()}
           />
         ) : (
           // Même place que le bouton : rien ne saute pendant qu'on cherche ta position
           <View
             accessible
-            accessibilityLabel={TEXTES_ETAPE[etape]}
+            accessibilityLabel={textesEtape[etape]}
             accessibilityLiveRegion="polite"
             className="min-h-[60px] flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-carte px-6 py-2"
           >
             <ActivityIndicator color={surJaune ? couleurs.nuit : couleurs.encre} />
-            <Text className="font-texte-gras text-base text-encre">{TEXTES_ETAPE[etape]}</Text>
+            <Text className="font-texte-gras text-base text-encre">{textesEtape[etape]}</Text>
           </View>
         )}
       </ZoneClaire>

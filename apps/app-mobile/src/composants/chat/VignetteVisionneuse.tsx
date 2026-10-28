@@ -1,10 +1,11 @@
 import { Image } from "expo-image";
 import { Pressable } from "react-native";
 
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { lireSourcePhotoChat } from "~/fonctions/chat/lire-source-photo-chat";
 import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -18,6 +19,7 @@ type Props = {
 const TAILLE_VIGNETTE = 48;
 
 export function VignetteVisionneuse({ conversationId, message, choisie, numero, total, onPress }: Props) {
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
   const media = utiliserMediaChat(conversationId, message);
   const source = media.fichier ? lireSourcePhotoChat(media.fichier) : null;
   return (

@@ -14,9 +14,14 @@ import { EncadreReservation, type ActionEncadreReservation } from "~/composants/
 import { FormulaireReservation } from "~/composants/reservations/FormulaireReservation";
 import { FeuilleEchecVisite } from "~/composants/visites/FeuilleEchecVisite";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { TEXTES_ECHEC_GESTE_RESERVATION } from "~/contenus/textes-mes-reservations";
-import { ACTIONS_REFUS_RESERVATION, PETIT_MOT_REFUSE, TEXTES_REFUS_RESERVATION, TEXTES_RESERVER_TABLE } from "~/contenus/textes-reserver-table";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECHEC_GESTE_RESERVATION_PAR_LANGUE } from "~/contenus/textes-mes-reservations";
+import {
+  ACTIONS_REFUS_RESERVATION_PAR_LANGUE,
+  PETIT_MOT_REFUSE_PAR_LANGUE,
+  TEXTES_REFUS_RESERVATION_PAR_LANGUE,
+  TEXTES_RESERVER_TABLE_PAR_LANGUE,
+} from "~/contenus/textes-reserver-table";
 import { calculerGestesReservation } from "~/fonctions/reservations/calculer-gestes-reservation";
 import { decrireAnnulationReservation } from "~/fonctions/reservations/decrire-annulation-reservation";
 import { decrireEtapeReserver } from "~/fonctions/reservations/decrire-etape-reserver";
@@ -26,6 +31,8 @@ import { utiliserEnvoiReservation, type RefusReservation } from "~/hooks/utilise
 import { utiliserFormulaireReservation } from "~/hooks/utiliser-formulaire-reservation";
 import { utiliserGestesReservation } from "~/hooks/utiliser-gestes-reservation";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -35,6 +42,13 @@ const REFUS_BLOQUANTS: readonly ErreurService[] = ["lieu-non-reservable", "membr
 
 export function EcranReserverTable({ lieu }: Props) {
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_RESERVER_TABLE_PAR_LANGUE);
+  const actionsRefus = utiliserTextes(ACTIONS_REFUS_RESERVATION_PAR_LANGUE);
+  const petitMotRefuseTextes = utiliserTextes(PETIT_MOT_REFUSE_PAR_LANGUE);
+  const textesRefus = utiliserTextes(TEXTES_REFUS_RESERVATION_PAR_LANGUE);
+  const echecs = utiliserTextes(TEXTES_ECHEC_GESTE_RESERVATION_PAR_LANGUE);
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const client = utiliserClientReservation();
   const horloge = utiliserHorlogeMinute();
   const formulaire = utiliserFormulaireReservation(lieu, horloge.maintenantMs);
@@ -58,10 +72,10 @@ export function EcranReserverTable({ lieu }: Props) {
   const petitMotRefuse = refus?.erreur === "message-refuse";
   const aRelire = refus !== null && ERREURS_RESERVATION_A_RELIRE.includes(refus.erreur);
   const encadreRefus =
-    refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(aRelire ? "creneau-complet" : refus.erreur, refus.details, lieu.nom, TEXTES_REFUS_RESERVATION[refus.erreur]) : null;
+    refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(aRelire ? "creneau-complet" : refus.erreur, refus.details, lieu.nom, textesRefus[refus.erreur]) : null;
   const bloque = refusLieu !== null && REFUS_BLOQUANTS.includes(refusLieu.erreur);
   const automatique = formulaire.acceptation === "automatique";
-  const etape = decrireEtapeReserver(reservation, lieu, automatique);
+  const etape = decrireEtapeReserver(reservation, lieu, automatique, langue);
   const numeroRelu = useRef(0);
 
   useEffect(() => {
@@ -93,26 +107,26 @@ export function EcranReserverTable({ lieu }: Props) {
   }
 
   function lireActionRefus(erreur: ErreurService): ActionEncadreReservation | undefined {
-    if (erreur === "lieu-non-reservable") return { libelle: ACTIONS_REFUS_RESERVATION.retourFiche, onPress: revenirFiche };
-    if (erreur === "introuvable") return { libelle: ACTIONS_REFUS_RESERVATION.voirExplorer, onPress: () => router.navigate("/explorer") };
+    if (erreur === "lieu-non-reservable") return { libelle: actionsRefus.retourFiche, onPress: revenirFiche };
+    if (erreur === "introuvable") return { libelle: actionsRefus.voirExplorer, onPress: () => router.navigate("/explorer") };
     if (erreur === "reservation-en-cours" || erreur === "trop-de-reservations" || erreur === "reservation-en-double") {
-      return { libelle: ACTIONS_REFUS_RESERVATION.voirReservations, onPress: () => router.push("/reservations") };
+      return { libelle: actionsRefus.voirReservations, onPress: () => router.push("/reservations") };
     }
-    if (erreur === "email-non-verifie") return { libelle: ACTIONS_REFUS_RESERVATION.confirmerEmail, onPress: () => router.push("/reglages/compte") };
+    if (erreur === "email-non-verifie") return { libelle: actionsRefus.confirmerEmail, onPress: () => router.push("/reglages/compte") };
     return undefined;
   }
 
   function dessinerAuDessusDuBouton() {
-    if (refusLimite) return <RefusLimitationEnPlace key={refus?.numero} texte={REFUS_LIMITATION.petitMot} />;
+    if (refusLimite) return <RefusLimitationEnPlace key={refus?.numero} texte={refusLimitation.petitMot} />;
     if (petitMotRefuse) {
       return (
         <EncadreReservation
           key={refus?.numero}
           ton="refus"
-          emoji={PETIT_MOT_REFUSE.emoji}
-          titre={PETIT_MOT_REFUSE.titre}
-          texte={PETIT_MOT_REFUSE.texte}
-          action={{ libelle: TEXTES_RESERVER_TABLE.envoyerSansPetitMot, onPress: envoyerSansPetitMot }}
+          emoji={petitMotRefuseTextes.emoji}
+          titre={petitMotRefuseTextes.titre}
+          texte={petitMotRefuseTextes.texte}
+          action={{ libelle: T.envoyerSansPetitMot, onPress: envoyerSansPetitMot }}
         />
       );
     }
@@ -121,11 +135,11 @@ export function EcranReserverTable({ lieu }: Props) {
   }
 
   const annulation = reservation
-    ? decrireAnnulationReservation(reservation, calculerGestesReservation(reservation, horloge.maintenantMs).annulationTardive, horloge.maintenantMs)
+    ? decrireAnnulationReservation(reservation, calculerGestesReservation(reservation, horloge.maintenantMs).annulationTardive, horloge.maintenantMs, langue)
     : null;
-  const libelleAuto = lieu.type === "sortie" ? TEXTES_RESERVER_TABLE.envoyerAutoPlace : TEXTES_RESERVER_TABLE.envoyerAutoTable;
-  const libelleEnvoi = automatique ? TEXTES_RESERVER_TABLE.envoiAuto : TEXTES_RESERVER_TABLE.envoi;
-  const libelleEnvoyer = envoi.envoi ? libelleEnvoi : refusLimite ? TEXTES_RESERVER_TABLE.envoyerSansPetitMot : automatique ? libelleAuto : TEXTES_RESERVER_TABLE.envoyer;
+  const libelleAuto = lieu.type === "sortie" ? T.envoyerAutoPlace : T.envoyerAutoTable;
+  const libelleEnvoi = automatique ? T.envoiAuto : T.envoi;
+  const libelleEnvoyer = envoi.envoi ? libelleEnvoi : refusLimite ? T.envoyerSansPetitMot : automatique ? libelleAuto : T.envoyer;
   const pret = formulaire.choix.principal !== null;
 
   return (
@@ -141,7 +155,7 @@ export function EcranReserverTable({ lieu }: Props) {
               libelle: libelleEnvoyer,
               onPress: refusLimite ? envoyerSansPetitMot : () => envoyer(petitMot),
               desactive: !pret || envoi.envoi || bloque,
-              indice: !pret ? TEXTES_RESERVER_TABLE.indiceSansHeure : automatique ? TEXTES_RESERVER_TABLE.indiceEnvoyerAuto : TEXTES_RESERVER_TABLE.indiceEnvoyer,
+              indice: !pret ? T.indiceSansHeure : automatique ? T.indiceEnvoyerAuto : T.indiceEnvoyer,
             }
       }
       auDessusDuBouton={reservation ? null : dessinerAuDessusDuBouton()}
@@ -184,7 +198,7 @@ export function EcranReserverTable({ lieu }: Props) {
           }}
           maintenantMs={horloge.maintenantMs}
           petitMot={petitMot}
-          erreurPetitMot={petitMotRefuse ? PETIT_MOT_REFUSE.sousLeChamp : null}
+          erreurPetitMot={petitMotRefuse ? petitMotRefuseTextes.sousLeChamp : null}
           onChangerPetitMot={(texte) => {
             envoi.effacerRefus();
             setPetitMot(texte);
@@ -211,7 +225,7 @@ export function EcranReserverTable({ lieu }: Props) {
         onFermer={() => setAnnulationOuverte(false)}
       />
       <FeuillePositionVisite {...gestes.propsFeuillePosition} />
-      <FeuilleEchecVisite echec={gestes.echec} lieuNom={lieu.nom} textes={TEXTES_ECHEC_GESTE_RESERVATION} actions={gestes.actionsEchec} onFermer={gestes.fermerEchec} />
+      <FeuilleEchecVisite echec={gestes.echec} lieuNom={lieu.nom} textes={echecs} actions={gestes.actionsEchec} onFermer={gestes.fermerEchec} />
     </EcranReglage>
   );
 }

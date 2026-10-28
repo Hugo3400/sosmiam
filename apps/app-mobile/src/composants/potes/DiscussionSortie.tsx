@@ -9,7 +9,8 @@ import { CarteMessageSysteme } from "~/composants/chat/CarteMessageSysteme";
 import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
 import { BulleMessage } from "~/composants/potes/BulleMessage";
 import { MenuMessage } from "~/composants/potes/MenuMessage";
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_DISCUSSION_SORTIE_PAR_LANGUE } from "~/contenus/textes-discussion-sortie";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
@@ -19,6 +20,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import type { MessageSortieEnrichi } from "~/hooks/utiliser-discussion-sortie";
 import { utiliserMentionsChamp } from "~/hooks/utiliser-mentions-champ";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Un message prêt à afficher : son auteur, son heure, et le jour à écrire au-dessus quand il change */
 export type LigneDiscussion = {
@@ -47,12 +49,6 @@ type Props = {
   participants: Pote[];
 };
 
-const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
-  vide: "Écris quelque chose avant d'envoyer, même un petit emoji 😉",
-  "trop-long": `Ton message dépasse ${LONGUEUR_MAX_MESSAGE} caractères : coupe un peu, la bande t'écoute quand même.`,
-  "mot-interdit": "Oups, un mot de ton message ne passe pas chez nous. Tu reformules gentiment ?",
-  interdit: "Tu ne fais plus partie de cette sortie : ton message n'est pas parti.",
-};
 const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "retire", "illisible"]);
 
 // Distance au bas de la liste sous laquelle on suit les nouveaux messages
@@ -61,6 +57,9 @@ const PRES_DU_BAS = 120;
 /** La partie « La discussion » d'une sortie : les messages en bulles, et le champ en bas qui reste au-dessus du clavier. */
 export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plusAnciens, onChargerPlusAnciens, margeBas, onAnnoncer, participants }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_DISCUSSION_SORTIE_PAR_LANGUE);
+  const TM = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const refus: Readonly<Record<Exclude<ResultatEnvoiChat, "ok">, string>> = T.refus;
   const { moi } = utiliserCommunaute();
   const monId = utiliserMonId();
   const animationsReduites = useReducedMotion();
@@ -103,9 +102,9 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
   useEffect(() => {
     if (!derniere || derniere.message.date <= dernierVu.current) return;
     dernierVu.current = derniere.message.date;
-    const prenom = derniere.message.systeme ? TEXTES_MESSAGES.sosMiam : (derniere.auteur?.prenom ?? "Quelqu'un");
-    if (!derniere.deMoi) AccessibilityInfo.announceForAccessibility(`${prenom} : ${derniere.message.texte}`);
-  }, [derniere]);
+    const prenom = derniere.message.systeme ? TM.sosMiam : (derniere.auteur?.prenom ?? T.quelquUn);
+    if (!derniere.deMoi) AccessibilityInfo.announceForAccessibility(T.annonce(prenom, derniere.message.texte));
+  }, [derniere, T, TM]);
 
   function suivreDefilement(evenement: NativeSyntheticEvent<NativeScrollEvent>) {
     const { contentOffset, contentSize, layoutMeasurement } = evenement.nativeEvent;
@@ -121,11 +120,11 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
       setErreur(null);
       collerEnBas.current = true;
       // Tes propres messages ne sont pas relus : un mot suffit pour savoir que c'est parti (sinon on retouche « Envoyer » pour rien)
-      AccessibilityInfo.announceForAccessibility("Message envoyé à la bande");
+      AccessibilityInfo.announceForAccessibility(T.envoye);
       return;
     }
-    setErreur(REFUS[resultat]);
-    AccessibilityInfo.announceForAccessibility(retirerEmoji(REFUS[resultat]));
+    setErreur(refus[resultat]);
+    AccessibilityInfo.announceForAccessibility(retirerEmoji(refus[resultat]));
   }
 
   const longueur = texte.trim().length;
@@ -159,14 +158,14 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
                 }}
                 className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
               >
-                <Text className="font-texte-gras text-sm text-encre">{"Voir les messages d'avant"}</Text>
+                <Text className="font-texte-gras text-sm text-encre">{T.voirAvant}</Text>
               </Pressable>
             ) : null}
             <Text
-              accessibilityLabel="Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler."
+              accessibilityLabel={T.confidentialiteLu}
               className="text-center font-texte text-[13px] leading-[18px] text-gris"
             >
-              {lierPonctuation("🔒 Seuls les participants de la sortie voient cette discussion. Un message qui dérange ? Appui long dessus, ou « ⋯ », pour le signaler.")}
+              {lierPonctuation(T.confidentialite)}
             </Text>
           </View>
         }
@@ -176,7 +175,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
               💬
             </Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation("Pas encore de message. Lance la discussion : un « qui est chaud ? », un emoji, tout est permis !")}
+              {lierPonctuation(T.vide)}
             </Text>
           </View>
         }
@@ -231,15 +230,15 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
         ) : null}
         <View className="flex-row items-end gap-2">
           <TextInput
-            accessibilityLabel={erreur ? `Ton message. ${retirerEmoji(erreur)}` : "Ton message"}
-            accessibilityHint="Tape @ pour mentionner un pote"
+            accessibilityLabel={erreur ? T.champErreur(retirerEmoji(erreur)) : T.champ}
+            accessibilityHint={T.indiceChamp}
             value={texte}
             onChangeText={(nouveau) => {
               setTexte(nouveau);
               if (erreur) setErreur(null);
             }}
             onSelectionChange={mentions.suivreSelection}
-            placeholder="Écris à la bande…"
+            placeholder={T.exempleChamp}
             placeholderTextColor={couleurs.gris}
             selectionColor={couleurs.encre}
             cursorColor={couleurs.encre}
@@ -248,7 +247,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
           />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Envoyer"
+            accessibilityLabel={T.envoyer}
             onPress={envoyer}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"
           >
@@ -269,7 +268,7 @@ export function DiscussionSortie({ lignes, envoyer: envoyerTexte, renvoyer, plus
         onFermer={() => setMenuOuvert(false)}
         onBloque={(prenom) => {
           setMenuOuvert(false);
-          onAnnoncer(`🚫 C'est fait : tu ne verras plus les messages de ${prenom}`);
+          onAnnoncer(T.bloque(prenom));
         }}
       />
     </View>

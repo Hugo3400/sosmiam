@@ -3,11 +3,13 @@ import { useImperativeHandle, useRef, useState, type Ref } from "react";
 import { Platform, Pressable, ScrollView, Text, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import Animated from "react-native-reanimated";
 
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { ZOOM_MAX } from "~/fonctions/chat/calculer-zoom-pincement";
 import { lireSourcePhotoChat } from "~/fonctions/chat/lire-source-photo-chat";
 import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserZoomPhoto } from "~/hooks/utiliser-zoom-photo";
 
 export type PoigneePagePhoto = { basculerZoom: () => void; remettre: () => void };
@@ -27,6 +29,8 @@ const ZOOM_BOUTON = 2.5;
 const surIos = Platform.OS === "ios";
 
 export function PagePhotoVisionneuse({ conversationId, message, largeur, hauteur, libelle, onAppui, onZoom, ref }: Props) {
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const T_BULLES = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const media = utiliserMediaChat(conversationId, message);
   const source = media.fichier ? lireSourcePhotoChat(media.fichier) : null;
   const [fichierIllisible, setFichierIllisible] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export function PagePhotoVisionneuse({ conversationId, message, largeur, hauteur
     source && !illisible ? (
       <Image source={source} contentFit="contain" accessible accessibilityLabel={libelle} onError={() => setFichierIllisible(media.fichier ?? null)} style={{ width: largeur, height: hauteur }} />
     ) : (
-      <View accessible accessibilityLabel={`${libelle} : ${T.photoPartie}`} style={{ width: largeur, height: hauteur }} className="items-center justify-center gap-2">
+      <View accessible accessibilityLabel={T_BULLES.libelleEtEtat(libelle, T.photoPartie)} style={{ width: largeur, height: hauteur }} className="items-center justify-center gap-2">
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
           {media.etat === "chargement" ? "⏳" : "📷"}
         </Text>

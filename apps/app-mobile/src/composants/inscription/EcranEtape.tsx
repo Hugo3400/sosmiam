@@ -6,8 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { BarreProgression } from "~/composants/interface/BarreProgression";
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_INSCRIPTION_ACCUEIL_PAR_LANGUE } from "~/contenus/textes-inscription-accueil";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Action = { libelle: string; onPress: () => void; desactive?: boolean };
 
@@ -31,6 +33,7 @@ type Props = {
 export function EcranEtape({ titre, sousTitre, etape, retour = true, onRetour, boutonPrincipal, boutonSecondaire, children }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_ACCUEIL_PAR_LANGUE);
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
@@ -38,7 +41,7 @@ export function EcranEtape({ titre, sousTitre, etape, retour = true, onRetour, b
           {retour ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Retour"
+              accessibilityLabel={T.retour}
               hitSlop={12}
               onPress={onRetour ?? (() => router.back())}
               className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

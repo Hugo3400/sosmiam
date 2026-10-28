@@ -57,8 +57,8 @@ test("rangement : à répondre, aujourd'hui (jusqu'à minuit, heure de Paris), p
 
 test("l'entrée du comptoir résume en une ligne", () => {
   const ines = resa(9, "acceptee", iso("2026-10-15", "20:00"));
-  assert.equal(resumerReservationsComptoir(0, []), "Les demandes de tes clients arrivent ici");
-  assert.equal(resumerReservationsComptoir(1, []), "1 demande à répondre");
-  assert.equal(resumerReservationsComptoir(2, [ines]), "2 demandes à répondre · 1 table attendue aujourd'hui");
-  assert.equal(resumerReservationsComptoir(0, [ines, ines]), "2 tables attendues aujourd'hui");
+  assert.equal(resumerReservationsComptoir(0, [], "fr"), "Les demandes de tes clients arrivent ici");
+  assert.equal(resumerReservationsComptoir(1, [], "fr"), "1 demande à répondre");
+  assert.equal(resumerReservationsComptoir(2, [ines], "fr"), "2 demandes à répondre · 1 table attendue aujourd'hui");
+  assert.equal(resumerReservationsComptoir(0, [ines, ines], "fr"), "2 tables attendues aujourd'hui");
 });

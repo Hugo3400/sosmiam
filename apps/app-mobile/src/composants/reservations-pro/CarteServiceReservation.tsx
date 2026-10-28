@@ -3,11 +3,13 @@ import { Pressable, Text, View } from "react-native";
 
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { ServiceReservation } from "@sos-miam/commun/types/reglages-reservations";
-import { TEXTES_CARTE_SERVICE, TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_CARTE_SERVICE_PAR_LANGUE, TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireServiceReservation } from "~/fonctions/reservations/decrire-service-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   service: ServiceReservation;
@@ -19,13 +21,16 @@ type Props = {
 
 export function CarteServiceReservation({ service, services, erreur, modifiable, onPress }: Props) {
   const couleurs = utiliserCouleurs();
-  const decrit = decrireServiceReservation(service, services);
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
+  const TS = utiliserTextes(TEXTES_CARTE_SERVICE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
+  const decrit = decrireServiceReservation(service, services, langue);
   const aCorriger = erreur ? remplirModele(T.aCorriger, { erreur }) : null;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={aCorriger ? `${decrit.lu} ${aCorriger}` : decrit.lu}
-      accessibilityHint={modifiable ? TEXTES_CARTE_SERVICE.modifierIndice : TEXTES_CARTE_SERVICE.voirIndice}
+      accessibilityHint={modifiable ? TS.modifierIndice : TS.voirIndice}
       accessibilityState={{ disabled: !modifiable }}
       disabled={!modifiable}
       onPress={() => {

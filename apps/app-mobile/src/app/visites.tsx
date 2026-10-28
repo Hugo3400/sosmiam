@@ -4,25 +4,21 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { EnTeteMesVisites } from "~/composants/visites/EnTeteMesVisites";
 import { LigneVisite } from "~/composants/visites/LigneVisite";
 import { MessageLectureRatee } from "~/composants/visites/MessageLectureRatee";
+import { TEXTES_MES_VISITES_PAR_LANGUE } from "~/contenus/textes-mes-visites";
 import { grouperVisitesParMois } from "~/fonctions/visites/grouper-visites-par-mois";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLectureListe } from "~/hooks/utiliser-lecture-liste";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
-
-const TEXTE_VIDE =
-  "Aucune visite validée pour l'instant. La prochaine fois que tu manges quelque part, demande l'addition dans l'app : c'est là que la magie opère.";
-
-const TITRE_RATEE = "Tes visites sont restées en cuisine";
-
-const TEXTE_RATEE = "La connexion fait des siennes, rien de grave : tout arrive dès que le réseau revient. Aucune visite ne se perd en route, promis.";
 
 /** Une carte d'explication au milieu de l'écran (rien à montrer, ou pas encore de comptes) */
 function CarteMessage({ emoji, titre, texte, enPlus }: { emoji: string; titre?: string; texte: string; enPlus?: ReactNode }) {
@@ -49,10 +45,13 @@ function CarteMessage({ emoji, titre, texte, enPlus }: { emoji: string; titre?: 
  */
 export default function MesVisites() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MES_VISITES_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const router = useRouter();
   const { source, enCours, visites, rafraichir } = utiliserVisites();
   const lecture = utiliserLectureListe("visites");
-  const groupes = useMemo(() => grouperVisitesParMois(visites), [visites]);
+  const groupes = useMemo(() => grouperVisitesParMois(visites, langue), [visites, langue]);
   const [relecture, setRelecture] = useState(false);
   const validees = visites.some((v) => v.statut === "validee");
 
@@ -70,25 +69,25 @@ export default function MesVisites() {
 
   const contenu = () => {
     if (source === "indisponible") {
-      const message = MESSAGES_SERVICE["service-indisponible"];
+      const message = messages["service-indisponible"];
       return <CarteMessage emoji={message.emoji} titre={message.titre} texte={message.texte} />;
     }
     if (lecture === "chargement") {
       return (
         <View className="items-center py-10">
-          <ActivityIndicator color={couleurs.encre} accessibilityLabel="On rassemble tes visites…" />
+          <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
         </View>
       );
     }
     if (lecture === "ratee") {
-      return <MessageLectureRatee titre={TITRE_RATEE} texte={TEXTE_RATEE} indice="Relit tes visites" onReessayer={rafraichir} />;
+      return <MessageLectureRatee titre={T.rateeTitre} texte={T.rateeTexte} indice={T.relireIndice} onReessayer={rafraichir} />;
     }
     if (visites.length === 0 && !enCours) {
       return (
         <CarteMessage
           emoji="🍽️"
-          texte={TEXTE_VIDE}
-          enPlus={<Bouton libelle="Aller à l'onglet Scan" variante="blanc" petit className="mt-2" indice="Ouvre l'onglet Scan" onPress={() => router.navigate("/scan")} />}
+          texte={T.vide}
+          enPlus={<Bouton libelle={T.allerScan} variante="blanc" petit className="mt-2" indice={T.allerScanIndice} onPress={() => router.navigate("/scan")} />}
         />
       );
     }
@@ -99,7 +98,7 @@ export default function MesVisites() {
         {enCours ? (
           <View className="gap-3">
             <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-              En cours
+              {T.enCours}
             </Text>
             <LigneVisite visite={enCours} onPress={() => ouvrir(enCours)} />
           </View>
@@ -109,7 +108,7 @@ export default function MesVisites() {
           const nombre = groupe.visites.length;
           return (
             <View key={groupe.mois} className="gap-3">
-              <Text accessibilityRole="header" accessibilityLabel={`${groupe.titre}, ${nombre} visite${nombre > 1 ? "s" : ""}`} className="font-titre-gras text-xl text-encre">
+              <Text accessibilityRole="header" accessibilityLabel={T.moisLu(groupe.titre, nombre)} className="font-titre-gras text-xl text-encre">
                 {groupe.titre}
               </Text>
               <View className="gap-2">
@@ -130,7 +129,7 @@ export default function MesVisites() {
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={12}
           onPress={revenir}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -148,10 +147,10 @@ export default function MesVisites() {
       >
         <View className="gap-2">
           <Text accessibilityRole="header" className="font-titre text-3xl text-encre">
-            Mes visites
+            {T.titre}
           </Text>
           <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Ton carnet de bonnes adresses, mois par mois. Les jours et les heures ne sont visibles que par toi.")}
+            {lierPonctuation(T.sousTitre)}
           </Text>
         </View>
 

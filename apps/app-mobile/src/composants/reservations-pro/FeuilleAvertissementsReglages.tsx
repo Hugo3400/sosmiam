@@ -2,9 +2,10 @@ import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
-import { CONFIRMATIONS_REGLAGES_RESERVATIONS, TEXTES_AVERTISSEMENTS_REGLAGES } from "~/contenus/textes-reglages-reservations";
+import { CONFIRMATIONS_REGLAGES_RESERVATIONS_PAR_LANGUE, TEXTES_AVERTISSEMENTS_REGLAGES_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import type { AvertissementReglages } from "~/fonctions/reservations/lister-avertissements-reglages";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -13,9 +14,9 @@ type Props = {
   onFermer: () => void;
 };
 
-const T = CONFIRMATIONS_REGLAGES_RESERVATIONS.avertissements;
-
 export function FeuilleAvertissementsReglages({ visible, avertissements, onEnregistrer, onFermer }: Props) {
+  const T = utiliserTextes(CONFIRMATIONS_REGLAGES_RESERVATIONS_PAR_LANGUE).avertissements;
+  const TA = utiliserTextes(TEXTES_AVERTISSEMENTS_REGLAGES_PAR_LANGUE);
   return (
     <FeuilleBas
       visible={visible}
@@ -38,7 +39,7 @@ export function FeuilleAvertissementsReglages({ visible, avertissements, onEnreg
           </View>
         ))}
       </View>
-      <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(TEXTES_AVERTISSEMENTS_REGLAGES.note)}</Text>
+      <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(TA.note)}</Text>
     </FeuilleBas>
   );
 }

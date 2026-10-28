@@ -9,7 +9,7 @@ import type { GifApi } from "@sos-miam/commun/types/messagerie";
 import { ImageGifChat } from "~/composants/chat/ImageGifChat";
 import { Pastille } from "~/composants/interface/Pastille";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
-import { PASTILLES_GIF, TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { PASTILLES_GIF, PASTILLES_GIF_PAR_LANGUE, TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import { calculerTailleGif } from "~/fonctions/chat/calculer-taille-gif";
 import { repartirGifsColonnes } from "~/fonctions/chat/repartir-gifs-colonnes";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
@@ -20,6 +20,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserRechercheGifs } from "~/hooks/utiliser-recherche-gifs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -34,6 +35,8 @@ const PRES_DE_LA_FIN = 400;
 
 export function FeuilleGifChat({ visible, conversationId, onEnvoye, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const pastilles = utiliserTextes(PASTILLES_GIF_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -53,7 +56,7 @@ export function FeuilleGifChat({ visible, conversationId, onEnvoye, onFermer }: 
     }
   }
 
-  const choisie = PASTILLES_GIF.find((p) => p.cle === pastille) ?? PASTILLES_GIF[0];
+  const choisie = pastilles[Math.max(0, PASTILLES_GIF.findIndex((p) => p.cle === pastille))];
   const recherche = utiliserRechercheGifs(visible, texte, choisie.mot);
   const largeurColonne = Math.floor((width - 2 * MARGE - ECART) / 2);
   const colonnes = repartirGifsColonnes(recherche.gifs, largeurColonne, ECART);
@@ -126,7 +129,7 @@ export function FeuilleGifChat({ visible, conversationId, onEnvoye, onFermer }: 
                 {PASTILLES_GIF.map((p, i) => (
                   <Pastille
                     key={p.cle}
-                    libelle={p.libelle}
+                    libelle={pastilles[i].libelle}
                     role="radio"
                     choisi={texte.trim() === "" && pastille === p.cle}
                     position={i + 1}

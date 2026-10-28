@@ -3,7 +3,6 @@ import { TEXTES_CARTE_DEFI_ANGLAIS, TEXTES_LISTE_DEFIS_ANGLAIS, TEXTES_RESUME_DE
 
 export const TEXTES_CARTE_DEFI = {
   pourLaGloire: "Pour la gloire",
-  gain: (points: number) => `+${points} ${points === 1 ? "pt" : "pts"}`,
   gainLuSansPoints: "Pour la gloire, sans points",
   pointsGagnes: (points: number) => `${points} ${points === 1 ? "point" : "points"} ${points === 1 ? "gagné" : "gagnés"}`,
   pointsAGagner: (points: number) => `${points} ${points === 1 ? "point" : "points"} à gagner`,

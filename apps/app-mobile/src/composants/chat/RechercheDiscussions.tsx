@@ -2,10 +2,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRef } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   valeur: string;
@@ -16,6 +17,7 @@ const LONGUEUR_MAX = 60;
 
 export function RechercheDiscussions({ valeur, onChange }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   const champ = useRef<TextInput>(null);
 
   function effacer() {
@@ -29,11 +31,11 @@ export function RechercheDiscussions({ valeur, onChange }: Props) {
       <Ionicons name="search" size={18} color={couleurs.gris} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
       <TextInput
         ref={champ}
-        accessibilityLabel={TEXTES_MESSAGES.chercher}
-        accessibilityHint={TEXTES_MESSAGES.indiceChercher}
+        accessibilityLabel={T.chercher}
+        accessibilityHint={T.indiceChercher}
         value={valeur}
         onChangeText={onChange}
-        placeholder={TEXTES_MESSAGES.chercher}
+        placeholder={T.chercher}
         placeholderTextColor={couleurs.gris}
         selectionColor={couleurs.encre}
         cursorColor={couleurs.encre}
@@ -49,7 +51,7 @@ export function RechercheDiscussions({ valeur, onChange }: Props) {
       {valeur.length > 0 ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={TEXTES_MESSAGES.effacerRecherche}
+          accessibilityLabel={T.effacerRecherche}
           onPress={effacer}
           className="h-11 w-11 items-center justify-center rounded-full active:opacity-60"
         >

@@ -3,10 +3,12 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
-import { raisonsCompte } from "~/contenus/raisons-compte";
+import { RAISONS_COMPTE_PAR_LANGUE } from "~/contenus/raisons-compte";
+import { TEXTES_INVITE_PAR_LANGUE } from "~/contenus/textes-invite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import type { GlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTitreDansPoignee } from "~/hooks/utiliser-titre-dans-poignee";
 
 type Props = {
@@ -21,11 +23,7 @@ type Props = {
 };
 
 /** Ce qu'un compte apporte, en trois mots (les mêmes pour tous les gestes) */
-const AVANTAGES = [
-  { emoji: "🛟", texte: "Sauve des lieux et gagne des points" },
-  { emoji: "👯", texte: "Retrouve tes potes et organisez vos sorties" },
-  { emoji: "📌", texte: "Garde tes lieux préférés et donne ton avis" },
-] as const;
+const EMOJIS_AVANTAGES = ["🛟", "👯", "📌"] as const;
 
 /**
  * L'intérieur de la feuille « Crée ton compte pour … » : emoji, titre, phrase, trois avantages, puis « Je m'inscris (1 min) »
@@ -33,7 +31,8 @@ const AVANTAGES = [
  * de toute l'app (FeuilleCreerCompte) et à celle posée sur une autre feuille (FeuilleCreerComptePosee).
  */
 export function ContenuCreerCompte({ raison, refTitre, geste, onInscrire, onPlusTard }: Props) {
-  const { emoji, titre, phrase } = raisonsCompte[raison];
+  const T = utiliserTextes(TEXTES_INVITE_PAR_LANGUE);
+  const { emoji, titre, phrase } = utiliserTextes(RAISONS_COMPTE_PAR_LANGUE)[raison];
   const titreDansPoignee = utiliserTitreDansPoignee();
   const enTete = (
     <>
@@ -59,23 +58,23 @@ export function ContenuCreerCompte({ raison, refTitre, geste, onInscrire, onPlus
         {titreDansPoignee ? null : enTete}
         <Text className="mt-2 text-center font-texte text-base leading-6 text-gris">{lierPonctuation(phrase)}</Text>
         <View className="mt-5 gap-2 rounded-carte border-2 border-encre bg-carte p-4">
-          {AVANTAGES.map((avantage) => (
-            <View key={avantage.texte} accessible accessibilityLabel={avantage.texte} className="flex-row items-center gap-3">
-              <Text className="text-xl">{avantage.emoji}</Text>
-              <Text className="flex-1 font-texte-semi text-[15px] leading-[22px] text-encre">{avantage.texte}</Text>
+          {T.avantages.map((avantage, i) => (
+            <View key={avantage} accessible accessibilityLabel={avantage} className="flex-row items-center gap-3">
+              <Text className="text-xl">{EMOJIS_AVANTAGES[i]}</Text>
+              <Text className="flex-1 font-texte-semi text-[15px] leading-[22px] text-encre">{avantage}</Text>
             </View>
           ))}
         </View>
       </ScrollView>
       <View className="mt-5 gap-3 px-5">
-        <Bouton libelle="Je m'inscris (1 min)" variante="encre" indice="Ouvre l'inscription : Apple, Google ou ton e-mail" onPress={onInscrire} />
+        <Bouton libelle={T.jeMInscris} variante="encre" indice={T.indiceInscrire} onPress={onInscrire} />
         <Pressable
           accessibilityRole="button"
-          accessibilityHint="Tu continues ta visite sans compte"
+          accessibilityHint={T.indicePlusTard}
           onPress={onPlusTard}
           className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
         >
-          <Text className="font-texte-gras text-base text-encre">Plus tard</Text>
+          <Text className="font-texte-gras text-base text-encre">{T.plusTard}</Text>
         </Pressable>
       </View>
     </>

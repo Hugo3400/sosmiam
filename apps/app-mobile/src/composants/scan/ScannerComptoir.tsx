@@ -9,26 +9,16 @@ import { BoutonLampe } from "~/composants/scan/BoutonLampe";
 import { ViseurScan } from "~/composants/scan/ViseurScan";
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
+import { TEXTES_SCANNER_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-scanner-comptoir";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserValidationComptoir } from "~/hooks/utiliser-validation-comptoir";
 
 type Souci = "refuse" | "bloque" | "panne";
-
-const MESSAGES: Record<Souci, string> = {
-  refuse: "Sans l'appareil photo, pas de scan. Pas de souci : tu peux aussi demander l'addition dans l'app.",
-  bloque: "L'appareil photo est coupé pour SOS Miam. Tu peux l'autoriser dans les réglages de ton téléphone, ou demander l'addition dans l'app.",
-  panne: "L'appareil photo n'a pas voulu s'allumer. Réessaie dans un instant, ou demande l'addition dans l'app.",
-};
-
-const ETAPES = {
-  position: "On vérifie que tu es bien chez eux…",
-  envoi: "On valide ta visite…",
-  "nouvel-essai": "Pas de réseau : on réessaie tout seul pendant une minute…",
-} as const;
 
 // Un code rejeté se relâche au bout de 2 s ; le même texte relu juste après est ignoré (le QR reste devant l'objectif)
 const DELAI_RELACHE_MS = 2000;
@@ -41,6 +31,8 @@ const DELAI_MEME_TEXTE_MS = 4000;
  */
 export function ScannerComptoir() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_SCANNER_COMPTOIR_PAR_LANGUE);
+  const MESSAGES: Record<Souci, string> = T.soucis;
   const router = useRouter();
   const fermer = utiliserFermerPile("/scan");
   const marges = utiliserMargesPleinEcran();
@@ -75,8 +67,8 @@ export function ScannerComptoir() {
 
   const allumee = visible && permission?.granted === true;
   useEffect(() => {
-    if (allumee) AccessibilityInfo.announceForAccessibility("Appareil photo prêt, vise le QR du comptoir");
-  }, [allumee]);
+    if (allumee) AccessibilityInfo.announceForAccessibility(T.cameraPrete);
+  }, [allumee, T]);
 
   async function autoriser() {
     setSouci(null);
@@ -115,16 +107,16 @@ export function ScannerComptoir() {
   const actionsEchec: ActionEchecVisite[] = echec
     ? [
         ...(echec.erreur === "qr-vitrine" && echec.details?.lieuId !== undefined
-          ? [{ libelle: "Voir la fiche", onPress: () => router.replace({ pathname: "/lieu/[id]", params: { id: String(echec.details?.lieuId) } }) }]
+          ? [{ libelle: T.voirFiche, onPress: () => router.replace({ pathname: "/lieu/[id]", params: { id: String(echec.details?.lieuId) } }) }]
           : []),
-        ...(echec.erreur === "position-bloquee" ? [{ libelle: "Ouvrir les réglages", onPress: () => Linking.openSettings().catch(() => {}) }] : []),
-        { libelle: "Réessayer", onPress: effacerEchec, variante: "blanc" as const },
+        ...(echec.erreur === "position-bloquee" ? [{ libelle: T.ouvrirReglages, onPress: () => Linking.openSettings().catch(() => {}) }] : []),
+        { libelle: T.reessayer, onPress: effacerEchec, variante: "blanc" as const },
       ]
     : [];
 
   const taille = Math.min(width * 0.7, 280);
   const occupe = etape !== "repos";
-  const messageEtape = etape === "repos" ? null : ETAPES[etape];
+  const messageEtape = etape === "repos" ? null : T.etapes[etape];
 
   return (
     <View style={{ flex: 1, backgroundColor: "#111111" }}>
@@ -153,15 +145,15 @@ export function ScannerComptoir() {
             <Ionicons name="qr-code-outline" size={48} color={couleurs.nuit} />
           </View>
           <Text accessibilityRole="header" className="text-center font-titre text-3xl text-white">
-            Scanner le QR du comptoir
+            {T.titre}
           </Text>
           <Text className="text-center font-texte text-base leading-6 text-white/80">
-            {lierPonctuation(souci ? MESSAGES[souci] : "Allume l'appareil photo et vise le QR que te montre l'équipe au moment de payer. On ne garde aucune image.")}
+            {lierPonctuation(souci ? MESSAGES[souci] : T.consigne)}
           </Text>
           {souci === "bloque" ? (
-            <Bouton libelle="Ouvrir les réglages" onPress={() => Linking.openSettings().catch(() => {})} className="self-stretch" />
+            <Bouton libelle={T.ouvrirReglages} onPress={() => Linking.openSettings().catch(() => {})} className="self-stretch" />
           ) : (
-            <Bouton libelle="Allumer l'appareil photo" onPress={autoriser} className="self-stretch" />
+            <Bouton libelle={T.allumer} onPress={autoriser} className="self-stretch" />
           )}
         </View>
       )}
@@ -170,7 +162,7 @@ export function ScannerComptoir() {
       <View style={{ position: "absolute", top: marges.top + 8, left: 16, right: 16 }} className="flex-row items-center justify-between">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Fermer le scanner"
+          accessibilityLabel={T.fermer}
           hitSlop={8}
           onPress={() => {
             vibrerLegerement();
@@ -191,10 +183,10 @@ export function ScannerComptoir() {
           </View>
         ) : (
           <>
-            {allumee ? <Text className="text-center font-texte-gras text-lg text-white">{lierPonctuation("Vise le QR que te montre l'équipe")}</Text> : null}
+            {allumee ? <Text className="text-center font-texte-gras text-lg text-white">{lierPonctuation(T.viser)}</Text> : null}
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Pas de QR ? Demande l'addition"
+              accessibilityLabel={T.pasDeQr}
               hitSlop={8}
               onPress={() => {
                 vibrerLegerement();
@@ -202,7 +194,7 @@ export function ScannerComptoir() {
               }}
               className="min-h-11 items-center justify-center active:opacity-60"
             >
-              <Text className="font-texte-gras text-[15px] text-white underline">Pas de QR ? Demande l'addition</Text>
+              <Text className="font-texte-gras text-[15px] text-white underline">{T.pasDeQr}</Text>
             </Pressable>
           </>
         )}

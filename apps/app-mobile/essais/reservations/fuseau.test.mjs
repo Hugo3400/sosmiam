@@ -25,7 +25,7 @@ test("le créneau choisi « 20h » se lit « 20h » quel que soit le fuseau du t
   const creneau = ecrireCreneauIso("2026-10-15", "20:00");
   for (const fuseau of FUSEAUX) {
     sousLeFuseau(fuseau, () => {
-      assert.deepEqual(decrireCreneauReservation(creneau, maintenantMs), { court: "Aujourd'hui · 20h", lu: "Aujourd'hui à 20h" }, fuseau);
+      assert.deepEqual(decrireCreneauReservation(creneau, maintenantMs, "fr"), { court: "Aujourd'hui · 20h", lu: "Aujourd'hui à 20h" }, fuseau);
       assert.equal(ecrireHeureParis(creneau), "20h", fuseau);
     });
   }
@@ -35,10 +35,10 @@ test("jours nommés à l'heure de Paris : demain, hier, et un jour plus loin", (
   const maintenantMs = calculerInstantParis("2026-10-15", "23:30");
   for (const fuseau of FUSEAUX) {
     sousLeFuseau(fuseau, () => {
-      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-16", "12:30"), maintenantMs).lu, "Demain à 12h30", fuseau);
-      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-14", "21:00"), maintenantMs).lu, "Hier à 21h", fuseau);
-      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-17", "19:00"), maintenantMs).lu, "Samedi 17 octobre à 19h", fuseau);
-      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2027-01-02", "19:00"), maintenantMs).lu, "Samedi 2 janvier 2027 à 19h", fuseau);
+      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-16", "12:30"), maintenantMs, "fr").lu, "Demain à 12h30", fuseau);
+      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-14", "21:00"), maintenantMs, "fr").lu, "Hier à 21h", fuseau);
+      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-17", "19:00"), maintenantMs, "fr").lu, "Samedi 17 octobre à 19h", fuseau);
+      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2027-01-02", "19:00"), maintenantMs, "fr").lu, "Samedi 2 janvier 2027 à 19h", fuseau);
     });
   }
 });
@@ -47,14 +47,14 @@ test("passage à l'heure d'hiver (25 octobre 2026) : 19h reste 19h", () => {
   const maintenantMs = calculerInstantParis("2026-10-24", "12:00");
   for (const fuseau of FUSEAUX) {
     sousLeFuseau(fuseau, () => {
-      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-25", "19:00"), maintenantMs).lu, "Demain à 19h", fuseau);
-      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-26", "09:30"), maintenantMs).lu, "Lundi 26 octobre à 9h30", fuseau);
+      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-25", "19:00"), maintenantMs, "fr").lu, "Demain à 19h", fuseau);
+      assert.equal(decrireCreneauReservation(ecrireCreneauIso("2026-10-26", "09:30"), maintenantMs, "fr").lu, "Lundi 26 octobre à 9h30", fuseau);
     });
   }
 });
 
 test("créneau illisible : rien d'écrit", () => {
-  assert.deepEqual(decrireCreneauReservation("pas une date", Date.now()), { court: "", lu: "" });
+  assert.deepEqual(decrireCreneauReservation("pas une date", Date.now(), "fr"), { court: "", lu: "" });
   assert.equal(ecrireHeureParis("pas une date"), "");
 });
 

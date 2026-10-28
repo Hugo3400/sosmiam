@@ -1,10 +1,13 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
-import { TEXTES_FEUILLE_JOURS_FERMES as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-ecran-pro-reservations";
+import { TEXTES_FEUILLE_JOURS_FERMES_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireJourReservation } from "~/fonctions/reservations/decrire-jour-reservation";
 import { listerMoisCalendrier } from "~/fonctions/reservations/lister-mois-calendrier";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   aujourdhui: string;
@@ -14,20 +17,22 @@ type Props = {
 };
 
 const JOURS_AFFICHES = 92;
-const INITIALES = ["L", "M", "M", "J", "V", "S", "D"];
 
 export function CalendrierJoursFermes({ aujourdhui, joursFermes, enCours, onBasculer }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_FEUILLE_JOURS_FERMES_PAR_LANGUE);
+  const { initialesJours } = utiliserTextes(TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE);
   const ios = Platform.OS === "ios";
   const fermes = new Set(joursFermes);
   return (
     <View className="gap-5">
-      {listerMoisCalendrier(aujourdhui, JOURS_AFFICHES).map((mois) => (
+      {listerMoisCalendrier(aujourdhui, JOURS_AFFICHES, langue).map((mois) => (
         <View key={mois.cle} className="gap-2">
           <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">
             {mois.titre}
           </Text>
           <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="flex-row">
-            {INITIALES.map((initiale, i) => (
+            {initialesJours.map((initiale, i) => (
               <Text key={i} className="flex-1 text-center font-texte-semi text-[12px] text-gris">
                 {initiale}
               </Text>
@@ -39,7 +44,7 @@ export function CalendrierJoursFermes({ aujourdhui, joursFermes, enCours, onBasc
                 if (jour === null) return <View key={i} className="min-h-11 flex-1" />;
                 const ferme = fermes.has(jour);
                 const occupe = enCours.has(jour);
-                const decrit = decrireJourReservation(jour, aujourdhui);
+                const decrit = decrireJourReservation(jour, aujourdhui, langue);
                 return (
                   <Pressable
                     key={jour}

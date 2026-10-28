@@ -18,6 +18,7 @@ import { LigneSuivi } from "~/composants/suivi/LigneSuivi";
 import { ListeTuSuis } from "~/composants/suivi/ListeTuSuis";
 import type { OngletReseau } from "~/composants/suivi/OngletsReseau";
 import { OngletsReseau } from "~/composants/suivi/OngletsReseau";
+import { TEXTES_ECRAN_RESEAU_PAR_LANGUE } from "~/contenus/textes-ecran-reseau";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -29,11 +30,11 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserProfilCommunautaire } from "~/hooks/utiliser-profil-communautaire";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const TAILLE_ROND = 48;
 /** Une page du serveur (compte connecté) */
 const PAR_PAGE = 50;
-const NOMS = { abonnes: { un: "abonné", des: "abonnés" }, abonnements: { un: "abonnement", des: "abonnements" } } as const;
 
 /**
  * Abonnés et abonnements d'une personne (ou les tiens, id « moi »), en deux onglets. Pour toi : tes abonnés (à retirer en
@@ -41,6 +42,7 @@ const NOMS = { abonnes: { un: "abonné", des: "abonnés" }, abonnements: { un: "
  * sur chaque ligne, ou l'encadré « Compte privé » si elles te sont fermées. Personne inconnue ou bloquée : un message et le retour.
  */
 export default function ReseauPersonne() {
+  const T = utiliserTextes(TEXTES_ECRAN_RESEAU_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
@@ -77,8 +79,8 @@ export default function ReseauPersonne() {
 
   if (invite) {
     return (
-      <EcranReglage titre="Abonnés et abonnements" sousTitre="Crée ton compte pour suivre des gens et voir qui suit qui. C'est gratuit, et ça prend une minute.">
-        <Bouton libelle="Je m'inscris (1 min)" variante="encre" indice="Ouvre l'inscription" onPress={() => router.push("/compte")} />
+      <EcranReglage titre={T.inviteTitre} sousTitre={T.inviteTexte}>
+        <Bouton libelle={T.inscription} variante="encre" indice={T.inscriptionIndice} onPress={() => router.push("/compte")} />
       </EcranReglage>
     );
   }
@@ -89,8 +91,8 @@ export default function ReseauPersonne() {
   if (lecture.chargement && !pote) return <View style={{ flex: 1, backgroundColor: couleurs.creme }} />;
   if (!pote || bloque) {
     return (
-      <EcranReglage titre="Personne à l'horizon" sousTitre="On ne trouve pas ce profil : la personne a peut-être quitté SOS Miam, ou le lien s'est emmêlé.">
-        <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
+      <EcranReglage titre={T.introuvableTitre} sousTitre={T.introuvableTexte}>
+        <Bouton libelle={T.retour} variante="blanc" onPress={revenir} />
       </EcranReglage>
     );
   }
@@ -104,10 +106,10 @@ export default function ReseauPersonne() {
       key={personne.id}
       cle={ecrireCleSuivi({ type: "personne", id: personne.id })}
       emoji={personne.avatar}
-      nom={personne.id === monId ? "Toi" : personne.prenom}
+      nom={personne.id === monId ? T.toi : personne.prenom}
       sousTitre={sousTitre}
       rond={<RondPote pote={personne} taille={TAILLE_ROND} />}
-      indice={personne.id === monId ? "Ouvre ton profil" : "Ouvre son profil"}
+      indice={personne.id === monId ? T.ouvrirTonProfil : T.ouvrirSonProfil}
       derniere={derniere}
       onOuvrir={() => router.push({ pathname: "/potes/profil/[id]", params: { id: personne.id } })}
       onAnnoncer={annoncer}
@@ -141,8 +143,8 @@ export default function ReseauPersonne() {
         {demandes > 0 ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Demandes d'abonnement, ${demandes}`}
-            accessibilityHint="Ouvre tes notifications pour les accepter ou les refuser"
+            accessibilityLabel={T.demandesLues(demandes)}
+            accessibilityHint={T.demandesIndice}
             onPress={() => {
               vibrerLegerement();
               router.push("/notifications");
@@ -152,12 +154,12 @@ export default function ReseauPersonne() {
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
               📨
             </Text>
-            <Text className="flex-1 font-texte-gras text-base text-encre">{`Demandes d'abonnement (${demandes})`}</Text>
+            <Text className="flex-1 font-texte-gras text-base text-encre">{T.demandes(demandes)}</Text>
             <Ionicons name="chevron-forward" size={20} color={couleurs.encre} />
           </Pressable>
         ) : null}
         {lignes.length === 0 ? (
-          videParDefaut("Personne ne te suit encore… Partage ton profil : tes potes t'ajoutent avec ton QR code.")
+          videParDefaut(T.personneNeTeSuit)
         ) : (
           <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
             {lignes.map(({ pote: p }, i) => {
@@ -165,7 +167,7 @@ export default function ReseauPersonne() {
               return ligne(
                 p,
                 i === lignes.length - 1,
-                `@${p.pseudo}${meSuitEncore ? "" : " · Ne te suit plus"}`,
+                `@${p.pseudo}${meSuitEncore ? "" : ` · ${T.neTeSuitPlus}`}`,
                 // Le bouton reste en place et devient « Retiré » (VoiceOver s'y pose : il ne perd pas sa place dans la liste)
                 <BoutonRetirerAbonne id={p.id} prenom={p.prenom} onAnnoncer={annoncer} />,
               );
@@ -176,7 +178,7 @@ export default function ReseauPersonne() {
           <BoutonVoirPlus
             restants={Math.max(1, (compteurs?.abonnes ?? 0) - suivis.abonnes.length)}
             prochains={Math.min(PAR_PAGE, Math.max(1, (compteurs?.abonnes ?? 0) - suivis.abonnes.length))}
-            nom={NOMS.abonnes}
+            nom={T.noms.abonnes}
             onVoirPlus={() => suivis.chargerSuite("abonnes")}
           />
         ) : null}
@@ -186,10 +188,10 @@ export default function ReseauPersonne() {
     const { liste } = liensDe;
     if (liste === null) {
       contenu = liensDe.ratee ? (
-        videParDefaut("Le réseau fait des siennes : impossible de lire cette liste pour l'instant. Réessaie dans un instant !")
+        videParDefaut(T.lectureRatee)
       ) : (
         <View className="mt-4 items-center">
-          <ActivityIndicator color={couleurs.encre} accessibilityLabel="Chargement de la liste" />
+          <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
         </View>
       );
     } else if (liste === "ferme") {
@@ -206,14 +208,14 @@ export default function ReseauPersonne() {
         </View>
       );
     } else if (liste.length === 0) {
-      contenu = videParDefaut(onglet === "abonnes" ? `${pote.prenom} n'a pas encore d'abonnés. La première place est libre !` : `${pote.prenom} ne suit personne pour l'instant.`);
+      contenu = videParDefaut(onglet === "abonnes" ? T.aucunAbonne(pote.prenom) : T.suitPersonne(pote.prenom));
     } else {
       contenu = (
         <View className="gap-4">
           <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
             {liste.map((p, i) => ligne(p, i === liste.length - 1, p.pseudo ? `@${p.pseudo}` : ""))}
           </View>
-          <BoutonVoirPlus restants={liensDe.restants} prochains={Math.min(PAR_PAGE, liensDe.restants)} nom={NOMS[onglet]} onVoirPlus={liensDe.chargerSuite} />
+          <BoutonVoirPlus restants={liensDe.restants} prochains={Math.min(PAR_PAGE, liensDe.restants)} nom={T.noms[onglet]} onVoirPlus={liensDe.chargerSuite} />
         </View>
       );
     }
@@ -227,7 +229,7 @@ export default function ReseauPersonne() {
       <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={12}
           onPress={revenir}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

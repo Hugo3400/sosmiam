@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_ECHEC_VISITE_PAR_LANGUE } from "~/contenus/textes-echec-visite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   titre: string;
@@ -14,6 +16,7 @@ type Props = {
 const DUREE_MINIMUM_RELANCE_MS = 800;
 
 export function MessageLectureRatee({ titre, texte, indice, onReessayer }: Props) {
+  const T = utiliserTextes(TEXTES_ECHEC_VISITE_PAR_LANGUE);
   const [relance, setRelance] = useState(false);
 
   async function reessayer() {
@@ -35,7 +38,7 @@ export function MessageLectureRatee({ titre, texte, indice, onReessayer }: Props
       </Text>
       <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(texte)}</Text>
       <Bouton
-        libelle={relance ? "On retente…" : "Réessayer"}
+        libelle={relance ? T.relance : T.reessayer}
         variante="blanc"
         petit
         desactive={relance}

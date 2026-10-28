@@ -2,15 +2,16 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Keyboard, Linking, Platform, Pressable, Text, TextInput, View } from "react-native";
 
-import { DELAI_MODIFICATION_MESSAGE_MINUTES } from "@sos-miam/commun/regles/chat";
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { BandeauReponseChat } from "~/composants/chat/BandeauReponseChat";
 import { EnregistreurVocal, type ProblemeEnregistrement } from "~/composants/chat/EnregistreurVocal";
 import { FeuilleAjoutChat } from "~/composants/chat/FeuilleAjoutChat";
 import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_CHAT_CHAMP_PAR_LANGUE } from "~/contenus/textes-chat-champ";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { verifierEnregistrementPossible } from "~/fonctions/chat/verifier-enregistrement-possible";
@@ -23,6 +24,7 @@ import { utiliserConversations, type ResultatEnvoiChat, type ResultatModificatio
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMentionsChamp } from "~/hooks/utiliser-mentions-champ";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -38,29 +40,8 @@ type Props = {
   onAnnulerEdition: () => void;
 };
 
-const REFUS: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
-  vide: "Un message vide, c'est un peu timide 😉 Écris un mot, ou juste un emoji !",
-  "trop-long": `Ton message dépasse ${LONGUEUR_MAX_MESSAGE} caractères : coupe un peu, tes potes t'écoutent quand même.`,
-  "mot-interdit": "Oups, un mot de ton message ne passe pas chez nous. Tu reformules gentiment ?",
-  interdit: "Ce message ne peut pas partir : cette conversation n'est plus ouverte pour toi. Retourne à tes messages pour en lancer une autre.",
-};
-
 // Juste après un envoi, le micro prend la place d'« Envoyer » : un double appui réflexe ne lance pas un enregistrement
 const DELAI_MICRO_APRES_ENVOI = 700;
-
-const REFUS_MODIFICATION: Record<Exclude<ResultatModificationChat, "ok">, string> = {
-  vide: "Un message vide, ça ne se garde pas 😉 Écris au moins un mot, ou annule la modification.",
-  "trop-long": REFUS["trop-long"],
-  "mot-interdit": REFUS["mot-interdit"],
-  interdit: "Cette discussion n'est plus ouverte pour toi : ton message reste comme il était.",
-  "trop-tard": `Trop tard pour le retoucher : passé ${DELAI_MODIFICATION_MESSAGE_MINUTES} minutes, un message reste tel quel. Envoie-en un autre pour préciser 😉`,
-  "non-modifiable": "Ce message ne se modifie plus (il a peut-être été supprimé ou masqué). Un nouveau message fera très bien l'affaire !",
-  "compte-limite": REFUS_LIMITATION.message,
-  reseau: "Pas enregistré : ta connexion fait la sieste. Réessaie dans un instant 📡",
-};
-
-const MICRO_INDISPONIBLE =
-  "Ce navigateur ne sait pas tendre l'oreille 👂 Les notes vocales s'enregistrent depuis l'app SOS Miam sur ton téléphone.";
 
 /**
  * Le champ d'écriture du chat entre potes, qui reste au-dessus du clavier : « + » pour partager des photos, un lieu, un GIF ou un sondage,
@@ -68,6 +49,27 @@ const MICRO_INDISPONIBLE =
  */
 export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, reponseA, onAnnulerReponse, edition, onAnnulerEdition }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T_CHAMP = utiliserTextes(TEXTES_CHAT_CHAMP_PAR_LANGUE);
+  const T_APERCUS = utiliserTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE);
+  const T_REFUS = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const refus: Record<Exclude<ResultatEnvoiChat, "ok">, string> = {
+    vide: T_CHAMP.refusVide,
+    "trop-long": T_CHAMP.refusTropLong,
+    "mot-interdit": T_CHAMP.refusMotInterdit,
+    interdit: T_CHAMP.refusInterdit,
+  };
+  const refusModification: Record<Exclude<ResultatModificationChat, "ok">, string> = {
+    vide: T_CHAMP.modificationVide,
+    "trop-long": refus["trop-long"],
+    "mot-interdit": refus["mot-interdit"],
+    interdit: T_CHAMP.modificationInterdite,
+    "trop-tard": T_CHAMP.modificationTropTard,
+    "non-modifiable": T_CHAMP.modificationImpossible,
+    "compte-limite": T_REFUS.message,
+    reseau: T_CHAMP.modificationReseau,
+  };
+  const microIndisponible = T_CHAMP.microIndisponible;
   const { trouverConversation, envoyerTexte, modifierMessage } = utiliserConversations();
   const { trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -131,11 +133,11 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
     if (erreur) setErreur(null);
   });
   const pote = conversation?.type === "prive" ? trouverPote(conversation.participants.find((id) => id !== monId) ?? "") : null;
-  const invitation = edition ? "Corrige ton message…" : pote ? `Écris à ${pote.prenom}…` : "Écris au groupe…";
+  const invitation = edition ? T_CHAMP.corrige : pote ? T_CHAMP.ecrireA(pote.prenom) : T_CHAMP.ecrireGroupe;
   const longueur = texte.trim().length;
   const micro = longueur === 0 && !edition;
-  const auteurCite = reponseA ? (reponseA.auteur === monId ? null : (trouverPote(reponseA.auteur)?.prenom ?? "Quelqu'un")) : null;
-  const libelleChamp = edition ? "Ton message, en modification" : auteurCite ? `Ta réponse à ${auteurCite}` : reponseA ? "Ta réponse à ton message" : "Ton message";
+  const auteurCite = reponseA ? (reponseA.auteur === monId ? null : (trouverPote(reponseA.auteur)?.prenom ?? T_APERCUS.quelquUn)) : null;
+  const libelleChamp = edition ? T_CHAMP.champModification : auteurCite ? T_CHAMP.taReponseA(auteurCite) : reponseA ? T_CHAMP.taReponseTonMessage : T_CHAMP.tonMessage;
 
   function montrerErreur(probleme: ProblemeEnregistrement) {
     setErreur(probleme);
@@ -154,7 +156,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
     setEnregistrementEnCours(true);
     const resultat = await modifierMessage(conversationId, message.id, texte);
     setEnregistrementEnCours(false);
-    if (resultat !== "ok") return montrerErreur({ texte: REFUS_MODIFICATION[resultat] });
+    if (resultat !== "ok") return montrerErreur({ texte: refusModification[resultat] });
     vibrerLegerement();
     setErreur(null);
     onAnnulerEdition();
@@ -174,12 +176,12 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
       setTimeout(() => deplacerFocusLecteurEcran(champ.current), 150);
       return;
     }
-    montrerErreur({ texte: REFUS[resultat] });
+    montrerErreur({ texte: refus[resultat] });
   }
 
   function lancerEnregistrement() {
     if (Date.now() - dernierEnvoi.current < DELAI_MICRO_APRES_ENVOI) return;
-    if (!enregistrementPossible) return montrerErreur({ texte: MICRO_INDISPONIBLE });
+    if (!enregistrementPossible) return montrerErreur({ texte: microIndisponible });
     Keyboard.dismiss();
     setErreur(null);
     setEnregistrement(true);
@@ -191,7 +193,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
   }
 
   function ouvrirReglages() {
-    Linking.openSettings().catch(() => montrerErreur({ texte: "Les réglages n'ont pas voulu s'ouvrir. Tu les trouveras dans l'appli Réglages de ton téléphone." }));
+    Linking.openSettings().catch(() => montrerErreur({ texte: T_CHAMP.reglagesFermes }));
   }
 
   return (
@@ -201,7 +203,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
           <Text className="font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreur.texte)}</Text>
           {erreur.reglages && Platform.OS !== "web" ? (
             <Pressable accessibilityRole="link" onPress={ouvrirReglages} hitSlop={8} className="min-h-8 justify-center active:opacity-70">
-              <Text className="font-texte-gras text-sm text-encre underline">Ouvrir les réglages</Text>
+              <Text className="font-texte-gras text-sm text-encre underline">{T_CHAMP.ouvrirReglages}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -221,7 +223,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
           onAbandon={(probleme) => {
             finirEnregistrement();
             if (probleme) montrerErreur(probleme);
-            else onAnnoncer("🗑️ Note vocale à la poubelle : personne ne l'a entendue");
+            else onAnnoncer(T_CHAMP.vocalPoubelle);
           }}
         />
       ) : (
@@ -229,7 +231,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
           {edition ? null : (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Partager des photos, un lieu ou un GIF"
+              accessibilityLabel={T_CHAMP.partager}
               onPress={() => {
                 vibrerLegerement();
                 // Le clavier resterait par-dessus la feuille et cacherait ses dernières lignes
@@ -244,7 +246,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
           <TextInput
             ref={champ}
             accessibilityLabel={`${libelleChamp}${erreur ? `. ${retirerEmojiAnnonce(erreur.texte)}` : ""}`}
-            accessibilityHint={groupe ? "Tape @ pour mentionner un pote" : undefined}
+            accessibilityHint={groupe ? T_CHAMP.mentionner : undefined}
             value={texte}
             onChangeText={(nouveau) => {
               changerTexte(nouveau);
@@ -263,8 +265,8 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
             <Pressable
               key="micro"
               accessibilityRole="button"
-              accessibilityLabel={enregistrementPossible ? "Enregistrer une note vocale" : "Note vocale indisponible ici"}
-              accessibilityHint={enregistrementPossible ? "Jusqu'à une minute. L'enregistrement démarre tout de suite." : retirerEmojiAnnonce(MICRO_INDISPONIBLE)}
+              accessibilityLabel={enregistrementPossible ? T_CHAMP.enregistrerVocal : T_CHAMP.vocalIndisponible}
+              accessibilityHint={enregistrementPossible ? T_CHAMP.vocalIndice : retirerEmojiAnnonce(microIndisponible)}
               onPress={lancerEnregistrement}
               className={`h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80 ${enregistrementPossible ? "" : "opacity-40"}`}
             >
@@ -274,7 +276,7 @@ export function ChampChat({ conversationId, margeBas, onEnvoye, onAnnoncer, repo
             <Pressable
               key={edition ? "enregistrer" : "envoyer"}
               accessibilityRole="button"
-              accessibilityLabel={edition ? T.enregistrerModification : "Envoyer"}
+              accessibilityLabel={edition ? T.enregistrerModification : T_CHAMP.envoyer}
               accessibilityState={{ busy: enregistrementEnCours }}
               onPress={envoyer}
               className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-jaune active:opacity-80"

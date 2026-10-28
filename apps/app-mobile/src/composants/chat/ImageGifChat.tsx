@@ -3,7 +3,8 @@ import { Text, View } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 
 import type { GifApi } from "@sos-miam/commun/types/messagerie";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   gif: GifApi;
@@ -15,6 +16,7 @@ const FONDS_EXEMPLE = ["bg-jaune-clair", "bg-rose-alerte", "bg-ligne", "bg-jaune
 
 export function ImageGifChat({ gif, largeur, hauteur }: Props) {
   const animationsReduites = useReducedMotion();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
   if (gif.url.startsWith("exemple:")) {
     const fond = FONDS_EXEMPLE[Array.from(gif.id).reduce((n, c) => n + c.charCodeAt(0), 0) % FONDS_EXEMPLE.length];
     return (

@@ -12,9 +12,9 @@ import { CarteAvisPro } from "~/composants/pro/CarteAvisPro";
 import { FeuilleReponseAvis } from "~/composants/pro/FeuilleReponseAvis";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { CarteMessageReservations } from "~/composants/reservations/CarteMessageReservations";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { TEXTES_AVIS_LIEU } from "~/contenus/textes-avis-lieu";
-import { TEXTES_AVIS_PRO } from "~/contenus/textes-avis-pro";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_AVIS_LIEU_PAR_LANGUE } from "~/contenus/textes-avis-lieu";
+import { TEXTES_AVIS_PRO_PAR_LANGUE } from "~/contenus/textes-avis-pro";
 import { ecrireResumeAvis } from "~/fonctions/avis/ecrire-resume-avis";
 import { enchainerPhrases } from "~/fonctions/texte/enchainer-phrases";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -24,11 +24,13 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserSourcePhotoAvis } from "~/hooks/utiliser-source-photo-avis";
-
-const T = TEXTES_AVIS_PRO;
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export default function EcranAvisPro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_AVIS_PRO_PAR_LANGUE);
+  const TA = utiliserTextes(TEXTES_AVIS_LIEU_PAR_LANGUE);
+  const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { lieuPro } = utiliserModes();
@@ -106,9 +108,9 @@ export default function EcranAvisPro() {
       <>
         <View accessible accessibilityLabel={resume.lu} className="gap-1">
           <Text className="font-texte-gras text-base text-encre">{`★ ${resume.visible}`}</Text>
-          <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(TEXTES_AVIS_LIEU.prudence)}</Text>
+          <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(TA.prudence)}</Text>
         </View>
-        {limite && gerant ? <RefusLimitationEnPlace texte={REFUS_LIMITATION.reponseAvis} /> : null}
+        {limite && gerant ? <RefusLimitationEnPlace texte={TL.reponseAvis} /> : null}
         {sansReponse.length > 0 ? (
           <View className="gap-3">
             <Text accessibilityRole="header" className="font-titre-gras text-lg text-encre">{`${T.aRepondre} · ${sansReponse.length}`}</Text>

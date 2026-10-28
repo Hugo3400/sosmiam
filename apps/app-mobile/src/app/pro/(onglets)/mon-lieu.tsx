@@ -14,6 +14,7 @@ import { TEXTES_ECRAN_MON_LIEU_PAR_LANGUE, type TEXTES_ECRAN_MON_LIEU } from "~/
 import { TEXTES_IMAGES_LIEU_PAR_LANGUE } from "~/contenus/textes-images-lieu";
 import { resumerReglagesReservations } from "~/fonctions/reservations/resumer-reglages-reservations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
@@ -49,6 +50,7 @@ function decrireCharte(charte: CharteMiamSafe | null, T: Textes): string {
  * les statistiques ; l'équipe et ses appareils arrivent ensuite.
  */
 export default function EcranMonLieu() {
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
   const T = utiliserTextes(TEXTES_ECRAN_MON_LIEU_PAR_LANGUE);
   const TI = utiliserTextes(TEXTES_IMAGES_LIEU_PAR_LANGUE);
@@ -103,7 +105,7 @@ export default function EcranMonLieu() {
           <LigneMonLieu
             emoji="🗓️"
             titre={T.reglagesReservations}
-            detail={reglagesReservations.etat === "attente" ? "…" : resumerReglagesReservations(reglagesReservations.etat === "lu" ? reglagesReservations.lus : null)}
+            detail={reglagesReservations.etat === "attente" ? "…" : resumerReglagesReservations(reglagesReservations.etat === "lu" ? reglagesReservations.lus : null, langue)}
             onPress={() => router.push("/pro/reglages-reservations")}
           />
           <LigneMonLieu emoji="⭐" titre={T.avis} detail={T.avisDetail} onPress={() => router.push("/pro/avis")} />

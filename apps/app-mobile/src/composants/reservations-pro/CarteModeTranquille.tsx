@@ -3,9 +3,10 @@ import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
-import { TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { lireNombreCouverts } from "~/fonctions/reservations/lire-nombre-couverts";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   avecHoraires: boolean;
@@ -17,6 +18,7 @@ type Props = {
 const COUVERTS_MAX = 3000;
 
 export function CarteModeTranquille({ avecHoraires, modifiable, onRegler, onNouveau }: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
   const [couverts, setCouverts] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
 

@@ -6,23 +6,20 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
+import { TEXTES_SCANNER_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-scanner-comptoir";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserValidationComptoir } from "~/hooks/utiliser-validation-comptoir";
-
-const ETAPES = {
-  position: "On vérifie que tu es bien chez eux…",
-  envoi: "On valide ta visite…",
-  "nouvel-essai": "Pas de réseau : on réessaie tout seul pendant une minute…",
-} as const;
 
 /**
  * Aperçu web (même rôle que ScannerComptoir.tsx sur téléphone) : pas de caméra, seulement l'explication.
  */
 export function ScannerComptoir() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_SCANNER_COMPTOIR_PAR_LANGUE);
   const router = useRouter();
   const fermer = utiliserFermerPile("/scan");
   const marges = useSafeAreaInsets();
@@ -35,13 +32,13 @@ export function ScannerComptoir() {
     preparer().catch(() => {});
   }, [preparer]);
 
-  const messageEtape = etape === "repos" ? null : ETAPES[etape];
+  const messageEtape = etape === "repos" ? null : T.etapes[etape];
   const actionsEchec: ActionEchecVisite[] = echec
     ? [
         ...(echec.erreur === "qr-vitrine" && echec.details?.lieuId !== undefined
-          ? [{ libelle: "Voir la fiche", onPress: () => router.replace({ pathname: "/lieu/[id]", params: { id: String(echec.details?.lieuId) } }) }]
+          ? [{ libelle: T.voirFiche, onPress: () => router.replace({ pathname: "/lieu/[id]", params: { id: String(echec.details?.lieuId) } }) }]
           : []),
-        { libelle: "Réessayer", onPress: effacerEchec, variante: "blanc" as const },
+        { libelle: T.reessayer, onPress: effacerEchec, variante: "blanc" as const },
       ]
     : [];
 
@@ -49,7 +46,7 @@ export function ScannerComptoir() {
     <View style={{ flex: 1, backgroundColor: "#111111", paddingTop: marges.top + 8, paddingBottom: marges.bottom + 16 }} className="px-4">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Fermer le scanner"
+        accessibilityLabel={T.fermer}
         onPress={() => {
           vibrerLegerement();
           fermer();
@@ -63,10 +60,10 @@ export function ScannerComptoir() {
           <Ionicons name="qr-code-outline" size={48} color={couleurs.nuit} />
         </View>
         <Text accessibilityRole="header" className="text-center font-titre text-3xl text-white">
-          Scanner le QR du comptoir
+          {T.titre}
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-white/80">
-          {lierPonctuation("Sur l'aperçu web, pas d'appareil photo : le scan se fait depuis ton téléphone.")}
+          {lierPonctuation(T.apercuWeb)}
         </Text>
         {messageEtape ? (
           <View accessible accessibilityLiveRegion="polite" accessibilityLabel={messageEtape} className="items-center gap-3">
@@ -83,11 +80,11 @@ export function ScannerComptoir() {
         <View className="gap-4">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Pas de QR ? Demande l'addition"
+            accessibilityLabel={T.pasDeQr}
             onPress={() => router.replace("/scan/ou-es-tu")}
             className="min-h-11 items-center justify-center active:opacity-60"
           >
-            <Text className="font-texte-gras text-[15px] text-white underline">Pas de QR ? Demande l'addition</Text>
+            <Text className="font-texte-gras text-[15px] text-white underline">{T.pasDeQr}</Text>
           </Pressable>
         </View>
       )}

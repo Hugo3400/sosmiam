@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { Platform, Text, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lecteur: VideoPlayer;
@@ -33,10 +35,6 @@ const ECART_SAUTS = 80;
 const SEUIL_DIRECTION = 12;
 const RAIL = 5;
 const POIGNEE = 14;
-const ACTIONS = [
-  { name: "increment", label: "Avancer de 2 secondes" },
-  { name: "decrement", label: "Reculer de 2 secondes" },
-];
 
 /** Doigt posé, sens pas encore connu ; réglage de la vidéo ; ou défilement du fil, que la barre laisse faire */
 type Geste = "attente" | "reglage" | "defilement";
@@ -44,7 +42,6 @@ type Geste = "attente" | "reglage" | "defilement";
 // Double toucher de VoiceOver : sans réponse, iOS toucherait le milieu de la barre et la vidéo sauterait à la moitié (on la règle en balayant vers le haut ou le bas)
 const ignorerActivation = () => {};
 
-const lireSecondes = (s: number) => `${s} seconde${s > 1 ? "s" : ""}`;
 const formaterTemps = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
 /**
@@ -53,6 +50,7 @@ const formaterTemps = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(
  * dessus fait toujours défiler le fil (iOS). VoiceOver la règle de 2 s en 2 s.
  */
 export function BarreProgressionVideo({ lecteur, actif, enPause, duree, largeur, bas, onGlisser }: Props) {
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).media;
   // Temps affiché par la barre (en secondes), et grosseur pendant le geste (0 : fine, 1 : épaisse)
   const temps = useSharedValue(0);
   const grosseur = useSharedValue(0);
@@ -196,9 +194,12 @@ export function BarreProgressionVideo({ lecteur, actif, enPause, duree, largeur,
       <View
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel="Avancée de la vidéo"
-        accessibilityValue={{ text: `${lireSecondes(Math.min(secondesLues, total))} sur ${total}` }}
-        accessibilityActions={ACTIONS}
+        accessibilityLabel={T.avanceeVideo}
+        accessibilityValue={{ text: T.secondesLues(Math.min(secondesLues, total), total) }}
+        accessibilityActions={[
+          { name: "increment", label: T.avancer },
+          { name: "decrement", label: T.reculer },
+        ]}
         onAccessibilityAction={ajuster}
         onAccessibilityTap={ignorerActivation}
         onStartShouldSetResponder={() => true}

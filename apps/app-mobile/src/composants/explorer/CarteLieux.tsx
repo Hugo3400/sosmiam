@@ -17,6 +17,7 @@ import { regrouperLieuxCarte } from "~/fonctions/geo/regrouper-lieux-carte";
 import { decrireLieuCarte } from "~/fonctions/lieux/decrire-lieu-carte";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
@@ -82,6 +83,7 @@ function zoneVille(ville: PositionLieu | null, places: { position: PositionLieu 
  */
 export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, position, selection, onSelection, margeHaut, margeBas }: Props) {
   const { schema } = utiliserTheme();
+  const { langue } = utiliserLangue();
   const carte = useRef<MapView>(null);
   const animationsReduites = useReducedMotion();
   const [chargee, setChargee] = useState(false);
@@ -271,7 +273,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
             sos={!!lieu.sos}
             alerte={!!lieu.alerte}
             verifie={estLieuVerifie(lieu)}
-            libelle={decrireLieuCarte(lieu)}
+            libelle={decrireLieuCarte(lieu, langue)}
             selectionne={seul.id === selection}
             onPress={gestes.choisir}
           />,
@@ -289,7 +291,7 @@ export const CarteLieux = memo(function CarteLieux({ lieux, centre, cadre, posit
         />
       )),
     ],
-    [regroupement, parId, selection, gestes],
+    [regroupement, parId, selection, gestes, langue],
   );
 
   function toucherCarte(evenement: MapPressEvent) {

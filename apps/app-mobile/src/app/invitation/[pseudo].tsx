@@ -7,8 +7,10 @@ import { estPseudoValide } from "@sos-miam/commun/validation/est-pseudo-valide";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { TEXTES_INVITE_PAR_LANGUE } from "~/contenus/textes-invite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { garderInvitationEnAttente } from "~/stockage/invitation-en-attente";
 
 /**
@@ -17,6 +19,7 @@ import { garderInvitationEnAttente } from "~/stockage/invitation-en-attente";
  */
 export default function OuvrirInvitation() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INVITE_PAR_LANGUE);
   const { pseudo = "" } = useLocalSearchParams<{ pseudo: string; c?: string }>();
   const url = Linking.useURL();
   const { profil } = utiliserProfil();
@@ -30,15 +33,15 @@ export default function OuvrirInvitation() {
 
   if (profil) return null;
   return (
-    <EcranReglage titre={estPseudoValide(pseudo) ? `@${pseudo} t'invite dans sa bande !` : "Une invitation t'attend !"} sousTitre="Pour la rejoindre, il te faut un compte SOS Miam (gratuit, une minute).">
+    <EcranReglage titre={estPseudoValide(pseudo) ? T.invitationTitre(pseudo) : T.invitationTitreSansPseudo} sousTitre={T.invitationSousTitre}>
       <View className="items-center gap-4 py-4">
         <Mascotte expression="clin" taille={120} />
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Crée ton compte : juste après, on t'emmène rejoindre sa bande, sans retaper le lien.")}
+          {lierPonctuation(T.invitationTexte)}
         </Text>
       </View>
       <View className="gap-3">
-        <Bouton libelle="Créer mon compte" variante="encre" onPress={() => router.replace("/compte")} />
+        <Bouton libelle={T.creerMonCompte} variante="encre" onPress={() => router.replace("/compte")} />
       </View>
     </EcranReglage>
   );

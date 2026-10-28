@@ -4,8 +4,10 @@ import { Pressable, Text, View, type TextInput } from "react-native";
 
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
+import { TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE } from "~/contenus/textes-inscription-connexion";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Le mot de passe de l'API : 12 caractères au moins (le serveur refuse aussi les trop évidents) */
 const MOT_DE_PASSE_MIN = 12;
@@ -17,6 +19,7 @@ const FORME_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
  */
 export default function InscriptionEmail() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE);
   const { brouillon, modifier } = utiliserBrouillonInscription();
   const dejaLa = brouillon.connexion?.type === "email" ? brouillon.connexion : null;
   const [email, setEmail] = useState(dejaLa?.email ?? "");
@@ -38,14 +41,14 @@ export default function InscriptionEmail() {
 
   return (
     <EcranEtape
-      titre="Ton e-mail et ton mot de passe"
-      sousTitre="Pour te reconnecter sur un autre téléphone. On t'enverra un lien pour confirmer ton adresse."
+      titre={T.emailTitre}
+      sousTitre={T.emailSousTitre}
       etape={{ numero: 1, total: 4 }}
-      boutonPrincipal={{ libelle: "Continuer", onPress: continuer }}
+      boutonPrincipal={{ libelle: T.continuer, onPress: continuer }}
     >
       <View className="gap-5">
         <ChampTexte
-          libelle="Ton e-mail"
+          libelle={T.tonEmail}
           valeur={email}
           onChangeTexte={setEmail}
           autoCapitalize="none"
@@ -55,12 +58,12 @@ export default function InscriptionEmail() {
           autoComplete="email"
           returnKeyType="next"
           onSubmitEditing={() => champMotDePasse.current?.focus()}
-          erreur={tente && !emailOk ? "Il manque un petit quelque chose : une adresse comme prenom@exemple.fr." : null}
+          erreur={tente && !emailOk ? T.emailIncomplet : null}
         />
         <View className="gap-2">
           <ChampTexte
             ref={champMotDePasse}
-            libelle="Ton mot de passe"
+            libelle={T.tonMotDePasse}
             valeur={motDePasse}
             onChangeTexte={setMotDePasse}
             secureTextEntry={!voir}
@@ -70,12 +73,12 @@ export default function InscriptionEmail() {
             autoComplete="new-password"
             returnKeyType="done"
             onSubmitEditing={continuer}
-            aide={`${MOT_DE_PASSE_MIN} caractères au moins. Une petite phrase, c'est parfait : « mon chat adore les crêpes ».`}
-            erreur={tente && !motDePasseOk ? (longueur < MOT_DE_PASSE_MIN ? `Encore ${MOT_DE_PASSE_MIN - longueur} caractère${MOT_DE_PASSE_MIN - longueur > 1 ? "s" : ""}, et c'est bon.` : "Pas ton e-mail comme mot de passe, voyons !") : null}
+            aide={T.aideMotDePasse(MOT_DE_PASSE_MIN)}
+            erreur={tente && !motDePasseOk ? (longueur < MOT_DE_PASSE_MIN ? T.motDePasseCourt(MOT_DE_PASSE_MIN - longueur) : T.motDePasseEmail) : null}
           />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={voir ? "Cacher le mot de passe" : "Voir le mot de passe"}
+            accessibilityLabel={voir ? T.cacherMotDePasse : T.voirMotDePasse}
             onPress={() => {
               vibrerLegerement();
               setVoir(!voir);
@@ -83,7 +86,7 @@ export default function InscriptionEmail() {
             hitSlop={6}
             className="min-h-11 justify-center self-start active:opacity-70"
           >
-            <Text className="font-texte-semi text-base text-encre underline">{voir ? "Cacher" : "Voir"} le mot de passe</Text>
+            <Text className="font-texte-semi text-base text-encre underline">{voir ? T.cacherMotDePasse : T.voirMotDePasse}</Text>
           </Pressable>
         </View>
       </View>

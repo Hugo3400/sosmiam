@@ -2,8 +2,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRef } from "react";
 import { Pressable, Text } from "react-native";
 
-import { INDICE_COMPTE } from "~/contenus/indice-compte";
+import { INDICE_COMPTE_PAR_LANGUE } from "~/contenus/indice-compte";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   suivi: boolean;
@@ -21,13 +23,15 @@ const DELAI_ANTI_DOUBLE_APPUI = 700;
 /** « Suivre » (jaune) ou « Suivi » (discret, avec une coche) à côté du nom de l'auteur, sur la fiche posée sur la vidéo. */
 export function BoutonSuivre({ suivi, nom, avecCompte, onPress }: Props) {
   const dernierAppui = useRef(0);
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
+  const indiceCompte = utiliserTextes(INDICE_COMPTE_PAR_LANGUE);
   return (
     <Pressable
       accessibilityRole="button"
-      // L'état est dans le libellé, en français (pas d'état « sélectionné » en plus, il ferait doublon) ; il commence par le mot
+      // L'état est dans le libellé, dans la langue de l'app (pas d'état « sélectionné » en plus, il ferait doublon) ; il commence par le mot
       // affiché, pour que Commande vocale trouve le bouton (« Toucher Suivi »)
-      accessibilityLabel={suivi ? `Suivi, tu suis ${nom}` : `Suivre ${nom}`}
-      accessibilityHint={!avecCompte ? INDICE_COMPTE : suivi ? "Touche pour ne plus suivre" : "Ses prochaines publications passeront en tête de ton fil"}
+      accessibilityLabel={suivi ? T.suiviLu(nom) : T.suivreLu(nom)}
+      accessibilityHint={!avecCompte ? indiceCompte : suivi ? T.indiceNePlusSuivre : T.indicePublications}
       // 32 pt de haut à l'écran, 48 pt sous le doigt
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
       onPress={() => {
@@ -40,7 +44,7 @@ export function BoutonSuivre({ suivi, nom, avecCompte, onPress }: Props) {
       className={`h-8 flex-row items-center gap-1 rounded-full px-3 active:opacity-70 ${suivi ? "border border-white/70 bg-black/30" : "bg-jaune"}`}
     >
       {suivi ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
-      <Text className={`font-texte-gras text-[13px] ${suivi ? "text-white" : "text-nuit"}`}>{suivi ? "Suivi" : "Suivre"}</Text>
+      <Text className={`font-texte-gras text-[13px] ${suivi ? "text-white" : "text-nuit"}`}>{suivi ? T.libelles.suivi : T.libelles.suivre}</Text>
     </Pressable>
   );
 }

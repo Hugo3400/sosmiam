@@ -21,7 +21,12 @@ import { SectionDelaiReservation } from "~/composants/reservations-pro/SectionDe
 import { SectionJoursFermes } from "~/composants/reservations-pro/SectionJoursFermes";
 import { SectionModeAcceptation } from "~/composants/reservations-pro/SectionModeAcceptation";
 import { SectionServicesReservation } from "~/composants/reservations-pro/SectionServicesReservation";
-import { CONFIRMATIONS_REGLAGES_RESERVATIONS as C, TEXTES_FEUILLE_SERVICE, TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-ecran-pro-reservations";
+import {
+  CONFIRMATIONS_REGLAGES_RESERVATIONS_PAR_LANGUE,
+  TEXTES_FEUILLE_SERVICE_PAR_LANGUE,
+  TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE,
+} from "~/contenus/textes-reglages-reservations";
 import { decrireServiceReservation } from "~/fonctions/reservations/decrire-service-reservation";
 import { lireBrouillonService } from "~/fonctions/reservations/lire-brouillon-service";
 import { proposerNouveauService } from "~/fonctions/reservations/proposer-nouveau-service";
@@ -33,14 +38,21 @@ import { utiliserEnregistrementReglages } from "~/hooks/utiliser-enregistrement-
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserJoursFermesPro } from "~/hooks/utiliser-jours-fermes-pro";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { lieu: LieuGere };
 
 type FeuilleService = { index: number | null; depart: BrouillonService; titre: string };
 
 export function EcranReglagesReservations({ lieu }: Props) {
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
+  const C = utiliserTextes(CONFIRMATIONS_REGLAGES_RESERVATIONS_PAR_LANGUE);
+  const TF = utiliserTextes(TEXTES_FEUILLE_SERVICE_PAR_LANGUE);
+  const TE = utiliserTextes(TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE);
   const router = useRouter();
   const navigation = useNavigation();
   const marges = useSafeAreaInsets();
@@ -53,7 +65,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   const annoncer = useCallback((texte: string) => setAnnonce({ texte, numero: Date.now() }), []);
   const finAnnonce = useCallback(() => setAnnonce(null), []);
-  const [feuille, setFeuille] = useState<FeuilleService>(() => ({ index: null, depart: proposerNouveauService([]), titre: TEXTES_FEUILLE_SERVICE.titreNouveau }));
+  const [feuille, setFeuille] = useState<FeuilleService>(() => ({ index: null, depart: proposerNouveauService([]), titre: TF.titreNouveau }));
   const [feuilleOuverte, setFeuilleOuverte] = useState(false);
   const [numeroFeuille, setNumeroFeuille] = useState(0);
   const [joursOuverts, setJoursOuverts] = useState(false);
@@ -94,7 +106,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
   function ouvrirService(index: number) {
     const service = services[index];
     if (!service) return;
-    ouvrirFeuille({ index, depart: lireBrouillonService(service), titre: decrireServiceReservation(service, services).titre });
+    ouvrirFeuille({ index, depart: lireBrouillonService(service), titre: decrireServiceReservation(service, services, langue).titre });
   }
 
   function garderService(service: ServiceReservation) {
@@ -113,7 +125,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
 
   function reglerDepuisHoraires(couverts: number) {
     const crees = creerServicesDepuisHoraires(lus?.ouverture ?? [], couverts);
-    if (crees.length === 0) return ouvrirFeuille({ index: null, depart: { ...proposerNouveauService([]), couverts: String(couverts) }, titre: TEXTES_FEUILLE_SERVICE.titreNouveau });
+    if (crees.length === 0) return ouvrirFeuille({ index: null, depart: { ...proposerNouveauService([]), couverts: String(couverts) }, titre: TF.titreNouveau });
     brouillon.remplacerServices(crees);
   }
 
@@ -141,7 +153,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
           modifiable={modifiable}
           erreur={enregistrement.erreurService}
           onOuvrir={ouvrirService}
-          onAjouter={() => ouvrirFeuille({ index: null, depart: proposerNouveauService(services), titre: TEXTES_FEUILLE_SERVICE.titreNouveau })}
+          onAjouter={() => ouvrirFeuille({ index: null, depart: proposerNouveauService(services), titre: TF.titreNouveau })}
           onReglerDepuisHoraires={reglerDepuisHoraires}
           onRevenirRepli={() => setRepliDemande(true)}
         />
@@ -158,7 +170,7 @@ export function EcranReglagesReservations({ lieu }: Props) {
       <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={TE.retour}
           hitSlop={8}
           onPress={fermer}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

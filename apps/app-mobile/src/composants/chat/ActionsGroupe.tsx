@@ -1,9 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   admin: boolean;
@@ -16,6 +17,7 @@ type Props = {
 
 export function ActionsGroupe({ admin, epinglee, coupee, onAjouter, onEpingler, onCouper }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
   const tuiles = [
     { cle: "ajouter", libelle: T.ajouter, lu: T.ajouterLu, icone: "person-add-outline" as const, fond: "bg-jaune", texte: "text-nuit", teinte: couleurs.nuit, faire: onAjouter, inactif: !admin, indice: admin ? undefined : T.ajouterAdmins },
     {

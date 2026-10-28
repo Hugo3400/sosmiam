@@ -4,11 +4,13 @@ import { Linking, Pressable, Text, View } from "react-native";
 
 import { BoutonConnexion, type Fournisseur } from "~/composants/inscription/BoutonConnexion";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
+import { TEXTES_INSCRIPTION_ACCUEIL_PAR_LANGUE } from "~/contenus/textes-inscription-accueil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { effacerSessionPerdue, lireSessionPerdue } from "~/stockage/session-perdue";
 
 const fournisseurs: Fournisseur[] = ["apple", "google", "email"];
@@ -22,6 +24,7 @@ const fournisseurs: Fournisseur[] = ["apple", "google", "email"];
  */
 export default function Compte() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_ACCUEIL_PAR_LANGUE);
   const { invite, entrerEnInvite } = utiliserProfil();
   const { verrouAge, verrouEnLecture } = utiliserBrouillonInscription();
   const { connecterAvec, enCours } = utiliserEntreeCompte();
@@ -54,8 +57,8 @@ export default function Compte() {
 
   return (
     <EcranEtape
-      titre="Crée ton compte"
-      sousTitre="Pour garder tes rescousses, tes lieux préférés et tes badges, sur tous tes appareils."
+      titre={T.compteTitre}
+      sousTitre={T.compteSousTitre}
       etape={{ numero: 1, total: 4 }}
       onRetour={revenir}
     >
@@ -63,7 +66,7 @@ export default function Compte() {
         <View accessible accessibilityLiveRegion="polite" className="mb-4 flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
           <Text className="text-xl">🔑</Text>
           <Text className="flex-1 font-texte text-[15px] leading-[21px] text-encre">
-            {lierPonctuation("Ta session a pris fin (déconnecté partout, ou mot de passe changé). Ton compte t'attend : touche « Me connecter » juste en dessous.")}
+            {lierPonctuation(T.sessionPerdue)}
           </Text>
         </View>
       ) : null}
@@ -80,34 +83,34 @@ export default function Compte() {
       </View>
 
       <View className="mt-4 flex-row flex-wrap items-center justify-center gap-x-1">
-        <Text className="font-texte text-base text-gris">Déjà un compte ?</Text>
+        <Text className="font-texte text-base text-gris">{T.dejaUnCompte}</Text>
         <Pressable accessibilityRole="button" onPress={() => router.push("/connexion")} hitSlop={6} className="min-h-11 justify-center px-1 active:opacity-70">
-          <Text className="font-texte-gras text-base text-encre underline">Me connecter</Text>
+          <Text className="font-texte-gras text-base text-encre underline">{T.meConnecter}</Text>
         </Pressable>
       </View>
 
       {lienVisite ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Pas tout de suite : juste jeter un œil, sans compte"
-          accessibilityHint="Regarde le fil, la carte et les lieux sans t'inscrire. Tu créeras ton compte quand tu voudras."
+          accessibilityLabel={T.pasToutDeSuiteLu}
+          accessibilityHint={T.jeterUnOeilIndice}
           disabled={entreeEnCours}
           onPress={jeterUnOeil}
           hitSlop={4}
           className="mt-3 min-h-11 items-center justify-center self-center px-4 active:opacity-70"
         >
-          <Text className="font-texte-semi text-base text-encre underline">Pas tout de suite, juste jeter un œil 👀</Text>
+          <Text className="font-texte-semi text-base text-encre underline">{T.pasToutDeSuite}</Text>
         </Pressable>
       ) : null}
 
       <Text className="mt-6 text-center font-texte text-sm leading-5 text-gris">
-        En continuant, tu acceptes les{" "}
+        {T.accepterDebut}{" "}
         <Text accessibilityRole="link" onPress={() => Linking.openURL("https://sosmiam.fr/cgu")} className="font-texte-semi text-encre underline">
-          conditions d'utilisation
+          {T.conditions}
         </Text>{" "}
-        et la{" "}
+        {T.accepterEt}{" "}
         <Text accessibilityRole="link" onPress={() => Linking.openURL("https://sosmiam.fr/confidentialite")} className="font-texte-semi text-encre underline">
-          politique de confidentialité
+          {T.confidentialite}
         </Text>
         .
       </Text>

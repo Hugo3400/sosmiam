@@ -7,7 +7,8 @@ import Animated, { cancelAnimation, Easing, useAnimatedStyle, useReducedMotion, 
 
 import { DUREE_MAX_VOCAL_SECONDES } from "@sos-miam/commun/regles/chat";
 import { BARRES_ONDE_EN_DIRECT, OndeEnDirect } from "~/composants/chat/OndeEnDirect";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_CHAT_CHAMP_PAR_LANGUE } from "~/contenus/textes-chat-champ";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import { calculerOndeVocal } from "~/fonctions/chat/calculer-onde-vocal";
 import { convertirNiveauMicro } from "~/fonctions/chat/convertir-niveau-micro";
 import { formaterChronoEnregistrement } from "~/fonctions/chat/formater-chrono-enregistrement";
@@ -19,6 +20,8 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { signalerEnregistrement } from "~/hooks/utiliser-audio-chat";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Pourquoi l'enregistrement s'arrête sans envoi (à montrer sous le champ), et s'il faut proposer d'ouvrir les réglages */
 export type ProblemeEnregistrement = { texte: string; reglages?: boolean };
@@ -42,17 +45,6 @@ const OPTIONS_VOCAL: RecordingOptions = { ...RecordingPresets.HIGH_QUALITY, numb
 const DUREE_MIN_MS = 1000;
 const ALERTE_SECONDES = 10;
 const MAX = formaterChronoEnregistrement(DUREE_MAX_VOCAL_SECONDES);
-
-const MICRO_REFUSE: ProblemeEnregistrement = {
-  texte:
-    Platform.OS === "web"
-      ? "Le micro est fermé pour SOS Miam dans ce navigateur. Pour envoyer des notes vocales, autorise-le dans ses réglages (le petit cadenas près de l'adresse) 🎙️"
-      : "Le micro est fermé pour SOS Miam. Pour envoyer des notes vocales, ouvre-le dans les réglages de ton téléphone 🎙️",
-  reglages: true,
-};
-const SOUCI_MICRO: ProblemeEnregistrement = { texte: "Le micro fait sa timide et n'a pas démarré. Réessaie dans un instant !" };
-const TROP_COURT: ProblemeEnregistrement = { texte: "Note un peu trop express : parle au moins une seconde, tes potes veulent t'entendre 😄" };
-const PAS_PARTIE: ProblemeEnregistrement = { texte: "Ta note vocale n'a pas pu partir. Réessaie dans un instant !" };
 
 /** Remet le son comme avant : sans ça, l'iPhone continue de jouer les sons dans l'écouteur, tout bas. */
 function remettreModeAudio(): Promise<void> {
@@ -78,6 +70,15 @@ function jeterFichierTemporaire(uri: string | null) {
  */
 export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const T_CHAMP = utiliserTextes(TEXTES_CHAT_CHAMP_PAR_LANGUE);
+  const problemes: Record<"microRefuse" | "souciMicro" | "tropCourt" | "pasPartie", ProblemeEnregistrement> = {
+    microRefuse: { texte: Platform.OS === "web" ? T_CHAMP.microRefuseNavigateur : T_CHAMP.microRefuse, reglages: true },
+    souciMicro: { texte: T_CHAMP.microEnPanne },
+    tropCourt: { texte: T_CHAMP.vocalTropCourt },
+    pasPartie: { texte: T_CHAMP.vocalPasParti },
+  };
   const conversations = utiliserConversations();
   const animationsReduites = useReducedMotion();
   const enregistreur = useAudioRecorder(OPTIONS_VOCAL);
@@ -106,8 +107,8 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
   const fichierEnCours = useRef<string | null>(null);
   const alerteFaite = useRef(false);
   // Les derniers rappels, pour les appels qui arrivent après une attente (autorisation, arrêt, copie du fichier)
-  const rappels = useRef({ conversations, onEnvoye, onAbandon, mesures });
-  rappels.current = { conversations, onEnvoye, onAbandon, mesures };
+  const rappels = useRef({ conversations, onEnvoye, onAbandon, mesures, problemes, T, T_CHAMP });
+  rappels.current = { conversations, onEnvoye, onAbandon, mesures, problemes, T, T_CHAMP };
 
   useEffect(() => {
     let quitte = false;
@@ -122,7 +123,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         if (quitte) return;
         if (!permission.granted) {
           termine.current = true;
-          rappels.current.onAbandon(MICRO_REFUSE);
+          rappels.current.onAbandon(rappels.current.problemes.microRefuse);
           return;
         }
         // Le petit « toc » du départ vient avant le micro : l'iPhone coupe les vibrations pendant qu'il enregistre
@@ -135,13 +136,13 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
         lance.current = true;
         fichierEnCours.current = enregistreur.uri;
         setPhase("enregistrement");
-        AccessibilityInfo.announceForAccessibility("Enregistrement en cours");
+        AccessibilityInfo.announceForAccessibility(rappels.current.T_CHAMP.enregistrementEnCours);
         setTimeout(() => deplacerFocusLecteurEcran(chrono.current), 150);
       } catch {
         await remettreModeAudio();
         if (quitte || termine.current) return;
         termine.current = true;
-        rappels.current.onAbandon(SOUCI_MICRO);
+        rappels.current.onAbandon(rappels.current.problemes.souciMicro);
       }
     })();
     return () => {
@@ -191,7 +192,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     const { uri, duree } = await arreter();
     if (!uri || duree < DUREE_MIN_MS) {
       jeterFichierTemporaire(uri);
-      if (monte.current) rappels.current.onAbandon(TROP_COURT);
+      if (monte.current) rappels.current.onAbandon(rappels.current.problemes.tropCourt);
       return;
     }
     // Tu as demandé l'envoi : la note part, même si tu quittes l'écran entre-temps
@@ -201,7 +202,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     jeterFichierTemporaire(uri);
     if (!monte.current) return;
     if (resultat === "ok") rappels.current.onEnvoye();
-    else rappels.current.onAbandon(PAS_PARTIE);
+    else rappels.current.onAbandon(rappels.current.problemes.pasPartie);
   }
 
   async function annuler() {
@@ -220,7 +221,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
     if (etat.durationMillis >= DUREE_MAX_VOCAL_SECONDES * 1000) void envoyerAuto.current();
     else if (restantes <= ALERTE_SECONDES && !alerteFaite.current) {
       alerteFaite.current = true;
-      AccessibilityInfo.announceForAccessibility(`Plus que ${ALERTE_SECONDES} secondes`);
+      AccessibilityInfo.announceForAccessibility(rappels.current.T_CHAMP.plusQueSecondes(ALERTE_SECONDES));
     }
   }, [etat.durationMillis, phase, restantes]);
 
@@ -249,15 +250,12 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
 
   const silenceAnnonce = useRef(false);
   useEffect(() => {
-    if (silence && !silenceAnnonce.current) AccessibilityInfo.announceForAccessibility(T.onEcoute);
+    if (silence && !silenceAnnonce.current) AccessibilityInfo.announceForAccessibility(rappels.current.T.onEcoute);
     silenceAnnonce.current = silence;
   }, [silence]);
 
-  const etatTexte = phase === "preparation" ? "Le micro s'échauffe…" : phase === "envoi" ? "Ça part…" : restantes <= ALERTE_SECONDES ? "On conclut !" : "Je t'écoute…";
-  const libelleChrono =
-    phase === "preparation"
-      ? "Préparation du micro"
-      : `Enregistrement en cours : ${secondes} seconde${secondes > 1 ? "s" : ""} sur ${formaterDureeVocalLue(DUREE_MAX_VOCAL_SECONDES)}`;
+  const etatTexte = phase === "preparation" ? T_CHAMP.micEchauffe : phase === "envoi" ? T_CHAMP.caPart : restantes <= ALERTE_SECONDES ? T_CHAMP.onConclut : T_CHAMP.jeTEcoute;
+  const libelleChrono = phase === "preparation" ? T_CHAMP.preparationMicro : T_CHAMP.chronoLu(secondes, formaterDureeVocalLue(DUREE_MAX_VOCAL_SECONDES, langue));
 
   return (
     <View className="gap-3">
@@ -287,7 +285,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
       <View className="flex-row items-center justify-between px-1">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Annuler la note vocale"
+          accessibilityLabel={T_CHAMP.annulerVocal}
           accessibilityState={{ disabled: phase === "envoi" }}
           disabled={phase === "envoi"}
           onPress={() => void annuler()}
@@ -307,7 +305,7 @@ export function EnregistreurVocal({ conversationId, onEnvoye, onAbandon }: Props
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={phase === "envoi" ? "Envoi de la note vocale" : "Envoyer la note vocale"}
+          accessibilityLabel={phase === "envoi" ? T_CHAMP.envoiVocal : T_CHAMP.envoyerVocal}
           accessibilityState={{ disabled: phase !== "enregistrement" }}
           disabled={phase !== "enregistrement"}
           onPress={() => void envoyer()}

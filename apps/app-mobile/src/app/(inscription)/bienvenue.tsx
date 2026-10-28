@@ -7,10 +7,12 @@ import { DiapoBienvenue } from "~/composants/inscription/DiapoBienvenue";
 import { PointsPagination } from "~/composants/inscription/PointsPagination";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ZoneClaire } from "~/composants/theme/ZoneClaire";
-import { diaposBienvenue, type DiapoBienvenue as Diapo } from "~/contenus/inscription/diapos-bienvenue";
+import { DIAPOS_BIENVENUE_PAR_LANGUE, type DiapoBienvenue as Diapo } from "~/contenus/inscription/diapos-bienvenue";
+import { TEXTES_INSCRIPTION_ACCUEIL_PAR_LANGUE } from "~/contenus/textes-inscription-accueil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Hauteur réservée en bas aux points et au bouton, au-dessus de la zone sûre (et au lien « Juste jeter un œil » en dessous)
 const HAUTEUR_COMMANDES = 132;
@@ -24,6 +26,8 @@ export default function Bienvenue() {
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_ACCUEIL_PAR_LANGUE);
+  const diaposBienvenue = utiliserTextes(DIAPOS_BIENVENUE_PAR_LANGUE);
   const liste = useRef<FlatList<Diapo>>(null);
   const [actif, setActif] = useState(0);
   const derniere = actif === diaposBienvenue.length - 1;
@@ -83,12 +87,12 @@ export default function Bienvenue() {
         <ZoneClaire active={surJaune} style={{ top: marges.top + 8 }} className="absolute right-5">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Passer la présentation"
+            accessibilityLabel={T.passerLu}
             hitSlop={12}
             onPress={continuer}
             className="min-h-11 justify-center rounded-full bg-carte/70 px-4 active:opacity-70"
           >
-            <Text className="font-texte-semi text-base text-encre">Passer</Text>
+            <Text className="font-texte-semi text-base text-encre">{T.passer}</Text>
           </Pressable>
         </ZoneClaire>
       )}
@@ -97,16 +101,16 @@ export default function Bienvenue() {
         <PointsPagination total={diaposBienvenue.length} actif={actif} />
         <View className="gap-2">
           <Bouton
-            libelle={derniere ? "C'est parti" : "Suivant"}
+            libelle={derniere ? T.cEstParti : T.suivant}
             variante={derniere ? "encre" : "blanc"}
-            indice={derniere ? "Commence ton inscription" : "Affiche la diapo suivante"}
+            indice={derniere ? T.indiceCEstParti : T.indiceSuivant}
             onPress={suivant}
           />
           {placeLienVisite ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Juste jeter un œil, sans compte"
-              accessibilityHint="Regarde le fil, la carte et les lieux sans t'inscrire. Tu créeras ton compte quand tu voudras."
+              accessibilityLabel={T.jeterUnOeilLu}
+              accessibilityHint={T.jeterUnOeilIndice}
               accessibilityElementsHidden={!lienVisite}
               importantForAccessibility={lienVisite ? "auto" : "no-hide-descendants"}
               disabled={!lienVisite || entreeEnCours}
@@ -115,7 +119,7 @@ export default function Bienvenue() {
               style={{ opacity: lienVisite ? 1 : 0 }}
               className="min-h-11 items-center justify-center self-center px-4 active:opacity-70"
             >
-              <Text className="font-texte-semi text-base text-encre underline">👀 Juste jeter un œil</Text>
+              <Text className="font-texte-semi text-base text-encre underline">{T.jeterUnOeil}</Text>
             </Pressable>
           ) : null}
         </View>

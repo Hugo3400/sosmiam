@@ -8,23 +8,18 @@ import { CarteAvisARelire } from "~/composants/ambassadeur/CarteAvisARelire";
 import { FeuilleMotifLouche } from "~/composants/ambassadeur/FeuilleMotifLouche";
 import { Annonce } from "~/composants/interface/Annonce";
 import { EnTeteMode } from "~/composants/modes/EnTeteMode";
+import { TEXTES_RELECTURES_PAR_LANGUE } from "~/contenus/textes-espace-ambassadeur";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserServices } from "~/hooks/utiliser-services";
-
-const MERCI: Record<VerdictRelecture["type"], string> = {
-  ok: "Merci ! Avis relu.",
-  louche: "Merci ! L'équipe y jette un œil.",
-  deporte: "C'est noté : un autre ambassadeur le relira.",
-};
-
-const DEJA_RELU = "Trois ambassadeurs l'ont déjà relu pendant ce temps : merci quand même !";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Les avis à relire, sans leur auteur : « Ça me va », « Ça me paraît louche » (avec un motif) ou « Je passe mon tour ». */
 export default function EcranRelectures() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_RELECTURES_PAR_LANGUE);
   const { ambassadeur } = utiliserServices();
   const [avis, setAvis] = useState<AvisARelire[] | null>(null);
   const [echec, setEchec] = useState<string | null>(null);
@@ -52,24 +47,24 @@ export default function EcranRelectures() {
     setEnCours(false);
     if (!r.ok && r.erreur === "introuvable") {
       setAvis((liste) => liste?.filter((a) => a.id !== avisId) ?? null);
-      return setAnnonce({ texte: DEJA_RELU, numero: Date.now() });
+      return setAnnonce({ texte: T.dejaRelu, numero: Date.now() });
     }
     if (!r.ok) return setAnnonce({ texte: decrireEchecVisite(r.erreur, r.details).texte, numero: Date.now() });
     vibrerLegerement();
     setAvis((liste) => liste?.filter((a) => a.id !== avisId) ?? null);
-    setAnnonce({ texte: MERCI[verdict.type], numero: Date.now() });
+    setAnnonce({ texte: T.merci[verdict.type], numero: Date.now() });
   }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-5 px-5 pb-10 pt-3">
-        <EnTeteMode mode="ambassadeur" titre="Relectures" sousTitre="Ton avis compte, l'équipe tranche" />
+        <EnTeteMode mode="ambassadeur" titre={T.titre} sousTitre={T.sousTitre} />
         {echec ? (
           <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(echec)}</Text>
         ) : avis === null ? (
           <ActivityIndicator color={couleurs.encre} />
         ) : avis.length === 0 ? (
-          <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation("Aucun avis à relire : tout est nickel. Reviens plus tard, on t'en garde au chaud.")}</Text>
+          <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(T.vide)}</Text>
         ) : (
           <View className="gap-4">
             {avis.map((a) => (

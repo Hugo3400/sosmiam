@@ -6,15 +6,17 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PagePhotoVisionneuse, type PoigneePagePhoto } from "~/composants/chat/PagePhotoVisionneuse";
 import { VignetteVisionneuse } from "~/composants/chat/VignetteVisionneuse";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
-import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
-import { formaterIlYA } from "~/fonctions/dates/formater-il-y-a";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterIlYALangue } from "~/fonctions/langue/formater-il-y-a-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -34,6 +36,9 @@ const HAUT_VIGNETTES = 48;
 
 export function VisionneusePhotosChat({ visible, conversationId, photos, depart, prenomDe, onFermer, onDoubleAppui }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -96,7 +101,7 @@ export function VisionneusePhotosChat({ visible, conversationId, photos, depart,
   }
 
   if (!courante) return null;
-  const moment = formaterIlYA(courante.date, new Date(maintenantMs)).court;
+  const moment = formaterIlYALangue(courante.date, langue, new Date(maintenantMs)).court;
   const libelle = `${T.voirPhoto(index + 1, total)}, ${prenomDe(courante)}, ${moment}`;
 
   return (

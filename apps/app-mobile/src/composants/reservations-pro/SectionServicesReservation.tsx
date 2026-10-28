@@ -5,8 +5,9 @@ import type { ServiceReservation } from "@sos-miam/commun/types/reglages-reserva
 import { Bouton } from "~/composants/interface/Bouton";
 import { CarteModeTranquille } from "~/composants/reservations-pro/CarteModeTranquille";
 import { CarteServiceReservation } from "~/composants/reservations-pro/CarteServiceReservation";
-import { TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   services: readonly ServiceReservation[];
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export function SectionServicesReservation(props: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
   const { services, modifiable, erreur } = props;
   const ordre = services.map((service, index) => ({ service, index })).sort((a, b) => a.service.premier.localeCompare(b.service.premier));
   return (

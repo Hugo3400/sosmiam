@@ -38,6 +38,7 @@ export const TEXTES_CHAT_BULLES_ANGLAIS: Traduction<typeof TEXTES_CHAT_BULLES> =
   onYVa: "Shall we?",
   onYVaIndice: "Sets up a get-together at this place with the friends in this chat",
   photoPartieLu: (libelle: string) => `${libelle}: this photo's gone on holiday and won't show any more`,
+  libelleEtEtat: (libelle: string, etat: string) => `${libelle}: ${etat}`,
   ouvrePhoto: "Opens the photo full size",
   ouvrePhotos: "Opens the photos full size",
   vocalPartiLu: (libelle: string) => `${libelle}: this voice note's gone for a wander and won't play any more`,

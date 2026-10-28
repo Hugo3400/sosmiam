@@ -1,7 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable } from "react-native";
 
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Son coupé (réglage commun à tout le fil) */
@@ -16,10 +18,11 @@ const DEBORD = 6;
 
 /** Le petit haut-parleur en haut à droite d'une vidéo qui a du son : coupe ou remet le son de tout le fil. */
 export function BoutonSon({ sonCoupe, onBasculer, haut }: Props) {
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).media;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={sonCoupe ? "Mettre le son" : "Couper le son"}
+      accessibilityLabel={sonCoupe ? T.sonOn : T.sonOff}
       hitSlop={DEBORD}
       onPress={() => {
         vibrerLegerement();

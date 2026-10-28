@@ -5,8 +5,10 @@ import type { ReglementVisite } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixReglement } from "~/composants/pro/ChoixReglement";
+import { TEXTES_DEMANDES_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-demandes-comptoir";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -28,6 +30,7 @@ const PAYE: ReglementVisite = { type: "paye", reductionPourcent: null, avantages
  */
 export function FeuilleReglement({ visible, nom, codeRequis, erreurCode = null, onValider, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_DEMANDES_COMPTOIR_PAR_LANGUE).reglement;
   const [reglement, setReglement] = useState<ReglementVisite>(PAYE);
   const [code, setCode] = useState("");
 
@@ -43,13 +46,13 @@ export function FeuilleReglement({ visible, nom, codeRequis, erreurCode = null, 
   return (
     <FeuilleBas
       visible={visible}
-      titre={`Addition de ${nom}`}
-      sousTitre={codeRequis ? "Plusieurs additions attendent : tape le code que te montre le client, pour ne pas te tromper de table." : undefined}
+      titre={T.titre(nom)}
+      sousTitre={codeRequis ? T.codeRequis : undefined}
       onFermer={onFermer}
       pied={
         <Bouton
-          libelle={reglement.type === "offert" ? "Valider la visite offerte" : "Valider la visite"}
-          indice={pret ? undefined : "Tape d'abord les 4 chiffres du code"}
+          libelle={reglement.type === "offert" ? T.validerOfferte : T.valider}
+          indice={pret ? undefined : T.indiceCode}
           desactive={!pret}
           onPress={() => onValider(reglement, codeRequis ? code : null)}
         />
@@ -57,9 +60,9 @@ export function FeuilleReglement({ visible, nom, codeRequis, erreurCode = null, 
     >
       {codeRequis ? (
         <View className="gap-2">
-          <Text className="font-texte-gras text-base text-encre">Code du client</Text>
+          <Text className="font-texte-gras text-base text-encre">{T.code}</Text>
           <TextInput
-            accessibilityLabel={erreurCode ? `Code du client, 4 chiffres. ${erreurCode}` : "Code du client, 4 chiffres"}
+            accessibilityLabel={erreurCode ? T.codeLuErreur(erreurCode) : T.codeLu}
             value={code}
             onChangeText={(t) => setCode(t.replace(/\D/g, "").slice(0, 4))}
             keyboardType="number-pad"

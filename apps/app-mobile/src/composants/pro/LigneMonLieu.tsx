@@ -2,8 +2,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { TEXTES_BLOCS_MON_LIEU_PAR_LANGUE } from "~/contenus/textes-blocs-mon-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   emoji: string;
@@ -16,11 +18,12 @@ type Props = {
 /** Une entrée de « Mon lieu » : un emoji, un titre, où on en est, et la flèche (ou « Bientôt »). 64 pt de haut au moins. */
 export function LigneMonLieu({ emoji, titre, detail, onPress }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_BLOCS_MON_LIEU_PAR_LANGUE).ligne;
   const bientot = !onPress;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${titre}. ${detail}${bientot ? ". Bientôt" : ""}`}
+      accessibilityLabel={`${titre}. ${detail}${bientot ? `. ${T.bientot}` : ""}`}
       accessibilityState={{ disabled: bientot }}
       disabled={bientot}
       onPress={() => {
@@ -38,7 +41,7 @@ export function LigneMonLieu({ emoji, titre, detail, onPress }: Props) {
       </View>
       {bientot ? (
         <View className="rounded-full bg-ligne px-2.5 py-1">
-          <Text className="font-texte-gras text-xs text-gris">Bientôt</Text>
+          <Text className="font-texte-gras text-xs text-gris">{T.bientot}</Text>
         </View>
       ) : (
         <Ionicons name="chevron-forward" size={20} color={couleurs.encre} />

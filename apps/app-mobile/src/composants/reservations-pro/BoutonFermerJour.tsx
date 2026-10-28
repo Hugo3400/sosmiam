@@ -3,8 +3,9 @@ import { Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { TEXTES_FERMER_JOUR as T } from "~/contenus/textes-comptoir-reservations";
+import { TEXTES_FERMER_JOUR_PAR_LANGUE } from "~/contenus/textes-comptoir-reservations";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   ferme: boolean;
@@ -13,6 +14,7 @@ type Props = {
 };
 
 export function BoutonFermerJour({ ferme, enCours, onBasculer }: Props) {
+  const T = utiliserTextes(TEXTES_FERMER_JOUR_PAR_LANGUE);
   const [confirmation, setConfirmation] = useState(false);
   return (
     <View className="gap-2">

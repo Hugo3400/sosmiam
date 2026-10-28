@@ -1,18 +1,13 @@
 import { Text, View } from "react-native";
 
 import type { StatutAmbassadeur } from "@sos-miam/commun/types/roles";
+import { STATUTS_CARTE_AMBASSADEUR_PAR_LANGUE } from "~/contenus/textes-espace-ambassadeur";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-
-const TEXTES: Record<StatutAmbassadeur, { emoji: string; titre: string; texte: string }> = {
-  actif: { emoji: "🤝", titre: "Ambassadeur actif", texte: "Merci de veiller sur les lieux du coin ! Tes missions, les avis à relire et les messages de l'équipe sont ici." },
-  "en-attente": { emoji: "⏳", titre: "Candidature en cours", texte: "L'équipe relit ta candidature. On te prévient dès que c'est bon : garde ton plus beau tablier à portée de main." },
-  refuse: { emoji: "🙏", titre: "Pas cette fois", texte: "Ta candidature n'a pas été retenue pour l'instant. Continue de sauver des tables : la porte reste ouverte." },
-  suspendu: { emoji: "⏸️", titre: "Rôle en pause", texte: "Ton rôle d'ambassadeur est en pause. Un message de l'équipe t'explique pourquoi sur ambassadeur.sosmiam.fr." },
-};
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Où en est ton rôle d'ambassadeur : actif, candidature en cours, refusé ou en pause, avec un mot de l'équipe. */
 export function CarteStatutAmbassadeur({ statut }: { statut: StatutAmbassadeur }) {
-  const t = TEXTES[statut];
+  const t = utiliserTextes(STATUTS_CARTE_AMBASSADEUR_PAR_LANGUE)[statut];
   return (
     <View accessible accessibilityLabel={`${t.titre}. ${t.texte}`} className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 ${statut === "actif" ? "bg-jaune" : "bg-carte"}`}>
       <Text className="text-2xl">{t.emoji}</Text>

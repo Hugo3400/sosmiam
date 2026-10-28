@@ -1,9 +1,11 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-ecran-pro-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { HoraireProposeDecrit } from "~/fonctions/reservations/decrire-horaire-propose";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   decrit: HoraireProposeDecrit;
@@ -15,12 +17,13 @@ type Props = {
 
 export function OptionHoraireDemande({ decrit, choisi, position, total, onPress }: Props) {
   const couleurs = utiliserCouleurs();
+  const { place } = utiliserTextes(TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE);
   const ios = Platform.OS === "ios";
   return (
     <Pressable
       accessibilityRole={ios ? "button" : "radio"}
       accessibilityState={ios ? { selected: choisi } : { checked: choisi }}
-      accessibilityLabel={`${decrit.lu}${ios ? `, ${position} sur ${total}` : ""}`}
+      accessibilityLabel={`${decrit.lu}${ios ? place(position, total) : ""}`}
       onPress={() => {
         vibrerLegerement();
         onPress();

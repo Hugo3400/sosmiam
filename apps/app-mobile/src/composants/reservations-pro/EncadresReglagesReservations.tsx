@@ -2,7 +2,8 @@ import { Linking, View } from "react-native";
 
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { EncadreReservation } from "~/composants/reservations/EncadreReservation";
-import { TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   gerant: boolean;
@@ -14,6 +15,7 @@ type Props = {
 const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
 
 export function EncadresReglagesReservations({ gerant, reservable, aRevoir, onVoirReservations }: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
   if (gerant && reservable && aRevoir === 0) return null;
   return (
     <View className="gap-3">

@@ -5,12 +5,14 @@ import { Alert, Text, View } from "react-native";
 import { CaseNewsletter } from "~/composants/inscription/CaseNewsletter";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE } from "~/contenus/textes-inscription-profil";
 import { preparerProfilEnvoi } from "~/fonctions/compte/preparer-profil-envoi";
 import { construireProfil } from "~/fonctions/inscription/construire-profil";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Étape 4 sur 4 : récapitulatif, puis le compte est créé sur le serveur (e-mail, Apple ou Google) ou complété (compte du
@@ -19,6 +21,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
  */
 export default function CEstPret() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE);
   const { brouillon, modifier, verrouAge } = utiliserBrouillonInscription();
   const { enregistrer } = utiliserProfil();
   const session = utiliserSession();
@@ -32,10 +35,10 @@ export default function CEstPret() {
   if (!profil) {
     return (
       <EcranEtape
-        titre="Il manque une info"
-        sousTitre="On a besoin de ton prénom, de ta date de naissance et de ta ville pour finir."
+        titre={T.manqueInfoTitre}
+        sousTitre={T.manqueInfoSousTitre}
         etape={{ numero: 4, total: 4 }}
-        boutonPrincipal={{ libelle: "Compléter mon profil", onPress: () => router.replace("/fais-connaissance") }}
+        boutonPrincipal={{ libelle: T.completerProfil, onPress: () => router.replace("/fais-connaissance") }}
       >
         <Mascotte expression="surprise" taille={120} />
       </EcranEtape>
@@ -52,7 +55,7 @@ export default function CEstPret() {
       await enregistrer(profil);
     } catch {
       setEnvoi(false);
-      Alert.alert("Oups", "Ton profil n'a pas pu être enregistré sur ce téléphone. Réessaie dans un instant.");
+      Alert.alert(T.oups, T.profilNonEnregistre);
     }
   }
 
@@ -97,10 +100,10 @@ export default function CEstPret() {
 
   return (
     <EcranEtape
-      titre={`C'est prêt, ${profil.prenom} !`}
-      sousTitre="Tes 3 rescousses de la semaine t'attendent. À toi de sauver ta première table !"
+      titre={T.pretTitre(profil.prenom)}
+      sousTitre={T.pretSousTitre}
       etape={{ numero: 4, total: 4 }}
-      boutonPrincipal={{ libelle: envoi ? "C'est parti…" : "Découvrir SOS Miam", onPress: decouvrir, desactive: envoi }}
+      boutonPrincipal={{ libelle: envoi ? T.cEstParti : T.decouvrir, onPress: decouvrir, desactive: envoi }}
     >
       <View className="items-center">
         <Mascotte expression="clin" taille={150} flotte />
@@ -108,12 +111,10 @@ export default function CEstPret() {
       <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-carte p-5">
         <Text className="font-texte text-base text-encre">📍 {profil.ville}</Text>
         <Text className="font-texte text-base text-encre">
-          💛 {nombreEnvies > 0 ? `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} pour te proposer les bons lieux` : "Pas d'envie choisie : tu pourras en ajouter plus tard"}
+          💛 {T.nombreEnvies(nombreEnvies)}
         </Text>
         <Text className="font-texte text-base text-encre">
-          {brouillon.connexion
-            ? "🔒 Ton compte est gardé sur notre serveur : ton nom et ta date de naissance y sont chiffrés. Tes régimes restent sur ton téléphone."
-            : "🔒 Tes infos restent sur ton téléphone, dans son coffre-fort chiffré."}
+          {brouillon.connexion ? T.compteServeur : T.compteTelephone}
         </Text>
       </View>
       {/* La newsletter : seulement quand un compte est créé (pas pour compléter un compte du site) */}

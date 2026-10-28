@@ -1,0 +1,33 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_ECRAN_SORTIE_POTES } from "~/contenus/textes-ecran-sortie-potes";
+
+export const TEXTES_ECRAN_SORTIE_POTES_ANGLAIS: Traduction<typeof TEXTES_ECRAN_SORTIE_POTES> = {
+  annuler: "Cancel",
+  retour: "Back",
+  introuvableTitre: "Get-together not found",
+  introuvableTexte: "It may have been cancelled, or you're no longer part of it. No worries – fancy organising the next one?",
+  dansMinutes: (minutes: number) => `in ${minutes} min`,
+  aujourdhui: "today",
+  demain: "tomorrow",
+  hier: "yesterday",
+  jourHeure: (jour: string, heure: string) => `${jour} at ${heure}`,
+  ongletVote: "The vote",
+  ongletDiscussion: "The chat",
+  ongletMessages: (nom: string, n: number) => `${nom}, ${n} message${n === 1 ? "" : "s"}`,
+  ongletPosition: (nom: string, position: number, total: number) => `${nom}, tab ${position} of ${total}`,
+  terminerTitre: "End the vote?",
+  terminerDetail: "The place with the most votes wins, and nobody else can vote.",
+  terminer: "End vote",
+  voteTermine: "🏁 Voting's over – let's go!",
+  quitterTitre: "Leave the get-together?",
+  quitterDetailOrganisateur: "You're organising this get-together. Your friends will keep it without you, and you won't see the vote or the chat any more.",
+  quitterDetail: "You won't see the vote or the chat for this get-together any more.",
+  quitter: "Leave",
+  quitterSortie: "Leave the get-together",
+  annulerSortie: "Cancel the get-together",
+  annulerIndice: "The get-together and its chat disappear for everyone, once you confirm",
+  annulerTitre: (titre: string) => `Cancel “${titre}”?`,
+  annulerDetail: "The get-together and its chat disappear for everyone, for good. Don't panic – you can set up another one in two minutes.",
+  garder: "Keep it",
+  garderIndice: "The get-together carries on as before",
+};

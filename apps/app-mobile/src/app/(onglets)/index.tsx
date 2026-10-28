@@ -41,6 +41,7 @@ import { utiliserCompteRequis, type RaisonCompte } from "~/hooks/utiliser-compte
 import { utiliserGesteRescousse } from "~/hooks/utiliser-geste-rescousse";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserInviterLieu } from "~/hooks/utiliser-inviter-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
@@ -69,6 +70,7 @@ export default function PourToi() {
   const exiger = utiliserCompteRequis();
   const inviter = utiliserInviterLieu();
   const { depart, depuis } = utiliserDepartVille();
+  const { langue } = utiliserLangue();
   const activite = utiliserActivite();
   const nombreCommentaires = utiliserNombresCommentaires();
   const [onglet, setOnglet] = useState<OngletFil>("tous");
@@ -401,7 +403,7 @@ export default function PourToi() {
                   depuis={depuis}
                   largeur={taille.largeur}
                   hauteur={taille.hauteur}
-                  raison={profil ? trouverRaisonLieu(lieu, profil, km) : null}
+                  raison={profil ? trouverRaisonLieu(lieu, profil, km, langue) : null}
                   aime={activite.aime(item.id)}
                   garde={activite.estGarde(lieu.id)}
                   suivi={activite.estSuivi(calculerCleSuivi(item.auteur, item.lieuId))}

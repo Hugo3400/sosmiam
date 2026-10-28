@@ -1,9 +1,11 @@
 import { ActivityIndicator, Text, View } from "react-native";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import { calculerMargeExpirationReservation } from "@sos-miam/commun/fonctions/reservations/calculer-marge-expiration-reservation";
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jour-paris";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import { MESSAGE_RESERVATION_MAX, PERSONNES_RESERVATION_MIN } from "@sos-miam/commun/regles/reservations";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -17,18 +19,20 @@ import { EnTeteLieuReservation } from "~/composants/reservations/EnTeteLieuReser
 import { EtiquetteConfirmationImmediate } from "~/composants/reservations/EtiquetteConfirmationImmediate";
 import { RecapitulatifReservation } from "~/composants/reservations/RecapitulatifReservation";
 import { TitreEtapeReservation } from "~/composants/reservations/TitreEtapeReservation";
-import { DELAIS_RESERVATION_TEXTES } from "~/contenus/textes-reglages-reservations";
-import { SANS_CRENEAU, TEXTES_RESERVER_TABLE as T, TROP_TARD_VEILLE } from "~/contenus/textes-reserver-table";
+import { DELAIS_RESERVATION_TEXTES_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
+import { SANS_CRENEAU_PAR_LANGUE, TEXTES_RESERVER_TABLE_PAR_LANGUE, TROP_TARD_VEILLE_PAR_LANGUE } from "~/contenus/textes-reserver-table";
 import { estTelephoneALHeureDeParis } from "~/fonctions/dates/est-telephone-a-l-heure-de-paris";
+import { direDeLieuLangue } from "~/fonctions/langue/dire-de-lieu-langue";
+import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
 import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-creneau-reservation";
 import { ecrireCreneauIso } from "~/fonctions/reservations/ecrire-creneau-iso";
-import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { lireRaisonSansCreneau } from "~/fonctions/reservations/lire-raison-sans-creneau";
 import { rangerCreneauxParService } from "~/fonctions/reservations/ranger-creneaux-par-service";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import type { utiliserFormulaireReservation } from "~/hooks/utiliser-formulaire-reservation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { Palette } from "~/hooks/utiliser-theme";
 
 type Props = {
@@ -40,8 +44,9 @@ type Props = {
   onChangerPetitMot: (texte: string) => void;
 };
 
-function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props, couleurs: Palette) {
-  const deLieu = direDeLieu(lieu.nom);
+function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props, couleurs: Palette, langue: Langue) {
+  const T = choisirTextes(TEXTES_RESERVER_TABLE_PAR_LANGUE, langue);
+  const deLieu = direDeLieuLangue(lieu.nom, langue);
   if (!f.jours.pret) {
     return (
       <View className="items-start py-2">
@@ -55,9 +60,9 @@ function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props, couleurs: 
   const etat = f.jours.jours.find((j) => j.jour === f.jour)?.etat ?? "ouvert";
   const raison = lireRaisonSansCreneau(etat, f.creneaux.frais ? f.disponibles.length : null);
   if (raison) {
-    const modele = SANS_CRENEAU[raison];
-    const texte = raison === "trop-tard" && f.jours.delai === "veille" ? TROP_TARD_VEILLE : modele.texte;
-    const valeurs = { deLieu, personnes: ecrireNombrePersonnes(f.personnes), delai: DELAIS_RESERVATION_TEXTES[f.jours.delai].court };
+    const modele = choisirTextes(SANS_CRENEAU_PAR_LANGUE, langue)[raison];
+    const texte = raison === "trop-tard" && f.jours.delai === "veille" ? choisirTextes(TROP_TARD_VEILLE_PAR_LANGUE, langue) : modele.texte;
+    const valeurs = { deLieu, personnes: ecrireNombrePersonnesLangue(f.personnes, langue), delai: choisirTextes(DELAIS_RESERVATION_TEXTES_PAR_LANGUE, langue)[f.jours.delai].court };
     const prochain = f.jours.jours.find((j) => j.jour > f.jour && j.etat === "ouvert");
     return (
       <EncadreReservation
@@ -104,12 +109,14 @@ function dessinerHeures({ lieu, formulaire: f, maintenantMs }: Props, couleurs: 
 
 export function FormulaireReservation(props: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_RESERVER_TABLE_PAR_LANGUE);
   const { lieu, formulaire: f, maintenantMs, petitMot, erreurPetitMot } = props;
   const petitMotEnvoye = petitMot.trim().replace(/\s+/g, " ");
   const estBar = lieu.type === "bar";
   const automatique = f.acceptation === "automatique";
   const aujourdhui = calculerJourParis(maintenantMs);
-  const quand = f.choix.principal ? decrireCreneauReservation(ecrireCreneauIso(f.jour, f.choix.principal), maintenantMs).lu : null;
+  const quand = f.choix.principal ? decrireCreneauReservation(ecrireCreneauIso(f.jour, f.choix.principal), maintenantMs, langue).lu : null;
   const minutesExpiration = Math.round(calculerMargeExpirationReservation({ acceptation: f.acceptation, delai: f.jours.delai }) / 60_000);
 
   return (
@@ -127,7 +134,7 @@ export function FormulaireReservation(props: Props) {
           valeur={f.personnes}
           min={PERSONNES_RESERVATION_MIN}
           max={f.jours.personnesMax}
-          unite={ecrireNombrePersonnes}
+          unite={(n) => ecrireNombrePersonnesLangue(n, langue)}
           onChanger={f.changerPersonnes}
         />
         <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(remplirModele(T.grandeTablee, { max: String(f.jours.personnesMax) }))}</Text>
@@ -140,7 +147,7 @@ export function FormulaireReservation(props: Props) {
 
       <View className="gap-3">
         <TitreEtapeReservation titre={T.heure} />
-        {dessinerHeures(props, couleurs)}
+        {dessinerHeures(props, couleurs, langue)}
       </View>
 
       <View className="gap-3">

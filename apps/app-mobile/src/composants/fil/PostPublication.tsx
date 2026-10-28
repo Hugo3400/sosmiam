@@ -17,18 +17,20 @@ import { LegendeRepliable } from "~/composants/fil/LegendeRepliable";
 import { MediaPublication } from "~/composants/fil/MediaPublication";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
-import { INDICE_COMPTE } from "~/contenus/indice-compte";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
+import { INDICE_COMPTE_PAR_LANGUE } from "~/contenus/indice-compte";
+import { TEXTES_PUBLICATION_FIL_PAR_LANGUE } from "~/contenus/textes-publication-fil";
 import type { Publication } from "~/contenus/type-publication";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
+import { formaterNombreCourtLangue } from "~/fonctions/langue/formater-nombre-court-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import palettes from "~/theme/palettes";
 
 type Props = {
@@ -96,6 +98,8 @@ const DELAI_FOCUS_REDUCTION = 300;
 export const PostPublication = memo(function PostPublication(props: Props) {
   const couleurs = utiliserCouleurs();
   const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_PUBLICATION_FIL_PAR_LANGUE);
+  const indiceCompteLu = utiliserTextes(INDICE_COMPTE_PAR_LANGUE);
   const { publication, lieu, km, depuis, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const pointSos = useSharedValue(1);
@@ -184,14 +188,14 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   function basculerPauseLecteurEcran() {
     const pause = !enPause;
     setEnPause(pause);
-    AccessibilityInfo.announceForAccessibility(pause ? "Pause ! La vidéo t'attend" : "C'est reparti");
+    AccessibilityInfo.announceForAccessibility(pause ? T.annoncePause : T.annonceReprise);
   }
 
   function basculerAccelerationLecteurEcran() {
     const accelere = !acceleree;
     setAcceleree(accelere);
     if (accelere) setEnPause(false);
-    AccessibilityInfo.announceForAccessibility(accelere ? "Accéléré : deux fois plus vite" : "Retour à la vitesse normale");
+    AccessibilityInfo.announceForAccessibility(accelere ? T.annonceAccelere : T.annonceVitesseNormale);
   }
 
   function actionLecteurEcran(e: AccessibilityActionEvent) {
@@ -203,26 +207,28 @@ export const PostPublication = memo(function PostPublication(props: Props) {
   const nomAuteur = auteur.type === "lieu" ? lieu.nom : `@${auteur.pseudo}`;
   const emojiAuteur = auteur.type === "lieu" ? lieu.emoji : "🎬";
   const media = publication.media;
-  const typeMedia = !media ? "Publication" : media.type === "video" ? "Vidéo" : `${media.photos.length} photos`;
-  const etiquetteIllustration = media?.type === "photos" ? "Photos d'illustration" : "Vidéo d'illustration";
+  const typeMedia = !media ? T.typePublication : media.type === "video" ? T.typeVideo : T.typePhotos(media.photos.length);
+  const etiquetteIllustration = media?.type === "photos" ? T.illustrationPhotos : T.illustrationVideo;
+  const [heureFin, minuteFin] = (sos?.jusqua ?? "0:0").split(":").map(Number);
+  const finSos = formaterHeureLangue(heureFin, minuteFin, langue);
   const description = [
-    `${typeMedia} de ${nomAuteur}`,
+    T.mediaDe(typeMedia, nomAuteur),
     media && publication.illustration ? etiquetteIllustration : null,
-    auteur.type === "createur" && auteur.partenariat ? `Collaboration commerciale : ${auteur.partenariat}` : null,
-    sos ? `SOS : ${sos.places} place${sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(sos.jusqua)}` : null,
+    auteur.type === "createur" && auteur.partenariat ? T.collaborationLu(auteur.partenariat) : null,
+    sos ? T.sosLu(sos.places, finSos) : null,
     lieu.alerte,
-    verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
+    verifie ? null : T.nonVerifie,
     raison,
-    `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}${km === null ? "" : `, à ${ecrireDistanceDepuis(km, depuis, langue)}`}, ${lieu.prix}`,
+    T.resume(lieu.nom, lieu.info, ecrireQuartierVille(lieu), km === null ? null : ecrireDistanceDepuis(km, depuis, langue), lieu.prix),
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
-  const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
+  const indiceCompte = avecCompte ? undefined : indiceCompteLu;
   // Ton J'aime n'est compté qu'une fois : ceux des autres (le compteur de l'API compte déjà le tien), plus le tien
   const jaimesAutres = Math.max(0, publication.jaimesAutres ?? publication.jaimes);
   const actionsVideo = video
     ? [
-        { name: "pause", label: enPause ? "Reprendre la vidéo" : "Mettre la vidéo en pause" },
-        { name: "accelerer", label: acceleree ? "Revenir à la vitesse normale" : "Lire en accéléré, deux fois plus vite" },
+        { name: "pause", label: enPause ? T.actionsVideo.reprendre : T.actionsVideo.pause },
+        { name: "accelerer", label: acceleree ? T.actionsVideo.vitesseNormale : T.actionsVideo.accelerer },
       ]
     : undefined;
 
@@ -286,7 +292,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             <Pressable
               ref={refPastille}
               accessibilityRole="button"
-              accessibilityLabel={auteur.type === "lieu" ? `Afficher la fiche de ${lieu.nom}` : `Afficher la fiche : publication de ${nomAuteur} sur ${lieu.nom}`}
+              accessibilityLabel={auteur.type === "lieu" ? T.afficherFicheLieu(lieu.nom) : T.afficherFicheCreateur(nomAuteur, lieu.nom)}
               onPress={gestes.reduire}
               className="min-h-11 flex-row items-center gap-2 rounded-full bg-black/50 pl-1.5 pr-4 active:opacity-70"
             >
@@ -325,7 +331,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
             <View accessible accessibilityLabel={description} accessibilityActions={actionsVideo} onAccessibilityAction={video ? actionLecteurEcran : undefined} className="gap-1.5">
               {auteur.type === "createur" && auteur.partenariat ? (
                 <Text className="self-start overflow-hidden rounded-md bg-white/85 px-2 py-0.5 font-texte-semi text-xs text-nuit">
-                  Collaboration commerciale · {auteur.partenariat}
+                  {T.collaboration(auteur.partenariat)}
                 </Text>
               ) : null}
               <View className="flex-row flex-wrap gap-2">
@@ -335,9 +341,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
                     <View className="h-2 w-2">
                       <Animated.View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurs.tomate }, stylePointSos]} />
                     </View>
-                    <Text className="font-texte-gras text-[13px] text-nuit">
-                      SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}
-                    </Text>
+                    <Text className="font-texte-gras text-[13px] text-nuit">{T.sos(sos.places, finSos)}</Text>
                   </View>
                 ) : null}
                 {lieu.alerte ? (
@@ -358,21 +362,21 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           <View className="mt-3 flex-row gap-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Voir l'adresse de ${lieu.nom}`}
+              accessibilityLabel={T.voirAdresseLu(lieu.nom)}
               onPress={() => gestes.voir(publication)}
               className="min-h-11 justify-center rounded-full bg-white/25 px-4 active:opacity-70"
             >
-              <Text className="font-texte-semi text-[15px] text-white">Voir l'adresse →</Text>
+              <Text className="font-texte-semi text-[15px] text-white">{T.voirAdresse}</Text>
             </Pressable>
             <Pressable
               ref={refReduire}
               accessibilityRole="button"
-              accessibilityLabel="Réduire la fiche pour voir la vidéo en plein écran"
+              accessibilityLabel={T.reduireLu}
               onPress={gestes.reduire}
               className="min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full bg-white/25 px-3 active:opacity-70"
             >
               <Ionicons name="chevron-down" size={18} color="#FFFFFF" />
-              <Text className="font-texte-semi text-[15px] text-white">Réduire</Text>
+              <Text className="font-texte-semi text-[15px] text-white">{T.reduire}</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -391,32 +395,32 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           <ActionPost
             actif={aime}
             icone={<Ionicons name={aime ? "heart" : "heart-outline"} size={28} color={aime ? couleurs.tomate : "#FFFFFF"} />}
-            libelle={formaterNombreCourt(jaimesAutres + (aime ? 1 : 0))}
-            description={aime ? "Retirer ton J'aime" : `J'aime, ${jaimesAutres} personnes aiment`}
+            libelle={formaterNombreCourtLangue(jaimesAutres + (aime ? 1 : 0), langue)}
+            description={aime ? T.jaimeRetirer : T.jaimeLu(jaimesAutres)}
             indice={indiceCompte}
             onPress={() => gestes.jaime(publication)}
             style="transparent"
           />
           <ActionPost
             icone={<Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />}
-            libelle={formaterNombreCourt(nombreCommentaires)}
-            description={nombreCommentaires === 0 ? "Commentaires : aucun pour l'instant, écris le premier" : `${nombreCommentaires} commentaire${nombreCommentaires > 1 ? "s" : ""}, les lire ou commenter`}
+            libelle={formaterNombreCourtLangue(nombreCommentaires, langue)}
+            description={nombreCommentaires === 0 ? T.commentairesAucun : T.commentairesLu(nombreCommentaires)}
             onPress={() => gestes.commentaires(publication)}
             style="transparent"
           />
           <ActionPost
             actif={garde}
             icone={<Ionicons name={garde ? "bookmark" : "bookmark-outline"} size={26} color={garde ? couleurs.jaune : "#FFFFFF"} />}
-            libelle={garde ? "Gardé" : "Garder"}
-            description={garde ? `Ne plus garder ${lieu.nom}` : `Garder ${lieu.nom} pour plus tard`}
+            libelle={garde ? T.garde : T.garder}
+            description={garde ? T.nePlusGarderLu(lieu.nom) : T.garderLu(lieu.nom)}
             indice={indiceCompte}
             onPress={() => gestes.garder(publication)}
             style="transparent"
           />
           <ActionPost
             icone={<Ionicons name="arrow-redo" size={26} color="#FFFFFF" />}
-            libelle="Partager"
-            description={`Partager ${lieu.nom}`}
+            libelle={T.partager}
+            description={T.partagerLu(lieu.nom)}
             indice={indiceCompte}
             onPress={() => gestes.partager(publication)}
             style="transparent"
@@ -424,7 +428,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
           <ActionPost
             icone={<Ionicons name="ellipsis-horizontal" size={26} color="#FFFFFF" />}
             libelle=""
-            description={`Plus d'options : ${verifie ? "rescousse" : "inviter ce lieu"}, adresse, envoyer à un pote, pas intéressé, signaler`}
+            description={T.plusOptions(verifie)}
             onPress={() => gestes.menu(publication)}
             style="transparent"
           />

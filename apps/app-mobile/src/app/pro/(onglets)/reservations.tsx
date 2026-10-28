@@ -34,6 +34,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserJoursFermesPro } from "~/hooks/utiliser-jours-fermes-pro";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserReponsesReservationsPro } from "~/hooks/utiliser-reponses-reservations-pro";
@@ -41,6 +42,7 @@ import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export default function EcranReservationsPro() {
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
   const T = utiliserTextes(TEXTES_RESERVATIONS_PRO_PAR_LANGUE);
   const C = utiliserTextes(CONFIRMATIONS_COMPTOIR_RESERVATIONS_PAR_LANGUE);
@@ -75,11 +77,11 @@ export default function EcranReservationsPro() {
     if (lecture.etat !== "lu") return;
     const nouvelles = repererNouvellesTables(vues.current, lecture.reservations);
     vues.current = new Set(lecture.reservations.map((r) => r.id));
-    const texte = focus ? decrireNouvellesTables(nouvelles, maintenantMs) : null;
+    const texte = focus ? decrireNouvellesTables(nouvelles, maintenantMs, langue) : null;
     if (!texte) return;
     vibrerLegerement();
     annoncer(texte);
-  }, [lecture, focus, annoncer, maintenantMs]);
+  }, [lecture, focus, annoncer, maintenantMs, langue]);
 
   if (!lieuPro) {
     return (
@@ -200,7 +202,7 @@ export default function EcranReservationsPro() {
                 personnes: cibleQuandMeme.reservation.personnes,
                 places: cibleQuandMeme.places,
                 jourFerme: cibleQuandMeme.jourFerme,
-              })
+              }, langue)
             : ""
         }
         libelleConfirmer={C.depasser.confirmer}

@@ -1,13 +1,16 @@
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
-import { REFUS_LIMITATION_IDEES, TEXTES_IDEES } from "~/contenus/textes-idees";
+import { REFUS_LIMITATION_IDEES_PAR_LANGUE, TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 
 const PANNES: readonly ErreurService[] = ["hors-ligne", "erreur-serveur", "service-indisponible"];
 
-export function expliquerRefusIdee(erreur: ErreurService): { limite: boolean; texte: string } {
-  if (erreur === "compte-limite") return { limite: true, texte: REFUS_LIMITATION_IDEES.idee };
-  if (erreur === "message-refuse") return { limite: false, texte: TEXTES_IDEES.erreurs["mot-interdit"] };
-  if (PANNES.includes(erreur)) return { limite: false, texte: TEXTES_IDEES.erreurs.reseau };
-  const message = MESSAGES_SERVICE[erreur];
-  return { limite: false, texte: message ? `${message.titre}. ${message.texte}` : TEXTES_IDEES.erreurs.reseau };
+export function expliquerRefusIdee(erreur: ErreurService, langue: Langue): { limite: boolean; texte: string } {
+  const T = choisirTextes(TEXTES_IDEES_PAR_LANGUE, langue);
+  if (erreur === "compte-limite") return { limite: true, texte: choisirTextes(REFUS_LIMITATION_IDEES_PAR_LANGUE, langue).idee };
+  if (erreur === "message-refuse") return { limite: false, texte: T.erreurs["mot-interdit"] };
+  if (PANNES.includes(erreur)) return { limite: false, texte: T.erreurs.reseau };
+  const message = choisirTextes(MESSAGES_SERVICE_PAR_LANGUE, langue)[erreur];
+  return { limite: false, texte: message ? `${message.titre}. ${message.texte}` : T.erreurs.reseau };
 }

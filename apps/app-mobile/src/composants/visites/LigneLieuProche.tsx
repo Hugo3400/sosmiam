@@ -3,9 +3,12 @@ import { Text, View } from "react-native";
 import { calculerPointsVisite } from "@sos-miam/commun/fonctions/visites/calculer-points-visite";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { TEXTES_DEMANDE_ADDITION_PAR_LANGUE } from "~/contenus/textes-demande-addition";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -18,9 +21,11 @@ type Props = {
  * et « Demander l'addition ici ». VoiceOver lit d'abord le lieu d'un bloc, puis le bouton (qui redit le lieu dans son indice).
  */
 export function LigneLieuProche({ lieu, distanceM = null }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDE_ADDITION_PAR_LANGUE);
   const sos = estSosEnCours(lieu);
-  const distance = distanceM === null ? null : `à ${formaterDistance(distanceM / 1000)}`;
-  const infos = [lieu.nom, ecrireQuartierVille(lieu), distance, sos ? `SOS en cours, ta visite vaut ${calculerPointsVisite(true)} points` : null];
+  const distance = distanceM === null ? null : T.distance(formaterDistanceLangue(distanceM / 1000, langue));
+  const infos = [lieu.nom, ecrireQuartierVille(lieu), distance, sos ? T.sosLu(calculerPointsVisite(true)) : null];
   return (
     <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View accessible accessibilityLabel={infos.filter(Boolean).join(", ")} className="flex-row items-center gap-3">
@@ -49,10 +54,10 @@ export function LigneLieuProche({ lieu, distanceM = null }: Props) {
           className="flex-row items-center gap-2 self-start rounded-full bg-rose-alerte px-3 py-1"
         >
           <View className="h-2 w-2 rounded-full bg-rouge-sos" />
-          <Text className="font-texte-semi text-xs text-rouge-texte">SOS en cours · ta visite vaut +{calculerPointsVisite(true)}</Text>
+          <Text className="font-texte-semi text-xs text-rouge-texte">{T.sosPastille(calculerPointsVisite(true))}</Text>
         </View>
       ) : null}
-      <BoutonDemanderAddition lieu={lieu} variante="blanc" libelle="Demander l'addition ici" />
+      <BoutonDemanderAddition lieu={lieu} variante="blanc" ici />
     </View>
   );
 }

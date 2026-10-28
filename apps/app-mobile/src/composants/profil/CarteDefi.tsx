@@ -28,7 +28,7 @@ export function CarteDefi({ defi }: Props) {
   const debut = ecrireDateLongueLangue(defi.debut, langue);
   const fin = defi.fin ? ecrireDateLongueLangue(defi.fin, langue) : null;
   // « +1 pt », « +30 pts » ; à 0 point, ni « +0 » ni « gagnés » : juste la gloire
-  const gain = defi.points > 0 ? T.gain(defi.points) : T.pourLaGloire;
+  const gain = defi.points > 0 ? `+${defi.points} ${defi.points === 1 ? "pt" : "pts"}` : T.pourLaGloire;
   const gainLu = defi.points === 0 ? T.gainLuSansPoints : reussi ? T.pointsGagnes(defi.points) : T.pointsAGagner(defi.points);
 
   const pastille = reussi

@@ -1,24 +1,28 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
-import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
+import { ecrireDateLangue } from "@sos-miam/commun/fonctions/langue/ecrire-date-langue";
 import type { StatutVisite, Visite } from "@sos-miam/commun/types/visite";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
+import { TEXTES_SCAN_PAR_LANGUE } from "~/contenus/textes-scan";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { decrireReglementLangue } from "~/fonctions/langue/decrire-reglement-langue";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visite: Visite;
   onPress: () => void;
 };
 
-const STATUTS: Record<StatutVisite, { texte: string; fond: string }> = {
-  demandee: { texte: "En attente", fond: "bg-jaune-clair" },
-  validee: { texte: "Validée", fond: "bg-jaune" },
-  refusee: { texte: "Pas validée", fond: "bg-rose-alerte" },
-  annulee: { texte: "Annulée", fond: "bg-ligne" },
-  expiree: { texte: "Endormie", fond: "bg-ligne" },
-  retiree: { texte: "Retirée", fond: "bg-rose-alerte" },
+const FONDS_STATUTS: Record<StatutVisite, string> = {
+  demandee: "bg-jaune-clair",
+  validee: "bg-jaune",
+  refusee: "bg-rose-alerte",
+  annulee: "bg-ligne",
+  expiree: "bg-ligne",
+  retiree: "bg-rose-alerte",
 };
 
 const FORMAT_JOUR = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" });
@@ -26,16 +30,20 @@ const FORMAT_JOUR = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "s
 /** Une visite en une ligne, dans l'aperçu de l'onglet Scan : le lieu, le jour, ce qu'elle a rapporté et son état. */
 export function ApercuVisite({ visite, onPress }: Props) {
   const couleurs = utiliserCouleurs();
-  const statut = STATUTS[visite.statut];
-  const jour = FORMAT_JOUR.format(new Date(visite.valideLe ?? visite.creeLe));
-  const gain = visite.statut === "validee" && visite.points > 0 ? `+${visite.points} points${visite.tampon ? " · 1 tampon" : ""}` : null;
-  const reglement = visite.statut === "validee" ? decrireReglement(visite.reglement, "client") : null;
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_SCAN_PAR_LANGUE);
+  const statut = { texte: T.statuts[visite.statut], fond: FONDS_STATUTS[visite.statut] };
+  const date = new Date(visite.valideLe ?? visite.creeLe);
+  const jour =
+    langue === "en" ? ecrireDateLangue({ annee: date.getFullYear(), mois: date.getMonth() + 1, jour: date.getDate() }, langue, { sansAnnee: true, court: true }) : FORMAT_JOUR.format(date);
+  const gain = visite.statut === "validee" && visite.points > 0 ? T.gain(visite.points, visite.tampon) : null;
+  const reglement = visite.statut === "validee" ? decrireReglementLangue(visite.reglement, "client", langue) : null;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={[`${visite.lieu.nom}, le ${jour}`, statut.texte, reglement ? [reglement.titre, ...reglement.etiquettes].join(", ") : null, gain].filter(Boolean).join(", ")}
-      accessibilityHint="Ouvre le détail de la visite"
+      accessibilityLabel={[T.apercuLu(visite.lieu.nom, jour), statut.texte, reglement ? [reglement.titre, ...reglement.etiquettesLues].join(", ") : null, gain].filter(Boolean).join(", ")}
+      accessibilityHint={T.apercuIndice}
       onPress={() => {
         vibrerLegerement();
         onPress();

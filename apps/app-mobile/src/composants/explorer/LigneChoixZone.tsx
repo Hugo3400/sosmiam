@@ -2,8 +2,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { memo } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   emoji: string;
@@ -20,13 +22,14 @@ type Props = {
 /** Une ligne de « On explore où ? » : emoji, libellé (et précision), rond coché ou non. Au moins 56 points de haut. */
 export const LigneChoixZone = memo(function LigneChoixZone({ emoji, libelle, detail, choisi, position, total, onPress }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE);
   const lu = detail ? `${libelle}, ${detail}` : libelle;
   return (
     <Pressable
       // Sur iPhone, une radio est lue en anglais (« radio button ») : bouton « sélectionné », avec sa place dans la liste
       accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
       accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
-      accessibilityLabel={Platform.OS === "ios" ? `${lu}, ${position} sur ${total}` : lu}
+      accessibilityLabel={Platform.OS === "ios" ? T.zone.positionLu(lu, position, total) : lu}
       onPress={() => {
         vibrerLegerement();
         onPress();

@@ -4,9 +4,11 @@ import { Pressable, Text, View } from "react-native";
 import type { SectionCarte } from "@sos-miam/commun/types/carte";
 import { BoutonIconeRond } from "~/composants/interface/BoutonIconeRond";
 import { LigneElementCartePro } from "~/composants/pro/LigneElementCartePro";
+import { TEXTES_EDITION_CARTE_PAR_LANGUE } from "~/contenus/textes-edition-carte";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   section: SectionCarte;
@@ -30,8 +32,9 @@ type Props = {
  */
 export function SectionCartePro({ section, index, total, rangement, formules, onRenommer, onDeplacer, onAjouter, onModifierElement, onDeplacerElement, cle }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_EDITION_CARTE_PAR_LANGUE).sectionPro;
   const nombre = section.elements.length;
-  const quoi = formules ? "une formule" : "un plat ou une boisson";
+  const quoi = formules ? T.quoiFormule : T.quoiPlat;
 
   return (
     <View className="gap-2.5">
@@ -40,15 +43,15 @@ export function SectionCartePro({ section, index, total, rangement, formules, on
           <Text accessibilityRole="header" className="font-titre-gras text-[22px] leading-7 text-encre">
             {lierPonctuation(section.titre)}
           </Text>
-          <Text className="font-texte text-[13px] text-gris">{nombre === 0 ? "Vide pour l'instant" : `${nombre} sur la carte`}</Text>
+          <Text className="font-texte text-[13px] text-gris">{nombre === 0 ? T.vide : T.nombre(nombre)}</Text>
         </View>
         {rangement ? (
           <>
-            <BoutonIconeRond icone="arrow-up" libelle={`Monter la section ${section.titre}`} desactive={index === 0} onPress={() => onDeplacer(-1)} />
-            <BoutonIconeRond icone="arrow-down" libelle={`Descendre la section ${section.titre}`} desactive={index === total - 1} onPress={() => onDeplacer(1)} />
+            <BoutonIconeRond icone="arrow-up" libelle={T.monterLu(section.titre)} desactive={index === 0} onPress={() => onDeplacer(-1)} />
+            <BoutonIconeRond icone="arrow-down" libelle={T.descendreLu(section.titre)} desactive={index === total - 1} onPress={() => onDeplacer(1)} />
           </>
         ) : (
-          <BoutonIconeRond icone="pencil" libelle={`Renommer ou retirer la section ${section.titre}`} onPress={onRenommer} />
+          <BoutonIconeRond icone="pencil" libelle={T.renommerLu(section.titre)} onPress={onRenommer} />
         )}
       </View>
 
@@ -68,7 +71,7 @@ export function SectionCartePro({ section, index, total, rangement, formules, on
         {rangement ? null : (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Ajouter ${quoi} dans ${section.titre}`}
+            accessibilityLabel={T.ajouterLu(quoi, section.titre)}
             onPress={() => {
               vibrerLegerement();
               onAjouter();
@@ -78,7 +81,7 @@ export function SectionCartePro({ section, index, total, rangement, formules, on
             <View className="h-7 w-7 items-center justify-center rounded-full bg-jaune">
               <Ionicons name="add" size={18} color={couleurs.nuit} />
             </View>
-            <Text className="font-texte-gras text-[15px] text-encre">Ajouter {quoi}</Text>
+            <Text className="font-texte-gras text-[15px] text-encre">{T.ajouter(quoi)}</Text>
           </Pressable>
         )}
       </View>

@@ -3,13 +3,14 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, useWindowDimensions, View } from "react-native";
 
+import { REACTIONS_PAR_CODE } from "@sos-miam/commun/regles/chat";
 import type { TypePartage } from "@sos-miam/commun/types/messagerie";
 import { TuilePhotoPartagee } from "~/composants/chat/TuilePhotoPartagee";
 import { VisionneusePhotosChat } from "~/composants/chat/VisionneusePhotosChat";
 import { Pastille } from "~/composants/interface/Pastille";
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
-import { TEXTES_MEDIAS_CHAT as T_MEDIAS } from "~/contenus/textes-medias-chat";
-import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
@@ -19,6 +20,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPartagesGroupe } from "~/hooks/utiliser-partages-groupe";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -32,6 +34,9 @@ const MARGE = 20;
 
 export function PartagesGroupe({ conversationId, repere, prenomDe }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
+  const T_MEDIAS = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const T_BULLES = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const router = useRouter();
   const { width } = useWindowDimensions();
   const monId = utiliserMonId();
@@ -47,8 +52,8 @@ export function PartagesGroupe({ conversationId, repere, prenomDe }: Props) {
   ];
 
   function doubleAppui(message: MessageChatEnrichi): boolean {
-    const deja = (message.reactions[T_MESSAGES.emojiDoubleToucher] ?? []).includes(monId);
-    basculerReaction(conversationId, message.id, T_MESSAGES.emojiDoubleToucher);
+    const deja = (message.reactions[REACTIONS_PAR_CODE.miam] ?? []).includes(monId);
+    basculerReaction(conversationId, message.id, REACTIONS_PAR_CODE.miam);
     return !deja;
   }
 
@@ -110,8 +115,8 @@ export function PartagesGroupe({ conversationId, repere, prenomDe }: Props) {
               <Pressable
                 key={m.id}
                 accessibilityRole="button"
-                accessibilityLabel={`${lieu.nom}, ${lieu.info}, partagé par ${prenomDe(m.auteur)}`}
-                accessibilityHint="Ouvre la fiche du lieu"
+                accessibilityLabel={T_BULLES.partageParLu(lieu.nom, lieu.info, prenomDe(m.auteur))}
+                accessibilityHint={T_BULLES.ouvreFiche}
                 onPress={() => {
                   vibrerLegerement();
                   router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });

@@ -36,6 +36,7 @@ export const TEXTES_CHAT_BULLES = {
   onYVa: "On y va ?",
   onYVaIndice: "Prépare une sortie à ce lieu avec les potes de la conversation",
   photoPartieLu: (libelle: string) => `${libelle} : partie en vacances, elle ne s'affiche plus`,
+  libelleEtEtat: (libelle: string, etat: string) => `${libelle} : ${etat}`,
   ouvrePhoto: "Ouvre la photo en grand",
   ouvrePhotos: "Ouvre les photos en grand",
   vocalPartiLu: (libelle: string) => `${libelle} : partie se promener, elle ne se lit plus`,

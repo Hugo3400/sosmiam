@@ -3,8 +3,9 @@ import { Text, View } from "react-native";
 import { MODES_ACCEPTATION_RESERVATION } from "@sos-miam/commun/regles/reglages-reservations";
 import type { ModeAcceptationReservation } from "@sos-miam/commun/types/reglages-reservations";
 import { CarteModeAcceptation } from "~/composants/reservations-pro/CarteModeAcceptation";
-import { TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   acceptation: ModeAcceptationReservation;
@@ -16,6 +17,7 @@ type Props = {
 const ORDRE: readonly ModeAcceptationReservation[] = [...MODES_ACCEPTATION_RESERVATION].reverse();
 
 export function SectionModeAcceptation({ acceptation, avecServices, modifiable, onChoisir }: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
   return (
     <View className="gap-3">
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">

@@ -1,9 +1,11 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
 import type { ModeAcceptationReservation } from "@sos-miam/commun/types/reglages-reservations";
-import { MODES_ACCEPTATION } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-ecran-pro-reservations";
+import { MODES_ACCEPTATION_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   mode: ModeAcceptationReservation;
@@ -17,12 +19,13 @@ type Props = {
 
 export function CarteModeAcceptation({ mode, choisi, desactive, indiceDesactive, position, total, onPress }: Props) {
   const ios = Platform.OS === "ios";
-  const { emoji, titre, texte } = MODES_ACCEPTATION[mode];
+  const { emoji, titre, texte } = utiliserTextes(MODES_ACCEPTATION_PAR_LANGUE)[mode];
+  const { place } = utiliserTextes(TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE);
   return (
     <Pressable
       accessibilityRole={ios ? "button" : "radio"}
       accessibilityState={ios ? { selected: choisi, disabled: desactive } : { checked: choisi, disabled: desactive }}
-      accessibilityLabel={`${titre}. ${texte}${ios ? `, ${position} sur ${total}` : ""}`}
+      accessibilityLabel={`${titre}. ${texte}${ios ? place(position, total) : ""}`}
       accessibilityHint={desactive ? indiceDesactive : undefined}
       disabled={desactive}
       onPress={() => {

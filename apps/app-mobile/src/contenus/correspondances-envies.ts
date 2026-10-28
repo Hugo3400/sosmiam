@@ -1,5 +1,7 @@
 // Comment les envies de l'inscription se rapprochent des lieux (tri du fil « Pour toi » et « Parce que tu aimes… »).
 import type { EnvieLieu, TypeLieu } from "@sos-miam/commun/types/lieu";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { LIBELLE_PAR_ENVIE_ANGLAIS, LIBELLE_PAR_TYPE_ANGLAIS } from "~/contenus/anglais/correspondances-envies";
 
 /** Choix de la catégorie « lieux » → type de lieu */
 export const typeParChoixLieu: Record<string, TypeLieu> = {
@@ -56,3 +58,7 @@ export const libelleParEnvie: Record<EnvieLieu, string> = {
   potes: "Parfait entre potes",
   famille: "Parfait en famille",
 };
+
+export const LIBELLE_PAR_TYPE_PAR_LANGUE: ParLangue<Traduction<typeof libelleParType>> = { fr: libelleParType, en: LIBELLE_PAR_TYPE_ANGLAIS };
+
+export const LIBELLE_PAR_ENVIE_PAR_LANGUE: ParLangue<Traduction<typeof libelleParEnvie>> = { fr: libelleParEnvie, en: LIBELLE_PAR_ENVIE_ANGLAIS };

@@ -12,18 +12,21 @@ import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddit
 import { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { LigneLieuProche } from "~/composants/visites/LigneLieuProche";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { TEXTES_DEMANDE_ADDITION_PAR_LANGUE } from "~/contenus/textes-demande-addition";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { trierLieuxProches } from "~/fonctions/visites/trier-lieux-proches";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** En dessous, un seul lieu proche, c'est sûrement là : « Tu es chez … ? » en grand */
 const RAYON_EVIDENT_M = 100;
@@ -46,6 +49,8 @@ function chercher(lieux: readonly Lieu[], recherche: string): Lieu[] {
  */
 export default function TuEsChezQui() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDE_ADDITION_PAR_LANGUE);
   const navigation = useNavigation();
   const services = utiliserServices();
   const position = utiliserPositionExpliquee();
@@ -103,9 +108,9 @@ export default function TuEsChezQui() {
 
   const actionsEchec: ActionEchecVisite[] = [];
   if (lecture.etat === "echec" && (lecture.erreur === "position-bloquee" || lecture.erreur === "position-approximative")) {
-    actionsEchec.push({ libelle: "Ouvrir les réglages", onPress: () => void Linking.openSettings().catch(() => {}) });
+    actionsEchec.push({ libelle: T.ouvrirReglages, onPress: () => void Linking.openSettings().catch(() => {}) });
   }
-  actionsEchec.push({ libelle: "Réessayer", variante: actionsEchec.length > 0 ? "blanc" : "jaune", onPress: () => void lirePosition() });
+  actionsEchec.push({ libelle: T.reessayer, variante: actionsEchec.length > 0 ? "blanc" : "jaune", onPress: () => void lirePosition() });
 
   return (
     // Plein écran par-dessus les onglets : les marges viennent de utiliserMargesPleinEcran (jamais sous l'heure ni l'encoche)
@@ -114,7 +119,7 @@ export default function TuEsChezQui() {
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={premier ? "Fermer" : "Retour"}
+          accessibilityLabel={premier ? T.fermer : T.retour}
           hitSlop={12}
           onPress={fermer}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -126,10 +131,10 @@ export default function TuEsChezQui() {
       <ScrollView className="flex-1" keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-10">
         <View className="gap-2">
           <Text accessibilityRole="header" className="font-titre text-3xl text-encre">
-            Tu es chez qui ?
+            {T.ouEsTuTitre}
           </Text>
           <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Choisis le lieu où tu manges : tu reçois un code à montrer au moment de payer, et ta visite compte.")}
+            {lierPonctuation(T.ouEsTuTexte)}
           </Text>
         </View>
 
@@ -140,9 +145,9 @@ export default function TuEsChezQui() {
         ) : (
           <>
             {lecture.etat === "attente" ? (
-              <View accessible accessibilityLabel="On regarde où tu es…" className="flex-row items-center justify-center gap-3 py-6">
+              <View accessible accessibilityLabel={T.positionEnCours} className="flex-row items-center justify-center gap-3 py-6">
                 <ActivityIndicator color={couleurs.encre} />
-                <Text className="font-texte-semi text-base text-encre">On regarde où tu es…</Text>
+                <Text className="font-texte-semi text-base text-encre">{T.positionEnCours}</Text>
               </View>
             ) : null}
 
@@ -156,7 +161,7 @@ export default function TuEsChezQui() {
               <View className="rounded-carte border-2 border-encre bg-carte p-5">
                 <MessageEchecVisite
                   erreur="position-refusee"
-                  actions={[{ libelle: "Vérifier ma position", onPress: () => void lirePosition() }]}
+                  actions={[{ libelle: T.verifierPosition, onPress: () => void lirePosition() }]}
                 />
               </View>
             ) : null}
@@ -174,13 +179,13 @@ export default function TuEsChezQui() {
                     <Text className="text-3xl">{evident.lieu.emoji}</Text>
                   </View>
                   <Text accessibilityRole="header" className="text-center font-titre text-2xl text-nuit">
-                    {lierPonctuation(`Tu es ${direChezLieu(evident.lieu.nom)} ?`)}
+                    {lierPonctuation(T.evidentTitre(direChezLieuLangue(evident.lieu.nom, langue)))}
                   </Text>
                   <Text className="text-center font-texte-semi text-sm text-nuit">
-                    {lierPonctuation(`À ${formaterDistance(evident.distanceM / 1000)} de toi · ${ecrireQuartierVille(evident.lieu)}`)}
+                    {lierPonctuation(T.evidentDetail(formaterDistanceLangue(evident.distanceM / 1000, langue), ecrireQuartierVille(evident.lieu)))}
                   </Text>
                   <View className="self-stretch">
-                    <BoutonDemanderAddition lieu={evident.lieu} variante="blanc" surJaune libelle="Oui, demander l'addition" />
+                    <BoutonDemanderAddition lieu={evident.lieu} variante="blanc" surJaune libelle={T.ouiDemander} />
                   </View>
                 </View>
               </View>
@@ -189,7 +194,7 @@ export default function TuEsChezQui() {
             {autour.length > 0 ? (
               <View className="gap-3">
                 <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-                  {evident ? "Pas le bon lieu ?" : "Autour de toi"}
+                  {evident ? T.pasLeBonLieu : T.autourDeToi}
                 </Text>
                 {autour.map(({ lieu, distanceM }) => (
                   <LigneLieuProche key={lieu.id} lieu={lieu} distanceM={distanceM} />
@@ -199,17 +204,17 @@ export default function TuEsChezQui() {
 
             {lecture.etat === "ok" && proches.length === 0 ? (
               <Text className="text-center font-texte text-base leading-6 text-gris">
-                {lierPonctuation(`Aucun lieu qui valide les visites à moins de ${RAYON_LIEUX_PROCHES_M} m. Cherche-le par son nom :`)}
+                {lierPonctuation(T.aucunProche(RAYON_LIEUX_PROCHES_M))}
               </Text>
             ) : null}
 
             {lecture.etat !== "attente" ? (
               <View className="gap-3">
                 <ChampTexte
-                  libelle={proches.length > 0 ? "Pas dans la liste ? Cherche le lieu" : "Cherche le lieu"}
+                  libelle={proches.length > 0 ? T.chercherPasDansListe : T.chercher}
                   valeur={recherche}
                   onChangeTexte={setRecherche}
-                  placeholder="Nom, quartier ou ville"
+                  placeholder={T.chercherPlaceholder}
                   autoCorrect={false}
                   returnKeyType="search"
                 />
@@ -218,7 +223,7 @@ export default function TuEsChezQui() {
                 ))}
                 {assezDeLettres && trouves.length === 0 && ids !== null ? (
                   <Text className="text-center font-texte text-base text-gris">
-                    {lierPonctuation("Aucun lieu qui valide les visites ne correspond. Il n'est peut-être pas encore équipé !")}
+                    {lierPonctuation(T.aucunTrouve)}
                   </Text>
                 ) : null}
               </View>

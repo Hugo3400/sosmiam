@@ -8,8 +8,10 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
+import { TEXTES_ECHEC_VISITE_PAR_LANGUE } from "~/contenus/textes-echec-visite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type EchecVisite = { erreur: ErreurService; details?: DetailsErreur };
 
@@ -34,6 +36,7 @@ const DUREE_FERMETURE = 450;
  * descendue avant d'agir (relire la position, ouvrir un autre écran). VoiceOver commence par le titre.
  */
 export function FeuilleEchecVisite({ echec, lieuNom, textes, actions = [], onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_ECHEC_VISITE_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -85,7 +88,7 @@ export function FeuilleEchecVisite({ echec, lieuNom, textes, actions = [], onFer
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onDismiss={finirFermeture}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+      <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
       <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
@@ -104,7 +107,7 @@ export function FeuilleEchecVisite({ echec, lieuNom, textes, actions = [], onFer
             {actions.map((action) => (
               <Bouton key={action.libelle} libelle={action.libelle} variante={action.variante ?? "jaune"} onPress={() => fermerPuis(action.onPress)} />
             ))}
-            <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} />
+            <Bouton libelle={T.fermer} variante="blanc" onPress={onFermer} />
           </View>
         </View>
       </Animated.View>

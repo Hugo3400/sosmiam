@@ -1,5 +1,8 @@
 import { Text, View } from "react-native";
 
+import { TEXTES_BLOCS_MON_LIEU_PAR_LANGUE } from "~/contenus/textes-blocs-mon-lieu";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 type Props = {
   emoji: string;
   libelle: string;
@@ -13,11 +16,12 @@ type Props = {
 
 /** Un chiffre de la semaine, son écart avec la semaine d'avant, et ses dernières semaines en petites barres. */
 export function LigneStatistique({ emoji, libelle, valeur, avant, historique }: Props) {
+  const T = utiliserTextes(TEXTES_BLOCS_MON_LIEU_PAR_LANGUE).statistique;
   const ecart = avant === null ? null : valeur - avant;
   const max = Math.max(1, ...historique);
-  const tendance = ecart === null || ecart === 0 ? "pareil que la semaine dernière" : ecart > 0 ? `${ecart} de plus que la semaine dernière` : `${-ecart} de moins que la semaine dernière`;
+  const tendance = ecart === null || ecart === 0 ? T.pareil : ecart > 0 ? T.plus(ecart) : T.moins(-ecart);
   return (
-    <View accessible accessibilityLabel={`${libelle} : ${valeur} cette semaine, ${tendance}`} className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
+    <View accessible accessibilityLabel={T.lu(libelle, valeur, tendance)} className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
       <View className="flex-row items-center gap-3">
         <Text className="text-2xl">{emoji}</Text>
         <View className="flex-1">

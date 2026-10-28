@@ -6,6 +6,7 @@ export const TEXTES_INSCRIPTION_PROFIL = {
   sousTitre: "Promis, c'est rapide : juste de quoi te saluer par ton prénom et te dénicher des bons plans près de chez toi.",
   continuer: "Continuer",
   prenomInterdit: "Ce prénom-là ne passera pas chez nous ! Mets ton vrai prénom, ou un petit surnom sympa.",
+  // Mêmes règles que estPseudoValide (packages/commun), dites simplement
   reglesPseudo: "De 3 à 20 caractères : lettres minuscules sans accents, chiffres, point ou tiret bas (pas au début ni à la fin, et jamais deux d'affilée).",
   prenomVide: "Il nous faut au moins ton prénom pour te dire bonjour !",
   pseudoVide: "Choisis-toi un pseudo : c'est grâce à lui que tes potes te trouveront.",

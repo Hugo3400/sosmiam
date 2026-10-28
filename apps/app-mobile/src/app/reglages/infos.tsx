@@ -9,42 +9,27 @@ import { nomPublicContientMotInterdit } from "@sos-miam/commun/validation/nom-pu
 import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { MESSAGES_INFOS } from "~/contenus/annonces-profil";
+import { MESSAGES_INFOS_PAR_LANGUE } from "~/contenus/annonces-profil";
+import { TEXTES_REGLAGES_INFOS_PAR_LANGUE } from "~/contenus/textes-reglages-infos";
 import { proposerPseudo } from "~/fonctions/communaute/proposer-pseudo";
 import { decrireRefusInfos } from "~/fonctions/compte/decrire-refus-infos";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserDisponibilitePseudo } from "~/hooks/utiliser-disponibilite-pseudo";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserProfil, type ChangementsInfos, type ResultatInfos } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Mêmes limites qu'à l'inscription (et que estProfilValide pour le prénom)
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
 const LONGUEUR_MAX_PSEUDO = 20;
-// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que le pseudo, comme à l'inscription
-const PRENOM_INTERDIT = lierPonctuation(MESSAGES_INFOS.prenomInterdit);
-// Mêmes règles que estPseudoValide (packages/commun), dites simplement, comme à l'inscription
-const REGLES_PSEUDO =
-  "De 3 à 20 caractères : lettres minuscules sans accents, chiffres, point ou tiret bas (pas au début ni à la fin, et jamais deux d'affilée).";
-// Ce que dit le serveur pendant la saisie (mêmes phrases que ses refus à l'enregistrement)
-const PSEUDO_PRIS = decrireRefusInfos("pseudo-pris").texte;
-const PSEUDO_MIS_DE_COTE = decrireRefusInfos("pseudo-mis-de-cote").texte;
-// Sans compte (un profil d'avant les comptes), personne ne vérifie le pseudo : on dit où il l'est pour de vrai
-const PSEUDO_SANS_COMPTE = "Sans compte, il reste sur ce téléphone : c'est avec un compte qu'on vérifie qu'il est libre.";
 // Clavier sans accents ni emoji sur iPhone, sans suggestions sur Android
 const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible-password", default: "default" } as const);
-// Avec un compte, la date est gardée chiffrée sur le serveur : seule l'équipe la corrige, sur demande (docs/decisions.md)
-const EXPLICATION_DATE_COMPTE = lierPonctuation(
-  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Écris-nous à bonjour@sosmiam.fr, on la corrige avec toi.",
-);
-// Sans compte connecté, le profil n'existe que sur le téléphone : personne ne peut corriger la date à ta place
-const EXPLICATION_DATE_TELEPHONE = lierPonctuation(
-  "Elle ne se change pas d'ici : c'est elle qui confirme que tu as l'âge d'être sur SOS Miam. Une erreur ? Ce profil n'existe que sur ton téléphone, on ne peut pas la corriger de notre côté. La seule solution : « Effacer mes données et recommencer », dans Paramètres › Tes données (le reste repart aussi à zéro).",
-);
 
 /** Un refus du serveur montré sous sa case, tant que la case garde la valeur refusée ; `bloquant` : Enregistrer reste grisé */
 type RefusAffiche = { champ: "prenom" | "pseudo" | "nom"; valeur: string; texte: string; bloquant: boolean };
@@ -58,8 +43,24 @@ type RefusAffiche = { champ: "prenom" | "pseudo" | "nom"; valeur: string; texte:
  */
 export default function ReglagesInfos() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_INFOS_PAR_LANGUE);
+  const MESSAGES_INFOS = utiliserTextes(MESSAGES_INFOS_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const router = useRouter();
   const { profil, modifierInfos, pseudoMisDeCote } = utiliserProfil();
+  // Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que le pseudo, comme à l'inscription
+  const PRENOM_INTERDIT = lierPonctuation(MESSAGES_INFOS.prenomInterdit);
+  // Mêmes règles que estPseudoValide (packages/commun), dites simplement, comme à l'inscription
+  const REGLES_PSEUDO = T.reglesPseudo;
+  // Ce que dit le serveur pendant la saisie (mêmes phrases que ses refus à l'enregistrement)
+  const PSEUDO_PRIS = decrireRefusInfos("pseudo-pris", langue).texte;
+  const PSEUDO_MIS_DE_COTE = decrireRefusInfos("pseudo-mis-de-cote", langue).texte;
+  // Sans compte (un profil d'avant les comptes), personne ne vérifie le pseudo : on dit où il l'est pour de vrai
+  const PSEUDO_SANS_COMPTE = T.pseudoSansCompte;
+  // Avec un compte, la date est gardée chiffrée sur le serveur : seule l'équipe la corrige, sur demande (docs/decisions.md)
+  const EXPLICATION_DATE_COMPTE = lierPonctuation(T.dateAvecCompte);
+  // Sans compte connecté, le profil n'existe que sur le téléphone : personne ne peut corriger la date à ta place
+  const EXPLICATION_DATE_TELEPHONE = lierPonctuation(T.dateSurTelephone);
   const { connecte } = utiliserSession();
   const avecCompte = connecte;
   const champPrenom = useRef<TextInput>(null);
@@ -109,7 +110,7 @@ export default function ReglagesInfos() {
   // Vérifié seulement s'il change : un prénom déjà enregistré ne bloque jamais l'enregistrement du reste
   const erreurPrenom =
     prenomNettoye.length === 0
-      ? "Il nous faut au moins ton prénom pour te dire bonjour !"
+      ? T.prenomVide
       : prenomNettoye !== profil.prenom && nomPublicContientMotInterdit(prenomNettoye)
         ? PRENOM_INTERDIT
         : (refusPrenom?.texte ?? null);
@@ -118,12 +119,12 @@ export default function ReglagesInfos() {
   const erreurPseudoLocale =
     pseudoNettoye === ""
       ? pseudoActuel
-        ? "Garde un pseudo : c'est grâce à lui que tes potes te trouvent."
+        ? T.garderPseudo
         : null
       : !estPseudoValide(pseudoNettoye)
         ? REGLES_PSEUDO
         : pseudoChange && nomPublicContientMotInterdit(pseudoNettoye)
-          ? "Ce pseudo-là ne passera pas : choisis-en un plus sympa."
+          ? T.pseudoInterdit
           : null;
   // Ce que le serveur a dit de ce pseudo-là (à l'enregistrement, ou pendant la saisie)
   const erreurPseudoServeur = refusPseudo?.bloquant
@@ -138,7 +139,7 @@ export default function ReglagesInfos() {
   const montrerErreurPseudo = pseudoQuitte || /[^a-z0-9._]/.test(pseudoNettoye);
   const messagePseudo = (montrerErreurPseudo ? erreurPseudoLocale : null) ?? erreurPseudoServeur ?? (refusPseudo && !refusPseudo.bloquant ? refusPseudo.texte : null);
   const aidePseudo = !avecCompte
-    ? lierPonctuation(`${pseudoActuel ? "C'est avec lui que tes potes te trouvent (ton lien d'invitation et ton QR code suivront s'il change)." : "Tu n'en as pas encore : choisis-en un pour que tes potes te trouvent. 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas."} ${PSEUDO_SANS_COMPTE}`)
+    ? lierPonctuation(`${pseudoActuel ? T.aideSansCompteAvecPseudo : T.aideSansCompteSansPseudo} ${PSEUDO_SANS_COMPTE}`)
     : lierPonctuation(
         disponibilite === "verification"
           ? MESSAGES_INFOS.pseudoVerification
@@ -150,7 +151,7 @@ export default function ReglagesInfos() {
       );
   const nomValable = !refusNom?.bloquant;
   const change = prenomNettoye !== profil.prenom || pseudoChange || nomNettoye !== (profil.nom ?? "") || ville !== profil.ville;
-  const dateNaissance = formaterDateLongue(profil.dateNaissance);
+  const dateNaissance = ecrireDateLongueLangue(profil.dateNaissance, langue);
   const age = calculerAge(profil.dateNaissance);
   const explicationDate = connecte ? EXPLICATION_DATE_COMPTE : EXPLICATION_DATE_TELEPHONE;
 
@@ -160,7 +161,7 @@ export default function ReglagesInfos() {
     let nouveau = proposerPseudo(prenomNettoye);
     if (nouveau === pseudoNettoye) nouveau = proposerPseudo(prenomNettoye);
     setPseudo(nouveau);
-    AccessibilityInfo.announceForAccessibility(`Pseudo proposé : ${nouveau}`);
+    AccessibilityInfo.announceForAccessibility(T.pseudoPropose(nouveau));
   }
 
   async function sauver() {
@@ -178,7 +179,7 @@ export default function ReglagesInfos() {
       r = await modifierInfos(changements);
     } catch {
       setEnregistrementEnCours(false);
-      if (Platform.OS !== "web") Alert.alert("Oups, ça a coincé", "Tes infos n'ont pas pu être enregistrées. Réessaie dans un instant.");
+      if (Platform.OS !== "web") Alert.alert(T.rateTitre, T.rateTexte);
       return;
     }
     if (r.ok) {
@@ -190,7 +191,7 @@ export default function ReglagesInfos() {
     setEnregistrementEnCours(false);
     // Session expirée : l'app te ramène d'elle-même à « Me connecter »
     if (r.refus === "connexion-requise") return;
-    const description = decrireRefusInfos(r.refus, r.champ);
+    const description = decrireRefusInfos(r.refus, langue, r.champ);
     if (description.champ === "prenom" || description.champ === "pseudo" || description.champ === "nom") {
       const valeur = description.champ === "prenom" ? prenomNettoye : description.champ === "pseudo" ? pseudoNettoye : nomNettoye;
       setRefus({ champ: description.champ, valeur, texte: description.texte, bloquant: description.bloquant });
@@ -204,25 +205,25 @@ export default function ReglagesInfos() {
 
   return (
     <EcranReglage
-      titre="Mes infos"
-      sousTitre="Juste de quoi te saluer par ton prénom et te dénicher des bons plans près de chez toi."
+      titre={T.titre}
+      sousTitre={T.sousTitre}
       boutonPrincipal={{
         // Avec un compte, la réponse du serveur peut prendre quelques secondes sur un réseau lent
-        libelle: enregistrementEnCours ? "Un instant…" : "Enregistrer",
+        libelle: enregistrementEnCours ? T.unInstant : T.enregistrer,
         onPress: () => void sauver(),
         desactive: !prenomValable || !pseudoValable || !nomValable || !change || !ville || enregistrementEnCours,
-        indice: "Enregistre tes infos et revient à l'écran d'avant",
+        indice: T.enregistrerIndice,
       }}
     >
       <View className="gap-6">
         <ChampTexte
           ref={champPrenom}
-          libelle="Ton prénom"
+          libelle={T.prenom}
           valeur={prenom}
           onChangeTexte={setPrenom}
           onBlur={() => setPrenomQuitte(true)}
           erreur={prenomQuitte || refusPrenom ? erreurPrenom : null}
-          placeholder="Camille"
+          placeholder={T.prenomExemple}
           textContentType="givenName"
           autoComplete="given-name"
           autoCapitalize="words"
@@ -236,14 +237,14 @@ export default function ReglagesInfos() {
         <View className="gap-1">
           <ChampTexte
             ref={champPseudo}
-            libelle="Ton pseudo"
+            libelle={T.pseudo}
             valeur={pseudo}
             // Sans « @ » et en minuscules : on corrige pour toi plutôt que de te gronder
             onChangeTexte={(texte) => setPseudo(texte.toLowerCase().replace(/^@+/, ""))}
             onBlur={() => setPseudoQuitte(true)}
             erreur={messagePseudo}
             aide={aidePseudo}
-            placeholder="camille42"
+            placeholder={T.pseudoExemple}
             keyboardType={CLAVIER_PSEUDO}
             textContentType="none"
             autoComplete="off"
@@ -258,26 +259,26 @@ export default function ReglagesInfos() {
           {prenomNettoye ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={pseudoNettoye ? "Une autre idée de pseudo" : "Me proposer un pseudo"}
-              accessibilityHint="Remplace ton pseudo par une proposition, à partir de ton prénom"
+              accessibilityLabel={pseudoNettoye ? T.autreIdeeLu : T.proposerLu}
+              accessibilityHint={T.proposerIndice}
               onPress={proposer}
               hitSlop={4}
               className="min-h-11 justify-center self-start active:opacity-70"
             >
-              <Text className="font-texte-semi text-sm text-encre underline">{pseudoNettoye ? "🎲 Une autre idée" : "🎲 Me proposer un pseudo"}</Text>
+              <Text className="font-texte-semi text-sm text-encre underline">{pseudoNettoye ? T.autreIdee : T.proposer}</Text>
             </Pressable>
           ) : null}
         </View>
 
         <ChampTexte
           ref={champNom}
-          libelle="Ton nom"
-          mention="facultatif"
+          libelle={T.nom}
+          mention={T.facultatif}
           valeur={nom}
           onChangeTexte={setNom}
           erreur={refusNom?.texte ?? null}
-          aide="Tu peux le laisser vide, on ne le prendra pas mal."
-          placeholder="Dupont"
+          aide={T.nomAide}
+          placeholder={T.nomExemple}
           textContentType="familyName"
           autoComplete="family-name"
           autoCapitalize="words"
@@ -286,10 +287,10 @@ export default function ReglagesInfos() {
           returnKeyType="done"
         />
 
-        <View accessible accessibilityLabel={`Ta date de naissance : ${dateNaissance}, ${age} ans. ${explicationDate}`} className="gap-2">
-          <Text className="font-texte-semi text-base text-encre">Ta date de naissance</Text>
+        <View accessible accessibilityLabel={T.dateLue(dateNaissance, age, explicationDate)} className="gap-2">
+          <Text className="font-texte-semi text-base text-encre">{T.dateTitre}</Text>
           <View className="min-h-[52px] flex-row items-center gap-3 rounded-2xl border-2 border-ligne bg-carte px-4 py-3">
-            <Text className="flex-1 font-texte text-[17px] text-encre">{`${dateNaissance} · ${age} ans`}</Text>
+            <Text className="flex-1 font-texte text-[17px] text-encre">{T.dateValeur(dateNaissance, age)}</Text>
             <Ionicons name="lock-closed" size={18} color={couleurs.gris} />
           </View>
           <Text className="font-texte text-sm leading-5 text-gris">{explicationDate}</Text>

@@ -4,10 +4,12 @@ import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ContenuCreerCompte } from "~/composants/invite/ContenuCreerCompte";
+import { TEXTES_INVITE_PAR_LANGUE } from "~/contenus/textes-invite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -35,6 +37,7 @@ const SECOURS_IOS = 1000;
  */
 export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire, onMontree }: Props) {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_INVITE_PAR_LANGUE);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const titre = useRef<Text>(null);
@@ -80,7 +83,7 @@ export function FeuilleCreerCompte({ visible, raison, onFermer, onInscrire, onMo
       {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Fermer, et continuer sans compte"
+        accessibilityLabel={T.fermerLu}
         onPress={onFermer}
         style={{ minHeight: marges.top }}
         className="flex-1 bg-black/40"

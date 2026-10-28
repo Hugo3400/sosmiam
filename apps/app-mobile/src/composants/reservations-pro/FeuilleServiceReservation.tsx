@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { CALENDRIER_PAR_LANGUE } from "@sos-miam/commun/contenus/calendrier";
 import { nommerServiceReservation } from "@sos-miam/commun/fonctions/reservations/nommer-service-reservation";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { lireMinutesHeure } from "@sos-miam/commun/fonctions/temps/lire-minutes-heure";
@@ -14,16 +15,18 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { ApercuServiceReservation } from "~/composants/reservations-pro/ApercuServiceReservation";
 import { ChampHeureService } from "~/composants/reservations-pro/ChampHeureService";
 import { GrilleChoixHeure } from "~/composants/reservations-pro/GrilleChoixHeure";
-import { ERREURS_SERVICE, TEXTES_FEUILLE_SERVICE as T } from "~/contenus/textes-reglages-reservations";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { ERREURS_SERVICE_PAR_LANGUE, TEXTES_FEUILLE_SERVICE_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterHeureTexteLangue } from "~/fonctions/langue/formater-heure-texte-langue";
 import { ajusterDerniereArrivee } from "~/fonctions/reservations/ajuster-derniere-arrivee";
 import { ecrireNomService } from "~/fonctions/reservations/ecrire-nom-service";
 import { lireNombreCouverts } from "~/fonctions/reservations/lire-nombre-couverts";
 import { listerMinutesArrivee } from "~/fonctions/reservations/lister-minutes-arrivee";
 import { verifierServiceReservation, type BrouillonService } from "~/fonctions/reservations/verifier-service-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -39,10 +42,13 @@ type Props = {
 type Erreur = { champ: string; texte: string } | null;
 
 const HEURES = Array.from({ length: 18 }, (_, i) => i + 6);
-const NOMS_JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 const garderChiffres = (texte: string) => texte.replace(/\D/g, "").slice(0, 4);
 
 export function FeuilleServiceReservation({ visible, titre, depart, autres, supprimable, onGarder, onSupprimer, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_FEUILLE_SERVICE_PAR_LANGUE);
+  const erreurs = utiliserTextes(ERREURS_SERVICE_PAR_LANGUE);
+  const { jours: nomsJours } = utiliserTextes(CALENDRIER_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const [b, setB] = useState<BrouillonService>(depart);
   const [ouvert, setOuvert] = useState<"premier" | "dernier" | null>(null);
   const [erreur, setErreur] = useState<Erreur>(null);
@@ -52,7 +58,7 @@ export function FeuilleServiceReservation({ visible, titre, depart, autres, supp
     const prochain = { ...b, ...suite };
     const dernier = ajusterDerniereArrivee(prochain.premier, prochain.dernier, prochain.pas);
     if (dernier !== prochain.dernier && suite.dernier === undefined) {
-      const texte = remplirModele(T.heuresAjustees, { premier: formaterHeure(prochain.premier), dernier: formaterHeure(dernier) });
+      const texte = remplirModele(T.heuresAjustees, { premier: formaterHeureTexteLangue(prochain.premier, langue), dernier: formaterHeureTexteLangue(dernier, langue) });
       setAjustement(texte);
       annoncerLecteurEcran(texte);
     }
@@ -65,12 +71,13 @@ export function FeuilleServiceReservation({ visible, titre, depart, autres, supp
     if (verifie.ok) return onGarder(verifie.service);
     vibrerLegerement();
     if (verifie.champ === "chevauchement") {
-      const nom = ecrireNomService(nommerServiceReservation(verifie.autre, autres)).titre;
-      const texte = remplirModele(ERREURS_SERVICE.chevauchement, { service: nom.charAt(0).toLocaleLowerCase("fr-FR") + nom.slice(1), jour: NOMS_JOURS[verifie.jour] ?? "" });
+      const nom = ecrireNomService(nommerServiceReservation(verifie.autre, autres), langue).titre;
+      const service = nom.charAt(0).toLocaleLowerCase(langue === "en" ? "en-GB" : "fr-FR") + nom.slice(1);
+      const texte = remplirModele(erreurs.chevauchement, { service, jour: nomsJours[verifie.jour] ?? "" });
       setErreur({ champ: "premier", texte });
       return annoncerLecteurEcran(texte);
     }
-    const texte = ERREURS_SERVICE[verifie.champ] ?? ERREURS_SERVICE.autre;
+    const texte = erreurs[verifie.champ] ?? erreurs.autre;
     setErreur({ champ: verifie.champ, texte });
     annoncerLecteurEcran(texte);
   }

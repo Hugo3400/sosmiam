@@ -11,7 +11,8 @@ import { SectionMesConnexions } from "~/composants/reglages/SectionMesConnexions
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { VueDelierConnexion } from "~/composants/reglages/VueDelierConnexion";
 import { VueRelierConnexion } from "~/composants/reglages/VueRelierConnexion";
-import { type FournisseurConnexion, messagesMesConnexions } from "~/contenus/mes-connexions";
+import { type FournisseurConnexion, MESSAGES_MES_CONNEXIONS_PAR_LANGUE } from "~/contenus/mes-connexions";
+import { TEXTES_REGLAGES_COMPTE_PAR_LANGUE } from "~/contenus/textes-reglages-compte";
 import { lancerConnexionApple } from "~/fonctions/compte/lancer-connexion-apple";
 import { lancerConnexionGoogle } from "~/fonctions/compte/lancer-connexion-google";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
@@ -20,6 +21,7 @@ import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { type ResultatMesConnexions, utiliserMesConnexions } from "~/hooks/utiliser-mes-connexions";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Vue = "principal" | "mot-de-passe" | "supprimer" | "delier" | "relier";
 type Confirmation = "deconnecter" | "partout" | null;
@@ -37,6 +39,8 @@ const GOOGLE_ICI = Platform.OS !== "web";
  */
 export default function MonCompte() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_REGLAGES_COMPTE_PAR_LANGUE);
+  const messagesMesConnexions = utiliserTextes(MESSAGES_MES_CONNEXIONS_PAR_LANGUE);
   const { compte, comptes, ouvrir, fermer, rafraichir } = utiliserSession();
   const effacement = utiliserEffacementLocal();
   const mesConnexions = utiliserMesConnexions();
@@ -67,7 +71,7 @@ export default function MonCompte() {
       setMessage(r.message);
       return true;
     }
-    if (r.texte) Alert.alert("🛑 Confirmation refusée", r.texte);
+    if (r.texte) Alert.alert(T.confirmationRefusee, r.texte);
     else if (r.erreur) montrerErreurCompte(r.erreur);
     return false;
   }
@@ -113,7 +117,7 @@ export default function MonCompte() {
     setActuel("");
     setNouveau("");
     setVue("principal");
-    setMessage("C'est fait : ton nouveau mot de passe est en place, et tes autres appareils sont déconnectés.");
+    setMessage(T.motDePasseChange);
   }
 
   async function supprimer(par: "mot-de-passe" | "apple" | "google") {
@@ -189,22 +193,22 @@ export default function MonCompte() {
     const pret = actuel !== "" && [...nouveau].length >= MOT_DE_PASSE_MIN;
     return (
       <EcranReglage
-        titre="Changer mon mot de passe"
-        sousTitre="Tes autres appareils seront déconnectés, celui-ci reste connecté."
-        boutonPrincipal={{ libelle: enCours ? "Un instant…" : "Changer mon mot de passe", onPress: () => void changerMotDePasse(), desactive: !pret || enCours }}
+        titre={T.changer.titre}
+        sousTitre={T.changer.sousTitre}
+        boutonPrincipal={{ libelle: enCours ? T.unInstant : T.changer.bouton, onPress: () => void changerMotDePasse(), desactive: !pret || enCours }}
       >
         <View className="gap-5">
-          <ChampTexte libelle="Mot de passe actuel" valeur={actuel} onChangeTexte={setActuel} secureTextEntry autoCapitalize="none" textContentType="password" />
+          <ChampTexte libelle={T.changer.actuel} valeur={actuel} onChangeTexte={setActuel} secureTextEntry autoCapitalize="none" textContentType="password" />
           <ChampTexte
-            libelle="Nouveau mot de passe"
+            libelle={T.changer.nouveau}
             valeur={nouveau}
             onChangeTexte={setNouveau}
             secureTextEntry
             autoCapitalize="none"
             textContentType="newPassword"
-            aide={`${MOT_DE_PASSE_MIN} caractères au moins. Une petite phrase, c'est parfait.`}
+            aide={T.changer.aide(MOT_DE_PASSE_MIN)}
           />
-          <Bouton libelle="Finalement non" variante="blanc" onPress={() => setVue("principal")} />
+          <Bouton libelle={T.changer.finalementNon} variante="blanc" onPress={() => setVue("principal")} />
         </View>
       </EcranReglage>
     );
@@ -214,29 +218,29 @@ export default function MonCompte() {
     // Sans mot de passe, et aucune clé qui se lance ici : on propose d'en ajouter un, plutôt qu'un bouton qui échouera
     const confirmationImpossible = connexions !== null && !connexions.motDePasse && !(connexions.apple && APPLE_ICI) && !(connexions.google && GOOGLE_ICI);
     return (
-      <EcranReglage titre="Supprimer mon compte" sousTitre="Tout part, pour de bon : ton profil, tes points, tes visites, tes cartes de fidélité, tes avis et tes messages.">
+      <EcranReglage titre={T.supprimer.titre} sousTitre={T.supprimer.sousTitre}>
         <View className="gap-5">
           <Text className="font-texte text-base leading-6 text-encre">
-            {lierPonctuation("On sera tristes de te voir partir. Pour confirmer que c'est bien toi, une dernière vérification :")}
+            {lierPonctuation(T.supprimer.intro)}
           </Text>
           {connexions?.motDePasse ? (
             <>
-              <ChampTexte libelle="Ton mot de passe" valeur={actuel} onChangeTexte={setActuel} secureTextEntry autoCapitalize="none" textContentType="password" />
+              <ChampTexte libelle={T.supprimer.tonMotDePasse} valeur={actuel} onChangeTexte={setActuel} secureTextEntry autoCapitalize="none" textContentType="password" />
               <Bouton
-                libelle={enCours ? "Un instant…" : "Supprimer mon compte"}
+                libelle={enCours ? T.supprimer.unInstant : T.supprimer.bouton}
                 variante="encre"
                 desactive={actuel === "" || enCours}
                 onPress={() => void supprimer("mot-de-passe")}
               />
             </>
           ) : null}
-          {connexions?.apple && APPLE_ICI ? <Bouton libelle="Confirmer avec Apple" variante="encre" desactive={enCours} onPress={() => void supprimer("apple")} /> : null}
-          {connexions?.google && GOOGLE_ICI ? <Bouton libelle="Confirmer avec Google" variante="encre" desactive={enCours} onPress={() => void supprimer("google")} /> : null}
+          {connexions?.apple && APPLE_ICI ? <Bouton libelle={T.supprimer.confirmerApple} variante="encre" desactive={enCours} onPress={() => void supprimer("apple")} /> : null}
+          {connexions?.google && GOOGLE_ICI ? <Bouton libelle={T.supprimer.confirmerGoogle} variante="encre" desactive={enCours} onPress={() => void supprimer("google")} /> : null}
           {confirmationImpossible ? (
             <>
               <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(messagesMesConnexions.suppressionImpossibleIci)}</Text>
               <Bouton
-                libelle={lienMotDePasse ? "Lien envoyé !" : "Ajouter un mot de passe"}
+                libelle={lienMotDePasse ? T.supprimer.lienEnvoye : T.supprimer.ajouterMotDePasse}
                 variante="encre"
                 desactive={lienMotDePasse || mesConnexions.enCours !== null}
                 onPress={() => {
@@ -249,41 +253,41 @@ export default function MonCompte() {
           {!connexions ? (
             <>
               <Text className="font-texte text-base leading-6 text-encre">
-                {lierPonctuation(mesConnexions.lectureRatee ? `${messagesMesConnexions.lectureRatee} : sans elles, pas moyen de confirmer.` : "On charge tes clés…")}
+                {lierPonctuation(mesConnexions.lectureRatee ? T.supprimer.clesRatees(messagesMesConnexions.lectureRatee) : T.supprimer.clesEnCours)}
               </Text>
-              {mesConnexions.lectureRatee ? <Bouton libelle="Réessayer" variante="encre" onPress={() => void mesConnexions.relire()} /> : null}
+              {mesConnexions.lectureRatee ? <Bouton libelle={T.supprimer.reessayer} variante="encre" onPress={() => void mesConnexions.relire()} /> : null}
             </>
           ) : null}
-          <Bouton libelle="Je reste" variante="blanc" onPress={() => setVue("principal")} />
+          <Bouton libelle={T.supprimer.jeReste} variante="blanc" onPress={() => setVue("principal")} />
         </View>
       </EcranReglage>
     );
   }
 
   return (
-    <EcranReglage titre="Mon compte" sousTitre={compte?.email ?? "Ton compte SOS Miam"}>
+    <EcranReglage titre={T.titre} sousTitre={compte?.email ?? T.sousTitreSansEmail}>
       {message ? (
         <View className="rounded-carte border-2 border-encre bg-jaune-clair p-4">
           <Text className="font-texte text-base leading-6 text-encre">{message}</Text>
         </View>
       ) : null}
 
-      <SectionReglages titre="Ton e-mail">
+      <SectionReglages titre={T.email.titre}>
         {compte?.emailVerifie ? (
           <View className="flex-row items-center gap-3 py-3">
             <Text accessibilityElementsHidden importantForAccessibility="no" className="text-xl">
               ✅
             </Text>
             <View className="flex-1">
-              <Text className="font-texte-gras text-base text-encre">E-mail confirmé</Text>
+              <Text className="font-texte-gras text-base text-encre">{T.email.confirme}</Text>
               <Text className="font-texte text-sm text-gris">{compte.email}</Text>
             </View>
           </View>
         ) : (
           <LigneReglage
             emoji="📬"
-            titre={lienEnvoye ? "Lien envoyé !" : "Confirme ton e-mail"}
-            detail={lienEnvoye ? "Regarde ta boîte (et les indésirables), puis reviens ici" : "Il faut un e-mail confirmé pour valider tes visites. Touche pour recevoir le lien."}
+            titre={lienEnvoye ? T.email.lienEnvoye : T.email.aConfirmer}
+            detail={lienEnvoye ? T.email.lienEnvoyeDetail : T.email.aConfirmerDetail}
             onPress={() => void renvoyerLien()}
           />
         )}
@@ -305,32 +309,28 @@ export default function MonCompte() {
         onDelier={demanderDelier}
       />
 
-      <SectionReglages titre="Connexion">
+      <SectionReglages titre={T.connexion.titre}>
         <LigneReglage
           emoji="📷"
-          titre="Connecter un appareil"
-          detail="Ton ordinateur ou un nouveau téléphone, en scannant son QR code"
+          titre={T.connexion.appareil}
+          detail={T.connexion.appareilDetail}
           onPress={() => router.push("/reglages/connecter-appareil")}
         />
-        <LigneReglage emoji="👋" titre="Me déconnecter" detail="Ton compte t'attend : reconnecte-toi quand tu veux" onPress={() => setConfirmation("deconnecter")} />
-        <LigneReglage emoji="🧯" titre="Me déconnecter partout" detail="Sur tous tes appareils, celui-ci compris" onPress={() => setConfirmation("partout")} />
+        <LigneReglage emoji="👋" titre={T.connexion.deconnecter} detail={T.connexion.deconnecterDetail} onPress={() => setConfirmation("deconnecter")} />
+        <LigneReglage emoji="🧯" titre={T.connexion.partout} detail={T.connexion.partoutDetail} onPress={() => setConfirmation("partout")} />
       </SectionReglages>
 
-      <SectionReglages titre="Zone sensible">
-        <LigneReglage emoji="🗑️" titre="Supprimer mon compte" detail="Tout part, pour de bon" danger onPress={() => setVue("supprimer")} />
+      <SectionReglages titre={T.zoneSensible}>
+        <LigneReglage emoji="🗑️" titre={T.supprimer.titre} detail={T.supprimerDetail} danger onPress={() => setVue("supprimer")} />
       </SectionReglages>
 
       <FeuilleConfirmation
         visible={confirmation !== null}
         emoji={confirmation === "partout" ? "🧯" : "👋"}
-        titre={confirmation === "partout" ? "Te déconnecter partout ?" : "Te déconnecter ?"}
-        detail={
-          confirmation === "partout"
-            ? "Tous tes appareils devront se reconnecter, celui-ci compris. Pratique si tu as perdu un téléphone."
-            : "Ce téléphone oublie ton compte et ce qu'il gardait. Tout est sur le serveur : reconnecte-toi quand tu veux."
-        }
-        libelleConfirmer={confirmation === "partout" ? "Me déconnecter partout" : "Me déconnecter"}
-        libelleRester="Je reste"
+        titre={confirmation === "partout" ? T.feuille.titrePartout : T.feuille.titre}
+        detail={confirmation === "partout" ? T.feuille.detailPartout : T.feuille.detail}
+        libelleConfirmer={confirmation === "partout" ? T.connexion.partout : T.connexion.deconnecter}
+        libelleRester={T.feuille.jeReste}
         onConfirmer={() => {
           const quoi = confirmation;
           void (async () => {

@@ -3,7 +3,6 @@ import type { TEXTES_CARTE_DEFI, TEXTES_LISTE_DEFIS, TEXTES_RESUME_DEFIS } from 
 
 export const TEXTES_CARTE_DEFI_ANGLAIS: Traduction<typeof TEXTES_CARTE_DEFI> = {
   pourLaGloire: "Just for the glory",
-  gain: (points: number) => `+${points} ${points === 1 ? "pt" : "pts"}`,
   gainLuSansPoints: "Just for the glory, no points",
   pointsGagnes: (points: number) => `${points} ${points === 1 ? "point" : "points"} earned`,
   pointsAGagner: (points: number) => `${points} ${points === 1 ? "point" : "points"} to earn`,

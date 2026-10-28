@@ -3,8 +3,10 @@ import { Text, View } from "react-native";
 
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
+import { TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE } from "~/contenus/textes-inscription-connexion";
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * « Mot de passe oublié » : un lien valable 24 h part par e-mail, seulement si un compte existe à cette adresse (la réponse
@@ -12,6 +14,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
  * pour se choisir un mot de passe.
  */
 export default function MotDePasseOublie() {
+  const T = utiliserTextes(TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE);
   const { comptes } = utiliserSession();
   const [email, setEmail] = useState("");
   const [envoi, setEnvoi] = useState(false);
@@ -28,7 +31,7 @@ export default function MotDePasseOublie() {
 
   if (envoye) {
     return (
-      <EcranEtape titre="Regarde ta boîte mail 📬" sousTitre={`Si un compte existe pour ${email.trim()}, un lien t'y attend : il est valable 24 h. Pense aux indésirables, on s'y cache parfois.`}>
+      <EcranEtape titre={T.envoyeTitre} sousTitre={T.envoyeSousTitre(email.trim())}>
         <View />
       </EcranEtape>
     );
@@ -36,12 +39,12 @@ export default function MotDePasseOublie() {
 
   return (
     <EcranEtape
-      titre="Mot de passe oublié ?"
-      sousTitre="Ça arrive aux meilleurs. Donne-nous ton e-mail, on t'envoie un lien pour en choisir un nouveau."
-      boutonPrincipal={{ libelle: envoi ? "Un instant…" : "Envoyer le lien", onPress: () => void envoyer(), desactive: envoi || email.trim() === "" }}
+      titre={T.motDePasseOublie}
+      sousTitre={T.oublieSousTitre}
+      boutonPrincipal={{ libelle: envoi ? T.unInstant : T.envoyerLien, onPress: () => void envoyer(), desactive: envoi || email.trim() === "" }}
     >
       <ChampTexte
-        libelle="Ton e-mail"
+        libelle={T.tonEmail}
         valeur={email}
         onChangeTexte={setEmail}
         autoCapitalize="none"
@@ -52,7 +55,7 @@ export default function MotDePasseOublie() {
         returnKeyType="send"
         onSubmitEditing={() => void envoyer()}
       />
-      <Text className="mt-4 font-texte text-sm leading-5 text-gris">Compte créé avec Apple ou Google ? Ce lien te permet aussi de te choisir un mot de passe.</Text>
+      <Text className="mt-4 font-texte text-sm leading-5 text-gris">{T.oublieAppleGoogle}</Text>
     </EcranEtape>
   );
 }

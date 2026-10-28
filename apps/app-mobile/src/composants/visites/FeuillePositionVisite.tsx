@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react";
 
 import { RAYON_VALIDATION_M } from "@sos-miam/commun/regles/visites";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { TEXTES_DEMANDE_ADDITION_PAR_LANGUE } from "~/contenus/textes-demande-addition";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -22,6 +25,8 @@ type Props = {
  * (vérifier que tu es sur place, une seule fois, rien n'est gardé). Feuille qui monte du bas, comme les autres confirmations.
  */
 export function FeuillePositionVisite({ visible, lieuNom, onAccepter, onRefuser }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDE_ADDITION_PAR_LANGUE);
   // « OK, vérifie » touché : la feuille descend d'elle-même, et onAccepter part quand elle a fini
   const [acceptee, setAcceptee] = useState(false);
   const accepteeMaintenant = useRef(false);
@@ -33,17 +38,17 @@ export function FeuillePositionVisite({ visible, lieuNom, onAccepter, onRefuser 
     setAcceptee(false);
   }, [visible]);
 
-  const ou = lieuNom ? direChezLieu(lieuNom) : "sur place";
-  const detail = `Pour que ta visite compte, on vérifie que tu es bien ${ou} (à ${RAYON_VALIDATION_M} m près). Ta position sert à ça, une seule fois, et on ne la garde pas.`;
+  const ou = lieuNom ? direChezLieuLangue(lieuNom, langue) : T.positionSurPlace;
+  const detail = T.positionDetail(ou, RAYON_VALIDATION_M);
   return (
     <FeuilleConfirmation
       visible={visible && !acceptee}
       emoji="📍"
-      titre="Petite vérif' de position"
+      titre={T.positionTitre}
       detail={detail}
-      libelleConfirmer="OK, vérifie"
-      libelleRester="Pas maintenant"
-      indiceRester="Ta position n'est pas lue, et ta visite n'est pas demandée"
+      libelleConfirmer={T.positionConfirmer}
+      libelleRester={T.positionRester}
+      indiceRester={T.positionResterIndice}
       onConfirmer={() => {
         accepteeMaintenant.current = true;
         setAcceptee(true);

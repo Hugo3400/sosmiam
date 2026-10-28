@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Platform, Pressable, Text, View, type LayoutChangeEvent, type TextLayoutEvent } from "react-native";
 
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 type Props = {
   /** Légende déjà mise en forme (lierPonctuation) */
   texte: string;
@@ -27,6 +30,7 @@ const couper = (debut: string) => {
  * VoiceOver lit toujours la légende en entier ; quand elle est coupée, c'est un bouton qui la déplie.
  */
 export function LegendeRepliable({ texte }: Props) {
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).legende;
   // null : elle tient sur deux lignes (ou n'est pas encore mesurée) ; sinon le texte de ses deux premières lignes ("" sur le web)
   const [deuxLignes, setDeuxLignes] = useState<string | null>(null);
   const [deplie, setDeplie] = useState(false);
@@ -68,19 +72,19 @@ export function LegendeRepliable({ texte }: Props) {
       <Pressable
         accessibilityRole="button"
         // Finit par le mot affiché (« plus » ou « moins ») : Commande vocale trouve le bouton
-        accessibilityLabel={`${texte}, ${deplie ? "moins" : "plus"}`}
-        accessibilityHint={deplie ? "Replie la légende" : "Affiche toute la légende"}
+        accessibilityLabel={`${texte}, ${deplie ? T.moins : T.plus}`}
+        accessibilityHint={deplie ? T.indiceReplier : T.indiceDeplier}
         hitSlop={{ top: 4, bottom: 4 }}
         onPress={() => setDeplie((d) => !d)}
         className="active:opacity-70"
       >
         {deplie ? (
           <Text className={styleTexte} style={ombreTexte}>
-            {texte} <Text className="font-texte-gras text-white/90">moins</Text>
+            {texte} <Text className="font-texte-gras text-white/90">{T.moins}</Text>
           </Text>
         ) : deuxLignes ? (
           <Text numberOfLines={LIGNES} className={styleTexte} style={ombreTexte}>
-            {couper(deuxLignes)}… <Text className="font-texte-gras text-white/90">plus</Text>
+            {couper(deuxLignes)}… <Text className="font-texte-gras text-white/90">{T.plus}</Text>
           </Text>
         ) : (
           <>
@@ -88,7 +92,7 @@ export function LegendeRepliable({ texte }: Props) {
               {texte}
             </Text>
             <Text className="font-texte-gras text-[15px] leading-[21px] text-white/90" style={ombreTexte}>
-              plus
+              {T.plus}
             </Text>
           </>
         )}

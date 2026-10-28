@@ -4,8 +4,11 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
 import { ZoneClaire } from "~/composants/theme/ZoneClaire";
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   hauteur: number;
@@ -26,6 +29,8 @@ const TYPES_PAGES = ["createur", "lieu"] as const;
  * Lit lui-même les suivis entre personnes : l'écran du fil ne se redessine pas pour eux.
  */
 export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, onAnnoncer }: Props) {
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).videAbonnements;
+  const TS = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
   const { pret, abonnements } = utiliserSuivisPersonnes();
   const suitDesPersonnes = pret && abonnements.length > 0;
 
@@ -41,19 +46,19 @@ export function FilVideAbonnements({ hauteur, margeHaut, margeBas, onVoirTout, o
         <View className="items-center gap-3">
           <Mascotte expression="clin" taille={110} />
           <Text accessibilityRole="header" className="text-center font-titre text-3xl text-nuit">
-            {lierPonctuation("Ton fil Abonnements fait la sieste 😴")}
+            {lierPonctuation(T.titre)}
           </Text>
           <Text className="text-center font-texte text-base leading-6 text-nuit/80">
-            {lierPonctuation("Suis des lieux et des créateurs : leurs vidéos arriveront ici.")}
+            {lierPonctuation(T.texte)}
           </Text>
           {suitDesPersonnes ? (
             <Text className="text-center font-texte text-base leading-6 text-nuit/80">
-              {lierPonctuation("Les personnes que tu suis ne publient pas encore de vidéos : leurs listes t'attendent dans Potes.")}
+              {lierPonctuation(T.personnes)}
             </Text>
           ) : null}
         </View>
-        <SuggestionsSuivre titre="Tu pourrais suivre" types={TYPES_PAGES} onAnnoncer={onAnnoncer} />
-        <Bouton libelle="Retour à Pour toi" variante="blanc" indice="Revient au fil de toutes les adresses" onPress={onVoirTout} className="mt-2 self-stretch" />
+        <SuggestionsSuivre titre={TS.tuPourraisSuivre} types={TYPES_PAGES} onAnnoncer={onAnnoncer} />
+        <Bouton libelle={T.retour} variante="blanc" indice={T.indiceRetour} onPress={onVoirTout} className="mt-2 self-stretch" />
       </ScrollView>
       {/* Sous la barre d'onglets (blanche, transparente) : sur le jaune, ses icônes ne se verraient pas */}
       <View style={{ height: margeBas }} className="bg-nuit" />

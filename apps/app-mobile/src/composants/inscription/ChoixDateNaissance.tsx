@@ -5,12 +5,16 @@ import { AccessibilityInfo, Keyboard, Modal, Platform, Pressable, Text, View } f
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
+import { TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE } from "~/contenus/textes-inscription-profil";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { formaterSaisieDate } from "~/fonctions/dates/formater-saisie-date";
 import { lireDateIso } from "~/fonctions/dates/lire-date-iso";
 import { lireDateSaisie } from "~/fonctions/dates/lire-date-saisie";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
@@ -22,8 +26,8 @@ type Props = {
   aide?: string;
 };
 
-const LIBELLE = "Ta date de naissance";
 const ANNEE_MINIMUM = 1900;
+const LOCALE_SELECTEUR: Record<Langue, string> = { fr: "fr-FR", en: "en-GB" };
 const dateMinimum = new Date(ANNEE_MINIMUM, 0, 1, 12);
 
 /** Fin de la journée d'aujourd'hui : on peut choisir aujourd'hui, pas demain. */
@@ -43,6 +47,8 @@ function dateDeDepart(valeur: string | null): Date {
  */
 export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
   const { couleurs, schema } = utiliserTheme();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE);
   const insets = useSafeAreaInsets();
   const [tiroirOuvert, setTiroirOuvert] = useState(false);
   const [dateEnCours, setDateEnCours] = useState(() => dateDeDepart(valeur));
@@ -65,13 +71,13 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
     const saisieComplete = saisieWeb.length === 10;
     const dateLue = lireDateSaisie(saisieWeb);
     let erreur: string | null = null;
-    if (saisieComplete && !dateLue) erreur = "Cette date n'existe pas, même dans nos rêves les plus gourmands.";
-    else if (dateLue && dateLue > formaterDateIso(new Date())) erreur = "Tu viens du futur\u00a0? Choisis une date déjà passée.";
-    else if (dateLue && Number(dateLue.slice(0, 4)) < ANNEE_MINIMUM) erreur = `Avant ${ANNEE_MINIMUM}\u00a0? Respect, mais vérifie l'année.`;
+    if (saisieComplete && !dateLue) erreur = T.dateInexistante;
+    else if (dateLue && dateLue > formaterDateIso(new Date())) erreur = T.dateFuture;
+    else if (dateLue && Number(dateLue.slice(0, 4)) < ANNEE_MINIMUM) erreur = T.dateAncienne(ANNEE_MINIMUM);
 
     return (
       <ChampTexte
-        libelle={LIBELLE}
+        libelle={T.dateLibelle}
         valeur={saisieWeb}
         onChangeTexte={(texte) => {
           const miseEnForme = formaterSaisieDate(texte);
@@ -80,7 +86,7 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
           const valable = date !== null && date <= formaterDateIso(new Date()) && Number(date.slice(0, 4)) >= ANNEE_MINIMUM;
           onChangeDate(valable ? date : null);
         }}
-        placeholder="JJ/MM/AAAA"
+        placeholder={T.formatDate}
         keyboardType="number-pad"
         inputMode="numeric"
         maxLength={10}
@@ -98,8 +104,8 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
         mode: "date",
         minimumDate: dateMinimum,
         maximumDate: finDAujourdhui(),
-        positiveButton: { label: "Valider" },
-        negativeButton: { label: "Annuler" },
+        positiveButton: { label: T.valider },
+        negativeButton: { label: T.annuler },
         onValueChange: (_evenement, date) => onChangeDate(formaterDateIso(date)),
       });
       return;
@@ -113,23 +119,23 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
     setTiroirOuvert(false);
   };
 
-  const texteAffiche = valeur ? formaterDateLongue(valeur) : null;
+  const texteAffiche = valeur ? ecrireDateLongueLangue(valeur, langue) : null;
 
   return (
     <View className="gap-2">
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-encre">
-        {LIBELLE}
+        {T.dateLibelle}
       </Text>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Date de naissance"
-        accessibilityValue={{ text: texteAffiche ?? "pas encore choisie" }}
-        accessibilityHint="Ouvre le choix de la date"
+        accessibilityLabel={T.dateLu}
+        accessibilityValue={{ text: texteAffiche ?? T.datePasChoisie }}
+        accessibilityHint={T.dateIndice}
         onPress={ouvrir}
         className="min-h-[52px] flex-row items-center justify-between rounded-2xl border-2 border-encre bg-carte px-4 py-3 active:opacity-80"
       >
-        <Text className={`font-texte text-[17px] ${texteAffiche ? "text-encre" : "text-gris"}`}>{texteAffiche ?? "Choisis ta date"}</Text>
+        <Text className={`font-texte text-[17px] ${texteAffiche ? "text-encre" : "text-gris"}`}>{texteAffiche ?? T.choisisTaDate}</Text>
         <Ionicons name="calendar-outline" size={22} color={couleurs.encre} accessibilityElementsHidden importantForAccessibility="no" />
       </Pressable>
 
@@ -145,7 +151,7 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
           <View className="flex-1 justify-end bg-nuit/40">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Fermer sans changer la date"
+              accessibilityLabel={T.fermerSansChanger}
               onPress={() => setTiroirOuvert(false)}
               className="flex-1"
             />
@@ -155,28 +161,28 @@ export function ChoixDateNaissance({ valeur, onChangeDate, aide }: Props) {
               style={{ paddingBottom: insets.bottom + 12 }}
             >
               <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-                {LIBELLE}
+                {T.dateLibelle}
               </Text>
-              <Text className="mt-1 font-texte text-base text-gris">Fais tourner les roulettes, on ne regarde pas.</Text>
+              <Text className="mt-1 font-texte text-base text-gris">{T.roulettes}</Text>
               <DateTimePicker
                 value={dateEnCours}
                 mode="date"
                 display="spinner"
-                locale="fr-FR"
+                locale={LOCALE_SELECTEUR[langue]}
                 minimumDate={dateMinimum}
                 maximumDate={finDAujourdhui()}
                 textColor={couleurs.encre}
                 themeVariant={schema === "sombre" ? "dark" : "light"}
                 onValueChange={(_evenement, date) => setDateEnCours(date)}
               />
-              <Bouton libelle="Valider cette date" onPress={valider} />
+              <Bouton libelle={T.validerDate} onPress={valider} />
               <Pressable
                 accessibilityRole="button"
                 onPress={() => setTiroirOuvert(false)}
                 hitSlop={8}
                 className="mt-2 min-h-11 justify-center active:opacity-70"
               >
-                <Text className="text-center font-texte-semi text-base text-gris underline">Annuler</Text>
+                <Text className="text-center font-texte-semi text-base text-gris underline">{T.annuler}</Text>
               </Pressable>
             </View>
           </View>

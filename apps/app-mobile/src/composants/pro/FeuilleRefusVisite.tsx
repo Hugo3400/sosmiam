@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 
-import { LIBELLES_MOTIF_REFUS_VISITE } from "@sos-miam/commun/contenus/motifs-refus";
+import { LIBELLES_MOTIF_REFUS_VISITE_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-refus";
 import type { MotifRefusVisite } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { Pastille } from "~/composants/interface/Pastille";
+import { TEXTES_DEMANDES_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-demandes-comptoir";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -24,6 +26,8 @@ const MOTIFS: readonly MotifRefusVisite[] = ["introuvable", "pas-venu", "doublon
  * le lit en termes neutres ; jamais de texte libre du lieu vers le client), puis la confirmation.
  */
 export function FeuilleRefusVisite({ visible, titre, detail, libelleConfirmer, onConfirmer, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_DEMANDES_COMPTOIR_PAR_LANGUE).refus;
+  const motifs = utiliserTextes(LIBELLES_MOTIF_REFUS_VISITE_PAR_LANGUE);
   const [motif, setMotif] = useState<MotifRefusVisite | null>(null);
 
   useEffect(() => {
@@ -42,16 +46,16 @@ export function FeuilleRefusVisite({ visible, titre, detail, libelleConfirmer, o
             libelle={libelleConfirmer}
             variante="encre"
             desactive={motif === null}
-            indice={motif === null ? "Choisis d'abord un motif" : undefined}
+            indice={motif === null ? T.choisirMotif : undefined}
             onPress={() => motif && onConfirmer(motif)}
           />
-          <Bouton libelle="Finalement non" variante="blanc" onPress={onFermer} />
+          <Bouton libelle={T.rester} variante="blanc" onPress={onFermer} />
         </>
       }
     >
       <View className="gap-2">
         {MOTIFS.map((m, i) => (
-          <Pastille key={m} libelle={LIBELLES_MOTIF_REFUS_VISITE[m]} role="radio" position={i + 1} total={MOTIFS.length} choisi={motif === m} onPress={() => setMotif(m)} />
+          <Pastille key={m} libelle={motifs[m]} role="radio" position={i + 1} total={MOTIFS.length} choisi={motif === m} onPress={() => setMotif(m)} />
         ))}
       </View>
     </FeuilleBas>

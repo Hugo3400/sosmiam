@@ -2,8 +2,9 @@ import { Pressable, Text, useWindowDimensions, View, type PressableProps } from 
 
 import type { GifApi } from "@sos-miam/commun/types/messagerie";
 import { ImageGifChat } from "~/composants/chat/ImageGifChat";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import { calculerTailleGif } from "~/fonctions/chat/calculer-taille-gif";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   gif: GifApi;
@@ -18,6 +19,7 @@ const LARGEUR_MAX = 220;
 
 export function GifChat({ gif, deMoi, libelle, onPress, onAppuiLong, actionsLecteur }: Props) {
   const { width } = useWindowDimensions();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
   const taille = calculerTailleGif(gif, Math.min(LARGEUR_MAX, Math.round(width * 0.58)));
   const coins = deMoi ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-tl-md";
   return (

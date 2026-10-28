@@ -1,14 +1,19 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
-import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
+import { CALENDRIER_PAR_LANGUE } from "@sos-miam/commun/contenus/calendrier";
+import { LIBELLES_MODE_VALIDATION_PAR_LANGUE } from "@sos-miam/commun/contenus/modes-validation";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
 import { decrireEtatAvis } from "@sos-miam/commun/fonctions/visites/decrire-etat-avis";
-import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
-import type { ModeValidation, Visite } from "@sos-miam/commun/types/visite";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import type { Visite } from "@sos-miam/commun/types/visite";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_MES_VISITES_PAR_LANGUE } from "~/contenus/textes-mes-visites";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { decrireReglementLangue } from "~/fonctions/langue/decrire-reglement-langue";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visite: Visite;
@@ -35,63 +40,55 @@ const TEXTES: Record<Ton, string> = {
   doux: "text-gris",
 };
 
-/** Ce qui a été tenté quand la visite n'a pas (ou plus) été validée : on ne dit pas « Addition réglée » d'une addition refusée */
-const MODE_TENTE: Record<ModeValidation, string> = { addition: "Addition demandée", comptoir: "QR du comptoir", reservation: "Réservation" };
-
-const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
-const JOURS_COURTS = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-const MOIS_COURTS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+type Textes = typeof TEXTES_MES_VISITES_PAR_LANGUE.fr;
 
 /** « mar. 7 oct. · 20h14 » à l'écran, « mardi 7 octobre à 20h14 » pour VoiceOver (l'année seulement si ce n'est pas celle-ci) */
-function decrireMoment(iso: string): { court: string; lu: string } {
+function decrireMoment(iso: string, T: Textes, langue: Langue): { court: string; lu: string } {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return { court: "", lu: "" };
-  const jour = date.getDate() === 1 ? "1er" : String(date.getDate());
+  const calendrier = CALENDRIER_PAR_LANGUE[langue];
   const annee = date.getFullYear() === new Date().getFullYear() ? "" : ` ${date.getFullYear()}`;
-  const heure = formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`);
+  const heure = formaterHeureLangue(date.getHours(), date.getMinutes(), langue);
   return {
-    court: `${JOURS_COURTS[date.getDay()]} ${jour} ${MOIS_COURTS[date.getMonth()]}${annee} · ${heure}`,
-    lu: `${JOURS[date.getDay()]} ${jour} ${MOIS[date.getMonth()]}${annee} à ${heure}`,
+    court: T.momentCourt(calendrier.joursCourts[date.getDay()], date.getDate(), calendrier.moisCourts[date.getMonth()], annee, heure),
+    lu: T.momentLu(calendrier.jours[date.getDay()], date.getDate(), calendrier.mois[date.getMonth()], annee, heure),
   };
 }
 
 /** Les étiquettes de la visite : points et tampon, où en est l'avis, et ce qui n'a pas marché */
-function listerPuces(visite: Visite): Puce[] {
+function listerPuces(visite: Visite, T: Textes): Puce[] {
   const puces: Puce[] = [];
-  const contestation: Puce = { texte: "🔎 Contestée · on regarde", lu: "Contestée : on regarde ça de près", ton: "blanc" };
+  const contestation: Puce = { ...T.contestee, ton: "blanc" };
   switch (visite.statut) {
     case "demandee":
-      puces.push({ texte: "🧾 En attente au comptoir", lu: "En attente au comptoir", ton: "jaune" });
+      puces.push({ ...T.enAttente, ton: "jaune" });
       break;
     case "validee": {
       if (visite.points > 0) {
         puces.push({
-          texte: `+${visite.points}${visite.pendantSos ? " · SOS" : ""}`,
-          lu: `plus ${visite.points} points${visite.pendantSos ? ", pendant leur SOS" : ""}`,
+          texte: T.pointsTexte(visite.points, visite.pendantSos),
+          lu: T.pointsLu(visite.points, visite.pendantSos),
           ton: "jaune",
         });
       }
-      if (visite.tampon) puces.push({ texte: "🎟️ Tampon", lu: "un tampon sur ta carte", ton: "blanc" });
+      if (visite.tampon) puces.push({ ...T.tampon, ton: "blanc" });
       const avis = decrireEtatAvis(visite.avis, Date.now());
-      if (avis === "ouvert") puces.push({ texte: "✍️ Donner mon avis", lu: "Ton avis t'attend", ton: "encre" });
-      else if (avis === "donne") puces.push({ texte: "💬 Avis donné", lu: "Avis donné, merci", ton: "blanc" });
-      else if (avis === "a-venir") puces.push({ texte: "🕐 Avis bientôt", lu: "Ton avis s'ouvre bientôt", ton: "doux" });
+      if (avis === "ouvert") puces.push({ ...T.avisOuvert, ton: "encre" });
+      else if (avis === "donne") puces.push({ ...T.avisDonne, ton: "blanc" });
+      else if (avis === "a-venir") puces.push({ ...T.avisBientot, ton: "doux" });
       break;
     }
     case "refusee":
-      puces.push(visite.contestee ? contestation : { texte: "Pas validée · C'est une erreur ?", lu: "Pas validée. C'est une erreur ?", ton: "rose" });
+      puces.push(visite.contestee ? contestation : { ...T.refusee, ton: "rose" });
       break;
     case "retiree":
-      puces.push(
-        visite.contestee ? contestation : { texte: "Annulée par le lieu · C'est une erreur ?", lu: "Validation annulée par le lieu. C'est une erreur ?", ton: "rose" },
-      );
+      puces.push(visite.contestee ? contestation : { ...T.retiree, ton: "rose" });
       break;
     case "annulee":
-      puces.push({ texte: "Demande annulée", lu: "Demande annulée", ton: "doux" });
+      puces.push({ ...T.annulee, ton: "doux" });
       break;
     case "expiree":
-      puces.push({ texte: "😴 Demande endormie", lu: "Demande endormie, sans réponse à temps", ton: "doux" });
+      puces.push({ ...T.expiree, ton: "doux" });
       break;
   }
   return puces;
@@ -104,19 +101,24 @@ function listerPuces(visite: Visite): Puce[] {
  */
 export function LigneVisite({ visite, onPress }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MES_VISITES_PAR_LANGUE);
+  const modes = utiliserTextes(LIBELLES_MODE_VALIDATION_PAR_LANGUE);
   // Une validation annulée ensuite par le lieu a bien été réglée : on garde « Addition réglée »
   const aEteValidee = visite.statut === "validee" || visite.statut === "retiree";
   const enRetrait = visite.statut === "annulee" || visite.statut === "expiree";
-  const moment = decrireMoment(visite.valideLe ?? visite.creeLe);
-  const mode = aEteValidee ? LIBELLES_MODE_VALIDATION[visite.mode] : MODE_TENTE[visite.mode];
-  const puces = listerPuces(visite);
+  const moment = decrireMoment(visite.valideLe ?? visite.creeLe, T, langue);
+  // Ce qui a été tenté quand la visite n'a pas (ou plus) été validée : on ne dit pas « Addition réglée » d'une addition refusée
+  const mode = aEteValidee ? modes[visite.mode] : T.modesTentes[visite.mode];
+  const modeLu = langue === "en" ? mode.charAt(0).toLowerCase() + mode.slice(1) : mode.toLocaleLowerCase("fr-FR");
+  const puces = listerPuces(visite, T);
   // Payée, avec réduction ou offerte, et ses avantages (seulement pour une visite validée)
-  const reglement = aEteValidee ? decrireReglement(visite.reglement, "client") : null;
+  const reglement = aEteValidee ? decrireReglementLangue(visite.reglement, "client", langue) : null;
   // Une phrase par morceau, chacune avec sa majuscule : VoiceOver marque une petite pause entre elles
   const libelle = [
     visite.lieu.nom,
-    [moment.lu, mode.toLocaleLowerCase("fr-FR")].filter(Boolean).join(", "),
-    ...(reglement ? [[reglement.titre, ...reglement.etiquettes].join(", ")] : []),
+    [moment.lu, modeLu].filter(Boolean).join(", "),
+    ...(reglement ? [[reglement.titre, ...reglement.etiquettesLues].join(", ")] : []),
     ...puces.map((p) => p.lu),
   ]
     .map((morceau) => morceau.charAt(0).toLocaleUpperCase("fr-FR") + morceau.slice(1))
@@ -127,7 +129,7 @@ export function LigneVisite({ visite, onPress }: Props) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint="Ouvre ta visite"
+      accessibilityHint={T.ouvrirIndice}
       onPress={() => {
         vibrerLegerement();
         onPress();

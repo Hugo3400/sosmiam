@@ -6,9 +6,12 @@ import { Pressable, Text, View, type TextInput } from "react-native";
 import { BoutonConnexion } from "~/composants/inscription/BoutonConnexion";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
+import { TEXTES_CONNEXION_QR_PAR_LANGUE } from "~/contenus/connexion-qr";
+import { TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE } from "~/contenus/textes-inscription-connexion";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * « Me connecter » : un compte qui existe déjà (créé dans l'app ou sur le site), par e-mail et mot de passe, Apple, Google, ou
@@ -19,6 +22,8 @@ import { utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 export default function Connexion() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE);
+  const textesQr = utiliserTextes(TEXTES_CONNEXION_QR_PAR_LANGUE);
   const { connecterAvec, connecterParEmail, enCours } = utiliserEntreeCompte();
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
@@ -27,9 +32,9 @@ export default function Connexion() {
 
   return (
     <EcranEtape
-      titre="Te revoilà !"
-      sousTitre="Connecte-toi pour retrouver tes rescousses, tes visites et tes cartes de fidélité."
-      boutonPrincipal={{ libelle: enCours === "email" ? "Un instant…" : "Me connecter", onPress: () => void connecterParEmail(email, motDePasse), desactive: !pret || enCours !== null }}
+      titre={T.titre}
+      sousTitre={T.sousTitre}
+      boutonPrincipal={{ libelle: enCours === "email" ? T.unInstant : T.meConnecter, onPress: () => void connecterParEmail(email, motDePasse), desactive: !pret || enCours !== null }}
     >
       <View className="gap-4">
         <BoutonConnexion fournisseur="apple" onPress={() => void connecterAvec("apple")} enCours={enCours === "apple"} desactive={enCours !== null} />
@@ -37,7 +42,7 @@ export default function Connexion() {
         {/* Même allure que les boutons Apple et Google juste au-dessus (estompé pendant une autre connexion, petite vibration) */}
         <Pressable
           accessibilityRole="button"
-          accessibilityHint="Montre un QR code à scanner avec ton téléphone déjà connecté"
+          accessibilityHint={T.indiceQr}
           disabled={enCours !== null}
           onPress={() => {
             vibrerLegerement();
@@ -46,19 +51,19 @@ export default function Connexion() {
           className={`min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-carte px-5 active:opacity-80 ${enCours !== null ? "opacity-50" : ""}`}
         >
           <Ionicons name="qr-code-outline" size={22} color={couleurs.encre} />
-          <Text className="font-texte-gras text-[17px] text-encre">Me connecter avec un QR code</Text>
+          <Text className="font-texte-gras text-[17px] text-encre">{textesQr.titreAfficher}</Text>
         </Pressable>
       </View>
 
       <View className="my-6 flex-row items-center gap-3">
         <View className="h-0.5 flex-1 bg-ligne" />
-        <Text className="font-texte-semi text-sm text-gris">ou avec ton e-mail</Text>
+        <Text className="font-texte-semi text-sm text-gris">{T.ouEmail}</Text>
         <View className="h-0.5 flex-1 bg-ligne" />
       </View>
 
       <View className="gap-5">
         <ChampTexte
-          libelle="Ton e-mail"
+          libelle={T.tonEmail}
           valeur={email}
           onChangeTexte={setEmail}
           autoCapitalize="none"
@@ -71,7 +76,7 @@ export default function Connexion() {
         />
         <ChampTexte
           ref={champMotDePasse}
-          libelle="Ton mot de passe"
+          libelle={T.tonMotDePasse}
           valeur={motDePasse}
           onChangeTexte={setMotDePasse}
           secureTextEntry
@@ -83,7 +88,7 @@ export default function Connexion() {
           onSubmitEditing={() => pret && void connecterParEmail(email, motDePasse)}
         />
         <Pressable accessibilityRole="button" onPress={() => router.push("/mot-de-passe-oublie")} hitSlop={6} className="min-h-11 justify-center self-start active:opacity-70">
-          <Text className="font-texte-semi text-base text-encre underline">Mot de passe oublié ?</Text>
+          <Text className="font-texte-semi text-base text-encre underline">{T.motDePasseOublie}</Text>
         </Pressable>
       </View>
     </EcranEtape>

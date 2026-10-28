@@ -34,11 +34,11 @@ test("la demande de Léa : 20h est complet pour 4, son plan B 20h30 a 6 places e
   assert.deepEqual(lea.propositions.map((p) => p.places), [2, 6, 8]);
   const choisi = choisirHoraireParDefaut(lea.propositions, lea.personnes);
   assert.equal(choisi, iso("20:30"));
-  assert.deepEqual(resumerDemandeReservation(lea, choisi), {
+  assert.deepEqual(resumerDemandeReservation(lea, choisi, "fr"), {
     texte: "Léa M. · 4 pers. · 20h30 (son plan B, 6 places)",
     lu: "Léa M., 4 personnes, à 20h30, son plan B, 6 places",
   });
-  assert.equal(resumerDemandeReservation(lea, iso("20:00")).texte, "Léa M. · 4 pers. · 20h (son 1er choix, complet)");
+  assert.equal(resumerDemandeReservation(lea, iso("20:00"), "fr").texte, "Léa M. · 4 pers. · 20h (son 1er choix, complet)");
   const options = lea.propositions.map((p, i) => decrireHorairePropose(p, i, lea.personnes));
   assert.deepEqual(options.map((o) => [o.heure, o.rang, o.places, o.tient]), [
     ["20h", "son 1er choix", "complet pour 4 personnes", false],
@@ -53,17 +53,17 @@ test("un horaire hors des services ou un jour sans résa se dit, et demande « q
   const ferme = decrireHorairePropose({ creneau: iso("20:00"), places: 8, horsReglages: false, jourFerme: true }, 1, 2);
   assert.deepEqual([ferme.places, ferme.tient], ["jour sans résa, il reste 8 places", false]);
   assert.equal(
-    decrireDepassement({ nom: "Léa M.", heure: "20h", personnes: 4, places: 2, jourFerme: false }),
+    decrireDepassement({ nom: "Léa M.", heure: "20h", personnes: 4, places: 2, jourFerme: false }, "fr"),
     "À 20h, il ne reste que 2 places pour 4 personnes : ça déborde de 2 personnes. Tu as la place quand même ? C'est toi le capitaine !",
   );
-  assert.match(decrireDepassement({ nom: "Léa M.", heure: "20h", personnes: 4, places: 0, jourFerme: false }), /c'est déjà complet/);
-  assert.match(decrireDepassement({ nom: "Léa M.", heure: "20h", personnes: 4, places: 8, jourFerme: true }), /fermé les résas ce jour-là/);
+  assert.match(decrireDepassement({ nom: "Léa M.", heure: "20h", personnes: 4, places: 0, jourFerme: false }, "fr"), /c'est déjà complet/);
+  assert.match(decrireDepassement({ nom: "Léa M.", heure: "20h", personnes: 4, places: 8, jourFerme: true }, "fr"), /fermé les résas ce jour-là/);
 });
 
 test("sans réponse, la demande s'endort : l'heure du jour même, sinon le jour en toutes lettres", () => {
-  assert.equal(decrireEndormissementDemande(lea, calculerInstantParis(JOUR, "18:00")), "Sans réponse, la demande s'endort à 19h30.");
-  assert.equal(decrireEndormissementDemande(lea, calculerInstantParis("2026-10-22", "18:00")), "Sans réponse, la demande s'endort demain à 19h30.");
-  assert.equal(decrireEndormissementDemande({ creneau: iso("20:00"), limiteReponse: null }, calculerInstantParis(JOUR, "18:00")), "Sans réponse, la demande s'endort à 19h30.");
+  assert.equal(decrireEndormissementDemande(lea, calculerInstantParis(JOUR, "18:00"), "fr"), "Sans réponse, la demande s'endort à 19h30.");
+  assert.equal(decrireEndormissementDemande(lea, calculerInstantParis("2026-10-22", "18:00"), "fr"), "Sans réponse, la demande s'endort demain à 19h30.");
+  assert.equal(decrireEndormissementDemande({ creneau: iso("20:00"), limiteReponse: null }, calculerInstantParis(JOUR, "18:00"), "fr"), "Sans réponse, la demande s'endort à 19h30.");
 });
 
 test("le remplissage du jour : couverts du service, arrivées par créneau et demandes qui le visent", () => {

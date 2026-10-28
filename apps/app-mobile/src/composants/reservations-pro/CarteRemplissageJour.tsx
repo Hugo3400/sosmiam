@@ -3,17 +3,18 @@ import { Text, View } from "react-native";
 import type { ReglagesReservations } from "@sos-miam/commun/types/reglages-reservations";
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 import { LigneRemplissageService } from "~/composants/reservations-pro/LigneRemplissageService";
-import { TEXTES_REMPLISSAGE as T } from "~/contenus/textes-comptoir-reservations";
+import { TEXTES_REMPLISSAGE_PAR_LANGUE } from "~/contenus/textes-comptoir-reservations";
 import { calculerRemplissageJour } from "~/fonctions/reservations/calculer-remplissage-jour";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { reglages: ReglagesReservations; reservations: readonly ReservationPro[]; maintenantMs: number };
 
-const MESSAGES = { "sans-service": T.sansService, "jour-sans-resa": T.jourSansResa, finis: T.finis, ouvert: null } as const;
-
 export function CarteRemplissageJour({ reglages, reservations, maintenantMs }: Props) {
+  const T = utiliserTextes(TEXTES_REMPLISSAGE_PAR_LANGUE);
   const remplissage = calculerRemplissageJour(reglages, reservations, maintenantMs);
-  const message = MESSAGES[remplissage.etat];
+  const messages = { "sans-service": T.sansService, "jour-sans-resa": T.jourSansResa, finis: T.finis, ouvert: null };
+  const message = messages[remplissage.etat];
   return (
     <View className="gap-3">
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">

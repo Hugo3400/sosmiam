@@ -8,12 +8,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { MAX_PHOTOS_ALBUM } from "@sos-miam/commun/regles/chat";
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -26,13 +27,13 @@ type Props = {
 
 const TAILLE_VIGNETTE = 60;
 
-const REFUS: Partial<Record<ResultatEnvoiChat, string>> = {
-  "trop-long": T.petitMotTropLong,
-  "mot-interdit": T.petitMotRefuse,
-};
-
 export function EnvoiPhotosChat({ visible, conversationId, nom, photosDepart, onEnvoye, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const refus: Partial<Record<ResultatEnvoiChat, string>> = {
+    "trop-long": T.petitMotTropLong,
+    "mot-interdit": T.petitMotRefuse,
+  };
   const marges = useSafeAreaInsets();
   const animationsReduites = useReducedMotion();
   const { envoyerPhotos } = utiliserConversations();
@@ -104,7 +105,7 @@ export function EnvoiPhotosChat({ visible, conversationId, nom, photosDepart, on
       vibrerLegerement();
       return onEnvoye();
     }
-    dire(REFUS[resultat] ?? T.photosPasParties);
+    dire(refus[resultat] ?? T.photosPasParties);
   }
 
   return (

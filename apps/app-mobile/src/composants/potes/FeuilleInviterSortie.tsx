@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import { MAX_PARTICIPANTS_SORTIE } from "@sos-miam/commun/regles/potes";
 import type { Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_CHOIX_SORTIE_PAR_LANGUE } from "~/contenus/textes-choix-sortie";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -25,6 +28,10 @@ type Props = {
  * dans la limite de 15 personnes en tout (toi et les invitations en attente compris) ; chacun reçoit « Tu viens ? ».
  */
 export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHOIX_SORTIE_PAR_LANGUE).inviter;
+  const R = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const { potes, inviterASortie } = utiliserCommunaute();
   const [choisis, setChoisis] = useState<string[]>([]);
   const [envoi, setEnvoi] = useState(false);
@@ -51,20 +58,20 @@ export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: P
     const erreur = await inviterASortie(sortie.id, choisis);
     setEnvoi(false);
     if (erreur) {
-      const texte = erreur === "compte-limite" ? REFUS_LIMITATION.sortie : MESSAGES_SERVICE[erreur].texte;
+      const texte = erreur === "compte-limite" ? R.sortie : messagesService[erreur].texte;
       setSouci(texte);
       AccessibilityInfo.announceForAccessibility(texte);
       return;
     }
-    const prenoms = listerPrenoms(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
-    onInvites(`📨 C'est envoyé : ${prenoms} ${choisis.length > 1 ? "reçoivent" : "reçoit"} « Tu viens ? »`);
+    const prenoms = listerPrenomsLangue(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom), langue);
+    onInvites(T.envoye(prenoms, choisis.length));
   }
 
   return (
     <FeuilleBas
       visible={visible}
-      titre="Inviter d'autres potes"
-      sousTitre={`Plus on est de fous, plus on mange. ${MAX_PARTICIPANTS_SORTIE} personnes au plus, toi compris.`}
+      titre={T.titre}
+      sousTitre={T.sousTitre}
       onFermer={onFermer}
       pied={
         <>
@@ -73,20 +80,20 @@ export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: P
           ) : null}
           {possibles.length > 0 && places > 0 ? (
             <Bouton
-              libelle={envoi ? "Un instant…" : choisis.length > 0 ? `Inviter (${choisis.length})` : "Inviter"}
+              libelle={envoi ? T.unInstant : choisis.length > 0 ? T.inviterNombre(choisis.length) : T.inviter}
               desactive={envoi || choisis.length === 0}
-              indice="Chacun reçoit « Tu viens ? »"
+              indice={T.indiceInviter}
               onPress={() => void inviter()}
             />
           ) : null}
-          <Bouton libelle={possibles.length > 0 && places > 0 ? "Annuler" : "Fermer"} variante="blanc" onPress={onFermer} />
+          <Bouton libelle={possibles.length > 0 && places > 0 ? T.annuler : T.fermer} variante="blanc" onPress={onFermer} />
         </>
       }
     >
       {places === 0 ? (
         <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
           <Text className="text-center font-texte text-base leading-6 text-gris">
-            {lierPonctuation(`La sortie affiche complet : ${MAX_PARTICIPANTS_SORTIE} personnes, invitations en attente comprises. Retire quelqu'un pour faire de la place.`)}
+            {lierPonctuation(T.complet)}
           </Text>
         </View>
       ) : possibles.length === 0 && potes.length > 0 ? (
@@ -94,14 +101,14 @@ export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: P
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
             🙌
           </Text>
-          <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation("Toute ta bande est déjà dans le coup !")}</Text>
+          <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(T.toutLeMonde)}</Text>
         </View>
       ) : (
         <ChoixParticipants
           potes={possibles}
           choisis={choisis}
           max={places}
-          indiceMax={`${MAX_PARTICIPANTS_SORTIE} personnes au plus par sortie, toi compris`}
+          indiceMax={T.indiceMax}
           onBasculer={(id) => {
             setSouci(null);
             setChoisis((avant) => (avant.includes(id) ? avant.filter((x) => x !== id) : [...avant, id]));

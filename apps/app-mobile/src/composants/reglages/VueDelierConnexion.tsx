@@ -4,8 +4,10 @@ import { Platform, Text, View } from "react-native";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { type FournisseurConnexion, messagesMesConnexions, NOMS_FOURNISSEURS } from "~/contenus/mes-connexions";
+import { type FournisseurConnexion, MESSAGES_MES_CONNEXIONS_PAR_LANGUE, NOMS_FOURNISSEURS } from "~/contenus/mes-connexions";
+import { TEXTES_REGLAGES_CONNEXIONS_PAR_LANGUE } from "~/contenus/textes-reglages-connexions";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   fournisseur: FournisseurConnexion;
@@ -25,19 +27,21 @@ type Props = {
  * d'ajouter un mot de passe d'abord.
  */
 export function VueDelierConnexion({ fournisseur, avecMotDePasse, enCours, lienEnvoye, onConfirmer, onAjouterMotDePasse, onAnnuler }: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_CONNEXIONS_PAR_LANGUE);
+  const messagesMesConnexions = utiliserTextes(MESSAGES_MES_CONNEXIONS_PAR_LANGUE);
   const [motDePasse, setMotDePasse] = useState("");
   const nom = NOMS_FOURNISSEURS[fournisseur];
   const autreFournisseur: FournisseurConnexion = fournisseur === "apple" ? "google" : "apple";
   const autre = NOMS_FOURNISSEURS[autreFournisseur];
   const autreIci = autreFournisseur === "apple" ? Platform.OS === "ios" : Platform.OS !== "web";
   return (
-    <EcranReglage titre={`Délier ${nom}`} sousTitre={`${nom} ne t'ouvrira plus la porte de SOS Miam. Tes autres clés, elles, marchent toujours.`}>
+    <EcranReglage titre={T.delier.titre(nom)} sousTitre={T.delier.sousTitre(nom)}>
       <View className="gap-5">
         {avecMotDePasse ? (
           <>
-            <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation("Pour confirmer que c'est bien toi, ton mot de passe :")}</Text>
+            <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(T.delier.avecMotDePasse)}</Text>
             <ChampTexte
-              libelle="Ton mot de passe"
+              libelle={T.tonMotDePasse}
               valeur={motDePasse}
               onChangeTexte={setMotDePasse}
               secureTextEntry
@@ -45,7 +49,7 @@ export function VueDelierConnexion({ fournisseur, avecMotDePasse, enCours, lienE
               textContentType="password"
             />
             <Bouton
-              libelle={enCours ? "Un instant…" : `Délier ${nom}`}
+              libelle={enCours ? T.unInstant : T.delier.titre(nom)}
               variante="encre"
               desactive={motDePasse === "" || enCours}
               onPress={() => onConfirmer(motDePasse)}
@@ -54,17 +58,17 @@ export function VueDelierConnexion({ fournisseur, avecMotDePasse, enCours, lienE
         ) : autreIci ? (
           <>
             <Text className="font-texte text-base leading-6 text-encre">
-              {lierPonctuation(`Tu n'as pas de mot de passe : confirme avec ${autre}, c'est la clé qui te restera.`)}
+              {lierPonctuation(T.delier.sansMotDePasse(autre))}
             </Text>
-            <Bouton libelle={enCours ? "Un instant…" : `Confirmer avec ${autre}`} variante="encre" desactive={enCours} onPress={() => onConfirmer()} />
+            <Bouton libelle={enCours ? T.unInstant : T.confirmerAvec(autre)} variante="encre" desactive={enCours} onPress={() => onConfirmer()} />
           </>
         ) : (
           <>
             <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(messagesMesConnexions.confirmationImpossibleIci(nom, autre))}</Text>
-            <Bouton libelle={lienEnvoye ? "Lien envoyé !" : "Ajouter un mot de passe"} variante="encre" desactive={enCours || lienEnvoye} onPress={onAjouterMotDePasse} />
+            <Bouton libelle={lienEnvoye ? T.lienEnvoye : T.ajouterMotDePasse} variante="encre" desactive={enCours || lienEnvoye} onPress={onAjouterMotDePasse} />
           </>
         )}
-        <Bouton libelle="Finalement non" variante="blanc" onPress={onAnnuler} />
+        <Bouton libelle={T.finalementNon} variante="blanc" onPress={onAnnuler} />
       </View>
     </EcranReglage>
   );

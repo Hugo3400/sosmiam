@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { calculerJourParis } from "@sos-miam/commun/fonctions/temps/calculer-jour-paris";
@@ -8,19 +9,21 @@ import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { BoutonCarteComptoir } from "~/composants/pro/BoutonCarteComptoir";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { OptionHoraireDemande } from "~/composants/reservations-pro/OptionHoraireDemande";
-import { TEXTES_COMPTOIR_RESERVATIONS as T } from "~/contenus/textes-comptoir-reservations";
-import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
-import { ecrireHeureParis } from "~/fonctions/dates/ecrire-heure-paris";
+import { TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-comptoir-reservations";
+import { TEXTES_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-reservations-pro";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireHeureParisLangue } from "~/fonctions/langue/ecrire-heure-paris-langue";
+import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
 import { calculerGestesReservationPro } from "~/fonctions/reservations/calculer-gestes-reservation-pro";
 import { decrireEndormissementDemande } from "~/fonctions/reservations/decrire-endormissement-demande";
 import { decrireHorairePropose } from "~/fonctions/reservations/decrire-horaire-propose";
 import { decrireJourReservation } from "~/fonctions/reservations/decrire-jour-reservation";
-import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { nommerClientReservation } from "~/fonctions/reservations/nommer-client-reservation";
 import { resumerDemandeReservation } from "~/fonctions/reservations/resumer-demande-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reservation: ReservationPro;
@@ -36,14 +39,18 @@ type Props = {
 
 export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, maintenantMs, onChoisir, onBasculer, onAccepter, onRefuser }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE);
+  const TR = utiliserTextes(TEXTES_RESERVATIONS_PRO_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const nom = nommerClientReservation(reservation);
-  const resume = resumerDemandeReservation(reservation, choisi);
-  const jour = decrireJourReservation(calculerJourParis(Date.parse(choisi)), calculerJourParis(maintenantMs)).long;
+  const resume = resumerDemandeReservation(reservation, choisi, langue);
+  const jour = decrireJourReservation(calculerJourParis(Date.parse(choisi)), calculerJourParis(maintenantMs), langue).long;
   const options = reservation.propositions.map((p, rang) => decrireHorairePropose(p, rang, reservation.personnes));
   const choix = options.find((o) => o.creneau === choisi) ?? options[0];
   const tient = choix?.tient ?? true;
   const aucunNeTient = options.length > 0 && options.every((o) => !o.tient);
-  const heure = ecrireHeureParis(choisi);
+  const heure = ecrireHeureParisLangue(choisi, langue);
+  const personnes = ecrireNombrePersonnesLangue(reservation.personnes, langue);
   const gestes = calculerGestesReservationPro(reservation, maintenantMs);
   const accepter = remplirModele(tient ? T.accepter : T.accepterQuandMeme, { heure });
   const plusieurs = options.length > 1;
@@ -62,16 +69,16 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
 
       {reservation.message ? (
         <View accessible className="gap-1 rounded-2xl bg-creme px-3 py-2.5">
-          <Text className="font-texte-semi text-[12px] text-gris">{TEXTES_RESERVATIONS_PRO.petitMot}</Text>
-          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(`« ${reservation.message} »`)}</Text>
+          <Text className="font-texte-semi text-[12px] text-gris">{TR.petitMot}</Text>
+          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(citer(reservation.message, langue))}</Text>
           {parleDAlcool(reservation.message) ? <MentionPrevention variante="courte" /> : null}
         </View>
       ) : null}
 
       {aucunNeTient ? (
-        <Text className="font-texte-semi text-[14px] leading-5 text-rouge-texte">{lierPonctuation(remplirModele(T.aucunQuiTient, { personnes: ecrireNombrePersonnes(reservation.personnes) }))}</Text>
+        <Text className="font-texte-semi text-[14px] leading-5 text-rouge-texte">{lierPonctuation(remplirModele(T.aucunQuiTient, { personnes }))}</Text>
       ) : null}
-      <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(decrireEndormissementDemande(reservation, maintenantMs))}</Text>
+      <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(decrireEndormissementDemande(reservation, maintenantMs, langue))}</Text>
 
       {enCours ? (
         <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.enCours} />
@@ -80,7 +87,7 @@ export function CarteDemandeReservation({ reservation, choisi, deplie, enCours, 
           <View className="flex-row">
             <BoutonCarteComptoir
               libelle={accepter}
-              libelleLu={remplirModele(T.accepterLu, { nom, heure, personnes: ecrireNombrePersonnes(reservation.personnes) })}
+              libelleLu={remplirModele(T.accepterLu, { nom, heure, personnes })}
               plein
               icone="checkmark"
               desactive={!gestes.accepter}

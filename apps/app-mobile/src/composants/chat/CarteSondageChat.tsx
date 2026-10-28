@@ -5,7 +5,7 @@ import { AccessibilityInfo, Pressable, Text, useWindowDimensions, View, type Pre
 
 import type { SondageApi } from "@sos-miam/commun/types/messagerie";
 import { Bouton } from "~/composants/interface/Bouton";
-import { TEXTES_SONDAGE as T } from "~/contenus/textes-sondage";
+import { TEXTES_SONDAGE_PAR_LANGUE } from "~/contenus/textes-sondage";
 import { decrireSondage } from "~/fonctions/chat/decrire-sondage";
 import { lireEtatSondage } from "~/fonctions/chat/lire-etat-sondage";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
@@ -14,8 +14,10 @@ import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -32,6 +34,8 @@ const LARGEUR_MAX = 310;
 
 export function CarteSondageChat({ conversationId, messageId, vote, deMoi, participants, maintenant, onAppuiLong, actionsLecteur }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_SONDAGE_PAR_LANGUE);
   const router = useRouter();
   const { width } = useWindowDimensions();
   const { voterSondage } = utiliserConversations();
@@ -40,7 +44,7 @@ export function CarteSondageChat({ conversationId, messageId, vote, deMoi, parti
   const [souci, setSouci] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
   const { clos, gagnant } = lireEtatSondage(vote, maintenant);
-  const pied = decrireSondage(vote, participants.length, maintenant);
+  const pied = decrireSondage(vote, participants.length, maintenant, langue);
   const coins = deMoi ? "rounded-[20px] rounded-br-md" : "rounded-[20px] rounded-tl-md";
   const options = [...vote.options].sort((a, b) => a.ordre - b.ordre);
   const lieuGagnant = gagnant === null ? undefined : options.find((o) => o.ordre === gagnant)?.lieuId;

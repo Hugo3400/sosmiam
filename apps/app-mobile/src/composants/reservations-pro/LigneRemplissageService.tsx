@@ -7,18 +7,22 @@ import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { ServiceReservation } from "@sos-miam/commun/types/reglages-reservations";
 import { Jauge } from "~/composants/interface/Jauge";
 import { LigneRemplissageCreneau } from "~/composants/reservations-pro/LigneRemplissageCreneau";
-import { TEXTES_REMPLISSAGE as T } from "~/contenus/textes-comptoir-reservations";
+import { TEXTES_REMPLISSAGE_PAR_LANGUE } from "~/contenus/textes-comptoir-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { RemplissageService } from "~/fonctions/reservations/calculer-remplissage-jour";
 import { ecrireNomService } from "~/fonctions/reservations/ecrire-nom-service";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { remplissage: RemplissageService; services: readonly ServiceReservation[] };
 
 export function LigneRemplissageService({ remplissage, services }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REMPLISSAGE_PAR_LANGUE);
   const [deplie, setDeplie] = useState(false);
-  const { emoji, titre } = ecrireNomService(nommerServiceReservation(remplissage.service, services));
+  const { langue } = utiliserLangue();
+  const { emoji, titre } = ecrireNomService(nommerServiceReservation(remplissage.service, services), langue);
   const valeurs = { acceptes: String(remplissage.acceptes), capacite: String(remplissage.capacite) };
   const total = remplirModele(T.service, valeurs);
   return (

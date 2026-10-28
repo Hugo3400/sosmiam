@@ -10,16 +10,20 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { RondPote } from "~/composants/potes/RondPote";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ENVOYER_A_POTE_PAR_LANGUE } from "~/contenus/textes-envoyer-a-pote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ResultatTexte } from "~/hooks/utiliser-communaute";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -27,21 +31,17 @@ type Props = {
   onFermer: () => void;
 };
 
-const ERREURS_MOT: Record<Exclude<ResultatTexte, "ok">, string> = {
-  vide: "Ton mot est vide : écris quelque chose, ou laisse-le de côté.",
-  "trop-long": `${LONGUEUR_MAX_MOT_RECOMMANDATION} caractères maximum : la version courte, c'est la meilleure !`,
-  "mot-interdit": "Un mot de ton message ne passe pas chez nous. Tu le reformules gentiment ?",
-};
-
-/** « Léa », « Léa et Karim », « Léa, Karim et Tom » */
-const joindrePrenoms = (prenoms: string[]) => (prenoms.length <= 1 ? (prenoms[0] ?? "") : `${prenoms.slice(0, -1).join(", ")} et ${prenoms[prenoms.length - 1]}`);
-
 /**
  * Envoyer un lieu à des potes de ta bande, dans une feuille qui monte du bas : choisir un ou plusieurs potes,
  * un petit mot facultatif, « Envoyer », puis la confirmation.
  */
 export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_ENVOYER_A_POTE_PAR_LANGUE);
+  const R = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const erreursMot: Readonly<Record<Exclude<ResultatTexte, "ok">, string>> = T.erreursMot;
+  const joindrePrenoms = (prenoms: string[]) => listerPrenomsLangue(prenoms, langue);
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -92,24 +92,24 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
     // Compte connecté : « C'est envoyé ! » s'affiche tout de suite ; si le serveur refuse, on revient au choix des potes et on dit pourquoi
     const resultat = envoyerLieu(lieu.id, ids, mot.trim() || undefined, (refus) => {
       if (numero !== envoiCourant.current) return;
-      const texte = refus === "compte-limite" ? REFUS_LIMITATION.lieuEnvoye : "Ton lieu n'est pas parti : réessaie dans un instant.";
+      const texte = refus === "compte-limite" ? R.lieuEnvoye : T.pasParti;
       setEnvoyesA(null);
       setRefus(texte);
       AccessibilityInfo.announceForAccessibility(texte);
     });
     setRefus(null);
-    if (resultat !== "ok") return setErreur(ERREURS_MOT[resultat]);
+    if (resultat !== "ok") return setErreur(erreursMot[resultat]);
     const prenoms = potes.filter((p) => ids.includes(p.id)).map((p) => p.prenom);
     setEnvoyesA(prenoms);
-    AccessibilityInfo.announceForAccessibility(`C'est envoyé à ${joindrePrenoms(prenoms)} !`);
+    AccessibilityInfo.announceForAccessibility(T.envoyeA(joindrePrenoms(prenoms)));
   }
 
   const nomsChoisis = joindrePrenoms(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
 
   const contenu = !lieu ? (
     <View className="items-center gap-3 py-4">
-      <Text className="text-center font-titre text-2xl text-encre">Ce lieu n'est pas disponible</Text>
-      <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} className="self-stretch" />
+      <Text className="text-center font-titre text-2xl text-encre">{T.indisponible}</Text>
+      <Bouton libelle={T.fermer} variante="blanc" onPress={onFermer} className="self-stretch" />
     </View>
   ) : envoyesA ? (
     <View className="items-center gap-3 pb-2 pt-1">
@@ -117,12 +117,12 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
         📬
       </Text>
       <Text accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-        C'est envoyé !
+        {T.envoye}
       </Text>
       <Text className="text-center font-texte text-base leading-6 text-encre">
-        {lierPonctuation(`${joindrePrenoms(envoyesA)} ${envoyesA.length > 1 ? "vont" : "va"} saliver devant ${lieu.nom}.`)}
+        {lierPonctuation(T.saliver(joindrePrenoms(envoyesA), envoyesA.length, lieu.nom))}
       </Text>
-      <Bouton libelle="Fermer" onPress={onFermer} className="mt-2 self-stretch" />
+      <Bouton libelle={T.fermer} onPress={onFermer} className="mt-2 self-stretch" />
     </View>
   ) : (
     <View className="gap-4">
@@ -130,7 +130,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
         <VignetteLieu lieu={lieu} image={trouverVignetteLieu(lieu.id, toutesLesPublications)} hauteur={52} />
         <View className="flex-1">
           <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-            Envoyer à un pote
+            {T.titre}
           </Text>
           <Text numberOfLines={1} className="font-texte text-sm text-gris">
             {lieu.nom} · {ecrireQuartierVille(lieu)}
@@ -140,9 +140,9 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
 
       {potes.length === 0 ? (
         <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-5 py-6">
-          <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation("Ta bande est vide pour l'instant. Ajoute un pote, et les bons plans voyageront !")}</Text>
+          <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(T.bandeVide)}</Text>
           <Bouton
-            libelle="Ajouter un pote"
+            libelle={T.ajouter}
             petit
             onPress={() => {
               onFermer();
@@ -152,7 +152,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
         </View>
       ) : (
         <View>
-          <Text className="mb-1 font-texte-semi text-base text-encre">À qui ?</Text>
+          <Text className="mb-1 font-texte-semi text-base text-encre">{T.aQui}</Text>
           {potes.map((pote, i) => {
             const choisi = choisis.includes(pote.id);
             return (
@@ -161,7 +161,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
                 // Plusieurs choix possibles : case à cocher sur Android ; sur iPhone, bouton « sélectionné » (l'état « coché » y est lu en anglais), avec la position dans le libellé
                 accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
                 accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
-                accessibilityLabel={`${pote.prenom}, @${pote.pseudo}${Platform.OS === "ios" ? `, ${i + 1} sur ${potes.length}` : ""}`}
+                accessibilityLabel={`${pote.prenom}, @${pote.pseudo}${Platform.OS === "ios" ? `, ${T.position(i + 1, potes.length)}` : ""}`}
                 onPress={() => basculer(pote.id)}
                 className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
               >
@@ -186,14 +186,14 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
       {potes.length > 0 ? (
         <>
           <ChampTexte
-            libelle="Un petit mot"
-            mention="facultatif"
+            libelle={T.petitMot}
+            mention={T.facultatif}
             valeur={mot}
             onChangeTexte={(texte) => {
               setMot(texte);
               setErreur(null);
             }}
-            placeholder="Leurs pâtes vont te faire pleurer de joie"
+            placeholder={T.exempleMot}
             multiline
             maxLength={LONGUEUR_MAX_MOT_RECOMMANDATION}
             aide={`${mot.length}/${LONGUEUR_MAX_MOT_RECOMMANDATION}`}
@@ -203,16 +203,16 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(refus)}</Text>
           ) : null}
           <Bouton
-            libelle="Envoyer"
+            libelle={T.envoyer}
             desactive={choisis.length === 0}
-            indice={choisis.length === 0 ? "Choisis d'abord au moins un pote" : `Envoie ${lieu.nom} à ${nomsChoisis}`}
+            indice={choisis.length === 0 ? T.indiceAucun : T.indiceEnvoyer(lieu.nom, nomsChoisis)}
             onPress={envoyer}
           />
         </>
       ) : null}
 
       <Pressable accessibilityRole="button" onPress={onFermer} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-        <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+        <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
       </Pressable>
     </View>
   );
@@ -221,7 +221,7 @@ export function EnvoyerAPote({ visible, lieuId, onFermer }: Props) {
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       {/* La feuille remonte au-dessus du clavier quand on écrit le petit mot */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}

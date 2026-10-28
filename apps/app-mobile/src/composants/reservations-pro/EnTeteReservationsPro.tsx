@@ -1,10 +1,11 @@
 import { Pressable, Text, View } from "react-native";
 
 import type { ModeAcceptationReservation } from "@sos-miam/commun/types/reglages-reservations";
-import { TEXTES_COMPTOIR_RESERVATIONS as T } from "~/contenus/textes-comptoir-reservations";
-import { MODES_ACCEPTATION } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-comptoir-reservations";
+import { MODES_ACCEPTATION_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   acceptation: ModeAcceptationReservation;
@@ -13,7 +14,8 @@ type Props = {
 };
 
 export function EnTeteReservationsPro({ acceptation, gerant, onReglages }: Props) {
-  const mode = MODES_ACCEPTATION[acceptation];
+  const T = utiliserTextes(TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE);
+  const mode = utiliserTextes(MODES_ACCEPTATION_PAR_LANGUE)[acceptation];
   return (
     <View className="gap-3">
       <View className="flex-row flex-wrap items-center justify-between gap-2">

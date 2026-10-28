@@ -1,14 +1,17 @@
 import { Image } from "expo-image";
 import { Text, View } from "react-native";
 
-import { LIBELLES_RAISON_RELECTURE } from "@sos-miam/commun/contenus/raisons-relecture";
+import { LIBELLES_RAISON_RELECTURE_PAR_LANGUE } from "@sos-miam/commun/contenus/raisons-relecture";
 import type { AvisARelire } from "@sos-miam/commun/types/avis";
 import { EtoilesAvis } from "~/composants/avis/EtoilesAvis";
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_AVIS_A_RELIRE_PAR_LANGUE } from "~/contenus/textes-espace-ambassadeur";
 import { ecrirePreuveAvis } from "~/fonctions/avis/ecrire-preuve-avis";
-import { ecrireMoisAnnee } from "~/fonctions/dates/ecrire-mois-annee";
+import { ecrireMoisAnneeLangue } from "~/fonctions/langue/ecrire-mois-annee-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserSourcePhotoAvis } from "~/hooks/utiliser-source-photo-avis";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { avis: AvisARelire; desactive: boolean; onOk: () => void; onLouche: () => void; onPasser: () => void };
 
@@ -17,6 +20,9 @@ type Props = { avis: AvisARelire; desactive: boolean; onOk: () => void; onLouche
  * te le propose. Ton verdict est consultatif : l'équipe tranche.
  */
 export function CarteAvisARelire({ avis: a, desactive, onOk, onLouche, onPasser }: Props) {
+  const T = utiliserTextes(TEXTES_AVIS_A_RELIRE_PAR_LANGUE);
+  const raisons = utiliserTextes(LIBELLES_RAISON_RELECTURE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const lireSourcePhoto = utiliserSourcePhotoAvis();
   const sourcePhoto = lireSourcePhoto(a.photo);
   return (
@@ -24,13 +30,13 @@ export function CarteAvisARelire({ avis: a, desactive, onOk, onLouche, onPasser 
       <Text className="font-texte-gras text-base text-encre">{`${a.lieu.emoji} ${a.lieu.nom} · ${a.lieu.ville}`}</Text>
       <EtoilesAvis note={a.note} taille={22} />
       <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(a.texte)}</Text>
-      {sourcePhoto ? <Image source={sourcePhoto} accessibilityLabel="Photo de l'avis" style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 12 }} contentFit="cover" /> : null}
-      <Text className="font-texte text-sm text-gris">{`${ecrirePreuveAvis({ verifie: a.preuve !== null, preuve: a.preuve })} · ${ecrireMoisAnnee(a.mois)}`}</Text>
-      <Text className="font-texte text-sm italic text-gris">{lierPonctuation(LIBELLES_RAISON_RELECTURE[a.raison])}</Text>
+      {sourcePhoto ? <Image source={sourcePhoto} accessibilityLabel={T.photoLu} style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 12 }} contentFit="cover" /> : null}
+      <Text className="font-texte text-sm text-gris">{`${ecrirePreuveAvis({ verifie: a.preuve !== null, preuve: a.preuve })} · ${ecrireMoisAnneeLangue(a.mois, langue)}`}</Text>
+      <Text className="font-texte text-sm italic text-gris">{lierPonctuation(raisons[a.raison])}</Text>
       <View className="gap-2">
-        <Bouton libelle="Ça me va" petit desactive={desactive} onPress={onOk} />
-        <Bouton libelle="Ça me paraît louche" variante="blanc" petit desactive={desactive} onPress={onLouche} />
-        <Bouton libelle="Je passe mon tour" variante="blanc" petit desactive={desactive} indice="Si tu connais ce lieu ou la personne : un autre ambassadeur le relira" onPress={onPasser} />
+        <Bouton libelle={T.ok} petit desactive={desactive} onPress={onOk} />
+        <Bouton libelle={T.louche} variante="blanc" petit desactive={desactive} onPress={onLouche} />
+        <Bouton libelle={T.passer} variante="blanc" petit desactive={desactive} indice={T.indicePasser} onPress={onPasser} />
       </View>
     </View>
   );

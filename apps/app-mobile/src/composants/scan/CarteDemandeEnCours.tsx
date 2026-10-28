@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import type { Visite } from "@sos-miam/commun/types/visite";
+import { TEXTES_DEMANDE_ADDITION_PAR_LANGUE } from "~/contenus/textes-demande-addition";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** La demande d'addition en attente (statut « demandee ») */
@@ -17,28 +20,30 @@ type Props = {
 const UNE_MINUTE = 60_000;
 
 /** « Expire dans 27 min », ou « Expire dans moins d'une minute » ; null si c'est déjà passé */
-function decrireExpiration(expireLe: string, maintenant: Date): string | null {
+function decrireExpiration(expireLe: string, maintenant: Date, T: Pick<typeof TEXTES_DEMANDE_ADDITION_PAR_LANGUE.fr, "expireBientot" | "expireDans">): string | null {
   const minutes = Math.ceil((Date.parse(expireLe) - maintenant.getTime()) / UNE_MINUTE);
   if (!Number.isFinite(minutes) || minutes <= 0) return null;
-  return minutes <= 1 ? "Expire dans moins d'une minute" : `Expire dans ${minutes} min`;
+  return minutes <= 1 ? T.expireBientot : T.expireDans(minutes);
 }
 
 /** Ta demande d'addition en attente, en haut de l'onglet Scan : le lieu, le code à montrer et le temps qu'il reste. */
 export function CarteDemandeEnCours({ visite, onPress }: Props) {
   // « Expire dans 27 min » se met à jour toute seule, une fois par minute
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDE_ADDITION_PAR_LANGUE);
   const [maintenant, setMaintenant] = useState(() => new Date());
   useEffect(() => {
     const minuterie = setInterval(() => setMaintenant(new Date()), UNE_MINUTE);
     return () => clearInterval(minuterie);
   }, []);
 
-  const attente = visite.expireLe ? decrireExpiration(visite.expireLe, maintenant) : null;
+  const attente = visite.expireLe ? decrireExpiration(visite.expireLe, maintenant, T) : null;
   const code = visite.code ?? "";
   const libelle = [
-    `Addition demandée ${direChezLieu(visite.lieu.nom)}`,
+    T.enCoursChez(direChezLieuLangue(visite.lieu.nom, langue)),
     // Le code est lu chiffre par chiffre : « 4, 8, 2, 1 »
-    code ? `ton code : ${code.split("").join(", ")}` : null,
+    code ? T.enCoursCode(code.split("").join(", ")) : null,
     attente,
   ]
     .filter(Boolean)
@@ -48,7 +53,7 @@ export function CarteDemandeEnCours({ visite, onPress }: Props) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint="Ouvre ta demande en cours"
+      accessibilityHint={T.enCoursIndice}
       onPress={() => {
         vibrerLegerement();
         onPress();
@@ -57,7 +62,7 @@ export function CarteDemandeEnCours({ visite, onPress }: Props) {
     >
       <View className="flex-row items-center gap-2">
         <View className="h-2.5 w-2.5 rounded-full bg-tomate" />
-        <Text className="flex-1 font-texte-gras text-[13px] uppercase tracking-wide text-encre">Addition demandée</Text>
+        <Text className="flex-1 font-texte-gras text-[13px] uppercase tracking-wide text-encre">{T.enCoursTitre}</Text>
         <Ionicons name="chevron-forward" size={20} color={couleurs.encre} />
       </View>
       <View className="flex-row items-end justify-between gap-4">
@@ -73,7 +78,7 @@ export function CarteDemandeEnCours({ visite, onPress }: Props) {
           </View>
         ) : null}
       </View>
-      <Text className="font-texte-semi text-sm text-encre">{lierPonctuation("Montre ce code au moment de payer : l'équipe valide d'un geste.")}</Text>
+      <Text className="font-texte-semi text-sm text-encre">{lierPonctuation(T.enCoursConsigne)}</Text>
     </Pressable>
   );
 }

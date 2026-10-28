@@ -5,13 +5,16 @@ import type { ConnexionsCompte } from "@sos-miam/commun/types/compte-app";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import {
-  aideAjouterMotDePasse,
-  AVERTISSEMENT_RELAIS_APPLE,
-  CHAPO_MES_CONNEXIONS,
+  AIDE_AJOUTER_MOT_DE_PASSE_PAR_LANGUE,
+  AVERTISSEMENT_RELAIS_APPLE_PAR_LANGUE,
+  CHAPO_MES_CONNEXIONS_PAR_LANGUE,
   type FournisseurConnexion,
-  messagesMesConnexions,
+  MESSAGES_MES_CONNEXIONS_PAR_LANGUE,
+  NOMS_FOURNISSEURS,
 } from "~/contenus/mes-connexions";
+import { TEXTES_REGLAGES_CONNEXIONS_PAR_LANGUE } from "~/contenus/textes-reglages-connexions";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   connexions: ConnexionsCompte | null;
@@ -32,27 +35,32 @@ type Props = {
  * relie que depuis un iPhone, Google depuis un téléphone (pas dans l'aperçu web) ; une clé déjà reliée se délie partout.
  */
 export function SectionMesConnexions({ connexions, lectureRatee, onRelire, email, enCours, lienEnvoye, onChangerMotDePasse, onAjouterMotDePasse, onRelier, onDelier }: Props) {
+  const T = utiliserTextes(TEXTES_REGLAGES_CONNEXIONS_PAR_LANGUE);
+  const messagesMesConnexions = utiliserTextes(MESSAGES_MES_CONNEXIONS_PAR_LANGUE);
+  const aideAjouterMotDePasse = utiliserTextes(AIDE_AJOUTER_MOT_DE_PASSE_PAR_LANGUE);
+  const avertissementRelaisApple = utiliserTextes(AVERTISSEMENT_RELAIS_APPLE_PAR_LANGUE);
+  const chapo = utiliserTextes(CHAPO_MES_CONNEXIONS_PAR_LANGUE);
   if (!connexions) {
     if (!lectureRatee) return null;
     return (
-      <SectionReglages titre="Tes clés pour entrer">
-        <LigneReglage emoji="🔌" titre={messagesMesConnexions.lectureRatee} detail="Touche pour réessayer" onPress={onRelire} />
+      <SectionReglages titre={T.titre}>
+        <LigneReglage emoji="🔌" titre={messagesMesConnexions.lectureRatee} detail={T.toucherPourReessayer} onPress={onRelire} />
       </SectionReglages>
     );
   }
   const detailAjout = lienEnvoye
     ? messagesMesConnexions.lienEnvoye
     : email
-      ? `${aideAjouterMotDePasse(email)}${estAdresseRelaisApple(email) ? ` ${AVERTISSEMENT_RELAIS_APPLE}` : ""}`
-      : "On t'envoie un lien pour le choisir (valable 24 heures).";
+      ? `${aideAjouterMotDePasse(email)}${estAdresseRelaisApple(email) ? ` ${avertissementRelaisApple}` : ""}`
+      : T.ajoutSansEmail;
 
   const ligneFournisseur = (fournisseur: FournisseurConnexion, emoji: string, nom: string, relierIci: boolean, gesteRelier: string) => {
     if (connexions[fournisseur]) {
       return (
         <LigneReglage
           emoji={emoji}
-          titre={`${nom} : relié ✅`}
-          detail={enCours === fournisseur ? "Un instant…" : `Touche pour délier ${nom}`}
+          titre={T.relie(nom)}
+          detail={enCours === fournisseur ? T.unInstant : T.delierDetail(nom)}
           onPress={() => onDelier(fournisseur)}
         />
       );
@@ -61,28 +69,28 @@ export function SectionMesConnexions({ connexions, lectureRatee, onRelire, email
     return (
       <LigneReglage
         emoji={emoji}
-        titre={`Relier mon compte ${nom}`}
-        detail={enCours === fournisseur ? "Un instant…" : gesteRelier}
+        titre={T.relierMonCompte(nom)}
+        detail={enCours === fournisseur ? T.unInstant : gesteRelier}
         onPress={() => onRelier(fournisseur)}
       />
     );
   };
 
   return (
-    <SectionReglages titre="Tes clés pour entrer">
-      <Text className="py-2 font-texte text-sm leading-5 text-gris">{lierPonctuation(CHAPO_MES_CONNEXIONS)}</Text>
+    <SectionReglages titre={T.titre}>
+      <Text className="py-2 font-texte text-sm leading-5 text-gris">{lierPonctuation(chapo)}</Text>
       {connexions.motDePasse ? (
-        <LigneReglage emoji="🔑" titre="Changer mon mot de passe" detail="Tes autres appareils seront déconnectés" onPress={onChangerMotDePasse} />
+        <LigneReglage emoji="🔑" titre={T.changerMotDePasse} detail={T.changerMotDePasseDetail} onPress={onChangerMotDePasse} />
       ) : (
         <LigneReglage
           emoji="🔑"
-          titre={lienEnvoye ? "Lien envoyé !" : "Ajouter un mot de passe"}
-          detail={enCours === "mot-de-passe" ? "Un instant…" : detailAjout}
+          titre={lienEnvoye ? T.lienEnvoye : T.ajouterMotDePasse}
+          detail={enCours === "mot-de-passe" ? T.unInstant : detailAjout}
           onPress={onAjouterMotDePasse}
         />
       )}
-      {ligneFournisseur("apple", "🍎", "Apple", Platform.OS === "ios", "Entre d'un coup de Face ID, en plus de tes autres clés")}
-      {ligneFournisseur("google", "🌐", "Google", Platform.OS !== "web", "Entre en un geste avec ton compte Google")}
+      {ligneFournisseur("apple", "🍎", NOMS_FOURNISSEURS.apple, Platform.OS === "ios", T.gesteApple)}
+      {ligneFournisseur("google", "🌐", NOMS_FOURNISSEURS.google, Platform.OS !== "web", T.gesteGoogle)}
     </SectionReglages>
   );
 }

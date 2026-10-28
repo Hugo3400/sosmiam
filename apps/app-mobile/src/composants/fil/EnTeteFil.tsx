@@ -4,6 +4,7 @@ import { Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from
 
 import { BoutonNotifications } from "~/composants/notifications/BoutonNotifications";
 import { TEXTES_ACTUS_PAR_LANGUE } from "~/contenus/textes-actus";
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { ACTUS_VISIBLES } from "~/services/actus-visibles";
@@ -29,11 +30,7 @@ export const HAUTEUR_ENTETE_FIL = 58;
 export const HAUTEUR_PASTILLE_VISITE = 44;
 
 // « lu » : le nom de l'onglet pour le lecteur d'écran, sans emoji ; « court » : sur un écran étroit ; « mini » : sur un tout petit écran
-const onglets: { cle: OngletFil; libelle: string; court?: string; mini?: string; lu: string }[] = [
-  { cle: "abonnements", libelle: "Abonnements", mini: "Suivis", lu: "Abonnements" },
-  { cle: "tous", libelle: "Pour toi", lu: "Pour toi" },
-  { cle: "sos", libelle: "SOS ce soir 🔥", court: "SOS 🔥", lu: "SOS ce soir" },
-];
+type OngletAffiche = { cle: OngletFil; libelle: string; court?: string; mini?: string; lu: string };
 
 // En dessous (en points, divisés par la taille de texte choisie), « SOS ce soir 🔥 » ne tient pas à côté des deux autres onglets,
 // de la bouée et de la cloche : « SOS 🔥 » (même un iPhone Pro Max, 430 pt, est trop étroit pour le libellé long)
@@ -61,6 +58,12 @@ type Mesure = { x: number; largeur: number };
 export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerCompte }: Props) {
   const { width: largeur, fontScale } = useWindowDimensions();
   const TA = utiliserTextes(TEXTES_ACTUS_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).enTete;
+  const onglets: OngletAffiche[] = [
+    { cle: "abonnements", ...T.onglets.abonnements },
+    { cle: "tous", ...T.onglets.tous },
+    { cle: "sos", ...T.onglets.sos },
+  ];
   const tousLesOnglets = ACTUS_VISIBLES ? [...onglets, { cle: "actus" as const, libelle: TA.onglet, lu: TA.onglet }] : onglets;
   const clair = onglet === "actus";
   const court = largeur / fontScale < LARGEUR_LIBELLES_LONGS;
@@ -111,7 +114,7 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
           {invite ? null : (
             <View
               accessible
-              accessibilityLabel={`Il te reste ${restantes} rescousse${restantes > 1 ? "s" : ""} cette semaine`}
+              accessibilityLabel={T.rescoussesRestantes(restantes)}
               className={`flex-row items-center gap-1 self-start rounded-full px-2.5 py-1.5 ${clair ? "bg-carte" : "bg-black/30"}`}
             >
               <Text maxFontSizeMultiplier={AGRANDISSEMENT_MAX_PASTILLE} className="text-base">
@@ -151,7 +154,7 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
                 <Pressable
                   key={cle}
                   accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-                  accessibilityLabel={Platform.OS === "ios" ? `${lu}, onglet ${i + 1} sur ${tousLesOnglets.length}` : lu}
+                  accessibilityLabel={Platform.OS === "ios" ? T.ongletLu(lu, i + 1, tousLesOnglets.length) : lu}
                   accessibilityState={{ selected: actif }}
                   hitSlop={8}
                   onPress={() => onChoisir(cle)}
@@ -189,8 +192,8 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
           <Pressable
             accessibilityRole="button"
             // Commence par le mot affiché : Commande vocale trouve la pastille (« Toucher Visite »)
-            accessibilityLabel="Visite sans compte. Crée ton compte"
-            accessibilityHint="Une minute, et à toi les rescousses, les J'aime et les commentaires"
+            accessibilityLabel={T.visiteLu}
+            accessibilityHint={T.visiteIndice}
             hitSlop={{ top: 0, bottom: 8, left: 8, right: 8 }}
             onPress={() => {
               vibrerLegerement();
@@ -199,7 +202,8 @@ export function EnTeteFil({ onglet, onChoisir, restantes, haut, invite, onCreerC
             className="h-9 flex-row items-center rounded-full border-2 border-nuit bg-jaune px-3.5 active:opacity-80"
           >
             <Text numberOfLines={1} maxFontSizeMultiplier={1.2} className="font-texte-semi text-[13px] text-nuit">
-              👀 Visite · <Text className="font-texte-gras">Crée ton compte</Text>
+              {T.visite}
+              <Text className="font-texte-gras">{T.creerCompte}</Text>
             </Text>
           </Pressable>
         </View>

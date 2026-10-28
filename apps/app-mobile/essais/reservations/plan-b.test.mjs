@@ -33,7 +33,7 @@ test("deux services le soir : « Le soir, 1er service » et « Le soir, 2e servi
     { premier: "19:00", dernier: "20:00", pas: 30, etat: "ouvert" },
   ];
   const groupes = rangerCreneauxParService(dispo("19:00", "21:30"), services);
-  assert.deepEqual(groupes.map((g) => ecrireNomService(g.nom).titre), ["Le soir, 1er service", "Le soir, 2e service"]);
+  assert.deepEqual(groupes.map((g) => ecrireNomService(g.nom, "fr").titre), ["Le soir, 1er service", "Le soir, 2e service"]);
   assert.deepEqual(groupes.map((g) => g.creneaux.map((c) => c.heure)), [["19:00"], ["21:30"]]);
 });
 
@@ -48,8 +48,8 @@ test("plan B : 2 horaires de secours au plus, dans l'ordre des touches", () => {
   assert.deepEqual(r, { secours: ["20:30", "21:00"], refuse: false });
   assert.deepEqual(basculerHoraireSecours(r.secours, "21:30"), { secours: ["20:30", "21:00"], refuse: true });
   assert.deepEqual(basculerHoraireSecours(r.secours, "20:30"), { secours: ["21:00"], refuse: false });
-  assert.equal(ecrireHeuresSecours(["20:30", "21:00"]), "20h30, puis 21h");
-  assert.equal(ecrireHeuresSecours(["20:30"]), "20h30");
+  assert.equal(ecrireHeuresSecours(["20:30", "21:00"], "fr"), "20h30, puis 21h");
+  assert.equal(ecrireHeuresSecours(["20:30"], "fr"), "20h30");
 });
 
 test("une relecture retire un plan B parti, et tout le choix si l'horaire principal est parti", () => {

@@ -3,8 +3,9 @@ import { Text } from "react-native";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { CalendrierJoursFermes } from "~/composants/reservations-pro/CalendrierJoursFermes";
-import { TEXTES_FEUILLE_JOURS_FERMES as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_FEUILLE_JOURS_FERMES_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function FeuilleJoursFermes({ visible, aujourdhui, joursFermes, enCours, erreur, onBasculer, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_FEUILLE_JOURS_FERMES_PAR_LANGUE);
   return (
     <FeuilleBas visible={visible} titre={T.titre} sousTitre={T.sousTitre} onFermer={onFermer} pied={<Bouton libelle={T.fermer} onPress={onFermer} />}>
       {erreur ? (

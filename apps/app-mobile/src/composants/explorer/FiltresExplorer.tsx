@@ -4,10 +4,12 @@ import { Keyboard, Platform, Pressable, ScrollView, Text, View } from "react-nat
 
 import type { Lieu, TypeLieu } from "@sos-miam/commun/types/lieu";
 import { FeuilleZoneExplorer, type ChoixZone } from "~/composants/explorer/FeuilleZoneExplorer";
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres, type PeriodeEvenements } from "~/contenus/type-filtres-explorer";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Le type FiltresExplorer de ~/contenus/type-filtres-explorer (renommé ici : le composant porte le même nom) */
@@ -26,36 +28,31 @@ type Props = {
   onChangerZone: (zone: ChoixZone) => void;
 };
 
-const tousLesTypes: { cle: TypeLieu | "tous"; libelle: string; emoji?: string }[] = [
-  { cle: "tous", libelle: "Tous" },
-  { cle: "resto", libelle: "Restos", emoji: "🍝" },
-  { cle: "patisserie", libelle: "Pâtisseries", emoji: "🥐" },
-  { cle: "bar", libelle: "Bars", emoji: "🍸" },
-  { cle: "sortie", libelle: "Sorties", emoji: "🎳" },
+type TextesExplorer = (typeof TEXTES_EXPLORER_PAR_LANGUE)["fr"];
+
+const tousLesTypes: { cle: TypeLieu | "tous"; emoji?: string }[] = [
+  { cle: "tous" },
+  { cle: "resto", emoji: "🍝" },
+  { cle: "patisserie", emoji: "🥐" },
+  { cle: "bar", emoji: "🍸" },
+  { cle: "sortie", emoji: "🎳" },
 ];
 
-// « lu » : ce que dit le lecteur d'écran (« euro euro » n'aiderait personne), avec les mêmes noms que les lignes de la liste (LigneLieu)
-const tousLesBudgets: { cle: Lieu["prix"]; lu: string }[] = [
-  { cle: "€", lu: "Petit budget" },
-  { cle: "€€", lu: "Budget moyen" },
-  { cle: "€€€", lu: "Budget plaisir" },
-];
+// Lus par leur nom (TEXTES_EXPLORER.budgets : « euro euro » n'aiderait personne), les mêmes que dans les lignes de la liste (LigneLieu)
+const tousLesBudgets: Lieu["prix"][] = ["€", "€€", "€€€"];
 
-const PERIODES: { cle: PeriodeEvenements; libelle: string; lu: string }[] = [
-  { cle: "ce-soir", libelle: "Ce soir", lu: "Événements ce soir" },
-  { cle: "ce-week-end", libelle: "Ce week-end", lu: "Événements ce week-end" },
-];
+const PERIODES: PeriodeEvenements[] = ["ce-soir", "ce-week-end"];
 
 const classePastille = (choisi: boolean) =>
   `min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre px-3.5 active:opacity-80 ${choisi ? "bg-choix" : "bg-carte"}`;
 const classeTexte = (choisi: boolean) => `font-texte-semi text-[14px] ${choisi ? "text-sur-choix" : "text-encre"}`;
 
 /** Ce que montre la pastille de zone, et ce qu'elle dit au lecteur d'écran */
-function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): { texte: string; lu: string; icone: keyof typeof Ionicons.glyphMap } {
-  if (zone.ville !== null) return { texte: zone.ville, lu: `Ville : ${zone.ville}`, icone: "business" };
-  if (zone.portee === "proche") return { texte: `${zone.rayonKm} km ${autourDe}`, lu: `Zone : à moins de ${zone.rayonKm} kilomètres ${autourDe}`, icone: "location" };
-  if (zone.portee === "region" && region) return { texte: region, lu: `Zone : ta région, ${region}`, icone: "map" };
-  return { texte: "Toute la France", lu: "Zone : toute la France", icone: "earth" };
+function decrireZone(T: TextesExplorer, zone: ChoixZone, region: string | null, autourDe: string): { texte: string; lu: string; icone: keyof typeof Ionicons.glyphMap } {
+  if (zone.ville !== null) return { texte: zone.ville, lu: T.zoneVilleLu(zone.ville), icone: "business" };
+  if (zone.portee === "proche") return { texte: T.zoneProche(zone.rayonKm, autourDe), lu: T.zoneProcheLu(zone.rayonKm, autourDe), icone: "location" };
+  if (zone.portee === "region" && region) return { texte: region, lu: T.zoneRegionLu(region), icone: "map" };
+  return { texte: T.touteLaFrance, lu: T.zoneFranceLu, icone: "earth" };
 }
 
 /**
@@ -66,10 +63,11 @@ function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): 
  */
 export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, region, autourDe, onChangerZone }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE);
   const [choixZoneOuvert, setChoixZoneOuvert] = useState(false);
   const pastilleTous = useRef<View>(null);
   const pastilleZone = useRef<View>(null);
-  const zoneDecrite = decrireZone(zone, region, autourDe);
+  const zoneDecrite = decrireZone(T, zone, region, autourDe);
 
   const types = tousLesTypes.filter((t) => t.cle !== "bar" || barsPermis);
   const nombreActifs = (filtres.type !== "tous" ? 1 : 0) + (filtres.ville ? 1 : 0) + filtres.budgets.length + (filtres.ouvertMaintenant ? 1 : 0) + (filtres.evenement ? 1 : 0);
@@ -82,7 +80,7 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
   function basculerBudget(budget: Lieu["prix"]) {
     const coches = filtres.budgets.includes(budget) ? filtres.budgets.filter((b) => b !== budget) : [...filtres.budgets, budget];
     // Toujours dans l'ordre €, €€, €€€
-    changer({ budgets: tousLesBudgets.map((b) => b.cle).filter((b) => coches.includes(b)) });
+    changer({ budgets: tousLesBudgets.filter((b) => coches.includes(b)) });
   }
 
   function effacer() {
@@ -118,7 +116,7 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           ref={pastilleZone}
           accessibilityRole="button"
           accessibilityLabel={zoneDecrite.lu}
-          accessibilityHint="Ouvre le choix de la zone : à quelques kilomètres, ta région, toute la France ou une ville"
+          accessibilityHint={T.indiceZone}
           onPress={() => {
             vibrerLegerement();
             // Le clavier de la recherche passerait par-dessus le choix de la zone
@@ -139,31 +137,32 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
         {nombreActifs > 0 ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Effacer les filtres, ${nombreActifs} actif${nombreActifs > 1 ? "s" : ""}`}
+            accessibilityLabel={T.effacerFiltresLu(nombreActifs)}
             onPress={effacer}
             className="min-h-11 flex-row items-center gap-1 rounded-full border-2 border-encre bg-jaune px-3.5 active:opacity-80"
           >
             <Ionicons name="close" size={16} color={couleurs.nuit} />
-            <Text className="font-texte-gras text-[14px] text-nuit">Effacer les filtres</Text>
+            <Text className="font-texte-gras text-[14px] text-nuit">{T.effacerFiltres}</Text>
           </Pressable>
         ) : null}
 
         {/* Un seul type à la fois. iOS ne connaît pas la radio dans un groupe : bouton « sélectionné », avec la position dans le libellé */}
-        <View accessibilityRole="radiogroup" accessibilityLabel="Type de lieu" className="flex-row items-center gap-2">
+        <View accessibilityRole="radiogroup" accessibilityLabel={T.typeDeLieu} className="flex-row items-center gap-2">
           {types.map((t, i) => {
             const choisi = filtres.type === t.cle;
+            const libelle = T.types[t.cle];
             return (
               <Pressable
                 key={t.cle}
                 ref={i === 0 ? pastilleTous : undefined}
                 accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
-                accessibilityLabel={Platform.OS === "ios" ? `${t.libelle}, type de lieu, ${i + 1} sur ${types.length}` : t.libelle}
+                accessibilityLabel={Platform.OS === "ios" ? T.typeLu(libelle, i + 1, types.length) : libelle}
                 accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
                 onPress={() => changer({ type: t.cle })}
                 className={classePastille(choisi)}
               >
                 {t.emoji ? <Text className="text-[15px]">{t.emoji}</Text> : null}
-                <Text className={classeTexte(choisi)}>{t.libelle}</Text>
+                <Text className={classeTexte(choisi)}>{libelle}</Text>
               </Pressable>
             );
           })}
@@ -173,30 +172,30 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
 
         <Pressable
           accessibilityRole="switch"
-          accessibilityLabel="Ouvert maintenant"
+          accessibilityLabel={T.ouvertMaintenant}
           accessibilityState={{ checked: filtres.ouvertMaintenant }}
           onPress={() => changer({ ouvertMaintenant: !filtres.ouvertMaintenant })}
           className={classePastille(filtres.ouvertMaintenant)}
         >
           <Ionicons name={filtres.ouvertMaintenant ? "time" : "time-outline"} size={16} color={filtres.ouvertMaintenant ? couleurs["sur-choix"] : couleurs.encre} />
-          <Text className={classeTexte(filtres.ouvertMaintenant)}>Ouvert maintenant</Text>
+          <Text className={classeTexte(filtres.ouvertMaintenant)}>{T.ouvertMaintenant}</Text>
         </Pressable>
 
 
         {/* Événements : un seul choix, qu'on retouche pour l'enlever */}
-        {PERIODES.map((p) => {
-          const choisi = filtres.evenement === p.cle;
+        {PERIODES.map((cle) => {
+          const choisi = filtres.evenement === cle;
           return (
             <Pressable
-              key={p.cle}
+              key={cle}
               accessibilityRole="switch"
-              accessibilityLabel={p.lu}
+              accessibilityLabel={T.periodes[cle].lu}
               accessibilityState={{ checked: choisi }}
-              onPress={() => changer({ evenement: choisi ? null : p.cle })}
+              onPress={() => changer({ evenement: choisi ? null : cle })}
               className={classePastille(choisi)}
             >
               <Text className="text-[14px]">🎟️</Text>
-              <Text className={classeTexte(choisi)}>{p.libelle}</Text>
+              <Text className={classeTexte(choisi)}>{T.periodes[cle].libelle}</Text>
             </Pressable>
           );
         })}
@@ -204,18 +203,18 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
         <View className="h-6 w-0.5 rounded-full bg-encre/20" />
 
         {/* Plusieurs budgets possibles. Sur iPhone, une case à cocher est lue en anglais (« checkbox, checked ») : bouton « sélectionné » */}
-        {tousLesBudgets.map((b) => {
-          const choisi = filtres.budgets.includes(b.cle);
+        {tousLesBudgets.map((cle) => {
+          const choisi = filtres.budgets.includes(cle);
           return (
             <Pressable
-              key={b.cle}
+              key={cle}
               accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
-              accessibilityLabel={b.lu}
+              accessibilityLabel={T.budgets[cle]}
               accessibilityState={Platform.OS === "ios" ? { selected: choisi } : { checked: choisi }}
-              onPress={() => basculerBudget(b.cle)}
+              onPress={() => basculerBudget(cle)}
               className={`${classePastille(choisi)} min-w-11 justify-center`}
             >
-              <Text className={classeTexte(choisi)}>{b.cle}</Text>
+              <Text className={classeTexte(choisi)}>{cle}</Text>
             </Pressable>
           );
         })}

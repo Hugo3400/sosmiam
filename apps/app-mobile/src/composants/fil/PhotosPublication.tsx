@@ -15,9 +15,11 @@ import { cancelAnimation, Easing, ReduceMotion, useReducedMotion, useSharedValue
 import { scheduleOnRN } from "react-native-worklets";
 
 import { BarresPhotos } from "~/composants/fil/BarresPhotos";
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
 import type { MediaPublication } from "~/contenus/type-publication";
 import { utiliserGestesStables } from "~/hooks/utiliser-gestes-stables";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   photos: Extract<MediaPublication, { type: "photos" }>["photos"];
@@ -35,10 +37,6 @@ type Props = {
 const APERCU_GLISSEMENT = { delai: 700, distance: 56, retour: 380 };
 // Temps passé sur chaque photo avant la suivante (défilement façon stories)
 const DUREE_PHOTO = 4000;
-const ACTIONS_PHOTOS = [
-  { name: "increment", label: "Photo suivante" },
-  { name: "decrement", label: "Photo précédente" },
-];
 
 type GestesPhotos = {
   lancer: (depuis: number) => void;
@@ -55,6 +53,7 @@ type GestesPhotos = {
  * balayant le compteur vers le haut ou le bas.
  */
 export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onAppui }: Props) {
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).media;
   const animationsReduites = useReducedMotion();
   const lecteurEcran = utiliserLecteurEcran();
   const defilementAuto = !animationsReduites && !lecteurEcran;
@@ -198,16 +197,23 @@ export function PhotosPublication({ photos, largeur, hauteur, actif, haut, onApp
       <View
         pointerEvents="none"
         accessible
-        accessibilityLabel="Photo"
+        accessibilityLabel={T.photo}
         accessibilityRole={plusieurs ? "adjustable" : undefined}
-        accessibilityValue={plusieurs ? { text: `${actuelle + 1} sur ${photos.length}` } : undefined}
-        accessibilityActions={plusieurs ? ACTIONS_PHOTOS : undefined}
+        accessibilityValue={plusieurs ? { text: T.positionPhoto(actuelle + 1, photos.length) } : undefined}
+        accessibilityActions={
+          plusieurs
+            ? [
+                { name: "increment", label: T.photoSuivante },
+                { name: "decrement", label: T.photoPrecedente },
+              ]
+            : undefined
+        }
         onAccessibilityAction={plusieurs ? changerDePhoto : undefined}
         style={{ top: haut }}
         className="absolute right-4 flex-row items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5"
       >
         <Ionicons name={plusieurs ? "images" : "image"} size={14} color="#FFFFFF" />
-        <Text className="font-texte-gras text-xs text-white">{plusieurs ? `${actuelle + 1}/${photos.length}` : "Photo"}</Text>
+        <Text className="font-texte-gras text-xs text-white">{plusieurs ? `${actuelle + 1}/${photos.length}` : T.photo}</Text>
       </View>
     </View>
   );

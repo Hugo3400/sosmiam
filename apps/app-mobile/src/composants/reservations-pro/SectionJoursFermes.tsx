@@ -4,11 +4,13 @@ import { Pressable, Text, View } from "react-native";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonFermerJour } from "~/composants/reservations-pro/BoutonFermerJour";
-import { TEXTES_REGLAGES_RESERVATIONS as T } from "~/contenus/textes-reglages-reservations";
+import { TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-reglages-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireJourReservation } from "~/fonctions/reservations/decrire-jour-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   joursFermes: readonly string[];
@@ -19,7 +21,9 @@ type Props = {
 };
 
 export function SectionJoursFermes({ joursFermes, aujourdhui, enCours, onBasculer, onChoisir }: Props) {
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE);
   const aVenir = joursFermes.filter((jour) => jour > aujourdhui).sort();
   return (
     <View className="gap-3">
@@ -34,7 +38,7 @@ export function SectionJoursFermes({ joursFermes, aujourdhui, enCours, onBascule
       ) : (
         <View className="flex-row flex-wrap gap-2">
           {aVenir.map((jour) => {
-            const decrit = decrireJourReservation(jour, aujourdhui);
+            const decrit = decrireJourReservation(jour, aujourdhui, langue);
             return (
               <Pressable
                 key={jour}

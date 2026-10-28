@@ -2,7 +2,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 import Animated, { ZoomOut, useReducedMotion } from "react-native-reanimated";
 
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Emoji de l'avatar : celui du lieu, ou 🎬 pour un créateur */
@@ -37,11 +40,13 @@ const stylePlus = { position: "absolute", top: HAUT_PLUS } as const;
  */
 export function AvatarSuivre({ emoji, nom, createur, suivi, onOuvrir, onSuivre }: Props) {
   const animationsReduites = useReducedMotion();
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).auteur;
+  const TS = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
   return (
     <View style={styleConteneur} className="items-center">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={createur ? `Voir la page de ${nom}` : `Voir la fiche de ${nom}`}
+        accessibilityLabel={createur ? T.voirPage(nom) : T.voirFiche(nom)}
         hitSlop={4}
         onPress={() => {
           vibrerLegerement();
@@ -63,7 +68,7 @@ export function AvatarSuivre({ emoji, nom, createur, suivi, onOuvrir, onSuivre }
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Suivre ${nom}`}
+            accessibilityLabel={TS.suivreLu(nom)}
             onPress={() => {
               vibrerLegerement();
               onSuivre();

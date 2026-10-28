@@ -4,8 +4,8 @@ import { AccessibilityInfo, KeyboardAvoidingView, Modal, Pressable, ScrollView, 
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
-import { LONGUEUR_MAX_DESCRIPTION_LISTE, LONGUEUR_MAX_TITRE_LISTE, MAX_LISTES_PAR_COMPTE } from "@sos-miam/commun/regles/listes";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
+import { LONGUEUR_MAX_DESCRIPTION_LISTE, LONGUEUR_MAX_TITRE_LISTE } from "@sos-miam/commun/regles/listes";
 import type { VisibiliteListe } from "@sos-miam/commun/types/listes";
 import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
@@ -13,12 +13,14 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { ChoixVisibiliteListe } from "~/composants/potes/ChoixVisibiliteListe";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_LISTES_PARTAGEES_PAR_LANGUE } from "~/contenus/textes-listes-partagees";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute, type ErreurNouvelleListe } from "~/hooks/utiliser-communaute";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -31,28 +33,8 @@ type Props = {
   onModifiee?: () => void;
 };
 
-const MOT_INTERDIT = "Ce mot-là, on le laisse au vestiaire : essaie autre chose.";
-const ERREURS_CREATION: Record<ErreurNouvelleListe, string> = {
-  titre: `Ce nom ne passe pas : ${LONGUEUR_MAX_TITRE_LISTE} caractères au plus, et des mots gentils.`,
-  description: `Cette description ne passe pas : ${LONGUEUR_MAX_DESCRIPTION_LISTE} caractères au plus, et des mots gentils.`,
-  trop: `${MAX_LISTES_PAR_COMPTE} listes, c'est le maximum. Fusionne ou supprime celles qui dorment, et la suivante aura sa place.`,
-  "compte-limite": REFUS_LIMITATION.liste,
-  reseau: "Le réseau a fait des siennes : ta liste n'est pas partie. Réessaie dans un instant.",
-};
-
-// « nom » : ce que le lecteur d'écran dit à la place de l'emoji
-const EMOJIS = [
-  { emoji: "📋", nom: "Carnet" },
-  { emoji: "🍕", nom: "Pizza" },
-  { emoji: "🍜", nom: "Ramen" },
-  { emoji: "🥐", nom: "Croissant" },
-  { emoji: "☀️", nom: "Soleil" },
-  { emoji: "🌙", nom: "Lune" },
-  { emoji: "🎂", nom: "Gâteau" },
-  { emoji: "🪙", nom: "Petit budget" },
-  { emoji: "💘", nom: "Cœur" },
-  { emoji: "🌱", nom: "Végé" },
-];
+// Le nom lu à la place de chaque emoji est au même rang dans le dictionnaire (nomsEmojis)
+const EMOJIS = ["📋", "🍕", "🍜", "🥐", "☀️", "🌙", "🎂", "🪙", "💘", "🌱"];
 
 /**
  * Feuille « Nouvelle liste » : un emoji, un nom, si tu veux une petite description, et qui la voit (tout le monde ou ta bande) ;
@@ -60,13 +42,17 @@ const EMOJIS = [
  */
 export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null, onModifiee }: Props) {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_LISTES_PARTAGEES_PAR_LANGUE);
+  const R = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const erreursCreation: Readonly<Record<ErreurNouvelleListe, string>> = { ...T.feuille.erreurs, "compte-limite": R.liste };
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
   // Animations réduites demandées sur le téléphone : la feuille apparaît en fondu au lieu de monter
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
   const { creerListe, modifierListe } = utiliserCommunaute();
-  const [emoji, setEmoji] = useState(liste?.emoji ?? EMOJIS[0].emoji);
+  const [emoji, setEmoji] = useState(liste?.emoji ?? EMOJIS[0]);
   const [titre, setTitre] = useState(liste?.titre ?? "");
   const [description, setDescription] = useState(liste?.description ?? "");
   const [visibilite, setVisibilite] = useState<VisibiliteListe>(liste?.visibilite ?? "tous");
@@ -80,7 +66,7 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
   if (visible !== ouvert) {
     setOuvert(visible);
     if (visible) {
-      setEmoji(liste?.emoji ?? EMOJIS[0].emoji);
+      setEmoji(liste?.emoji ?? EMOJIS[0]);
       setTitre(liste?.titre ?? "");
       setDescription(liste?.description ?? "");
       setVisibilite(liste?.visibilite ?? "tous");
@@ -91,12 +77,13 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
     }
   }
   // L'emoji d'une liste à modifier reste proposé, même s'il n'est pas dans les choix de départ
-  const emojis = liste && !EMOJIS.some((e) => e.emoji === liste.emoji) ? [{ emoji: liste.emoji, nom: "Actuel" }, ...EMOJIS] : EMOJIS;
+  const proposes = EMOJIS.map((e, i) => ({ emoji: e, nom: T.feuille.nomsEmojis[i] ?? "" }));
+  const emojis = liste && !EMOJIS.includes(liste.emoji) ? [{ emoji: liste.emoji, nom: T.feuille.actuel }, ...proposes] : proposes;
 
   const titrePropre = titre.trim();
   const descriptionPropre = description.trim();
-  const erreurTitre = tente && contientMotInterdit(titrePropre) ? MOT_INTERDIT : null;
-  const erreurDescription = tente && descriptionPropre !== "" && contientMotInterdit(descriptionPropre) ? MOT_INTERDIT : null;
+  const erreurTitre = tente && contientMotInterdit(titrePropre) ? T.feuille.motInterdit : null;
+  const erreurDescription = tente && descriptionPropre !== "" && contientMotInterdit(descriptionPropre) ? T.feuille.motInterdit : null;
 
   function montrerSouci(texte: string) {
     setSouci(texte);
@@ -118,20 +105,20 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
       setEnvoi(true);
       const erreur = await modifierListe(liste.id, changements);
       setEnvoi(false);
-      if (erreur) return montrerSouci(erreur === "compte-limite" ? REFUS_LIMITATION.liste : MESSAGES_SERVICE[erreur].texte);
+      if (erreur) return montrerSouci(erreur === "compte-limite" ? R.liste : messagesService[erreur].texte);
       return onModifiee?.();
     }
     setEnvoi(true);
     const resultat = await creerListe({ titre: titrePropre, emoji, description: descriptionPropre, visibilite }, cle);
     setEnvoi(false);
-    if ("erreur" in resultat) return montrerSouci(ERREURS_CREATION[resultat.erreur]);
+    if ("erreur" in resultat) return montrerSouci(erreursCreation[resultat.erreur]);
     onCreee?.(resultat.id);
   }
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.feuille.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
@@ -143,16 +130,16 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-2">
               <View className="gap-1">
                 <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-                  {liste ? "Modifier la liste" : "Nouvelle liste"}
+                  {liste ? T.feuille.titreModifier : T.feuille.titreNouvelle}
                 </Text>
                 <Text className="font-texte text-base leading-6 text-gris">
-                  {lierPonctuation(liste ? "Un nouveau nom, un autre emoji ? Les adresses, elles, restent bien au chaud." : "Range tes adresses chouchous par envie, et ta bande pourra la suivre.")}
+                  {lierPonctuation(liste ? T.feuille.texteModifier : T.feuille.texteNouvelle)}
                 </Text>
               </View>
 
               <View className="gap-2">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-encre">
-                  Son emoji
+                  {T.feuille.sonEmoji}
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {emojis.map((e, i) => {
@@ -162,7 +149,7 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
                       <Pressable
                         key={e.emoji}
                         accessibilityRole="button"
-                        accessibilityLabel={`Emoji ${e.nom}, ${i + 1} sur ${emojis.length}`}
+                        accessibilityLabel={T.feuille.emojiLu(e.nom, T.position(i + 1, emojis.length))}
                         accessibilityState={{ selected: choisi }}
                         onPress={() => {
                           vibrerLegerement();
@@ -180,21 +167,21 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
               </View>
 
               <ChampTexte
-                libelle="Son nom"
+                libelle={T.feuille.sonNom}
                 valeur={titre}
                 onChangeTexte={setTitre}
-                placeholder="Brunchs du dimanche"
+                placeholder={T.feuille.exempleNom}
                 maxLength={LONGUEUR_MAX_TITRE_LISTE}
                 autoCapitalize="sentences"
                 returnKeyType="next"
                 erreur={erreurTitre}
               />
               <ChampTexte
-                libelle="Une petite description"
-                mention="facultatif"
+                libelle={T.feuille.description}
+                mention={T.feuille.facultatif}
                 valeur={description}
                 onChangeTexte={setDescription}
-                placeholder="Pour quoi, pour qui, pour quand ?"
+                placeholder={T.feuille.exempleDescription}
                 maxLength={LONGUEUR_MAX_DESCRIPTION_LISTE}
                 multiline
                 autoCapitalize="sentences"
@@ -208,12 +195,12 @@ export function FeuilleNouvelleListe({ visible, onFermer, onCreee, liste = null,
                   <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(souci)}</Text>
                 ) : null}
                 <Bouton
-                  libelle={envoi ? "Un instant…" : liste ? "Enregistrer" : "Créer la liste"}
+                  libelle={envoi ? T.feuille.unInstant : liste ? T.feuille.enregistrer : T.feuille.creer}
                   desactive={titrePropre === "" || envoi}
-                  indice={liste ? "Enregistre tes changements" : "Crée la liste et l'ouvre pour y ajouter des lieux"}
+                  indice={liste ? T.feuille.indiceEnregistrer : T.feuille.indiceCreer}
                   onPress={() => void valider()}
                 />
-                <Bouton libelle="Annuler" variante="blanc" onPress={onFermer} />
+                <Bouton libelle={T.feuille.annuler} variante="blanc" onPress={onFermer} />
               </View>
             </ScrollView>
           </View>

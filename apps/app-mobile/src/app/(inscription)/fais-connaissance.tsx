@@ -11,21 +11,20 @@ import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE } from "~/contenus/textes-inscription-profil";
 import { proposerPseudo } from "~/fonctions/communaute/proposer-pseudo";
 import { calculerDateAnniversaire } from "~/fonctions/dates/calculer-date-anniversaire";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
 const LONGUEUR_MAX_PSEUDO = 20;
-// Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que le pseudo
-const PRENOM_INTERDIT = "Ce prénom-là ne passera pas chez nous\u00a0! Mets ton vrai prénom, ou un petit surnom sympa.";
-// Mêmes règles que estPseudoValide (packages/commun), dites simplement
-const REGLES_PSEUDO =
-  "De 3 à 20 caractères\u00a0: lettres minuscules sans accents, chiffres, point ou tiret bas (pas au début ni à la fin, et jamais deux d'affilée).";
 // Clavier sans accents ni emoji sur iPhone, sans suggestions sur Android
 const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible-password", default: "default" } as const);
 
@@ -39,6 +38,8 @@ const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible
  */
 export default function FaisConnaissance() {
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE);
   const { brouillon, modifier, verrouAge, verrouEnLecture, bloquer, debloquer } = utiliserBrouillonInscription();
   const { invite, quitterInvite } = utiliserProfil();
   const champPseudo = useRef<TextInput>(null);
@@ -54,17 +55,17 @@ export default function FaisConnaissance() {
   }, [verrouAge, invite, quitterInvite]);
 
   const prenom = brouillon.prenom.trim();
-  const erreurPrenom =
-    prenom.length === 0 ? "Il nous faut au moins ton prénom pour te dire bonjour\u00a0!" : nomPublicContientMotInterdit(prenom) ? PRENOM_INTERDIT : null;
+  // Le prénom s'affiche à côté du pseudo (commentaires, sorties, classement) : même filtre que le pseudo
+  const erreurPrenom = prenom.length === 0 ? T.prenomVide : nomPublicContientMotInterdit(prenom) ? T.prenomInterdit : null;
   const prenomValable = erreurPrenom === null && prenom.length <= LONGUEUR_MAX_PRENOM;
   const pseudo = brouillon.pseudo.trim();
   const erreurPseudo =
     pseudo === ""
-      ? "Choisis-toi un pseudo\u00a0: c'est grâce à lui que tes potes te trouveront."
+      ? T.pseudoVide
       : !estPseudoValide(pseudo)
-        ? REGLES_PSEUDO
+        ? T.reglesPseudo
         : nomPublicContientMotInterdit(pseudo)
-          ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
+          ? T.pseudoInterdit
           : null;
   const pseudoValable = erreurPseudo === null;
   // Un caractère interdit se signale tout de suite ; le reste (longueur, vide) une fois le champ quitté
@@ -74,19 +75,19 @@ export default function FaisConnaissance() {
 
   // Ce qui manque encore, affiché tant que « Continuer » est grisé
   const manquants = [
-    prenomValable ? null : prenom === "" ? "ton prénom" : "un prénom plus sympa",
-    pseudoValable ? null : pseudo === "" ? "ton pseudo" : "un pseudo valable",
-    brouillon.dateNaissance === null ? "ta date de naissance" : null,
-    brouillon.ville === null ? "ta ville" : null,
+    prenomValable ? null : prenom === "" ? T.manqueTonPrenom : T.manquePrenomSympa,
+    pseudoValable ? null : pseudo === "" ? T.manqueTonPseudo : T.manquePseudoValable,
+    brouillon.dateNaissance === null ? T.manqueDate : null,
+    brouillon.ville === null ? T.manqueVille : null,
   ].filter((m): m is string => m !== null);
-  const texteManquants = manquants.length > 1 ? `${manquants.slice(0, -1).join(", ")} et ${manquants.at(-1)}` : manquants[0];
+  const texteManquants = listerPrenomsLangue(manquants, langue);
 
   const proposer = (annoncer: boolean) => {
     let nouveau = proposerPseudo(prenom);
     if (nouveau === brouillon.pseudo) nouveau = proposerPseudo(prenom);
     setProposition({ prenom, pseudo: nouveau });
     modifier({ pseudo: nouveau });
-    if (annoncer) AccessibilityInfo.announceForAccessibility(`Pseudo proposé : ${nouveau}`);
+    if (annoncer) AccessibilityInfo.announceForAccessibility(T.pseudoPropose(nouveau));
   };
 
   // En quittant le prénom : un pseudo proposé s'il n'y en a pas encore, ou si la proposition d'avant n'a pas été retouchée
@@ -114,14 +115,14 @@ export default function FaisConnaissance() {
   if (verrouAge) {
     return (
       <EcranEtape
-        titre="Encore un peu de patience"
-        sousTitre={`SOS Miam t'ouvre ses portes à partir de ${AGE_MINIMUM_INSCRIPTION}\u00a0ans. Rendez-vous le ${formaterDateLongue(verrouAge)}\u00a0: on te gardera une bonne table\u00a0!`}
+        titre={T.patienceTitre}
+        sousTitre={T.patienceSousTitre(AGE_MINIMUM_INSCRIPTION, ecrireDateLongueLangue(verrouAge, langue))}
         etape={{ numero: 2, total: 4 }}
       >
         <View className="items-center gap-4 pt-4">
           <Mascotte expression="clin" taille={140} />
           <Text className="text-center font-texte text-base leading-6 text-gris">
-            {"D'ici là, régale-toi bien, et pense à nous quand tu passeras devant un bon petit resto\u00a0😉"}
+            {T.patienceTexte}
           </Text>
           {/* Mode développement seulement (Expo Go, tests) : absent de l'app publiée */}
           {__DEV__ ? (
@@ -130,7 +131,7 @@ export default function FaisConnaissance() {
               onPress={debloquer}
               className="mt-4 min-h-11 justify-center rounded-full border-2 border-dashed border-encre px-4 active:opacity-70"
             >
-              <Text className="font-texte-semi text-sm text-encre">🔓 Débloquer (mode développement)</Text>
+              <Text className="font-texte-semi text-sm text-encre">{T.debloquer}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -140,14 +141,14 @@ export default function FaisConnaissance() {
 
   return (
     <EcranEtape
-      titre="Fais connaissance"
-      sousTitre={"Promis, c'est rapide\u00a0: juste de quoi te saluer par ton prénom et te dénicher des bons plans près de chez toi."}
+      titre={T.titre}
+      sousTitre={T.sousTitre}
       etape={{ numero: 2, total: 4 }}
-      boutonPrincipal={{ libelle: "Continuer", onPress: continuer, desactive: !valable }}
+      boutonPrincipal={{ libelle: T.continuer, onPress: continuer, desactive: !valable }}
     >
       <View className="gap-6">
         <ChampTexte
-          libelle="Ton prénom"
+          libelle={T.tonPrenom}
           valeur={brouillon.prenom}
           onChangeTexte={(texte) => modifier({ prenom: texte })}
           onBlur={() => {
@@ -155,7 +156,7 @@ export default function FaisConnaissance() {
             proposerDepuisPrenom();
           }}
           erreur={prenomQuitte ? erreurPrenom : null}
-          placeholder="Camille"
+          placeholder={T.exemplePrenom}
           textContentType="givenName"
           autoComplete="given-name"
           autoCapitalize="words"
@@ -169,14 +170,14 @@ export default function FaisConnaissance() {
         <View className="gap-1">
           <ChampTexte
             ref={champPseudo}
-            libelle="Ton pseudo"
+            libelle={T.tonPseudo}
             valeur={brouillon.pseudo}
             // Sans « @ » et en minuscules : on corrige pour toi plutôt que de te gronder
             onChangeTexte={(texte) => modifier({ pseudo: texte.toLowerCase().replace(/^@+/, "") })}
             onBlur={() => setPseudoQuitte(true)}
             erreur={montrerErreurPseudo ? erreurPseudo : null}
-            aide={"C'est avec lui que tes potes te trouveront\u00a0: 3 à 20 caractères, en minuscules, chiffres, point ou tiret bas. On vérifie qu'il est bien libre à la création de ton compte."}
-            placeholder="camille42"
+            aide={T.aidePseudo}
+            placeholder={T.exemplePseudo}
             keyboardType={CLAVIER_PSEUDO}
             textContentType="none"
             autoComplete="off"
@@ -191,8 +192,8 @@ export default function FaisConnaissance() {
           {prenom ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Une autre idée de pseudo"
-              accessibilityHint="Remplace ton pseudo par une nouvelle proposition, à partir de ton prénom"
+              accessibilityLabel={T.autreIdeeLu}
+              accessibilityHint={T.autreIdeeIndice}
               onPress={() => {
                 vibrerLegerement();
                 proposer(true);
@@ -200,19 +201,19 @@ export default function FaisConnaissance() {
               hitSlop={4}
               className="min-h-11 justify-center self-start active:opacity-70"
             >
-              <Text className="font-texte-semi text-sm text-encre underline">🎲 Une autre idée</Text>
+              <Text className="font-texte-semi text-sm text-encre underline">{T.autreIdee}</Text>
             </Pressable>
           ) : null}
         </View>
 
         <ChampTexte
           ref={champNom}
-          libelle="Ton nom"
-          mention="facultatif"
+          libelle={T.tonNom}
+          mention={T.facultatif}
           valeur={brouillon.nom}
           onChangeTexte={(texte) => modifier({ nom: texte })}
-          aide="Tu peux le laisser vide, on ne le prendra pas mal."
-          placeholder="Dupont"
+          aide={T.aideNom}
+          placeholder={T.exempleNom}
           textContentType="familyName"
           autoComplete="family-name"
           autoCapitalize="words"
@@ -225,7 +226,7 @@ export default function FaisConnaissance() {
           <ChoixDateNaissance
             valeur={brouillon.dateNaissance}
             onChangeDate={(dateNaissance) => modifier({ dateNaissance })}
-            aide="Elle sert juste à vérifier ton âge. On la garde chiffrée sur notre serveur, et elle n'est jamais montrée aux autres Miamis."
+            aide={T.aideDate}
           />
         </View>
 
@@ -233,7 +234,7 @@ export default function FaisConnaissance() {
 
         {manquants.length > 0 ? (
           <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm text-gris">
-            Il manque encore {texteManquants}.
+            {T.ilManque(texteManquants)}
           </Text>
         ) : null}
       </View>

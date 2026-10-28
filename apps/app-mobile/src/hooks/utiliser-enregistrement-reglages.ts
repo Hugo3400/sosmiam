@@ -11,6 +11,7 @@ import { lireChampReglages } from "~/fonctions/reservations/lire-champ-reglages"
 import { lireReglagesLus } from "~/fonctions/reservations/lire-reglages-lus";
 import { listerAvertissementsReglages, type AvertissementReglages } from "~/fonctions/reservations/lister-avertissements-reglages";
 import type { BrouillonReglagesReservations } from "~/hooks/utiliser-brouillon-reglages-reservations";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserReservationsPro } from "~/hooks/utiliser-reservations-pro";
 
 type Options = {
@@ -22,6 +23,7 @@ type Options = {
 
 export function utiliserEnregistrementReglages({ brouillon, lus, enregistrer, annoncer }: Options) {
   const { lecture } = utiliserReservationsPro();
+  const { langue } = utiliserLangue();
   const [enCours, setEnCours] = useState(false);
   const [avertissements, setAvertissements] = useState<AvertissementReglages[]>([]);
   const [avertissementsOuverts, setAvertissementsOuverts] = useState(false);
@@ -59,7 +61,7 @@ export function utiliserEnregistrementReglages({ brouillon, lus, enregistrer, an
     if (!valide.ok) return signaler(valide.champ);
     setErreurService(null);
     const reglages = { avant: brouillon.depart, apres: valide.reglages, joursFermes: lus.reglages.joursFermes };
-    const liste = lecture.etat === "lu" ? listerAvertissementsReglages(reglages, lecture.reservations, Date.now()) : [];
+    const liste = lecture.etat === "lu" ? listerAvertissementsReglages(reglages, lecture.reservations, Date.now(), langue) : [];
     if (liste.length === 0) return envoyer(valide.reglages);
     valides.current = valide.reglages;
     setAvertissements(liste);

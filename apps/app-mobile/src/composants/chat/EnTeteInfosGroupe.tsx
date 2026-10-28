@@ -2,11 +2,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import { RondGroupe } from "~/composants/chat/RondGroupe";
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversation: ConversationEnrichie;
@@ -23,7 +25,9 @@ const TAILLE = 76;
 
 export function EnTeteInfosGroupe({ conversation, admin, aUnePhoto, detail, photoEnCours, onChangerPhoto, onRetirerPhoto, onRenommer }: Props) {
   const couleurs = utiliserCouleurs();
-  const titre = nommerGroupe(conversation.titre);
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
+  const titre = nommerGroupe(conversation.titre, langue);
   return (
     <View className="flex-row items-center gap-3.5">
       <View style={{ width: TAILLE, height: TAILLE }}>

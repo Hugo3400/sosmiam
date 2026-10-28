@@ -3,9 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
 import { choisirLieuGagnant } from "@sos-miam/commun/fonctions/sorties/choisir-lieu-gagnant";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
@@ -13,42 +16,43 @@ import { DiscussionSortie, type LigneDiscussion } from "~/composants/potes/Discu
 import { EnTeteSortie } from "~/composants/potes/EnTeteSortie";
 import { MembresSortie } from "~/composants/potes/MembresSortie";
 import { VoteSortie } from "~/composants/potes/VoteSortie";
-import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_ECRAN_SORTIE_POTES, TEXTES_ECRAN_SORTIE_POTES_PAR_LANGUE } from "~/contenus/textes-ecran-sortie-potes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserDiscussionSortie } from "~/hooks/utiliser-discussion-sortie";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Onglet = "vote" | "discussion";
+type TextesSortiePotes = Traduction<typeof TEXTES_ECRAN_SORTIE_POTES>;
 
-const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 const capitaliser = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
 
 /** « aujourd'hui », « demain », « hier » ou « vendredi 10 octobre » (avec l'année si ce n'est pas celle-ci). */
-function decrireJour(date: Date, maintenant: Date): string {
+function decrireJour(date: Date, maintenant: Date, langue: Langue, T: TextesSortiePotes): string {
   const ecart = Math.round((debutDuJour(date) - debutDuJour(maintenant)) / 86_400_000);
-  if (ecart === 0) return "aujourd'hui";
-  if (ecart === 1) return "demain";
-  if (ecart === -1) return "hier";
-  const longue = formaterDateLongue(formaterDateIso(date));
-  return `${JOURS[date.getDay()]} ${date.getFullYear() === maintenant.getFullYear() ? longue.replace(/ \d+$/, "") : longue}`;
+  if (ecart === 0) return T.aujourdhui;
+  if (ecart === 1) return T.demain;
+  if (ecart === -1) return T.hier;
+  const jour = ecrireJourLongLangue(date, langue, maintenant);
+  return langue === "en" ? jour : jour.charAt(0).toLowerCase() + jour.slice(1);
 }
 // Une sortie reste « à venir » quelques heures après son début (le temps du repas), comme dans l'onglet Sorties
 const DUREE_SORTIE = 4 * 3_600_000;
-const decrireHeure = (date: Date) => formaterHeure(`${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`);
+const decrireHeure = (date: Date, langue: Langue) => formaterHeureLangue(date.getHours(), date.getMinutes(), langue);
 
 /** Demande une confirmation (Alert n'existe pas sur le web : on passe par la boîte du navigateur). */
-function confirmer(titre: string, message: string, action: string, destructive: boolean, faire: () => void) {
+function confirmer(titre: string, message: string, action: string, annuler: string, destructive: boolean, faire: () => void) {
   if (Platform.OS === "web") {
     if (window.confirm(`${titre}\n\n${message}`)) faire();
     return;
   }
   Alert.alert(titre, message, [
-    { text: "Annuler", style: "cancel" },
+    { text: annuler, style: "cancel" },
     { text: action, style: destructive ? "destructive" : "default", onPress: faire },
   ]);
 }
@@ -59,6 +63,9 @@ function confirmer(titre: string, message: string, action: string, destructive: 
  * à l'ouverture, et sa discussion passe par la messagerie.
  */
 export default function EcranSortie() {
+  const T = utiliserTextes(TEXTES_ECRAN_SORTIE_POTES_PAR_LANGUE);
+  const MESSAGES_SERVICE = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { id, onglet: ongletDemande } = useLocalSearchParams<{ id: string; onglet?: string }>();
@@ -99,12 +106,12 @@ export default function EcranSortie() {
           🫥
         </Text>
         <Text accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-          Sortie introuvable
+          {T.introuvableTitre}
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Elle a peut-être été annulée, ou tu n'en fais plus partie. Pas grave : la prochaine, c'est toi qui l'organises ?")}
+          {lierPonctuation(T.introuvableTexte)}
         </Text>
-        <Bouton libelle="Retour" variante="blanc" onPress={retour} />
+        <Bouton libelle={T.retour} variante="blanc" onPress={retour} />
       </View>
     );
   }
@@ -116,7 +123,7 @@ export default function EcranSortie() {
   const lieuChoisi =
     sortie.lieuChoisi ?? (voteFini ? choisirLieuGagnant(sortie.propositions.map((p) => ({ lieuId: p.lieuId, votes: p.nombreVotes ?? p.votes.length }))) : null);
   const minutesRestantes = Math.ceil((fin.getTime() - maintenant.getTime()) / 60_000);
-  const finVote = minutesRestantes < 60 ? `dans ${Math.max(1, minutesRestantes)} min` : `${decrireJour(fin, maintenant)} à ${decrireHeure(fin)}`;
+  const finVote = minutesRestantes < 60 ? T.dansMinutes(Math.max(1, minutesRestantes)) : T.jourHeure(decrireJour(fin, maintenant, langue, T), decrireHeure(fin, langue));
 
   // Les personnes bloquées ne sont plus montrées (ni dans la liste, ni en « organisée par ») ; l'organisateur en premier
   const bloquesIds = new Set(bloques.map((b) => b.id));
@@ -134,28 +141,27 @@ export default function EcranSortie() {
     const date = new Date(m.date);
     const precedente = messages[i - 1];
     const nouveauJour = !precedente || debutDuJour(new Date(precedente.date)) !== debutDuJour(date);
-    return { message: m, auteur: trouverPote(m.auteur), deMoi: m.auteur === monId, heure: decrireHeure(date), jour: nouveauJour ? capitaliser(decrireJour(date, maintenant)) : null };
+    return { message: m, auteur: trouverPote(m.auteur), deMoi: m.auteur === monId, heure: decrireHeure(date, langue), jour: nouveauJour ? capitaliser(decrireJour(date, maintenant, langue, T)) : null };
   });
 
   const onglets = [
-    { cle: "vote" as const, emoji: "🗳️", nom: "Le vote" },
+    { cle: "vote" as const, emoji: "🗳️", nom: T.ongletVote },
     // Des messages plus anciens restent à lire : le nombre serait faux
-    { cle: "discussion" as const, emoji: "💬", nom: "La discussion", nombre: discussion.plusAnciens ? undefined : messages.length },
+    { cle: "discussion" as const, emoji: "💬", nom: T.ongletDiscussion, nombre: discussion.plusAnciens ? undefined : messages.length },
   ];
 
   const demanderFinDuVote = () =>
-    confirmer("Terminer le vote ?", "Le lieu qui a le plus de votes l'emporte, et plus personne ne pourra voter.", "Terminer", false, () => {
+    confirmer(T.terminerTitre, T.terminerDetail, T.terminer, T.annuler, false, () => {
       terminerVote(sortie.id);
-      annoncer("🏁 Vote terminé : on y va !");
+      annoncer(T.voteTermine);
     });
 
   const demanderDepart = () =>
     confirmer(
-      "Quitter la sortie ?",
-      organisateur
-        ? "Tu organises cette sortie : tes potes la garderont sans toi, et tu ne verras plus le vote ni la discussion."
-        : "Tu ne verras plus le vote ni la discussion de cette sortie.",
-      "Quitter",
+      T.quitterTitre,
+      organisateur ? T.quitterDetailOrganisateur : T.quitterDetail,
+      T.quitter,
+      T.annuler,
       true,
       () => {
         setQuittee(true);
@@ -179,7 +185,7 @@ export default function EcranSortie() {
         <View style={{ flex: 1, paddingTop: marges.top }}>
           <EnTeteSortie
             sortie={sortie}
-            quand={`${capitaliser(decrireJour(quand, maintenant))} à ${decrireHeure(quand)}`}
+            quand={T.jourHeure(capitaliser(decrireJour(quand, maintenant, langue, T)), decrireHeure(quand, langue))}
             participants={participants}
             enAttente={enAttente}
             organisateur={bloquesIds.has(sortie.organisateur) ? null : trouverPote(sortie.organisateur)}
@@ -189,13 +195,13 @@ export default function EcranSortie() {
           <View accessibilityRole="tablist" className="flex-row border-b-2 border-ligne px-5">
             {onglets.map((o, i) => {
               const actif = o.cle === onglet;
-              const nom = o.nombre !== undefined ? `${o.nom}, ${o.nombre} message${o.nombre > 1 ? "s" : ""}` : o.nom;
+              const nom = o.nombre !== undefined ? T.ongletMessages(o.nom, o.nombre) : o.nom;
               // iOS ne connaît pas le rôle « onglet » (VoiceOver le lirait comme du texte) : bouton, avec la position dans le libellé
               return (
                 <Pressable
                   key={o.cle}
                   accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-                  accessibilityLabel={Platform.OS === "ios" ? `${nom}, onglet ${i + 1} sur ${onglets.length}` : nom}
+                  accessibilityLabel={Platform.OS === "ios" ? T.ongletPosition(nom, i + 1, onglets.length) : nom}
                   accessibilityState={{ selected: actif }}
                   onPress={() => {
                     vibrerLegerement();
@@ -225,17 +231,17 @@ export default function EcranSortie() {
               <MembresSortie sortie={sortie} passee={passee} onAnnoncer={annoncer} />
               <View className="mt-2 items-center">
                 <Pressable accessibilityRole="button" onPress={demanderDepart} hitSlop={4} className="min-h-11 items-center justify-center px-4 active:opacity-70">
-                  <Text className="font-texte-semi text-base text-rouge-texte underline">Quitter la sortie</Text>
+                  <Text className="font-texte-semi text-base text-rouge-texte underline">{T.quitterSortie}</Text>
                 </Pressable>
                 {organisateur ? (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityHint="La sortie et sa discussion disparaissent pour tout le monde, après confirmation"
+                    accessibilityHint={T.annulerIndice}
                     onPress={() => setAnnulation(true)}
                     hitSlop={4}
                     className="min-h-11 items-center justify-center px-4 active:opacity-70"
                   >
-                    <Text className="font-texte-semi text-base text-rouge-texte underline">Annuler la sortie</Text>
+                    <Text className="font-texte-semi text-base text-rouge-texte underline">{T.annulerSortie}</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -258,11 +264,11 @@ export default function EcranSortie() {
       <FeuilleConfirmation
         visible={annulation}
         emoji="🗑️"
-        titre={`Annuler « ${sortie.titre} » ?`}
-        detail="La sortie et sa discussion disparaissent pour tout le monde, sans retour possible. Pas de panique : une autre se lance en deux minutes."
-        libelleConfirmer="Annuler la sortie"
-        libelleRester="Je la garde"
-        indiceRester="La sortie continue comme avant"
+        titre={T.annulerTitre(sortie.titre)}
+        detail={T.annulerDetail}
+        libelleConfirmer={T.annulerSortie}
+        libelleRester={T.garder}
+        indiceRester={T.garderIndice}
         onConfirmer={() => void annuler()}
         onFermer={() => setAnnulation(false)}
       />

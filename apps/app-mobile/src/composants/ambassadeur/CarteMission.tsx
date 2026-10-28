@@ -1,23 +1,29 @@
 import { Pressable, Text, View } from "react-native";
 
-import type { MissionAmbassadeur, TypeMission } from "@sos-miam/commun/types/espace-ambassadeur";
-import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
-
-export const TYPES_MISSION: Record<TypeMission, { emoji: string; nom: string }> = {
-  "verifier-lieu": { emoji: "🔎", nom: "Vérifier un lieu" },
-  "verifier-big-sos": { emoji: "🆘", nom: "Vérifier un BIG SOS" },
-  "controler-lieu": { emoji: "🧐", nom: "Passer voir un lieu" },
-  autre: { emoji: "🧭", nom: "Mission" },
-};
+import type { MissionAmbassadeur } from "@sos-miam/commun/types/espace-ambassadeur";
+import { TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE, TYPES_MISSION_PAR_LANGUE } from "~/contenus/textes-espace-ambassadeur";
+import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Une mission dans la liste : type, titre, lieu, échéance ou « faite le ». La toucher ouvre son détail. */
 export function CarteMission({ mission: m, onPress }: { mission: MissionAmbassadeur; onPress: () => void }) {
-  const type = TYPES_MISSION[m.type];
-  const quand = m.statut === "faite" && m.faiteLe ? `Faite le ${ecrireJourLong(m.faiteLe).toLowerCase()}` : m.statut === "annulee" ? "Annulée" : m.echeance ? `Avant le ${ecrireJourLong(m.echeance).toLowerCase()}` : "Sans date limite";
+  const T = utiliserTextes(TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE);
+  const types = utiliserTextes(TYPES_MISSION_PAR_LANGUE);
+  const { langue } = utiliserLangue();
+  const type = types[m.type];
+  const quand =
+    m.statut === "faite" && m.faiteLe
+      ? T.faiteLe(ecrireJourLongLangue(m.faiteLe, langue))
+      : m.statut === "annulee"
+        ? T.annulee
+        : m.echeance
+          ? T.avantLe(ecrireJourLongLangue(m.echeance, langue))
+          : T.sansDate;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${type.nom} : ${m.titre}${m.lieu ? `, ${m.lieu.nom}, ${m.lieu.ville}` : ""}. ${quand}`}
+      accessibilityLabel={T.carteLu(type.nom, m.titre, m.lieu ? `${m.lieu.nom}, ${m.lieu.ville}` : null, quand)}
       onPress={onPress}
       className={`flex-row gap-3 rounded-carte border-2 border-encre p-4 active:opacity-80 ${m.statut === "a-faire" ? "bg-carte" : "bg-creme"}`}
     >

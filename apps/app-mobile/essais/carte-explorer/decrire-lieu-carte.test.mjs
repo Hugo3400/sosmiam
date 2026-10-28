@@ -29,10 +29,18 @@ test("le libellé lu par VoiceOver et TalkBack ne change pas", () => {
       alerte: choisir([undefined, "", "Salle calme ce soir"]),
       sos: choisir([undefined, { places: 1, jusqua: "21:30" }, { places: 4, jusqua: "20:00", offre: "Dessert offert" }]),
     };
-    assert.equal(decrireLieuCarte(lieu), decrireLieuAvant(lieu));
+    assert.equal(decrireLieuCarte(lieu, "fr"), decrireLieuAvant(lieu));
   }
   assert.equal(
-    decrireLieuCarte({ nom: "Chez Mémé", info: "Pizzeria", quartier: "Le Panier", verifie: false, sos: undefined, alerte: undefined }),
+    decrireLieuCarte({ nom: "Chez Mémé", info: "Pizzeria", quartier: "Le Panier", verifie: false, sos: undefined, alerte: undefined }, "fr"),
     "Chez Mémé. Pizzeria, Le Panier. Lieu non vérifié, sans compte SOS Miam",
+  );
+  assert.equal(
+    decrireLieuCarte({ nom: "Chez Mémé", info: "Pizzeria", quartier: "Le Panier", verifie: false, sos: undefined, alerte: undefined }, "en"),
+    "Chez Mémé. Pizzeria, Le Panier. Place not verified, no SOS Miam account",
+  );
+  assert.equal(
+    decrireLieuCarte({ nom: "Chez Mémé", info: "Pizzeria", quartier: "", verifie: true, sos: { places: 1, jusqua: "21:30", offre: "Dessert offert" }, alerte: undefined }, "en"),
+    "Chez Mémé. Pizzeria. SOS tonight: 1 seat until 21:30, Dessert offert",
   );
 });

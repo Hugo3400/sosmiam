@@ -6,10 +6,12 @@ import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
-import { raisonsCompte } from "~/contenus/raisons-compte";
+import { RAISONS_COMPTE_PAR_LANGUE } from "~/contenus/raisons-compte";
+import { TEXTES_INVITE_PAR_LANGUE } from "~/contenus/textes-invite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** L'onglet réservé aux inscrits (« potes », « profil », « scan »…) */
@@ -30,6 +32,8 @@ type Props = {
 export function EcranInvite({ raison, emoji, titre, texte, avantages, enPlus }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INVITE_PAR_LANGUE);
+  const raisonsCompte = utiliserTextes(RAISONS_COMPTE_PAR_LANGUE);
   const hauteurBarreOnglets = useBottomTabBarHeight();
 
   return (
@@ -62,16 +66,16 @@ export function EcranInvite({ raison, emoji, titre, texte, avantages, enPlus }: 
         </View>
 
         <Bouton
-          libelle="Je m'inscris (1 min)"
+          libelle={T.jeMInscris}
           variante="encre"
-          indice={`Ouvre l'inscription pour ${raisonsCompte[raison].action}`}
+          indice={T.indiceInscrirePour(raisonsCompte[raison].action)}
           onPress={() => router.push("/compte")}
           className="mt-6"
         />
         {enPlus ? <View className="mt-4">{enPlus}</View> : null}
 
         <Text className="mt-6 text-center font-texte text-sm leading-5 text-gris">
-          {lierPonctuation("En attendant, le fil « Pour toi » et Explorer restent grands ouverts : régale tes yeux !")}
+          {lierPonctuation(T.enAttendant)}
         </Text>
       </ScrollView>
     </SafeAreaView>

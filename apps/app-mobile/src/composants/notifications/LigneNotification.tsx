@@ -7,13 +7,16 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { RondPote } from "~/composants/potes/RondPote";
-import { formaterMomentRelatif } from "~/fonctions/dates/formater-moment-relatif";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterMomentRelatifLangue } from "~/fonctions/langue/formater-moment-relatif-langue";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import type { NotificationApp } from "~/hooks/utiliser-notifications";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   notification: NotificationApp;
@@ -33,14 +36,13 @@ type Props = {
 
 const TAILLE_ROND = 44;
 const DEBUT_TEXTE = 12 + TAILLE_ROND + 12;
-const ACTIONS_LECTEUR = [{ name: "effacer", label: "Effacer" }];
 
 /** Ce que la ligne ouvre, lu par VoiceOver après la phrase */
-const indiceDe = (notification: NotificationApp, description: NotificationDecrite) => {
+const indiceDe = (notification: NotificationApp, description: NotificationDecrite, T: { indiceProfil: string; indiceFiche: string; indicePage: string }) => {
   if (description.indice) return description.indice;
   if (notification.type === "cloche") return undefined;
-  if (notification.cle.startsWith("personne:")) return "Ouvre son profil";
-  return notification.cle.startsWith("lieu:") ? "Ouvre la fiche du lieu" : "Ouvre sa page";
+  if (notification.cle.startsWith("personne:")) return T.indiceProfil;
+  return notification.cle.startsWith("lieu:") ? T.indiceFiche : T.indicePage;
 };
 
 /**
@@ -50,16 +52,18 @@ const indiceDe = (notification: NotificationApp, description: NotificationDecrit
 export function LigneNotification({ notification, description, pote, nouvelle, derniere, action, onOptions, onEffacer }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
-  const moment = formaterMomentRelatif(notification.date);
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
+  const moment = formaterMomentRelatifLangue(notification.date, langue);
   const { ouvrir } = description;
-  const libelle = `${nouvelle ? "Nouveau. " : ""}${retirerEmoji(description.texte)}${description.alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}, ${moment.lu}`;
+  const libelle = `${nouvelle ? T.nouveau : ""}${retirerEmoji(description.texte)}${description.alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}, ${moment.lu}`;
   const fond = `${nouvelle ? "bg-jaune-clair/50" : ""} ${derniere ? "" : "border-b border-ligne"}`;
   const auBout = action !== undefined || onOptions !== undefined;
   // Jamais un bouton dans un bouton
   const classe = `min-h-16 flex-row items-center gap-3 px-3 ${action !== undefined ? "pb-2 pt-3" : "py-3"} ${auBout ? "" : fond}`;
   const lecteur = onEffacer
     ? {
-        accessibilityActions: ACTIONS_LECTEUR,
+        accessibilityActions: [{ name: "effacer", label: T.effacer }],
         onAccessibilityAction: (e: AccessibilityActionEvent) => {
           if (e.nativeEvent.actionName === "effacer") onEffacer();
         },
@@ -106,7 +110,7 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint={indiceDe(notification, description)}
+      accessibilityHint={indiceDe(notification, description, T)}
       {...lecteur}
       {...appuiLong}
       onPress={() => {
@@ -132,8 +136,8 @@ export function LigneNotification({ notification, description, pote, nouvelle, d
       {onOptions ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Plus d'options : ${retirerEmoji(description.texte)}`}
-          accessibilityHint="Pour effacer cette notification"
+          accessibilityLabel={T.plusDOptions(retirerEmoji(description.texte))}
+          accessibilityHint={T.plusDOptionsIndice}
           hitSlop={4}
           onPress={() => {
             vibrerLegerement();

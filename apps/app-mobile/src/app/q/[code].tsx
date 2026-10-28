@@ -4,9 +4,11 @@ import { ActivityIndicator, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE } from "~/contenus/textes-inscription-connexion";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Le QR d'un appareil à connecter, ouvert par l'appareil photo du téléphone (sosmiam.fr/q/<code>) : avec un compte connecté,
@@ -16,6 +18,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 export default function OuvrirQrConnexion() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE);
   const { code = "" } = useLocalSearchParams<{ code: string }>();
   const { connecte } = utiliserSession();
   const { profil } = utiliserProfil();
@@ -36,16 +39,16 @@ export default function OuvrirQrConnexion() {
   if (peutValider) {
     return (
       <View className="flex-1 items-center justify-center bg-creme">
-        <ActivityIndicator color={couleurs.encre} accessibilityLabel="On ouvre la connexion de l'appareil" />
+        <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.lienOuverture} />
       </View>
     );
   }
   return (
     <EcranReglage
-      titre="Ce QR sert à connecter un appareil"
-      sousTitre="Scanne-le avec un téléphone où tu es déjà connecté à SOS Miam : Profil → ⚙️ Paramètres → Mon compte → « Connecter un appareil »."
+      titre={T.lienTitre}
+      sousTitre={T.lienSousTitre}
     >
-      <Bouton libelle="Compris" variante="blanc" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} />
+      <Bouton libelle={T.compris} variante="blanc" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} />
     </EcranReglage>
   );
 }

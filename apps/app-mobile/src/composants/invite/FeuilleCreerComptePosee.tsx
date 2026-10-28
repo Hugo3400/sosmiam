@@ -4,9 +4,11 @@ import Animated, { FadeIn, SlideInDown, useReducedMotion } from "react-native-re
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ContenuCreerCompte } from "~/composants/invite/ContenuCreerCompte";
+import { TEXTES_INVITE_PAR_LANGUE } from "~/contenus/textes-invite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Le geste qui demande un compte (null : rien d'affiché) */
@@ -25,6 +27,7 @@ type Props = {
  */
 export function FeuilleCreerComptePosee({ raison, onInscrire, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_INVITE_PAR_LANGUE);
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   const titre = useRef<Text>(null);
@@ -44,7 +47,7 @@ export function FeuilleCreerComptePosee({ raison, onInscrire, onFermer }: Props)
       <Animated.View entering={FadeIn.duration(160)} style={StyleSheet.absoluteFill}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Fermer, et continuer sans compte"
+          accessibilityLabel={T.fermerLu}
           onPress={onFermer}
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}
         />

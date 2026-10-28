@@ -7,6 +7,8 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { CompteurPlusMoins } from "~/composants/interface/CompteurPlusMoins";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixReglement } from "~/composants/pro/ChoixReglement";
+import { TEXTES_QR_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-qr-comptoir";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -21,6 +23,7 @@ const PAYE: ReglementVisite = { type: "paye", reductionPourcent: null, avantages
  * la table a réglé (payé, réduction, offert, avantages), qui vaudra pour chacune de ses visites.
  */
 export function ChoixPersonnesQr({ visible, onMontrer, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_QR_COMPTOIR_PAR_LANGUE);
   const [personnes, setPersonnes] = useState(1);
   const [reglement, setReglement] = useState<ReglementVisite>(PAYE);
 
@@ -33,19 +36,19 @@ export function ChoixPersonnesQr({ visible, onMontrer, onFermer }: Props) {
   return (
     <FeuilleBas
       visible={visible}
-      titre="Montrer le QR"
-      sousTitre="Il change toutes les 30 s et s'éteint après 2 minutes, ou quand tout le monde a scanné."
+      titre={T.montrer}
+      sousTitre={T.feuilleSousTitre}
       onFermer={onFermer}
-      pied={<Bouton libelle={`Montrer le QR · ${personnes} personne${personnes > 1 ? "s" : ""}`} onPress={() => onMontrer(personnes, reglement)} />}
+      pied={<Bouton libelle={T.montrerPour(personnes)} onPress={() => onMontrer(personnes, reglement)} />}
     >
       <View className="gap-2.5">
-        <Text className="font-texte-gras text-base text-encre">Pour combien de personnes ?</Text>
+        <Text className="font-texte-gras text-base text-encre">{T.pourCombien}</Text>
         <CompteurPlusMoins
-          libelle="Nombre de personnes"
+          libelle={T.nombreLu}
           valeur={personnes}
           min={1}
           max={PERSONNES_PRESENTATION_MAX}
-          unite={(n) => `${n} personne${n > 1 ? "s" : ""}`}
+          unite={T.personnes}
           onChanger={setPersonnes}
         />
       </View>

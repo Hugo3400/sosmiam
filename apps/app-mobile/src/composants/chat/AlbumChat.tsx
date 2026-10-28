@@ -3,10 +3,11 @@ import { Keyboard, Pressable, Text, useWindowDimensions, View, type PressablePro
 
 import { TuileAlbumChat } from "~/composants/chat/TuileAlbumChat";
 import { VisionneusePhotosChat } from "~/composants/chat/VisionneusePhotosChat";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -27,6 +28,7 @@ const ETATS_CACHES = new Set(["supprime", "masque", "retire", "illisible"]);
 
 export function AlbumChat({ conversationId, photos, legende, deMoi, prenom, libelle, onAppuiLong, onAppuiTexte, onDoubleAppui, actionsLecteur }: Props) {
   const { width } = useWindowDimensions();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
   const [ouverte, setOuverte] = useState<number | null>(null);
   const visibles = photos.filter((m) => !(m.etat && ETATS_CACHES.has(m.etat)));
   const largeur = Math.min(240, Math.round(width * 0.62));

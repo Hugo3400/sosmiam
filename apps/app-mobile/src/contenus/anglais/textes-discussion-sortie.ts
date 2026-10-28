@@ -14,8 +14,8 @@ export const TEXTES_DISCUSSION_SORTIE_ANGLAIS: Traduction<typeof TEXTES_DISCUSSI
   envoye: "Message sent to the crew",
   voirAvant: "See earlier messages",
   confidentialiteLu:
-    "Only the people in this get-together can see this chat. A message that bothers you? Tap “Message options” next to it, or press and hold it, to report it.",
-  confidentialite: "🔒 Only the people in this get-together can see this chat. A message that bothers you? Press and hold it, or tap “⋯”, to report it.",
+    "Only the people in this get-together can see this chat. A message bothering you? Tap “Message options” next to it, or long-press it, to report it.",
+  confidentialite: "🔒 Only the people in this get-together can see this chat. A message bothering you? Long-press it, or tap “⋯”, to report it.",
   vide: "No messages yet. Get the chat going – a “who's up for it?”, an emoji, anything goes!",
   champ: "Your message",
   champErreur: (erreur: string) => `Your message. ${erreur}`,

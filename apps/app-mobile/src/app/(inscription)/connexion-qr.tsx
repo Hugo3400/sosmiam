@@ -5,7 +5,8 @@ import QRCode from "react-native-qrcode-svg";
 import type { SessionOuverte } from "@sos-miam/commun/client-api/contrat-compte";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { Bouton } from "~/composants/interface/Bouton";
-import { textesConnexionQr } from "~/contenus/connexion-qr";
+import { TEXTES_CONNEXION_QR_PAR_LANGUE } from "~/contenus/connexion-qr";
+import { TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE } from "~/contenus/textes-inscription-connexion";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
@@ -13,6 +14,7 @@ import { type EtatAffichageQr, utiliserAttenteConnexionQr } from "~/hooks/utilis
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { montrerErreurCompte, utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { type ServiceConnexionQr, utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const TAILLE_QR = 232;
 
@@ -31,6 +33,8 @@ export default function ConnexionQr() {
 
 function AfficherQr({ service }: { service: ServiceConnexionQr }) {
   const couleurs = utiliserCouleurs();
+  const textesConnexionQr = utiliserTextes(TEXTES_CONNEXION_QR_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_INSCRIPTION_CONNEXION_PAR_LANGUE);
   const { entrer } = utiliserEntreeCompte();
   // La session rendue par l'API (une seule fois) : gardée pour réessayer d'entrer sans nouveau QR
   const [ouverte, setOuverte] = useState<SessionOuverte | null>(null);
@@ -75,7 +79,7 @@ function AfficherQr({ service }: { service: ServiceConnexionQr }) {
   if (etat === "chargement") {
     contenu = (
       <View style={{ height: TAILLE_QR }} className="items-center justify-center">
-        <ActivityIndicator color={couleurs.encre} accessibilityLabel="On prépare ton QR code" />
+        <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.qrPreparation} />
       </View>
     );
   } else if (etat === "attente" && demande) {
@@ -84,13 +88,13 @@ function AfficherQr({ service }: { service: ServiceConnexionQr }) {
         <View
           accessible
           accessibilityRole="image"
-          accessibilityLabel="QR code de connexion : scanne-le avec ton téléphone déjà connecté"
+          accessibilityLabel={T.qrLu}
           className="rounded-carte border-2 border-encre bg-white p-4"
         >
           <QRCode value={`https://sosmiam.fr/q/${demande.code}`} size={TAILLE_QR} color={couleurs.nuit} backgroundColor="#FFFFFF" ecl="M" />
         </View>
         <Text className="font-texte text-sm text-gris">
-          {attente.secondesRestantes > 0 ? `Valable encore ${attente.secondesRestantes} s · ${textesConnexionQr.renouvele}` : textesConnexionQr.renouvele}
+          {attente.secondesRestantes > 0 ? `${T.qrValable(attente.secondesRestantes)} · ${textesConnexionQr.renouvele}` : textesConnexionQr.renouvele}
         </Text>
       </View>
     );
@@ -102,12 +106,12 @@ function AfficherQr({ service }: { service: ServiceConnexionQr }) {
         </Text>
         <Text className="text-center font-texte-gras text-base leading-6 text-encre">{lierPonctuation(message ?? "")}</Text>
         {etat === "scanne" || (etat === "accepte" && !entreeRatee) ? <ActivityIndicator color={couleurs.encre} /> : null}
-        {entreeRatee && ouverte ? <Bouton libelle="Réessayer" onPress={() => void essayerEntrer(ouverte)} /> : null}
+        {entreeRatee && ouverte ? <Bouton libelle={T.reessayer} onPress={() => void essayerEntrer(ouverte)} /> : null}
         {etat === "refuse" || etat === "expire" || etat === "erreur" || entreeRatee ? (
-          <Bouton libelle="Un nouveau QR code" variante={entreeRatee ? "blanc" : "jaune"} petit={entreeRatee} onPress={() => void attente.nouvelle()} />
+          <Bouton libelle={T.nouveauQr} variante={entreeRatee ? "blanc" : "jaune"} petit={entreeRatee} onPress={() => void attente.nouvelle()} />
         ) : null}
         {etat === "erreur" && attente.erreur ? (
-          <Bouton libelle="Pourquoi ?" variante="blanc" petit onPress={() => attente.erreur && montrerErreurCompte(attente.erreur)} />
+          <Bouton libelle={T.pourquoi} variante="blanc" petit onPress={() => attente.erreur && montrerErreurCompte(attente.erreur)} />
         ) : null}
       </View>
     );

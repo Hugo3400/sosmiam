@@ -7,11 +7,10 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { Pastille } from "~/composants/interface/Pastille";
+import { TEXTES_EDITION_CARTE_PAR_LANGUE } from "~/contenus/textes-edition-carte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-
-const IDEES_CARTE = ["Pour commencer", "Plats", "Desserts", "À boire", "Vins", "Cocktails", "Formules", "Menu enfant"];
-const IDEES_FORMULES = ["Formules", "Tarifs", "Anniversaires", "À boire", "À grignoter"];
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -33,6 +32,7 @@ type Props = {
  * retirer. Si elle n'est pas vide, on redemande avant : ses éléments partent avec elle.
  */
 export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris, formules, onGarder, onRetirer, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_EDITION_CARTE_PAR_LANGUE).section;
   const [texte, setTexte] = useState(titre ?? "");
   const [erreur, setErreur] = useState(false);
   const [confirmerRetrait, setConfirmerRetrait] = useState(false);
@@ -54,7 +54,7 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
     return () => clearTimeout(minuterie);
   }, [confirmerRetrait]);
 
-  const idees = (formules ? IDEES_FORMULES : IDEES_CARTE).filter((idee) => !titresPris.includes(idee));
+  const idees = (formules ? T.ideesFormules : T.ideesCarte).filter((idee) => !titresPris.includes(idee));
 
   function garder() {
     // Les mêmes règles que le service (validerCarteDuLieu)
@@ -71,30 +71,30 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
   return (
     <FeuilleBas
       visible={visible}
-      titre={titre ? "Ta section" : "Une nouvelle section"}
-      sousTitre={titre ? undefined : "Range ta carte comme sur papier : les entrées, les plats, les boissons…"}
+      titre={titre ? T.titreModifier : T.titreNouvelle}
+      sousTitre={titre ? undefined : T.sousTitre}
       onFermer={onFermer}
       pied={
         <>
-          <Bouton libelle={titre ? "Garder ce titre" : "Ajouter la section"} onPress={garder} />
-          <Bouton libelle="Annuler" variante="blanc" onPress={onFermer} />
+          <Bouton libelle={titre ? T.garder : T.ajouter} onPress={garder} />
+          <Bouton libelle={T.annuler} variante="blanc" onPress={onFermer} />
         </>
       }
     >
       <ChampTexte
-        libelle="Titre de la section"
+        libelle={T.titre}
         valeur={texte}
         onChangeTexte={(t) => {
           setTexte(t);
           setErreur(false);
         }}
-        placeholder={formules ? "Formules" : "Desserts"}
+        placeholder={formules ? T.titreExempleFormules : T.titreExempleCarte}
         maxLength={LIMITES_CARTE.titreSection}
-        erreur={erreur ? `Donne-lui un titre court, sans gros mot (${LIMITES_CARTE.titreSection} caractères au plus).` : null}
+        erreur={erreur ? T.erreurTitre(LIMITES_CARTE.titreSection) : null}
       />
       {idees.length > 0 ? (
         <View className="gap-2">
-          <Text className="font-texte-semi text-sm text-gris">Des idées</Text>
+          <Text className="font-texte-semi text-sm text-gris">{T.idees}</Text>
           <View className="flex-row flex-wrap gap-2">
             {idees.map((idee, i) => (
               <Pastille
@@ -118,13 +118,13 @@ export function FeuilleSectionCarte({ visible, titre, nombreElements, titresPris
         confirmerRetrait ? (
           <View className="gap-3 rounded-2xl border-2 border-tomate bg-rose-alerte p-4">
             <Text ref={refConfirmation} className="font-texte-semi text-sm leading-5 text-encre">
-              {lierPonctuation(`${nombreElements > 1 ? `Ses ${nombreElements} éléments partiront` : "Son élément partira"} avec elle. Tu pourras encore tout annuler tant que la carte n'est pas enregistrée.`)}
+              {lierPonctuation(T.retraitAvertissement(nombreElements))}
             </Text>
-            <Bouton libelle="Retirer la section" variante="encre" petit onPress={retirer} />
+            <Bouton libelle={T.retirer} variante="encre" petit onPress={retirer} />
           </View>
         ) : (
           <Pressable accessibilityRole="button" onPress={retirer} className="min-h-11 items-center justify-center active:opacity-70">
-            <Text className="font-texte-gras text-base text-rouge-texte">Retirer cette section</Text>
+            <Text className="font-texte-gras text-base text-rouge-texte">{T.retirerCette}</Text>
           </Pressable>
         )
       ) : null}

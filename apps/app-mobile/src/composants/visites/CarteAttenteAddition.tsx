@@ -5,10 +5,13 @@ import { calculerPointsVisite } from "@sos-miam/commun/fonctions/visites/calcule
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { CodeRapprochement } from "~/composants/visites/CodeRapprochement";
+import { TEXTES_DEMANDE_ADDITION_PAR_LANGUE } from "~/contenus/textes-demande-addition";
+import { direDeLieuLangue } from "~/fonctions/langue/dire-de-lieu-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { decrireAttenteAddition } from "~/fonctions/visites/decrire-attente-addition";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** L'addition en attente */
@@ -30,6 +33,8 @@ const INTERVALLE_HORLOGE = 15_000;
  */
 export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props) {
   const services = utiliserServices();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDE_ADDITION_PAR_LANGUE);
   const [maintenant, setMaintenant] = useState(() => new Date());
   const [confirmerAnnulation, setConfirmerAnnulation] = useState(false);
 
@@ -39,13 +44,13 @@ export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props
   }, []);
 
   const lieu = visite.lieu;
-  const attente = visite.expireLe ? decrireAttenteAddition(visite.expireLe, maintenant) : null;
+  const attente = visite.expireLe ? decrireAttenteAddition(visite.expireLe, langue, maintenant) : null;
 
   return (
     <View className="gap-5">
       <View className="items-center gap-1">
         <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
-          Addition demandée !
+          {T.attenteTitre}
         </Text>
         <View className="flex-row items-center justify-center gap-2">
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-base">
@@ -55,11 +60,11 @@ export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props
         </View>
       </View>
 
-      {visite.code ? <CodeRapprochement code={visite.code} prenom={prenom} avatar={avatar} legende="Montre ce code au moment de payer" /> : null}
+      {visite.code ? <CodeRapprochement code={visite.code} prenom={prenom} avatar={avatar} legende={T.attenteLegende} /> : null}
 
       <View className="mt-1 gap-3 rounded-carte border-2 border-encre bg-carte p-4">
         <Text className="font-texte text-base leading-6 text-encre">
-          {lierPonctuation(`L'équipe ${direDeLieu(lieu.nom)} va la marquer réglée. Tu peux fermer l'app : ta demande reste au chaud.`)}
+          {lierPonctuation(T.attenteEquipe(direDeLieuLangue(lieu.nom, langue)))}
         </Text>
         {attente ? (
           <View accessible accessibilityLabel={attente} className="flex-row items-center gap-2">
@@ -75,28 +80,28 @@ export function CarteAttenteAddition({ visite, prenom, avatar, refTitre }: Props
         <View accessible className="flex-row items-center gap-3 rounded-carte bg-rose-alerte px-4 py-3">
           <View className="h-2.5 w-2.5 rounded-full bg-rouge-sos" />
           <Text className="flex-1 font-texte-semi text-sm leading-5 text-rouge-texte">
-            {lierPonctuation(`Ta demande est tombée pendant leur SOS : ta visite vaudra +${calculerPointsVisite(true)} points une fois validée.`)}
+            {lierPonctuation(T.attenteSos(calculerPointsVisite(true)))}
           </Text>
         </View>
       ) : null}
 
       <Pressable
         accessibilityRole="button"
-        accessibilityHint="Te demande de confirmer avant d'annuler"
+        accessibilityHint={T.annulerIndice}
         onPress={() => setConfirmerAnnulation(true)}
         className="min-h-11 items-center justify-center self-center px-4 active:opacity-60"
       >
-        <Text className="font-texte-semi text-base text-gris underline">Annuler ma demande</Text>
+        <Text className="font-texte-semi text-base text-gris underline">{T.annuler}</Text>
       </Pressable>
 
       <FeuilleConfirmation
         visible={confirmerAnnulation}
         emoji="🧾"
-        titre="Annuler ta demande ?"
-        detail="Le code ne servira plus. Tu pourras en redemander une quand tu veux, par exemple si tu as changé de table."
-        libelleConfirmer="Annuler la demande"
-        libelleRester="Je la garde"
-        indiceRester="Ta demande reste en attente"
+        titre={T.annulerTitre}
+        detail={T.annulerDetail}
+        libelleConfirmer={T.annulerConfirmer}
+        libelleRester={T.annulerRester}
+        indiceRester={T.annulerResterIndice}
         onConfirmer={() => {
           // L'écran se met à jour tout seul ; si le lieu a été plus rapide, il montre sa réponse
           services.visites.annulerDemande(visite.id).catch(() => {});

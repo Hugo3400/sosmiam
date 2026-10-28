@@ -3,9 +3,11 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Membre = { pote: Pote; role: string | null; moi: boolean };
 
@@ -19,12 +21,14 @@ const TAILLE = 36;
 
 export function MembresGroupe({ membres, invites, onVoirProfil }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
+  const T_LISTE = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
   const ligne = (pote: Pote, role: string | null, moi: boolean, attente: boolean) => (
     <Pressable
       key={`${attente ? "invite" : "membre"}-${pote.id}`}
       accessibilityRole={moi ? undefined : "button"}
       accessibilityLabel={[moi ? T.toi : pote.prenom, role, attente ? T.enAttente : null].filter(Boolean).join(", ")}
-      accessibilityHint={moi ? undefined : "Ouvre son profil"}
+      accessibilityHint={moi ? undefined : T_LISTE.ouvreProfil}
       disabled={moi}
       onPress={() => {
         vibrerLegerement();

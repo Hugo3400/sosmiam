@@ -4,12 +4,16 @@ import { Text, View } from "react-native";
 
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { GrilleChoix } from "~/composants/inscription/GrilleChoix";
-import { etapesEnvies } from "~/contenus/inscription/envies";
+import { ETAPES_ENVIES_PAR_LANGUE } from "~/contenus/inscription/envies";
+import { TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE } from "~/contenus/textes-inscription-profil";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Étape 3 sur 4 : les envies, une catégorie à la fois. Tout est facultatif. */
 export default function Envies() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_INSCRIPTION_PROFIL_PAR_LANGUE);
+  const etapesEnvies = utiliserTextes(ETAPES_ENVIES_PAR_LANGUE);
   const { brouillon, basculerEnvie } = utiliserBrouillonInscription();
   const [index, setIndex] = useState(0);
 
@@ -28,11 +32,10 @@ export default function Envies() {
       sousTitre={etape.sousTitre}
       etape={{ numero: 3, total: 4 }}
       onRetour={precedent}
-      boutonPrincipal={{ libelle: coches.length === 0 ? "Passer" : derniere ? "Terminer" : "Continuer", onPress: suivant }}
+      boutonPrincipal={{ libelle: coches.length === 0 ? T.passer : derniere ? T.terminer : T.continuer, onPress: suivant }}
     >
       <Text className="mb-4 font-texte-semi text-sm text-gris">
-        {index + 1} sur {etapesEnvies.length}
-        {coches.length > 0 ? ` · ${coches.length} choisi${coches.length > 1 ? "s" : ""}` : ""}
+        {T.progressionEnvies(index + 1, etapesEnvies.length, coches.length)}
       </Text>
       <GrilleChoix choix={etape.choix} coches={coches} onBasculer={(id) => basculerEnvie(etape.categorie, id)} />
       {etape.note ? (
