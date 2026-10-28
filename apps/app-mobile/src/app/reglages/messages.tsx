@@ -7,19 +7,24 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { ChoixApercuMessages } from "~/composants/reglages/ChoixApercuMessages";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { TEXTES_REFUS_REGLAGE_PAR_LANGUE } from "~/contenus/textes-refus-reglage";
+import { TEXTES_REGLAGES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-reglages-messages";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserReglagesMessagerie } from "~/hooks/utiliser-reglages-messagerie";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
-function expliquerRefus(erreur: ErreurService): string {
-  if (erreur === "pseudo-requis") return "🏷️ Choisis d'abord ton pseudo dans Profil › Modifier mon profil › Mes infos";
-  if (erreur === "hors-ligne") return "📶 Pas de réseau : ton réglage n'a pas changé. Réessaie dans un instant.";
-  if (erreur === "trop-de-demandes") return "🐢 Doucement ! Beaucoup d'essais d'un coup : réessaie dans quelques minutes.";
-  return "Ça n'a pas marché cette fois : ton réglage n'a pas changé. Réessaie dans un instant.";
+function expliquerRefus(erreur: ErreurService, textes: (typeof TEXTES_REFUS_REGLAGE_PAR_LANGUE)["fr"]): string {
+  if (erreur === "pseudo-requis") return textes.pseudoRequis;
+  if (erreur === "hors-ligne") return textes.horsLigne;
+  if (erreur === "trop-de-demandes") return textes.tropDeDemandes;
+  return textes.autre;
 }
 
 export default function ReglagesMessages() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_MESSAGES_PAR_LANGUE);
+  const refus = utiliserTextes(TEXTES_REFUS_REGLAGE_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const { disponible, pret, reglages, changer } = utiliserReglagesMessagerie();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -27,27 +32,27 @@ export default function ReglagesMessages() {
 
   function regler(changements: Parameters<typeof changer>[0]) {
     void changer(changements).then((erreur) => {
-      if (erreur) setAnnonce({ texte: lierPonctuation(expliquerRefus(erreur)), numero: Date.now() });
+      if (erreur) setAnnonce({ texte: lierPonctuation(expliquerRefus(erreur, refus)), numero: Date.now() });
     });
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
-      <EcranReglage titre="Messages" sousTitre="Ce que tes potes voient de ta lecture, et ce que te disent tes notifications.">
+      <EcranReglage titre={T.titre} sousTitre={T.sousTitre}>
         {!disponible ? (
           <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Avec un compte, tu règles ici le « Vu » et l'aperçu de tes messages dans les notifications.")}
+            {lierPonctuation(T.sansCompte)}
           </Text>
         ) : !pret ? (
           <View className="mt-4 items-center">
-            <ActivityIndicator color={couleurs.encre} accessibilityLabel="Chargement de tes réglages" />
+            <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
           </View>
         ) : (
           <View className="gap-8">
             <Interrupteur
               emoji="👀"
-              titre="Montrer que j'ai lu"
-              detail={lierPonctuation("Tes potes voient « Vu » sous leur message. Si tu le coupes, tu ne vois plus le leur non plus.")}
+              titre={T.montrerLu}
+              detail={lierPonctuation(T.montrerLuDetail)}
               valeur={reglages.accusesLecture}
               onChanger={(accusesLecture) => regler({ accusesLecture })}
             />

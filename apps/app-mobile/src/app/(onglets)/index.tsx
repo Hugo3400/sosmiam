@@ -23,6 +23,8 @@ import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
 import { AUCUN_SUIVI, DELAI_ACCUEIL, DELAI_PRECHARGEMENT, FENETRE_ACCUEIL, raisonsMenu, VISIBILITE } from "~/contenus/reglages-fil";
 import { TAILLE_PAGE_FIL } from "~/contenus/taille-page-fil";
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import type { FiltreActus } from "~/contenus/type-filtre-actus";
 import type { Publication } from "~/contenus/type-publication";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
@@ -46,6 +48,7 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserDepartVille } from "~/hooks/utiliser-depart-ville";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { ACTUS_VISIBLES } from "~/services/actus-visibles";
 
 
@@ -65,6 +68,8 @@ export default function PourToi() {
   // Quitter le fil met la vidéo en pause un instant après : la fiche ouverte se dessine d'abord, sans attendre le fil
   const focusDiffere = useDeferredValue(focus);
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE);
+  const TS = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
   const { profil, invite } = utiliserProfil();
   // Stable : les gestes mémorisés l'appellent sans redessiner le fil
   const exiger = utiliserCompteRequis();
@@ -181,8 +186,8 @@ export default function PourToi() {
     if (!accueil || !focus) return;
     setAccueil(false);
     if (minuterieAccueil.current) clearTimeout(minuterieAccueil.current);
-    minuterieAccueil.current = setTimeout(() => setAnnonce({ texte: "Compte créé ! À toi de jouer 💛", numero: Date.now() }), DELAI_ACCUEIL);
-  }, [accueil, focus]);
+    minuterieAccueil.current = setTimeout(() => setAnnonce({ texte: T.compteCree, numero: Date.now() }), DELAI_ACCUEIL);
+  }, [accueil, focus, T.compteCree]);
 
   // La fiche du lieu de la publication à l'écran est préparée en coulisses (une seule fois) : la première « Voir l'adresse » s'ouvre sans ramer.
   // Une autre fiche réutilise le même écran déjà monté, avec le bon lieu.
@@ -240,7 +245,7 @@ export default function PourToi() {
     if (choix === "envoyer") ouvrirEnvoi(p.lieuId);
     if (choix === "pas-interesse") {
       masquerPublication(p.id);
-      annoncer("Compris, on t'en montrera moins comme ça 🙈");
+      annoncer(T.pasInteresse);
     }
   }
 
@@ -267,7 +272,7 @@ export default function PourToi() {
   function partager(p: Publication) {
     const lieu = lieuParId.get(p.lieuId);
     if (!lieu) return;
-    Share.share({ message: `${lieu.emoji} ${lieu.nom} (${ecrireQuartierVille(lieu)}) a besoin de monde ! Je l'ai trouvé sur SOS Miam 🛟 https://sosmiam.fr` }).catch(() => {});
+    Share.share({ message: T.partage(lieu.emoji, lieu.nom, ecrireQuartierVille(lieu)) }).catch(() => {});
   }
 
   // L'animation part dès l'appui sur le fil d'affichage ; le nouveau rendu (accessibilité, appuis) passe ensuite, sans la bloquer
@@ -288,8 +293,8 @@ export default function PourToi() {
     },
     garder: (p) => {
       if (!exiger("garder")) return;
-      const nom = lieuParId.get(p.lieuId)?.nom ?? "Ce lieu";
-      annoncer(activite.basculerGarde(p.lieuId) ? `🔖 ${nom} est gardé pour plus tard` : "Retiré de tes lieux gardés");
+      const nom = lieuParId.get(p.lieuId)?.nom ?? T.ceLieuDebut;
+      annoncer(activite.basculerGarde(p.lieuId) ? T.garde(nom) : T.retireGardes);
     },
     partager: (p) => {
       if (exiger("partager")) partager(p);
@@ -305,7 +310,7 @@ export default function PourToi() {
     suivre: (p) => {
       if (!exiger("suivre")) return;
       const lieu = lieuParId.get(p.lieuId);
-      const nom = p.auteur.type === "createur" ? `@${p.auteur.pseudo}` : (lieu?.nom ?? "ce lieu");
+      const nom = p.auteur.type === "createur" ? `@${p.auteur.pseudo}` : (lieu?.nom ?? T.ceLieu);
       const cle = calculerCleSuivi(p.auteur, p.lieuId);
       if (activite.estSuivi(cle)) {
         setAuteurSuivi({ nom, emoji: p.auteur.type === "createur" ? "🎬" : (lieu?.emoji ?? "📍"), cle });
@@ -313,7 +318,7 @@ export default function PourToi() {
         return;
       }
       activite.basculerSuivi(cle);
-      annoncer(`🔔 Tu suis maintenant ${nom} !`);
+      annoncer(TS.suisMaintenant(nom));
     },
     ouvrirAuteur: (p) => {
       if (p.auteur.type === "createur") router.push({ pathname: "/createur/[pseudo]", params: { pseudo: p.auteur.pseudo } });
@@ -342,7 +347,7 @@ export default function PourToi() {
     },
     // Une fois la feuille refermée : VoiceOver, revenu sur « Suivre », ne coupe plus l'annonce
     refermee: () => {
-      if (auteurSuivi) annoncer(`Tu ne suis plus ${auteurSuivi.nom}, sans rancune 👋`);
+      if (auteurSuivi) annoncer(TS.nePlusSuivi(auteurSuivi.nom));
     },
     fermer: () => setNePlusSuivreVisible(false),
   });

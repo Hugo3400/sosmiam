@@ -1,30 +1,34 @@
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
-import { MESSAGES_SERVICE, type MessageService } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE, type MessageService } from "@sos-miam/commun/contenus/messages-services";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 
-import { CARTE_REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { CARTE_REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECHEC_VISITE_PAR_LANGUE } from "~/contenus/textes-echec-visite";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
 import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 
 const deuxChiffres = (n: number) => String(n).padStart(2, "0");
 
 /** « 2026-10-12T09:00:00Z » → « 12 octobre 2026 » (jour de ton téléphone) ; null si la date est illisible */
-function lireJour(iso: string | undefined): string | null {
+function lireJour(iso: string | undefined, langue: Langue): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  return formaterDateLongue(`${date.getFullYear()}-${deuxChiffres(date.getMonth() + 1)}-${deuxChiffres(date.getDate())}`);
+  return ecrireDateLongueLangue(`${date.getFullYear()}-${deuxChiffres(date.getMonth() + 1)}-${deuxChiffres(date.getDate())}`, langue);
 }
 
 /**
  * Remplace {lieu} sans bégayer (« chez Nonna Lia » plutôt que « chez Chez Nonna Lia », « du Chou Rieur » plutôt que
  * « de Le Chou Rieur ») ; quand le nom n'est pas connu, « Ce lieu » en début de phrase et « ce lieu » ailleurs.
  */
-function remplirLieu(modele: string, lieu: string | null): string {
-  if (!lieu) return remplirModele(modele.replace(/^\{lieu\}/, "Ce lieu"), { lieu: "ce lieu" });
+function remplirLieu(modele: string, lieu: string | null, langue: Langue): string {
+  const T = choisirTextes(TEXTES_ECHEC_VISITE_PAR_LANGUE, langue);
+  if (!lieu) return remplirModele(modele.replace(/^\{lieu\}/, T.ceLieuDebut), { lieu: T.ceLieu });
   const accorde = modele.replace(/\bchez \{lieu\}/g, () => direChezLieu(lieu)).replace(/\bde \{lieu\}/g, () => direDeLieu(lieu));
   return remplirModele(accorde, { lieu });
 }
@@ -35,30 +39,27 @@ function remplirLieu(modele: string, lieu: string | null): string {
  * la phrase est tournée autrement plutôt que de laisser une accolade ou un trou. `texteRemplacant` : la phrase à dire à la
  * place (un écran qui n'est pas une visite, comme « Je suis sur place » d'une mission), remplie de la même façon.
  */
-export function decrireEchecVisite(erreur: ErreurService, details?: DetailsErreur, lieuNom?: string, texteRemplacant?: string): MessageService {
-  const modele = MESSAGES_SERVICE[erreur];
+export function decrireEchecVisite(erreur: ErreurService, langue: Langue, details?: DetailsErreur, lieuNom?: string, texteRemplacant?: string): MessageService {
+  const T = choisirTextes(TEXTES_ECHEC_VISITE_PAR_LANGUE, langue);
+  const modele = choisirTextes(MESSAGES_SERVICE_PAR_LANGUE, langue)[erreur];
   const lieu = details?.lieu ?? lieuNom ?? null;
   let { titre, texte } = modele;
 
-  if (erreur === "hors-zone" && typeof details?.distanceM !== "number") {
-    texte = "On te situe un peu trop loin de {lieu}. Pour valider, il faut être sur place.";
-  }
-  if (erreur === "position-imprecise" && typeof details?.precisionM !== "number") {
-    texte = "Il ne sait pas bien où tu es, c'est trop flou pour valider. Approche-toi d'une fenêtre, puis réessaie.";
-  }
+  if (erreur === "hors-zone" && typeof details?.distanceM !== "number") texte = T.horsZoneSansDistance;
+  if (erreur === "position-imprecise" && typeof details?.precisionM !== "number") texte = T.positionImpreciseSansPrecision;
   if (texteRemplacant) texte = texteRemplacant;
-  const jour = lireJour(details?.jusqua);
-  if (erreur === "validations-en-pause" && !jour) titre = "Validations en pause pour l'instant";
-  if (erreur === "compte-limite" && !jour) titre = CARTE_REFUS_LIMITATION.titre;
+  const jour = lireJour(details?.jusqua, langue);
+  if (erreur === "validations-en-pause" && !jour) titre = T.pauseSansDate;
+  if (erreur === "compte-limite" && !jour) titre = choisirTextes(CARTE_REFUS_LIMITATION_PAR_LANGUE, langue).titre;
 
   const valeurs: Record<string, string> = {};
-  if (typeof details?.distanceM === "number") valeurs.distance = formaterDistance(details.distanceM / 1000);
-  if (typeof details?.precisionM === "number") valeurs.precision = formaterDistance(details.precisionM / 1000);
+  if (typeof details?.distanceM === "number") valeurs.distance = formaterDistanceLangue(details.distanceM / 1000, langue);
+  if (typeof details?.precisionM === "number") valeurs.precision = formaterDistanceLangue(details.precisionM / 1000, langue);
   if (jour) valeurs.date = jour;
 
   return {
     emoji: modele.emoji,
-    titre: remplirLieu(remplirModele(titre, valeurs), lieu),
-    texte: remplirLieu(remplirModele(texte, valeurs), lieu),
+    titre: remplirLieu(remplirModele(titre, valeurs), lieu, langue),
+    texte: remplirLieu(remplirModele(texte, valeurs), lieu, langue),
   };
 }

@@ -5,8 +5,9 @@ import { FAMILLES_ETIQUETTES } from "@sos-miam/commun/contenus/etiquettes-offici
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { FamilleEtiquettesACocher } from "~/composants/miamis/FamilleEtiquettesACocher";
-import { TEXTES_MES_ENVIES } from "~/contenus/textes-miamis";
+import { TEXTES_MES_ENVIES_PAR_LANGUE } from "~/contenus/textes-miamis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function FeuilleMesEnvies({ visible, envies, onEnregistrer, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_MES_ENVIES_PAR_LANGUE);
   const [brouillon, setBrouillon] = useState(envies);
   const [ouverte, setOuverte] = useState(visible);
   if (visible !== ouverte) {
@@ -28,20 +30,20 @@ export function FeuilleMesEnvies({ visible, envies, onEnregistrer, onFermer }: P
   return (
     <FeuilleBas
       visible={visible}
-      titre={TEXTES_MES_ENVIES.titre}
-      sousTitre={TEXTES_MES_ENVIES.sousTitre}
+      titre={T.titre}
+      sousTitre={T.sousTitre}
       onFermer={onFermer}
       pied={
         <>
-          <Bouton libelle={TEXTES_MES_ENVIES.enregistrer} onPress={() => onEnregistrer(brouillon)} />
-          <Bouton libelle={TEXTES_MES_ENVIES.annuler} variante="blanc" onPress={onFermer} />
+          <Bouton libelle={T.enregistrer} onPress={() => onEnregistrer(brouillon)} />
+          <Bouton libelle={T.annuler} variante="blanc" onPress={onFermer} />
         </>
       }
     >
       {FAMILLES_ETIQUETTES.map((famille) => (
         <FamilleEtiquettesACocher key={famille.id} famille={famille} choisies={brouillon} onBasculer={basculer} />
       ))}
-      <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(TEXTES_MES_ENVIES.note)}</Text>
+      <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(T.note)}</Text>
     </FeuilleBas>
   );
 }

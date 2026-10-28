@@ -2,7 +2,9 @@ import { memo, useEffect, useState } from "react";
 import { Platform, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
@@ -34,6 +36,7 @@ const DUREE_SUIVI = 500;
 export const MarqueurLieu = memo(function MarqueurLieu({ id, emoji, latitude, longitude, sos, alerte, verifie, libelle, selectionne, onPress }: Props) {
   // Android dessine le marqueur en image : on suit ses changements le temps de le redessiner, puis on le fige (bien plus fluide)
   const { schema } = utiliserTheme();
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).marqueurs;
   const apparence = `${selectionne ? 1 : 0}|${sos ? 1 : 0}|${alerte ? 1 : 0}|${verifie ? 1 : 0}|${emoji}|${schema}`;
   const [apparenceFigee, setApparenceFigee] = useState<string | null>(null);
   useEffect(() => {
@@ -65,7 +68,7 @@ export const MarqueurLieu = memo(function MarqueurLieu({ id, emoji, latitude, lo
       }}
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint="Sélectionne ce lieu"
+      accessibilityHint={T.lieuIndice}
       accessibilityState={{ selected: selectionne }}
     >
       <View

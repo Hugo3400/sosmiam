@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Annonce } from "~/composants/interface/Annonce";
-import { ANNONCE_POSITION_OUBLIEE } from "~/contenus/textes-position";
+import { ANNONCE_POSITION_OUBLIEE_PAR_LANGUE } from "~/contenus/textes-position";
 import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const FICHE_LIEU = /^\/lieu\/[^/]+$/;
 
@@ -12,11 +13,12 @@ export function AnnonceOubliPosition() {
   const { oubliApresAbsence, marquerOubliDit } = utiliserPositionActuelle();
   const chemin = usePathname();
   const marges = useSafeAreaInsets();
+  const annoncePositionOubliee = utiliserTextes(ANNONCE_POSITION_OUBLIEE_PAR_LANGUE);
   const [oubliDit, setOubliDit] = useState<number | null>(null);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   if (oubliApresAbsence !== null && oubliApresAbsence !== oubliDit && FICHE_LIEU.test(chemin)) {
     setOubliDit(oubliApresAbsence);
-    setAnnonce({ texte: ANNONCE_POSITION_OUBLIEE, numero: oubliApresAbsence });
+    setAnnonce({ texte: annoncePositionOubliee, numero: oubliApresAbsence });
   }
   useEffect(() => {
     if (oubliDit !== null) marquerOubliDit(oubliDit);

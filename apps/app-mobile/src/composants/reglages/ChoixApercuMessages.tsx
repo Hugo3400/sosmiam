@@ -1,9 +1,11 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
+import { TEXTES_REGLAGES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-reglages-messages";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   apercuMessages: boolean;
@@ -11,26 +13,28 @@ type Props = {
 };
 
 const CHOIX = [
-  { valeur: true, emoji: "💬", titre: "Le message en entier", detail: "« Léa : On se fait une pizza ce soir ? »" },
-  { valeur: false, emoji: "🤫", titre: "Juste qui t'écrit", detail: "« Léa t'a écrit », et la suite dans l'app" },
+  { valeur: true, emoji: "💬", cle: "entier" },
+  { valeur: false, emoji: "🤫", cle: "discret" },
 ] as const;
 
 export function ChoixApercuMessages({ apercuMessages, onChanger }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_MESSAGES_PAR_LANGUE).apercu;
   return (
     <View className="gap-1">
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-        Dans les notifications
+        {T.titre}
       </Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel="Dans les notifications">
+      <View accessibilityRole="radiogroup" accessibilityLabel={T.titre}>
         {CHOIX.map((choix) => {
           const choisi = apercuMessages === choix.valeur;
+          const { titre, detail } = T[choix.cle];
           return (
             <Pressable
-              key={choix.titre}
+              key={choix.cle}
               accessibilityRole="radio"
               accessibilityState={{ checked: choisi }}
-              accessibilityLabel={`${choix.titre}, ${choix.detail}`}
+              accessibilityLabel={`${titre}, ${detail}`}
               onPress={() => {
                 if (choisi) return;
                 vibrerLegerement();
@@ -40,8 +44,8 @@ export function ChoixApercuMessages({ apercuMessages, onChanger }: Props) {
             >
               <Text className="text-2xl">{choix.emoji}</Text>
               <View className="flex-1">
-                <Text className="font-texte-gras text-base text-encre">{choix.titre}</Text>
-                <Text className="font-texte text-sm text-gris">{lierPonctuation(choix.detail)}</Text>
+                <Text className="font-texte-gras text-base text-encre">{titre}</Text>
+                <Text className="font-texte text-sm text-gris">{lierPonctuation(detail)}</Text>
               </View>
               <View className={`h-7 w-7 items-center justify-center rounded-full border-2 border-encre ${choisi ? "bg-choix" : "bg-carte"}`}>
                 {choisi ? <Ionicons name="checkmark" size={16} color={couleurs["sur-choix"]} /> : null}
@@ -53,7 +57,7 @@ export function ChoixApercuMessages({ apercuMessages, onChanger }: Props) {
       <View className="mt-2 flex-row items-start gap-2">
         <Ionicons name="lock-closed" size={14} color={couleurs.gris} style={{ marginTop: 3 }} />
         <Text className="flex-1 font-texte text-sm leading-5 text-gris">
-          {lierPonctuation("Le message reste chiffré jusqu'à ton téléphone : ni Apple ni Google ne le lisent.")}
+          {lierPonctuation(T.chiffre)}
         </Text>
       </View>
     </View>

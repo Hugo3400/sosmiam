@@ -3,6 +3,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 
+import { NOMS_ETIQUETTES_OFFICIELLES_PAR_LANGUE } from "@sos-miam/commun/contenus/etiquettes-officielles";
 import { carteContientAlcool } from "@sos-miam/commun/fonctions/prevention/carte-contient-alcool";
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -13,9 +14,11 @@ import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
 import { LienProposerModification } from "~/composants/lieux/LienProposerModification";
 import { LienSignalerImageLieu } from "~/composants/lieux/LienSignalerImageLieu";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -72,6 +75,8 @@ function utiliserArriveeTerminee(): boolean {
  * Elle s'ajoute sous le haut de la fiche : rien ne bouge au-dessus. Mémorisée : une rescousse ne la redessine pas.
  */
 export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props) {
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE).sections;
+  const nomsEtiquettes = utiliserTextes(NOMS_ETIQUETTES_OFFICIELLES_PAR_LANGUE);
   // Celles remplies par le lieu (mode pro) si elles existent, sinon celles de la fiche
   const pratique = utiliserInfosPratiquesLieu(lieu);
   // Celle enregistrée par le lieu s'il l'a fait, sinon celle de la fiche (lue une fois, pour l'aperçu et la prévention)
@@ -84,11 +89,11 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
 
   const sections = useMemo(
     () => [
-      { emoji: "🕐", titre: "Horaires", texte: lieu.horaires },
-      { emoji: "😋", titre: "Le plat signature", texte: lieu.plat },
-      ...(lieu.decouvertPar ? [{ emoji: "🔎", titre: "Déniché par", texte: lieu.decouvertPar }] : []),
+      { emoji: "🕐", titre: T.horaires, texte: lieu.horaires },
+      { emoji: "😋", titre: T.plat, texte: lieu.plat },
+      ...(lieu.decouvertPar ? [{ emoji: "🔎", titre: T.denichePar, texte: lieu.decouvertPar }] : []),
     ],
-    [lieu],
+    [lieu, T],
   );
 
   if (!arrivee) return null;
@@ -118,7 +123,7 @@ export const SuiteFicheLieu = memo(function SuiteFicheLieu({ lieu, age }: Props)
       <View className="flex-row flex-wrap gap-2">
         {lieu.tags.map((tag) => (
           <Text key={tag} className="overflow-hidden rounded-full bg-jaune-clair px-3 py-1.5 font-texte-moyen text-sm text-encre">
-            {tag}
+            {nomsEtiquettes[tag] ?? tag}
           </Text>
         ))}
       </View>

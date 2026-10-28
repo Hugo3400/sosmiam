@@ -7,6 +7,7 @@ import { CarrouselSos } from "~/composants/explorer/CarrouselSos";
 import { LigneLieu } from "~/composants/explorer/LigneLieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { TEXTES_EXPLORER_LISTE_PAR_LANGUE } from "~/contenus/textes-explorer-liste";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { choisirCranFeuille } from "~/fonctions/interaction/choisir-cran-feuille";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
@@ -19,7 +20,9 @@ import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Lieux filtrés et triés */
@@ -78,6 +81,9 @@ const lireCleLieu = (element: LieuExplorer) => String(element.lieu.id);
 export function FeuilleLieux(props: Props) {
   const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis, maintenant } = props;
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_EXPLORER_LISTE_PAR_LANGUE);
+  const F = T.feuille;
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -245,10 +251,10 @@ export function FeuilleLieux(props: Props) {
       sos.length > 0 ? (
         <View onLayout={(e) => setHauteurEnTeteListe(Math.round(e.nativeEvent.layout.height))}>
           <CarrouselSos sos={sos} vignettes={vignettes} onOuvrir={onOuvrir} depuis={depuis} />
-          <Text accessibilityRole="header" className="px-4 pb-1 font-titre-gras text-lg text-encre">Tous les lieux</Text>
+          <Text accessibilityRole="header" className="px-4 pb-1 font-titre-gras text-lg text-encre">{F.tousLesLieux}</Text>
         </View>
       ) : null,
-    [sos, vignettes, onOuvrir, depuis],
+    [sos, vignettes, onOuvrir, depuis, F.tousLesLieux],
   );
   const piedListe = useMemo(() => (alcool ? <View className="px-4 pt-3"><MentionPrevention /></View> : null), [alcool]);
   const styleContenuListe = useMemo(() => ({ paddingBottom: margeBasListe, flexGrow: 1 }), [margeBasListe]);
@@ -258,13 +264,13 @@ export function FeuilleLieux(props: Props) {
   const deplie = cran === "depliee";
   const carteSeule = cran === "carte" && !lecteurEcran;
   const ouvertSelection = lieuSelectionne ? estOuvertMaintenant(lieuSelectionne.lieu, maintenant) : false;
-  const distanceSelection = lieuSelectionne && lieuSelectionne.km !== null ? ecrireDistanceDepuis(lieuSelectionne.km, depuis) : null;
+  const distanceSelection = lieuSelectionne && lieuSelectionne.km !== null ? ecrireDistanceDepuis(lieuSelectionne.km, depuis, langue) : null;
   const luSelection = lieuSelectionne
     ? [
-        `Sélectionné sur la carte : ${lieuSelectionne.lieu.nom}, ${lieuSelectionne.lieu.info}`,
-        `${distanceSelection ? `À ${distanceSelection}, ` : ""}${ouvertSelection ? "ouvert en ce moment" : "fermé en ce moment"}`,
-        lieuSelectionne.lieu.sos ? `SOS : ${lieuSelectionne.lieu.sos.places} place${lieuSelectionne.lieu.sos.places > 1 ? "s" : ""} ce soir` : null,
-        "Voir la fiche",
+        F.selectionLu(lieuSelectionne.lieu.nom, lieuSelectionne.lieu.info),
+        `${distanceSelection ? `${T.aDistanceLu(distanceSelection)}, ` : ""}${ouvertSelection ? T.ouvertLu : T.fermeLu}`,
+        lieuSelectionne.lieu.sos ? F.sosCeSoirLu(lieuSelectionne.lieu.sos.places) : null,
+        F.voirFiche,
       ]
         .filter(Boolean)
         .join(". ")
@@ -280,7 +286,7 @@ export function FeuilleLieux(props: Props) {
             <Pressable
               ref={refPoignee}
               accessibilityRole="button"
-              accessibilityLabel={`${lieux.length} lieu${lieux.length > 1 ? "x" : ""}, voir la liste`}
+              accessibilityLabel={F.carteSeuleLu(lieux.length)}
               onPress={() => choisirCran("repliee")}
               style={{ height: HAUTEUR_CARTE_SEULE }}
               className="items-center justify-center gap-1.5 active:opacity-60"
@@ -289,7 +295,7 @@ export function FeuilleLieux(props: Props) {
               <View className="flex-row items-center gap-1">
                 <Ionicons name="chevron-up" size={16} color={couleurs.encre} />
                 <Text className="font-texte-gras text-[15px] text-encre">
-                  {lieux.length} lieu{lieux.length > 1 ? "x" : ""} · Voir la liste
+                  {F.carteSeule(lieux.length)}
                 </Text>
               </View>
             </Pressable>
@@ -298,8 +304,8 @@ export function FeuilleLieux(props: Props) {
               <Pressable
                 ref={refPoignee}
                 accessibilityRole="button"
-                accessibilityLabel={deplie ? "Réduire la liste" : "Afficher plus de lieux"}
-                accessibilityHint={cran === "repliee" ? "Déplie la liste à moitié" : deplie ? "Replie la liste en bas de l'écran" : "Déplie la liste sur tout l'écran"}
+                accessibilityLabel={deplie ? F.reduire : F.agrandir}
+                accessibilityHint={cran === "repliee" ? F.indiceMoitie : deplie ? F.indiceReplier : F.indiceDeplier}
                 onPress={() => choisirCran(CRAN_SUIVANT[etat.current.cran])}
                 style={{ height: HAUTEUR_POIGNEE }}
                 className="items-center justify-center active:opacity-60"
@@ -310,7 +316,7 @@ export function FeuilleLieux(props: Props) {
               {lecteurEcran ? null : (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Masquer la liste et ne garder que la carte"
+                  accessibilityLabel={F.masquer}
                   hitSlop={4}
                   onPress={() => choisirCran("carte")}
                   className="absolute right-3 top-0 h-11 w-11 items-center justify-center active:opacity-60"
@@ -330,7 +336,7 @@ export function FeuilleLieux(props: Props) {
                   ref={refCarteSelection}
                   accessibilityRole="button"
                   accessibilityLabel={luSelection}
-                  accessibilityHint="Ouvre la fiche du lieu"
+                  accessibilityHint={T.ouvrirFicheIndice}
                   onPress={() => {
                     vibrerLegerement();
                     onOuvrir(lieuSelectionne.lieu.id);
@@ -339,14 +345,14 @@ export function FeuilleLieux(props: Props) {
                 >
                   <VignetteLieu lieu={lieuSelectionne.lieu} image={vignettes.get(lieuSelectionne.lieu.id) ?? null} hauteur={52} arrondi={12} avecLogo />
                   <View className="flex-1">
-                    <Text className="font-texte-semi text-xs text-gris">📍 Sélection{distanceSelection ? ` · ${distanceSelection}` : ""}</Text>
+                    <Text className="font-texte-semi text-xs text-gris">{F.selection}{distanceSelection ? ` · ${distanceSelection}` : ""}</Text>
                     <Text numberOfLines={1} className="font-texte-gras text-base text-encre">{lieuSelectionne.lieu.nom}</Text>
-                    <Text className="font-texte-gras text-[13px] text-encre underline">Voir la fiche →</Text>
+                    <Text className="font-texte-gras text-[13px] text-encre underline">{F.voirFicheFleche}</Text>
                   </View>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Retirer la sélection"
+                  accessibilityLabel={F.retirerSelection}
                   onPress={() => {
                     onSelection(null);
                     // Le bouton part avec la carte « Sélection » : le lecteur d'écran reprend sur la poignée, juste au-dessus

@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ZoneClaire } from "~/composants/theme/ZoneClaire";
 import { CodeRapprochement } from "~/composants/visites/CodeRapprochement";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_FIDELITE_PAR_LANGUE } from "~/contenus/textes-fidelite";
+import { direDeLieuLangue } from "~/fonctions/langue/dire-de-lieu-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   carte: CarteFidelite;
@@ -24,9 +28,9 @@ type Props = {
 const INTERVALLE_HORLOGE = 15_000;
 const majuscule = (texte: string) => texte.charAt(0).toLocaleUpperCase("fr-FR") + texte.slice(1);
 /** « 21h42 » à partir d'une date ISO */
-const heureDe = (iso: string) => {
+const heureDe = (iso: string, langue: Langue) => {
   const d = new Date(iso);
-  return formaterHeure(`${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`);
+  return formaterHeureLangue(d.getHours(), d.getMinutes(), langue);
 };
 
 /**
@@ -34,6 +38,8 @@ const heureDe = (iso: string) => {
  * (15 minutes), qui te l'offre depuis son comptoir. Jamais remise par le client seul. On peut annuler la demande.
  */
 export function BlocRecompensePrete({ carte, signature, emoji, envoi, onDemander, onAnnuler }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_FIDELITE_PAR_LANGUE);
   const [maintenant, setMaintenant] = useState(() => Date.now());
   useEffect(() => {
     const horloge = setInterval(() => setMaintenant(Date.now()), INTERVALLE_HORLOGE);
@@ -51,9 +57,9 @@ export function BlocRecompensePrete({ carte, signature, emoji, envoi, onDemander
         <Text accessibilityRole="header" className="text-center font-titre-gras text-xl text-encre">
           🎁 {majuscule(prete.libelle)}
         </Text>
-        <CodeRapprochement code={demande.code} prenom={signature} avatar={emoji} legende="Montre ce code à l'équipe : elle t'offre ta récompense" />
-        <Text className="text-center font-texte text-sm text-gris">{lierPonctuation(`Valable jusqu'à ${heureDe(demande.expireLe)}. Après, il suffit d'en redemander un.`)}</Text>
-        <Bouton libelle={envoi ? "Annulation…" : "Annuler la demande"} variante="blanc" desactive={envoi} onPress={onAnnuler} />
+        <CodeRapprochement code={demande.code} prenom={signature} avatar={emoji} legende={T.codeLegende} />
+        <Text className="text-center font-texte text-sm text-gris">{lierPonctuation(T.codeValable(heureDe(demande.expireLe, langue)))}</Text>
+        <Bouton libelle={envoi ? T.annulation : T.annulerDemande} variante="blanc" desactive={envoi} onPress={onAnnuler} />
       </View>
     );
   }
@@ -61,15 +67,15 @@ export function BlocRecompensePrete({ carte, signature, emoji, envoi, onDemander
   return (
     <View className="gap-3 rounded-carte border-2 border-encre bg-jaune p-5">
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-nuit">
-        🎁 Ta récompense est prête !
+        {T.pretTitre}
       </Text>
       <Text className="font-texte-semi text-base leading-6 text-nuit">
         {majuscule(prete.libelle)}
-        {autres > 0 ? ` (et ${autres} autre${autres > 1 ? "s" : ""} derrière)` : ""}
+        {autres > 0 ? T.autres(autres) : ""}
       </Text>
-      <Text className="font-texte text-sm leading-5 text-nuit">{lierPonctuation(`Au comptoir ${direDeLieu(carte.lieu.nom)}, touche le bouton : un code s'affiche, l'équipe te l'offre.`)}</Text>
+      <Text className="font-texte text-sm leading-5 text-nuit">{lierPonctuation(T.auComptoir(direDeLieuLangue(carte.lieu.nom, langue), carte.lieu.nom))}</Text>
       <ZoneClaire>
-        <Bouton libelle={envoi ? "Un instant…" : "Demander ma récompense"} variante="encre" desactive={envoi} onPress={onDemander} />
+        <Bouton libelle={envoi ? T.unInstant : T.demanderRecompense} variante="encre" desactive={envoi} onPress={onDemander} />
       </ZoneClaire>
     </View>
   );

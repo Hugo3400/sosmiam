@@ -6,6 +6,7 @@ import { resumerDernierMessage } from "~/fonctions/chat/resumer-dernier-message"
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations, type ResultatEnvoiChat } from "~/hooks/utiliser-conversations";
 import { utiliserFilDiscussion } from "~/hooks/utiliser-fil-discussion";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 
 export type MessageSortieEnrichi = MessageSortie & { systeme?: string; mentions?: string[] };
@@ -31,6 +32,7 @@ export function utiliserDiscussionSortie(sortie: Sortie | null): DiscussionSorti
   const communaute = utiliserCommunaute();
   const conversations = utiliserConversations();
   const { trouverLieu } = utiliserLieux();
+  const { langue } = utiliserLangue();
   const conversationId = sortie?.conversationId ?? "";
   utiliserFilDiscussion(conversationId);
   const conversation = conversationId ? conversations.trouverConversation(conversationId) : null;
@@ -69,7 +71,7 @@ export function utiliserDiscussionSortie(sortie: Sortie | null): DiscussionSorti
       .map((m): MessageSortieEnrichi => ({
         id: m.id,
         auteur: m.auteur,
-        texte: m.type === "texte" && !m.etat ? (m.texte ?? "") : resumerDernierMessage(m, null, m.lieuId !== undefined ? trouverLieu(m.lieuId)?.nom : undefined),
+        texte: m.type === "texte" && !m.etat ? (m.texte ?? "") : resumerDernierMessage(m, null, langue, m.lieuId !== undefined ? trouverLieu(m.lieuId)?.nom : undefined),
         date: m.date,
         ...(m.etat ? { etat: m.etat } : {}),
         ...(m.systeme ? { systeme: m.systeme } : {}),
@@ -82,5 +84,5 @@ export function utiliserDiscussionSortie(sortie: Sortie | null): DiscussionSorti
       plusAnciens: conversation?.plusAnciens === true,
       chargerPlusAnciens: () => conversations.chargerPlusAnciens(conversationId),
     };
-  }, [sortie, conversationId, conversation, idsBloques, communaute, conversations, trouverLieu]);
+  }, [sortie, conversationId, conversation, idsBloques, communaute, conversations, trouverLieu, langue]);
 }

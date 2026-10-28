@@ -3,7 +3,8 @@ import { Pressable, Text, View } from "react-native";
 import type { MiamiPresent } from "@sos-miam/commun/types/qui-est-la";
 import { RondMiami } from "~/composants/miamis/RondMiami";
 import { ActionMiamiPresent } from "~/composants/qui-est-la/ActionMiamiPresent";
-import { TEXTES_QUI_EST_LA } from "~/contenus/textes-qui-est-la";
+import { TEXTES_QUI_EST_LA_PAR_LANGUE } from "~/contenus/textes-qui-est-la";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   present: MiamiPresent;
@@ -16,9 +17,10 @@ type Props = {
 };
 
 export function LigneMiamiPresent({ present, coucouPossible, enCours, demande, onCoucou, onAjouter, onOuvrirSortie }: Props) {
+  const T = utiliserTextes(TEXTES_QUI_EST_LA_PAR_LANGUE);
   const { organise } = present;
   const badge =
-    present.dansTaBande ? null : present.coucou === "recu" ? TEXTES_QUI_EST_LA.aFaitCoucou : present.coucou === "reciproque" ? TEXTES_QUI_EST_LA.reciproque : null;
+    present.dansTaBande ? null : present.coucou === "recu" ? T.aFaitCoucou : present.coucou === "reciproque" ? T.reciproque : null;
 
   return (
     <View className="flex-row items-center gap-3 rounded-[18px] border border-ligne bg-carte px-3 py-2.5">
@@ -27,11 +29,11 @@ export function LigneMiamiPresent({ present, coucouPossible, enCours, demande, o
         <Text numberOfLines={1} className="font-texte-gras text-sm text-encre">
           @{present.personne.pseudo}
         </Text>
-        {present.dansTaBande ? <Text className="font-texte text-xs text-gris">{TEXTES_QUI_EST_LA.dansTaBande}</Text> : null}
+        {present.dansTaBande ? <Text className="font-texte text-xs text-gris">{T.dansTaBande}</Text> : null}
         {organise ? (
           <Pressable accessibilityRole="link" hitSlop={6} onPress={() => onOuvrirSortie(organise.sortieId)} className="self-start active:opacity-70">
             <Text numberOfLines={2} className="font-texte-semi text-xs leading-4 text-encre underline">
-              {TEXTES_QUI_EST_LA.organise(organise.titre)}
+              {T.organise(organise.titre)}
             </Text>
           </Pressable>
         ) : null}

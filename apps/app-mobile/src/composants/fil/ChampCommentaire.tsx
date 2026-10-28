@@ -8,7 +8,8 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { PastilleAuNomDuLieu } from "~/composants/fil/PastilleAuNomDuLieu";
 import { SuggestionsMentions } from "~/composants/fil/SuggestionsMentions";
 import { RondPote } from "~/composants/potes/RondPote";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
@@ -17,6 +18,7 @@ import type { ResultatCommentaire } from "~/hooks/utiliser-commentaires-publicat
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   valeur: string;
@@ -45,20 +47,15 @@ const MAX_SUGGESTIONS = 4;
 // Une mention en train de s'écrire, juste avant le curseur : « … @le »
 const MENTION_EN_COURS = /(^|\s)@([a-z0-9._]{0,20})$/i;
 
-const refus: Record<Exclude<ResultatCommentaire, "ok" | "introuvable">, string> = {
-  "mot-interdit": "On garde ça bienveillant ici 💛",
-  "trop-long": `Un poil trop long : ${LONGUEUR_MAX_COMMENTAIRE} caractères maximum ✂️`,
-  vide: "Écris quelques mots avant d'envoyer 😉",
-  "pseudo-requis": "Choisis d'abord ton pseudo dans Profil › Modifier mon profil › Mes infos, et ça repart 🏷️",
-  "compte-limite": REFUS_LIMITATION.commentaire,
-  reseau: "Pas parti : ta connexion fait la sieste. Réessaie dans un instant 📡",
-};
+type TextesCommentaires = (typeof TEXTES_COMMENTAIRES_FIL_PAR_LANGUE)["fr"];
 
 /** Le refus à dire ; « introuvable » dépend de ce que tu faisais (modifier, répondre, commenter) */
-function lireRefus(verdict: Exclude<ResultatCommentaire, "ok">, edition: boolean, reponse: boolean): string {
-  if (verdict !== "introuvable") return refus[verdict];
-  if (edition) return "Ce commentaire n'est plus là : plus rien à modifier 👻";
-  return reponse ? "Le commentaire auquel tu réponds n'est plus là 👻" : "Cette publication n'est plus là 👻";
+function lireRefus(verdict: Exclude<ResultatCommentaire, "ok">, edition: boolean, reponse: boolean, T: TextesCommentaires, refusLimitation: string): string {
+  if (verdict === "trop-long") return T.tropLong(LONGUEUR_MAX_COMMENTAIRE);
+  if (verdict === "compte-limite") return refusLimitation;
+  if (verdict !== "introuvable") return T.refus[verdict];
+  if (edition) return T.introuvableEdition;
+  return reponse ? T.introuvableReponse : T.introuvable;
 }
 
 /** Dit un message au lecteur d'écran ; sur iPhone, après ce qu'il est en train de lire (sinon il le couperait, ou serait coupé). */
@@ -71,6 +68,8 @@ function annoncer(texte: string) {
 /** Le champ en bas de la feuille des commentaires : réponse ou modification en cours, mentions de tes potes avec « @ », compteur, envoi. */
 export function ChampCommentaire(props: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE);
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE).commentaire;
   const { valeur, onChanger, reponseA, onAnnulerReponse, edition, onAnnulerEdition, onEnvoyer, margeBas, lieuGere, commeLieu, onCommeLieu, ref } = props;
   const { moi, potes } = utiliserCommunaute();
   const monId = utiliserMonId();
@@ -100,9 +99,9 @@ export function ChampCommentaire(props: Props) {
   const avaitSuggestions = useRef(false);
   useEffect(() => {
     const nombre = suggestions.length;
-    if (nombre > 0 && !avaitSuggestions.current) annoncer(`${nombre} pote${nombre > 1 ? "s" : ""} à mentionner, juste au-dessus du champ`);
+    if (nombre > 0 && !avaitSuggestions.current) annoncer(T.mentionsProposees(nombre));
     avaitSuggestions.current = nombre > 0;
-  }, [suggestions.length]);
+  }, [suggestions.length, T]);
 
   function changer(texte: string) {
     setErreur(null);
@@ -130,15 +129,15 @@ export function ChampCommentaire(props: Props) {
       return;
     }
     // Le texte reste dans le champ : on corrige, ou on réessaie
-    const texte = lierPonctuation(lireRefus(verdict, contexte.edition, contexte.reponse));
+    const texte = lierPonctuation(lireRefus(verdict, contexte.edition, contexte.reponse, T, refusLimitation));
     setErreur(texte);
     // Annoncé à chaque refus, même identique au précédent (le texte affiché, lui, ne change pas)
     annoncer(retirerEmoji(texte));
   }
 
-  const bandeau = edition ? "Modification de ton commentaire" : reponseA ? `Réponse à ${reponseA}` : null;
-  const libelleChamp = `${edition ? "Ton commentaire, en modification" : reponseA ? `Ta réponse à ${reponseA}` : "Ton commentaire"}${auNomDuLieu ? ", au nom du lieu" : ""}`;
-  const indication = auNomDuLieu ? `Au nom de ${lieuGere.nom}…` : reponseA && !edition ? `Réponds à ${reponseA}…` : "Ajoute un commentaire…";
+  const bandeau = edition ? T.modification : reponseA ? T.reponseA(reponseA) : null;
+  const libelleChamp = `${edition ? T.champEdition : reponseA ? T.champReponse(reponseA) : T.champ}${auNomDuLieu ? T.champAuNomDuLieu : ""}`;
+  const indication = auNomDuLieu ? T.indicationLieu(lieuGere.nom) : reponseA && !edition ? T.indicationReponse(reponseA) : T.indication;
   const erreurLue = erreur ? retirerEmoji(erreur) : null;
   const compteurVisible = longueur >= SEUIL_COMPTEUR;
 
@@ -151,13 +150,14 @@ export function ChampCommentaire(props: Props) {
           <Text numberOfLines={1} className="shrink font-texte text-[13px] text-gris">
             {edition ? bandeau : (
               <>
-                Réponse à <Text className="font-texte-gras text-encre">{reponseA}</Text>
+                {T.reponseADebut}
+                <Text className="font-texte-gras text-encre">{reponseA}</Text>
               </>
             )}
           </Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={edition ? "Annuler la modification" : `Ne plus répondre à ${reponseA}`}
+            accessibilityLabel={edition ? T.annulerModification : T.nePlusRepondre(reponseA ?? "")}
             onPress={() => {
               setErreur(null);
               if (edition) onAnnulerEdition();
@@ -193,7 +193,7 @@ export function ChampCommentaire(props: Props) {
           ref={ref}
           // Le refus fait partie du libellé : en revenant sur le champ, on sait encore ce qui coince
           accessibilityLabel={erreurLue ? `${libelleChamp}. ${erreurLue}` : libelleChamp}
-          accessibilityHint="Tape @ pour mentionner un pote"
+          accessibilityHint={T.indiceMention}
           value={valeur}
           onChangeText={changer}
           onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
@@ -208,7 +208,7 @@ export function ChampCommentaire(props: Props) {
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={occupe ? "Envoi en cours" : edition ? "Enregistrer la modification" : "Envoyer"}
+          accessibilityLabel={occupe ? T.envoiEnCours : edition ? T.enregistrer : T.envoyer}
           accessibilityState={{ disabled: vide || occupe, busy: occupe }}
           disabled={vide || occupe}
           onPress={() => void envoyer()}
@@ -225,7 +225,7 @@ export function ChampCommentaire(props: Props) {
           </Text>
           {compteurVisible ? (
             <Text
-              accessibilityLabel={`${longueur} caractères sur ${LONGUEUR_MAX_COMMENTAIRE}`}
+              accessibilityLabel={T.compteurLu(longueur, LONGUEUR_MAX_COMMENTAIRE)}
               className={`font-texte-semi text-xs ${longueur >= LONGUEUR_MAX_COMMENTAIRE ? "text-rouge-texte" : "text-gris"}`}
             >
               {longueur}/{LONGUEUR_MAX_COMMENTAIRE}

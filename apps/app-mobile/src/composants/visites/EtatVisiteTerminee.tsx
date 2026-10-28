@@ -2,18 +2,23 @@ import { useRouter } from "expo-router";
 import type { Ref } from "react";
 import { Text, View } from "react-native";
 
-import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
-import { LIBELLES_MOTIF_REFUS_CLIENT } from "@sos-miam/commun/contenus/motifs-refus";
+import { CALENDRIER_PAR_LANGUE } from "@sos-miam/commun/contenus/calendrier";
+import { LIBELLES_MODE_VALIDATION_PAR_LANGUE } from "@sos-miam/commun/contenus/modes-validation";
+import { LIBELLES_MOTIF_REFUS_CLIENT_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-refus";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ResultatValidation, Visite } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonDemanderAddition } from "~/composants/visites/BoutonDemanderAddition";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireOuvertureAvis } from "~/fonctions/visites/decrire-ouverture-avis";
 import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
 import { utiliserEtatAvisEnDirect } from "~/hooks/utiliser-etat-avis-en-direct";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Une visite qui n'attend plus le lieu : validée, refusée, expirée, annulée ou retirée */
@@ -26,15 +31,14 @@ type Props = {
   onContester: () => void;
 };
 
-const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+type Textes = typeof TEXTES_VISITE_PAR_LANGUE.fr;
 
 /** « mardi 7 octobre à 20h14 » (jour et heure visibles par toi seulement : le lieu, lui, ne voit jamais tes visites ailleurs) */
-function decrireJour(iso: string | null): string | null {
+function decrireJour(iso: string | null, T: Textes, langue: Langue): string | null {
   const date = iso ? new Date(iso) : null;
   if (!date || Number.isNaN(date.getTime())) return null;
-  const jour = date.getDate() === 1 ? "1er" : String(date.getDate());
-  return `${JOURS[date.getDay()]} ${jour} ${MOIS[date.getMonth()]} à ${formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`)}`;
+  const { jours, mois } = CALENDRIER_PAR_LANGUE[langue];
+  return T.jourLu(jours[date.getDay()], date.getDate(), mois[date.getMonth()], formaterHeureLangue(date.getHours(), date.getMinutes(), langue));
 }
 
 /** En-tête commun à tous les états : emoji, titre (où se pose VoiceOver), lieu (s'il n'est pas déjà dans le titre), phrase */
@@ -77,11 +81,9 @@ function dessinerEncadre(emoji: string, texte: string) {
 }
 
 /** « C'est une erreur » tant que la visite n'est pas contestée, puis « On regarde ça de près » */
-function dessinerContestation(visite: Visite, onContester: () => void) {
-  if (visite.contestee) return dessinerEncadre("🔎", "On regarde ça de près. Un humain répondra.");
-  return (
-    <Bouton libelle="C'est une erreur" variante="blanc" indice="Raconte-nous ce qui s'est passé, l'équipe SOS Miam relira" onPress={onContester} />
-  );
+function dessinerContestation(visite: Visite, onContester: () => void, T: Textes) {
+  if (visite.contestee) return dessinerEncadre("🔎", T.contestee);
+  return <Bouton libelle={T.cEstUneErreur} variante="blanc" indice={T.cEstUneErreurIndice} onPress={onContester} />;
 }
 
 /**
@@ -91,31 +93,35 @@ function dessinerContestation(visite: Visite, onContester: () => void) {
  */
 export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Props) {
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
+  const modes = utiliserTextes(LIBELLES_MODE_VALIDATION_PAR_LANGUE);
+  const motifs = utiliserTextes(LIBELLES_MOTIF_REFUS_CLIENT_PAR_LANGUE);
   const { visite } = resultat;
   const { etat: etatAvis, maintenant } = utiliserEtatAvisEnDirect(visite.avis);
   // « Redemander » : seulement pour une addition, chez un lieu qu'on peut ouvrir
-  const redemander = lieu && visite.mode === "addition" ? <BoutonDemanderAddition lieu={lieu} libelle="Redemander l'addition" /> : null;
+  const redemander = lieu && visite.mode === "addition" ? <BoutonDemanderAddition lieu={lieu} libelle={T.redemander} /> : null;
 
   if (visite.statut === "validee") {
-    const tampon = decrireTamponVisite(resultat);
-    const jour = decrireJour(visite.valideLe);
-    const ouverture = decrireOuvertureAvis(visite.avis, maintenant);
+    const tampon = decrireTamponVisite(resultat, langue);
+    const jour = decrireJour(visite.valideLe, T, langue);
+    const ouverture = decrireOuvertureAvis(visite.avis, langue, maintenant);
     return (
       <View className="gap-5">
         {dessinerEnTete(
           "🎉",
-          "Visite validée !",
+          T.valideeTitre,
           visite,
-          jour ? `${LIBELLES_MODE_VALIDATION[visite.mode]} · ${jour}` : LIBELLES_MODE_VALIDATION[visite.mode],
+          jour ? `${modes[visite.mode]} · ${jour}` : modes[visite.mode],
           refTitre,
         )}
         {visite.points > 0 || tampon ? (
           <View className="gap-4 rounded-carte border-2 border-encre bg-carte p-5">
             {visite.points > 0 ? (
               <View accessible className="items-center gap-1">
-                <Text className="font-titre text-4xl text-encre">+{visite.points} points</Text>
+                <Text className="font-titre text-4xl text-encre">{T.points(visite.points)}</Text>
                 {visite.pendantSos ? (
-                  <Text className="text-center font-texte-semi text-sm text-gris">Ta visite est tombée pendant leur SOS.</Text>
+                  <Text className="text-center font-texte-semi text-sm text-gris">{T.pendantSos}</Text>
                 ) : null}
               </View>
             ) : null}
@@ -128,12 +134,12 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
           </View>
         ) : null}
         {ouverture ? dessinerEncadre("✍️", ouverture) : null}
-        {etatAvis === "donne" ? dessinerEncadre("💬", "Avis donné, merci : il compte !") : null}
+        {etatAvis === "donne" ? dessinerEncadre("💬", T.avisDonne) : null}
         {etatAvis === "ouvert" ? (
           <Bouton
-            libelle="Donner mon avis"
+            libelle={T.donnerAvis}
             variante="encre"
-            indice="Ouvre ton avis sur cette visite"
+            indice={T.donnerAvisIndice}
             onPress={() => router.push({ pathname: "/avis/[visiteId]", params: { visiteId: String(visite.id) } })}
           />
         ) : null}
@@ -146,14 +152,14 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
       <View className="gap-5">
         {dessinerEnTete(
           "🤷",
-          `${visite.lieu.nom} n'a pas validé cette fois`,
+          T.refuseeTitre(visite.lieu.nom),
           visite,
-          "Ça arrive : un code mal lu, des tables qui se mélangent…",
+          T.refuseeTexte,
           refTitre,
         )}
-        {visite.motifRefus ? dessinerEncadre("🧾", LIBELLES_MOTIF_REFUS_CLIENT[visite.motifRefus]) : null}
+        {visite.motifRefus ? dessinerEncadre("🧾", motifs[visite.motifRefus]) : null}
         {redemander}
-        {dessinerContestation(visite, onContester)}
+        {dessinerContestation(visite, onContester, T)}
       </View>
     );
   }
@@ -163,12 +169,12 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
       <View className="gap-5">
         {dessinerEnTete(
           "↩️",
-          `${visite.lieu.nom} a annulé cette validation`,
+          T.retireeTitre(visite.lieu.nom),
           visite,
-          "Les points et le tampon repartent. Une erreur ? Dis-le-nous.",
+          T.retireeTexte,
           refTitre,
         )}
-        {dessinerContestation(visite, onContester)}
+        {dessinerContestation(visite, onContester, T)}
       </View>
     );
   }
@@ -178,9 +184,9 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
       <View className="gap-5">
         {dessinerEnTete(
           "😴",
-          "Ta demande s'est endormie",
+          T.expireeTitre,
           visite,
-          "30 minutes sans réponse : le service devait être en plein rush. Redemande quand tu passes à la caisse.",
+          T.expireeTexte,
           refTitre,
         )}
         {redemander}
@@ -193,9 +199,9 @@ export function EtatVisiteTerminee({ resultat, lieu, refTitre, onContester }: Pr
     <View className="gap-5">
       {dessinerEnTete(
         "👋",
-        "Demande annulée",
+        T.annuleeTitre,
         visite,
-        "Pas de souci. Si tu changes d'avis, redemande l'addition au moment de payer.",
+        T.annuleeTexte,
         refTitre,
       )}
       {redemander}

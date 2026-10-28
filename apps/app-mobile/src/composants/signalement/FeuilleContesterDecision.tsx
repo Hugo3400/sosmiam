@@ -26,14 +26,6 @@ type Props = {
 
 type Etape = "ecrire" | "envoi" | "envoyee";
 
-/** « 1 000 » : la limite écrite avec son espace fine (sans dépendre d'Intl) */
-const MAX_ECRIT = String(LONGUEUR_MAX_CONTESTATION).replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f");
-
-/** Les deux refus de l'app elle-même (rien n'est parti) ; le reste vient du serveur */
-const REFUS_LOCAUX: Readonly<Record<"trop-court" | "trop-long", MessageService>> = {
-  "trop-court": { emoji: "✍️", titre: "Encore un petit effort", texte: `Au moins ${LONGUEUR_MIN_CONTESTATION} caractères, pour qu'on comprenne ce qui cloche.` },
-  "trop-long": { emoji: "✂️", titre: "Un peu long", texte: `${MAX_ECRIT} caractères au plus : resserre un peu, on lit tout.` },
-};
 
 /**
  * « Contester » une décision de la modération : « Tu n'es pas d'accord ? », un champ de 10 à 1 000 caractères avec son

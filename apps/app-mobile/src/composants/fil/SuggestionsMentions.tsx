@@ -2,7 +2,9 @@ import { Pressable, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   potes: Pote[];
@@ -11,13 +13,14 @@ type Props = {
 
 /** Tes potes à mentionner, proposés au-dessus du champ quand tu tapes « @ ». */
 export function SuggestionsMentions({ potes, onChoisir }: Props) {
+  const T = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE);
   return (
     <View className="mb-2 overflow-hidden rounded-2xl border-2 border-encre bg-carte">
       {potes.map((pote, index) => (
         <Pressable
           key={pote.id}
           accessibilityRole="button"
-          accessibilityLabel={`Mentionner ${pote.prenom}, @${pote.pseudo}`}
+          accessibilityLabel={T.mentionner(pote.prenom, pote.pseudo ?? "")}
           onPress={() => {
             vibrerLegerement();
             onChoisir(pote);

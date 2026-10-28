@@ -8,8 +8,9 @@ import type { FamilleEtiquette } from "@sos-miam/commun/types/etiquette";
 import type { EtiquetteSortieMiamis } from "@sos-miam/commun/types/sorties-miamis";
 import { ChampEtiquetteLibre } from "~/composants/miamis/ChampEtiquetteLibre";
 import { FamilleEtiquettesDepliable } from "~/composants/miamis/FamilleEtiquettesDepliable";
-import { TEXTES_ORGANISER } from "~/contenus/textes-sorties-miamis";
+import { TEXTES_ORGANISER_PAR_LANGUE } from "~/contenus/textes-sorties-miamis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   etiquettes: EtiquetteSortieMiamis[];
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export function ChoixEtiquettesSortie({ etiquettes, onChanger, erreur }: Props) {
+  const T = utiliserTextes(TEXTES_ORGANISER_PAR_LANGUE);
   const [ouverte, setOuverte] = useState<FamilleEtiquette | null>("assiette");
   const plein = etiquettes.length >= MAX_ETIQUETTES_SORTIE_MIAMIS;
   const noms = etiquettes.map((e) => e.nom);
@@ -36,7 +38,7 @@ export function ChoixEtiquettesSortie({ etiquettes, onChanger, erreur }: Props) 
   return (
     <View className="gap-3">
       <View className="flex-row items-baseline justify-between">
-        <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">{lierPonctuation(TEXTES_ORGANISER.etiquettesIntro)}</Text>
+        <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">{lierPonctuation(T.etiquettesIntro)}</Text>
         <Text className="ml-3 font-texte-gras text-xs text-gris">{`${etiquettes.length} / ${MAX_ETIQUETTES_SORTIE_MIAMIS}`}</Text>
       </View>
       {FAMILLES_ETIQUETTES.map((famille) => (
@@ -50,7 +52,7 @@ export function ChoixEtiquettesSortie({ etiquettes, onChanger, erreur }: Props) 
           plein={plein}
         />
       ))}
-      {plein ? <Text className="font-texte-semi text-xs text-gris">{lierPonctuation(TEXTES_ORGANISER.etiquettesPleines(MAX_ETIQUETTES_SORTIE_MIAMIS))}</Text> : null}
+      {plein ? <Text className="font-texte-semi text-xs text-gris">{lierPonctuation(T.etiquettesPleines(MAX_ETIQUETTES_SORTIE_MIAMIS))}</Text> : null}
       <ChampEtiquetteLibre plein={plein} onAjouter={ajouter} />
       {libres.length > 0 ? (
         <View className="flex-row flex-wrap gap-2">
@@ -58,7 +60,7 @@ export function ChoixEtiquettesSortie({ etiquettes, onChanger, erreur }: Props) 
             <Pressable
               key={e.nom}
               accessibilityRole="button"
-              accessibilityLabel={TEXTES_ORGANISER.retirerLibre(e.nom)}
+              accessibilityLabel={T.retirerLibre(e.nom)}
               onPress={() => onChanger(etiquettes.filter((x) => x.nom !== e.nom))}
               className="min-h-11 flex-row items-center gap-1 rounded-full border-2 border-dashed border-encre bg-jaune px-3.5 active:opacity-80"
             >

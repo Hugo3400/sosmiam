@@ -62,6 +62,7 @@ export function FeuilleElementCarte({ visible, element, sections, section, formu
   const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_EDITION_CARTE_PAR_LANGUE).element;
   const etiquettesCarte = utiliserTextes(ETIQUETTES_CARTE_PAR_LANGUE);
+  /** Ce qu'on dit sous le champ à corriger (mêmes règles que le service : validerElementCarte) */
   const erreurs: Record<ChampElementCarte, string> = {
     nom: T.erreurs.nom(LIMITES_CARTE.nom),
     description: T.erreurs.description(LIMITES_CARTE.description),

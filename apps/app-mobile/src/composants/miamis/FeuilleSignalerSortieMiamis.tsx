@@ -4,8 +4,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   sortieId: string | null;
@@ -14,6 +16,7 @@ type Props = {
 };
 
 export function FeuilleSignalerSortieMiamis({ sortieId, titre, onFermer }: Props) {
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const animationsReduites = useReducedMotion();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -22,7 +25,7 @@ export function FeuilleSignalerSortieMiamis({ sortieId, titre, onFermer }: Props
   return (
     <Modal visible={sortieId !== null} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={TE.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
@@ -32,7 +35,7 @@ export function FeuilleSignalerSortieMiamis({ sortieId, titre, onFermer }: Props
           <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
             <PoigneeFeuille geste={geste} />
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
-              {sortieId ? <SignalerContenu cible="miamis" cibleId={sortieId} sujet={`la sortie « ${titre} »`} onTermine={onFermer} /> : null}
+              {sortieId ? <SignalerContenu cible="miamis" cibleId={sortieId} sujet={TE.sujetSignalement(titre)} onTermine={onFermer} /> : null}
             </ScrollView>
           </View>
         </Animated.View>

@@ -5,11 +5,13 @@ import { AccessibilityInfo, Platform, Pressable, Text, View } from "react-native
 import Animated, { FadeInUp, FadeOutDown, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 
 import type { StatutVisite, Visite } from "@sos-miam/commun/types/visite";
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterCodeLu } from "~/fonctions/visites/formater-code-lu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 type Props = {
@@ -28,29 +30,33 @@ const estStatutIssue = (statut: StatutVisite): statut is StatutIssue => STATUTS_
 // Une issue pas vue au bout d'un quart d'heure n'est plus une nouvelle : le bandeau s'en va tout seul
 const DUREE_ISSUE_MS = 15 * 60_000;
 
-const ISSUES: Record<StatutIssue, { emoji: string; etiquette: (v: Visite) => string; fond: string; texte: (v: Visite) => string; annonce: (v: Visite) => string }> = {
-  validee: {
-    emoji: "🎉",
-    etiquette: (v) => `C'est validé ! +${v.points} points`,
-    fond: "bg-jaune",
-    texte: (v) => `${v.lieu.nom}${v.tampon ? " · +1 tampon" : ""}`,
-    annonce: (v) => `${v.lieu.nom} a validé ta visite : plus ${v.points} points${v.tampon ? " et un tampon" : ""} !`,
-  },
-  refusee: {
-    emoji: "🧾",
-    etiquette: () => "Pas validée cette fois",
-    fond: "bg-carte",
-    texte: (v) => `${v.lieu.nom} · voir pourquoi`,
-    annonce: (v) => `${v.lieu.nom} n'a pas validé ta visite cette fois.`,
-  },
-  expiree: {
-    emoji: "😴",
-    etiquette: () => "Demande endormie",
-    fond: "bg-carte",
-    texte: (v) => `${v.lieu.nom} · 30 min sans réponse`,
-    annonce: (v) => `Ta demande d'addition à ${v.lieu.nom} s'est endormie : 30 minutes sans réponse.`,
-  },
-};
+type FormeIssue = { emoji: string; etiquette: (v: Visite) => string; fond: string; texte: (v: Visite) => string; annonce: (v: Visite) => string };
+
+function decrireIssues(T: typeof TEXTES_VISITE_PAR_LANGUE.fr): Record<StatutIssue, FormeIssue> {
+  return {
+    validee: {
+      emoji: "🎉",
+      etiquette: (v) => T.issueValideeEtiquette(v.points),
+      fond: "bg-jaune",
+      texte: (v) => T.issueValideeTexte(v.lieu.nom, v.tampon),
+      annonce: (v) => T.issueValideeAnnonce(v.lieu.nom, v.points, v.tampon),
+    },
+    refusee: {
+      emoji: "🧾",
+      etiquette: () => T.issueRefuseeEtiquette,
+      fond: "bg-carte",
+      texte: (v) => T.issueRefuseeTexte(v.lieu.nom),
+      annonce: (v) => T.issueRefuseeAnnonce(v.lieu.nom),
+    },
+    expiree: {
+      emoji: "😴",
+      etiquette: () => T.issueExpireeEtiquette,
+      fond: "bg-carte",
+      texte: (v) => T.issueExpireeTexte(v.lieu.nom),
+      annonce: (v) => T.issueExpireeAnnonce(v.lieu.nom),
+    },
+  };
+}
 
 function annoncer(texte: string) {
   // iOS : l'annonce attend la fin de ce que VoiceOver est en train de lire, au lieu de le couper
@@ -64,6 +70,7 @@ function annoncer(texte: string) {
  */
 function utiliserIssueDemande(): { issue: Issue | null; oublier: () => void } {
   const services = utiliserServices();
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
   const inscrit = utiliserProfil().profil !== null;
   const { enCours, visites } = utiliserVisites();
   const chemin = usePathname();
@@ -94,7 +101,7 @@ function utiliserIssueDemande(): { issue: Issue | null; oublier: () => void } {
       // Ignorée si une autre demande est partie entre-temps
       if (!monte.current || suivie.current !== null || !estStatutIssue(visite.statut)) return;
       setIssue({ visite, statut: visite.statut });
-      annoncer(ISSUES[visite.statut].annonce(visite));
+      annoncer(decrireIssues(T)[visite.statut].annonce(visite));
     };
     const trouvee = visites.find((v) => v.id === avant.id);
     if (trouvee) retenir(trouvee);
@@ -105,7 +112,7 @@ function utiliserIssueDemande(): { issue: Issue | null; oublier: () => void } {
         },
         () => {},
       );
-  }, [enCours, visites, inscrit, services]);
+  }, [enCours, visites, inscrit, services, T]);
 
   // Ouverte autrement (onglet Scan, Mes visites) : c'est vu
   useEffect(() => {
@@ -138,6 +145,7 @@ function utiliserStylePoint(actif: boolean) {
  */
 export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
   const router = useRouter();
   const animationsReduites = useReducedMotion();
   const { enCours } = utiliserVisites();
@@ -155,8 +163,8 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
       <Animated.View key={`attente-${enAttente.id}`} entering={entree} exiting={sortie} style={{ width: "100%" }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Addition demandée, ${enAttente.lieu.nom}${code ? `, ton code : ${formaterCodeLu(code)}` : ""}`}
-          accessibilityHint="Ouvre ta demande en cours"
+          accessibilityLabel={T.attenteLu(enAttente.lieu.nom, code ? formaterCodeLu(code) : "")}
+          accessibilityHint={T.attenteIndice}
           onPress={() => {
             vibrerLegerement();
             router.push({ pathname: "/visite/[id]", params: { id: String(enAttente.id) } });
@@ -167,7 +175,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
             <Animated.View style={[{ width: 10, height: 10, borderRadius: 5, backgroundColor: couleurs.tomate }, stylePoint]} />
           </View>
           <View className="flex-1">
-            <Text className="font-texte-gras text-[11px] uppercase tracking-wide text-jaune">Addition demandée</Text>
+            <Text className="font-texte-gras text-[11px] uppercase tracking-wide text-jaune">{T.attenteTitre}</Text>
             <Text numberOfLines={1} className="font-texte-gras text-[15px] text-white">
               {enAttente.lieu.emoji} {enAttente.lieu.nom}
             </Text>
@@ -185,7 +193,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
 
   if (!issue) return null;
   const { visite, statut } = issue;
-  const forme = ISSUES[statut];
+  const forme = decrireIssues(T)[statut];
   const surJaune = statut === "validee";
   return (
     <Animated.View key={`issue-${visite.id}`} entering={entree} exiting={sortie} style={{ width: "100%" }}>
@@ -193,7 +201,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={forme.annonce(visite)}
-          accessibilityHint={statut === "validee" ? "Ouvre ta visite pour fêter ça" : "Ouvre ta demande"}
+          accessibilityHint={statut === "validee" ? T.issueValideeIndice : T.issueIndice}
           onPress={() => {
             vibrerLegerement();
             oublier();
@@ -217,7 +225,7 @@ export function BandeauVisiteEnCours({ masque, demandeAffichee }: Props) {
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Fermer ce message"
+          accessibilityLabel={T.fermerMessage}
           hitSlop={4}
           onPress={oublier}
           className="h-12 w-12 items-center justify-center active:opacity-60"

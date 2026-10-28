@@ -17,6 +17,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
@@ -31,6 +32,7 @@ export default function EcranNouveauSondage() {
   const { trouverConversation, envoyerSondage } = utiliserConversations();
   const { lieux } = utiliserLieux();
   const { maintenantMs } = utiliserHorlogeMinute();
+  const { langue } = utiliserLangue();
   const [texte, setTexte] = useState("");
   const [choisis, setChoisis] = useState<number[]>([]);
   const [cleFin, setCleFin] = useState<FinSondage["cle"]>(FIN_PAR_DEFAUT);
@@ -38,7 +40,7 @@ export default function EcranNouveauSondage() {
 
   const conversation = trouverConversation(id);
   const trouves = useMemo(() => chercherLieuxSondage(lieux, texte), [lieux, texte]);
-  const fins = useMemo(() => calculerFinsSondage(new Date(maintenantMs)), [maintenantMs]);
+  const fins = useMemo(() => calculerFinsSondage(new Date(maintenantMs), langue), [maintenantMs, langue]);
   const fin = fins.find((f) => f.cle === cleFin) ?? fins.find((f) => f.cle === FIN_PAR_DEFAUT) ?? fins[0];
   const plein = choisis.length >= MAX_LIEUX_SONDAGE;
   const pret = choisis.length >= MIN_LIEUX_SONDAGE && choisis.length <= MAX_LIEUX_SONDAGE;
@@ -56,7 +58,7 @@ export default function EcranNouveauSondage() {
 
   function envoyer() {
     if (!pret) return dire(T.pasAssez);
-    const aJour = calculerFinsSondage(new Date()).find((f) => f.cle === fin.cle);
+    const aJour = calculerFinsSondage(new Date(), langue).find((f) => f.cle === fin.cle);
     if (!aJour) {
       setCleFin(FIN_PAR_DEFAUT);
       return dire(T.finPassee);

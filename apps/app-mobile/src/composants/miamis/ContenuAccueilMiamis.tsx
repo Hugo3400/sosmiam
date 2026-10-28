@@ -1,21 +1,23 @@
 import { useState } from "react";
 import { View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { CarteQuiEstLaAccueil } from "~/composants/miamis/CarteQuiEstLaAccueil";
 import { ErreurMiamis } from "~/composants/miamis/ErreurMiamis";
 import { FeuilleMesEnvies } from "~/composants/miamis/FeuilleMesEnvies";
 import { SectionFilMiamis } from "~/composants/miamis/SectionFilMiamis";
 import { SectionSortiesMiamis } from "~/composants/miamis/SectionSortiesMiamis";
-import { REFUS_LIMITATION_MIAMIS } from "~/contenus/textes-miamis";
+import { REFUS_LIMITATION_MIAMIS_PAR_LANGUE } from "~/contenus/textes-miamis";
 import { utiliserAccueilMiamis } from "~/hooks/utiliser-accueil-miamis";
 import { utiliserMesEnviesMiamis } from "~/hooks/utiliser-mes-envies-miamis";
 import { utiliserProfilVisibiliteMiamis } from "~/hooks/utiliser-profil-visibilite-miamis";
-
-const decrireRefus = (erreur: ErreurService) => (erreur === "compte-limite" ? REFUS_LIMITATION_MIAMIS.venir : MESSAGES_SERVICE[erreur].texte);
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function ContenuAccueilMiamis() {
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_MIAMIS_PAR_LANGUE);
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const decrireRefus = (erreur: ErreurService) => (erreur === "compte-limite" ? refusLimitation.venir : messagesService[erreur].texte);
   const accueil = utiliserAccueilMiamis();
   const { envies, modifier: modifierEnvies } = utiliserMesEnviesMiamis();
   const { genre, genreLu } = utiliserProfilVisibiliteMiamis();

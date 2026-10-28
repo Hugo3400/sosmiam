@@ -10,6 +10,7 @@ import { CarteLimitationCompte } from "~/composants/signalement/CarteLimitationC
 import { FeuilleContesterDecision } from "~/composants/signalement/FeuilleContesterDecision";
 import { FeuilleContesterLimitation } from "~/composants/signalement/FeuilleContesterLimitation";
 import { MessageDecisionsModeration } from "~/composants/signalement/MessageDecisionsModeration";
+import { TEXTES_REGLAGES_MODERATION_PAR_LANGUE } from "~/contenus/textes-reglages-moderation";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
@@ -18,6 +19,7 @@ import { utiliserDecisionsModeration } from "~/hooks/utiliser-decisions-moderati
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import { utiliserRetoursPremierPlan } from "~/hooks/utiliser-retours-premier-plan";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Des refus qui disent que la liste n'est plus à jour (déjà contestée ailleurs, délai passé, décision changée) : on la relit */
 const REFUS_A_RELIRE = ["deja-contestee", "contestation-hors-delai", "decision-inconnue"];
@@ -31,6 +33,7 @@ const REFUS_A_RELIRE = ["deja-contestee", "contestation-hors-delai", "decision-i
  */
 export default function DecisionsModeration() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_MODERATION_PAR_LANGUE);
   const source = utiliserSourceSociale();
   const moderation = utiliserDecisionsModeration();
   const limitation = utiliserLimitationCompte();
@@ -82,25 +85,25 @@ export default function DecisionsModeration() {
       return (
         <MessageDecisionsModeration
           emoji="🛡️"
-          titre="Ici, la modération te répond"
-          texte="C'est ici qu'arrivent les décisions de l'équipe sur tes contenus et sur tes signalements : la règle en cause, son explication, et de quoi contester pendant 6 mois. Pour ça, il te faut un compte."
+          titre={T.visiteTitre}
+          texte={T.visiteTexte}
         >
-          <Bouton libelle="Créer mon compte" petit className="mt-3" indice="Ouvre la création de ton compte" onPress={() => void exigerCompte("signaler")} />
+          <Bouton libelle={T.creerCompte} petit className="mt-3" indice={T.creerCompteIndice} onPress={() => void exigerCompte("signaler")} />
         </MessageDecisionsModeration>
       );
     }
     if (source === "attente" || !moderation.pret || !limitation.pret || (relecture && rien)) {
       return (
-        <View accessible accessibilityLabel="Les décisions arrivent" className="items-center gap-3 py-10">
+        <View accessible accessibilityLabel={T.chargementLu} className="items-center gap-3 py-10">
           <ActivityIndicator size="large" color={couleurs.encre} />
-          <Text className="text-center font-texte text-sm text-gris">{relecture ? "On retente…" : "On rassemble les décisions…"}</Text>
+          <Text className="text-center font-texte text-sm text-gris">{relecture ? T.onRetente : T.onRassemble}</Text>
         </View>
       );
     }
     if (ratee && rien) {
       return (
-        <MessageDecisionsModeration emoji="📡" titre="Les décisions sont restées en cuisine" texte="La connexion fait des siennes, rien de grave. Vérifie ton réseau, et on retente ?">
-          <Bouton libelle="Réessayer" variante="blanc" petit className="mt-3" indice="Relit les décisions de la modération" onPress={() => void relire()} />
+        <MessageDecisionsModeration emoji="📡" titre={T.rateesTitre} texte={T.rateesTexte}>
+          <Bouton libelle={T.reessayer} variante="blanc" petit className="mt-3" indice={T.reessayerIndice} onPress={() => void relire()} />
         </MessageDecisionsModeration>
       );
     }
@@ -108,8 +111,8 @@ export default function DecisionsModeration() {
       return (
         <MessageDecisionsModeration
           emoji="🌿"
-          titre="Tout est calme par ici"
-          texte="Aucune décision de la modération sur tes contenus ni sur tes signalements. Si l'équipe en prend une un jour, tu la trouveras ici, avec la règle en cause et son explication."
+          titre={T.calmeTitre}
+          texte={T.calmeTexte}
         />
       );
     }
@@ -118,21 +121,21 @@ export default function DecisionsModeration() {
         {ratee ? (
           <View accessibilityLiveRegion="polite" className="flex-row items-center gap-2 rounded-2xl border-2 border-dashed border-gris/60 py-1 pl-3 pr-1">
             <Text className="flex-1 font-texte text-[13px] leading-[18px] text-gris">
-              {lierPonctuation(moderation.ratee ? "📡 Pas pu rafraîchir : tu vois les décisions d'avant." : "📡 Pas pu vérifier si ton compte est limité : on retente ?")}
+              {lierPonctuation(moderation.ratee ? T.rafraichissementRate : T.limitationNonVerifiee)}
             </Text>
             {relecture ? (
-              <ActivityIndicator size="small" color={couleurs.gris} accessibilityLabel="On retente" style={{ marginHorizontal: 16 }} />
+              <ActivityIndicator size="small" color={couleurs.gris} accessibilityLabel={T.onRetenteLu} style={{ marginHorizontal: 16 }} />
             ) : (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Réessayer"
+                accessibilityLabel={T.reessayer}
                 onPress={() => {
                   vibrerLegerement();
                   void relire();
                 }}
                 className="min-h-11 justify-center px-3 active:opacity-60"
               >
-                <Text className="font-texte-gras text-[13px] text-encre">Réessayer</Text>
+                <Text className="font-texte-gras text-[13px] text-encre">{T.reessayer}</Text>
               </Pressable>
             )}
           </View>
@@ -152,9 +155,7 @@ export default function DecisionsModeration() {
           />
         ))}
         <Text className="mt-2 font-texte text-sm leading-5 text-gris">
-          {lierPonctuation(
-            "On ne te dit jamais qui a signalé, et la personne concernée ne saura jamais que c'est toi qui as signalé. Une contestation est relue par une autre personne de l'équipe que celle qui a décidé.",
-          )}
+          {lierPonctuation(T.discretion)}
         </Text>
       </View>
     );
@@ -162,7 +163,7 @@ export default function DecisionsModeration() {
 
   return (
     <>
-      <EcranReglage titre="Décisions de la modération" sousTitre="Ce que l'équipe a décidé sur tes contenus et sur tes signalements, et pourquoi.">
+      <EcranReglage titre={T.titre} sousTitre={T.sousTitre}>
         {contenu()}
       </EcranReglage>
       <FeuilleContesterDecision

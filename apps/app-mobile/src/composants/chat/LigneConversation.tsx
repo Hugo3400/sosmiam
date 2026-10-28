@@ -5,17 +5,21 @@ import { Pressable, Text, View } from "react-native";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondGroupe } from "~/composants/chat/RondGroupe";
 import { RondPote } from "~/composants/potes/RondPote";
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { resumerDernierMessage } from "~/fonctions/chat/resumer-dernier-message";
-import { formaterIlYA } from "~/fonctions/dates/formater-il-y-a";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterIlYALangue } from "~/fonctions/langue/formater-il-y-a-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
@@ -35,6 +39,10 @@ const TAILLE_MINI = 22;
 export function LigneConversation({ conversation, maintenant, brouillon }: Props) {
   const router = useRouter();
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
+  const T_APERCUS = utiliserTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE);
   const { trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { nonLusDe } = utiliserConversations();
@@ -49,22 +57,22 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
     .filter((p): p is Pote => p !== null);
   const pote = groupe ? null : (autres[0] ?? null);
   // Privé dont l'autre a supprimé son compte : « Compte supprimé » (vos messages restent)
-  const nom = groupe ? nommerGroupe(conversation.titre) : (pote?.prenom ?? "Compte supprimé");
+  const nom = groupe ? nommerGroupe(conversation.titre, langue) : (pote?.prenom ?? T_APERCUS.compteSupprime);
 
   const dernier = conversation.messages[conversation.messages.length - 1];
-  const prefixe = !dernier || dernier.systeme ? null : dernier.auteur === monId ? "Toi" : groupe ? (trouverPote(dernier.auteur)?.prenom ?? "Quelqu'un") : null;
+  const prefixe = !dernier || dernier.systeme ? null : dernier.auteur === monId ? T_APERCUS.toi : groupe ? (trouverPote(dernier.auteur)?.prenom ?? T_APERCUS.quelquUn) : null;
   const lieuNom = dernier?.lieuId !== undefined ? trouverLieu(dernier.lieuId)?.nom : undefined;
-  const vide = groupe ? (conversation.creePar === monId ? "Groupe créé : lance la discussion" : "Nouveau groupe : dis bonjour") : "Pas encore de message : dis-lui bonjour";
-  const apercu = dernier ? resumerDernierMessage(dernier, prefixe, lieuNom) : `${vide} 👋`;
-  const moment = dernier ? formaterIlYA(dernier.date, maintenant) : null;
+  const vide = groupe ? (conversation.creePar === monId ? T.groupeCree : T.nouveauGroupe) : T.pasEncoreDeMessage;
+  const apercu = dernier ? resumerDernierMessage(dernier, prefixe, langue, lieuNom) : `${vide} 👋`;
+  const moment = dernier ? formaterIlYALangue(dernier.date, langue, maintenant) : null;
   const apercuBrouillon = brouillon?.replace(/\s+/g, " ").trim() || null;
 
   const membres = autres.length + 1;
   const lu = [
-    groupe ? `${nom}, groupe de ${membres} personne${membres > 1 ? "s" : ""}` : nom,
-    conversation.epinglee ? TEXTES_MESSAGES.epingleeLu : null,
-    nonLus > 0 ? `${nonLus} message${nonLus > 1 ? "s" : ""} non lu${nonLus > 1 ? "s" : ""}` : null,
-    apercuBrouillon ? TEXTES_MESSAGES.brouillonLu(apercuBrouillon) : dernier ? resumerDernierMessage(dernier, prefixe, lieuNom, true) : vide,
+    groupe ? T.groupeDePersonnes(nom, membres) : nom,
+    conversation.epinglee ? T_MESSAGES.epingleeLu : null,
+    nonLus > 0 ? T_MESSAGES.messagesNonLus(nonLus) : null,
+    apercuBrouillon ? T_MESSAGES.brouillonLu(apercuBrouillon) : dernier ? resumerDernierMessage(dernier, prefixe, langue, lieuNom, true) : vide,
     moment?.lu,
   ]
     .filter(Boolean)
@@ -84,7 +92,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={lu}
-      accessibilityHint="Ouvre la conversation"
+      accessibilityHint={T.ouvreConversation}
       onPress={() => {
         vibrerLegerement();
         router.push({ pathname: "/potes/discussion/[id]", params: { id: conversation.id } });
@@ -116,7 +124,7 @@ export function LigneConversation({ conversation, maintenant, brouillon }: Props
           <Text numberOfLines={1} className={`flex-1 text-sm ${nonLus > 0 ? "font-texte-semi text-encre" : "font-texte text-gris"}`}>
             {apercuBrouillon ? (
               <>
-                <Text className="font-texte-semi text-rouge-texte">{lierPonctuation(TEXTES_MESSAGES.brouillon)}</Text>
+                <Text className="font-texte-semi text-rouge-texte">{lierPonctuation(T_MESSAGES.brouillon)}</Text>
                 {lierPonctuation(apercuBrouillon)}
               </>
             ) : (

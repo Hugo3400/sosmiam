@@ -2,18 +2,23 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import { CarteDemandeConnexion } from "~/composants/compte/CarteDemandeConnexion";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { ScannerQrCode } from "~/composants/potes/ScannerQrCode";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { textesConnexionQr } from "~/contenus/connexion-qr";
+import { TEXTES_CONNEXION_QR_PAR_LANGUE } from "~/contenus/connexion-qr";
+import { TEXTES_CONNECTER_APPAREIL_PAR_LANGUE } from "~/contenus/textes-connecter-appareil";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { type ServiceConnexionQr, utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { type EtapeValidationQr, utiliserValidationConnexionQr } from "~/hooks/utiliser-validation-connexion-qr";
 
 /**
@@ -27,25 +32,30 @@ export default function ConnecterAppareil() {
 }
 
 /** La fin du parcours : titre, emoji (à part, caché aux lecteurs d'écran) et texte ; null tant que ce n'est pas fini */
-function lireFin(etape: EtapeValidationQr): { titre: string; emoji: string; texte: string } | null {
+function lireFin(etape: EtapeValidationQr, langue: Langue): { titre: string; emoji: string; texte: string } | null {
+  const T = choisirTextes(TEXTES_CONNECTER_APPAREIL_PAR_LANGUE, langue);
+  const textesConnexionQr = choisirTextes(TEXTES_CONNEXION_QR_PAR_LANGUE, langue);
   if (etape.type === "fait")
-    return { titre: "C'est connecté !", emoji: "🎉", texte: textesConnexionQr.fait(etape.appareil) };
-  if (etape.type === "refuse") return { titre: "Refusé", emoji: "🛑", texte: textesConnexionQr.refuse };
-  if (etape.type === "lien-refuse") return { titre: "Personne n'entre", emoji: "🛡️", texte: textesConnexionQr.lienRefuse };
-  if (etape.type === "expire") return { titre: "Trop tard", emoji: "⏱️", texte: textesConnexionQr.expire };
+    return { titre: T.faitTitre, emoji: "🎉", texte: textesConnexionQr.fait(etape.appareil) };
+  if (etape.type === "refuse") return { titre: T.refuseTitre, emoji: "🛑", texte: textesConnexionQr.refuse };
+  if (etape.type === "lien-refuse") return { titre: T.lienRefuseTitre, emoji: "🛡️", texte: textesConnexionQr.lienRefuse };
+  if (etape.type === "expire") return { titre: T.expireTitre, emoji: "⏱️", texte: textesConnexionQr.expire };
   if (etape.type !== "erreur") return null;
   // Un autre refus de l'API (scanné par un autre compte, déjà répondu, trop d'essais…) : son propre texte
-  const erreur = MESSAGES_SERVICE[etape.erreur];
-  return { titre: erreur?.titre ?? "Oups", emoji: erreur?.emoji ?? "😕", texte: erreur?.texte ?? "Ça n'a pas marché cette fois. Réessaie dans un instant." };
+  const erreur = choisirTextes(MESSAGES_SERVICE_PAR_LANGUE, langue)[etape.erreur];
+  return { titre: erreur?.titre ?? T.erreurTitre, emoji: erreur?.emoji ?? "😕", texte: erreur?.texte ?? T.erreurTexte };
 }
 
 function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; code?: string }) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CONNECTER_APPAREIL_PAR_LANGUE);
+  const textesConnexionQr = utiliserTextes(TEXTES_CONNEXION_QR_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const router = useRouter();
   const validation = utiliserValidationConnexionQr(service, code);
   const { etape } = validation;
   const [lienColle, setLienColle] = useState("");
-  const fin = lireFin(etape);
+  const fin = lireFin(etape, langue);
   // Toujours vers Mon compte : celui d'en dessous s'il y est, sinon il remplace cet écran (les onglets restent dessous)
   const revenirAuCompte = () => router.dismissTo("/reglages/compte");
 
@@ -53,7 +63,7 @@ function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; c
   const annonce = fin
     ? `${fin.titre}. ${fin.texte}`
     : etape.type === "confirmer"
-      ? `Vérifie bien avant de dire oui : quelqu'un veut se connecter à ton compte sur ${etape.demande.appareil}.`
+      ? T.verifierLu(etape.demande.appareil)
       : etape.type === "scanner"
         ? etape.souci
         : null;
@@ -81,7 +91,7 @@ function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; c
 
   if (etape.type === "confirmer") {
     return (
-      <EcranReglage titre="Vérifie bien avant de dire oui" sousTitre="Une connexion, c'est l'accès à tout ton compte.">
+      <EcranReglage titre={T.confirmerTitre} sousTitre={T.confirmerSousTitre}>
         <View className="gap-5">
           <CarteDemandeConnexion
             demande={etape.demande}
@@ -104,8 +114,8 @@ function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; c
             {fin.emoji}
           </Text>
           <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(fin.texte)}</Text>
-          {etape.type !== "fait" ? <Bouton libelle="Scanner un autre QR" onPress={validation.recommencer} /> : null}
-          <Bouton libelle="Revenir à Mon compte" variante="blanc" onPress={revenirAuCompte} />
+          {etape.type !== "fait" ? <Bouton libelle={T.scannerAutre} onPress={validation.recommencer} /> : null}
+          <Bouton libelle={T.revenirAuCompte} variante="blanc" onPress={revenirAuCompte} />
         </View>
       </EcranReglage>
     );
@@ -121,7 +131,7 @@ function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; c
           </View>
         ))}
         {etape.type === "lecture" ? (
-          <ActivityIndicator color={couleurs.encre} accessibilityLabel="On lit le QR code" />
+          <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.lectureLue} />
         ) : (
           <ScannerQrCode pour="appareil" onOuvrir={validation.recommencer} onLu={(texte) => void validation.lire(texte)} />
         )}
@@ -129,8 +139,8 @@ function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; c
         {/* Aperçu web : pas d'appareil photo, on colle le lien du QR */}
         {Platform.OS === "web" ? (
           <View className="gap-3">
-            <ChampTexte libelle="Le lien du QR" valeur={lienColle} onChangeTexte={setLienColle} autoCapitalize="none" autoCorrect={false} />
-            <Bouton libelle="Lire ce lien" variante="blanc" petit desactive={lienColle.trim() === ""} onPress={() => void validation.lire(lienColle)} />
+            <ChampTexte libelle={T.lienDuQr} valeur={lienColle} onChangeTexte={setLienColle} autoCapitalize="none" autoCorrect={false} />
+            <Bouton libelle={T.lireLien} variante="blanc" petit desactive={lienColle.trim() === ""} onPress={() => void validation.lire(lienColle)} />
           </View>
         ) : null}
       </View>

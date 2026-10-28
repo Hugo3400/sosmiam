@@ -5,8 +5,9 @@ import { Platform, Pressable, Text, View } from "react-native";
 
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { FeuilleNePlusSuivre } from "~/composants/suivi/FeuilleNePlusSuivre";
-import { INDICE_COMPTE } from "~/contenus/indice-compte";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { INDICE_COMPTE_PAR_LANGUE } from "~/contenus/indice-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -14,6 +15,7 @@ import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEtatSuivi } from "~/hooks/utiliser-etat-suivi";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Clé de suivi (calculerCleSuivi, ecrireCleSuivi) : « lieu:<id> », « createur:<pseudo> » ou « personne:<id> » */
@@ -50,6 +52,9 @@ type Feuille = { type: "ne-plus-suivre" | "annuler-demande" | "pseudo"; visible:
 export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "grand" }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
+  const indiceCompte = utiliserTextes(INDICE_COMPTE_PAR_LANGUE);
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE).suivre;
   const etatSuivi = utiliserEtatSuivi(cle);
   const exiger = utiliserCompteRequis();
   const avecCompte = utiliserProfil().profil !== null;
@@ -74,11 +79,11 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
     if (demande) return setFeuille({ type: "annuler-demande", visible: true });
     // Affiché tout de suite ; si le serveur refuse ensuite, le bouton revient à « Suivre » et on dit pourquoi
     const resultat = etatSuivi.suivre((erreur) =>
-      onAnnoncer(erreur === "compte-limite" ? REFUS_LIMITATION.suivre : `Impossible de suivre ${nom} pour l'instant. Réessaie dans un instant ?`),
+      onAnnoncer(erreur === "compte-limite" ? refusLimitation : T.impossibleReessaie(nom)),
     );
-    if (resultat === "suivi") onAnnoncer(`🔔 Tu suis maintenant ${nom} !`);
-    else if (resultat === "demande") onAnnoncer(`📨 Demande envoyée à ${nom}. Croisons les doigts (et les fourchettes) !`);
-    else if (resultat === "interdit") onAnnoncer(`Impossible de suivre ${nom} pour l'instant.`);
+    if (resultat === "suivi") onAnnoncer(T.suisMaintenant(nom));
+    else if (resultat === "demande") onAnnoncer(T.demandeEnvoyee(nom));
+    else if (resultat === "interdit") onAnnoncer(T.impossible(nom));
     // Une feuille plutôt qu'un changement d'écran aussitôt : on sait pourquoi on part (et VoiceOver n'est pas coupé en route)
     else if (resultat === "pseudo-manquant") setFeuille({ type: "pseudo", visible: true });
   }
@@ -102,35 +107,32 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
   // Annoncé une fois la feuille refermée : VoiceOver est revenu de lui-même sur le bouton (TalkBack, lui, a besoin qu'on l'y ramène)
   function annoncerArret() {
     if (Platform.OS === "android") deplacerFocusLecteurEcran(bouton.current);
-    onAnnoncer(`Tu ne suis plus ${nom}, sans rancune 👋`);
+    onAnnoncer(T.nePlusSuivi(nom));
   }
 
   function annoncerAnnulation() {
     if (Platform.OS === "android") deplacerFocusLecteurEcran(bouton.current);
-    onAnnoncer(tropTard.current ? `Trop tard : ${nom} venait d'accepter ta demande ! Touche « Suivi » si tu préfères ne plus suivre.` : `Demande annulée. ${nom} n'en saura rien 🤫`);
+    onAnnoncer(tropTard.current ? T.tropTard(nom) : T.demandeAnnulee(nom));
   }
 
   // « Suivre en retour » seulement en grand : dans une ligne, « Te suit » est déjà écrit à côté du nom
-  const libelle = suivi ? "Suivi" : demande ? "Demandé" : meSuit && !compact ? "Suivre en retour" : "Suivre";
+  const suivreEnRetour = !suivi && !demande && meSuit && !compact;
+  const libelle = suivi ? T.libelles.suivi : demande ? T.libelles.demande : suivreEnRetour ? T.libelles.suivreEnRetour : T.libelles.suivre;
   const icone = suivi ? "checkmark" : demande ? "time-outline" : "person-add";
   const fondBlanc = suivi || demande;
   const texteBouton = fondBlanc ? "text-encre" : "text-nuit";
   const iconeBouton = fondBlanc ? couleurs.encre : couleurs.nuit;
-  const indicePourSuivre = surDemande
-    ? "Son compte est privé : ça lui envoie une demande"
-    : personne
-      ? "Tu verras passer ses listes et ses lieux"
-      : "Ses prochaines publications passeront en tête de ton fil";
+  const indicePourSuivre = surDemande ? T.indicePrive : personne ? T.indicePersonne : T.indicePublications;
   const accessibilite = {
     accessibilityRole: "button" as const,
     // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Suivi », « Toucher Demandé »)
     accessibilityLabel: suivi
-      ? `Suivi, tu suis ${nom}`
+      ? T.suiviLu(nom)
       : demande
-        ? `Demandé, demande envoyée à ${nom}`
-        : `${libelle === "Suivre" ? `Suivre ${nom}` : `Suivre en retour, ${nom} te suit`}${surDemande ? ", compte privé" : ""}`,
+        ? T.demandeLu(nom)
+        : `${suivreEnRetour ? T.suivreEnRetourLu(nom) : T.suivreLu(nom)}${surDemande ? T.comptePriveLu : ""}`,
     // En visite, VoiceOver dit avant qu'on touche qu'un compte sera demandé (comme le menu « ⋯ » du fil)
-    accessibilityHint: !avecCompte ? INDICE_COMPTE : suivi ? "Touche pour ne plus suivre" : demande ? "Touche pour annuler ta demande" : indicePourSuivre,
+    accessibilityHint: !avecCompte ? indiceCompte : suivi ? T.indiceNePlusSuivre : demande ? T.indiceAnnulerDemande : indicePourSuivre,
   };
 
   // Préparée seulement au premier « Suivi » ou « Demandé » touché : rien de plus à dessiner à l'arrivée sur la fiche ou la liste
@@ -142,13 +144,7 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         nom={nom}
         emoji={emoji}
         personneId={lirePersonneSuivie(cle)}
-        detail={
-          !personne
-            ? undefined
-            : surDemande
-              ? "Son compte est privé : pour revoir ses listes et ses lieux, il faudra refaire une demande."
-              : "Ses listes ne remonteront plus chez toi. Pas de drame, pas de porte qui claque : tu pourras revenir quand tu veux."
-        }
+        detail={!personne ? undefined : surDemande ? T.nePlusSuivre.detailPrive : T.nePlusSuivre.detailPersonne}
         onConfirmer={arreterDeSuivre}
         onRefermee={annoncerArret}
         onFermer={fermer}
@@ -157,11 +153,11 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
       <FeuilleConfirmation
         visible={feuille.visible && etat !== "interdit"}
         emoji="🏷️"
-        titre="Choisis d'abord ton pseudo"
-        detail={`C'est lui que verront les gens que tu suis. Dix secondes dans Mes infos, et tu reviens suivre ${nom} !`}
-        libelleConfirmer="Choisir mon pseudo"
-        libelleRester="Plus tard"
-        indiceRester={`Tu restes ici, sans suivre ${nom} pour l'instant`}
+        titre={T.pseudo.titre}
+        detail={T.pseudo.detail(nom)}
+        libelleConfirmer={T.pseudo.confirmer}
+        libelleRester={T.pseudo.rester}
+        indiceRester={T.pseudo.indiceRester(nom)}
         onConfirmer={rienAFaire}
         onRefermee={allerChoisirPseudo}
         onFermer={fermer}
@@ -171,11 +167,11 @@ export function BoutonSuivreProfil({ cle, nom, emoji, onAnnoncer, taille = "gran
         visible={feuille.visible && etat !== "interdit"}
         emoji={emoji}
         personneId={lirePersonneSuivie(cle)}
-        titre={`Annuler ta demande à ${nom} ?`}
-        detail={`${nom} ne verra plus ta demande. Tu pourras en refaire une quand tu veux.`}
-        libelleConfirmer="Annuler la demande"
-        libelleRester="Je patiente"
-        indiceRester={`Ta demande à ${nom} reste envoyée`}
+        titre={T.annulerDemande.titre(nom)}
+        detail={T.annulerDemande.detail(nom)}
+        libelleConfirmer={T.annulerDemande.confirmer}
+        libelleRester={T.annulerDemande.rester}
+        indiceRester={T.annulerDemande.indiceRester(nom)}
         onConfirmer={annulerDemande}
         onRefermee={annoncerAnnulation}
         onFermer={fermer}

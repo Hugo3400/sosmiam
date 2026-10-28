@@ -3,7 +3,9 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   titre: string;
@@ -15,6 +17,7 @@ type Props = {
 };
 
 export function BarreEcranMiamis({ titre, grand = false, icone = "retour", libelleRetour, onRetour, droite }: Props) {
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const revenir = () => (router.canGoBack() ? router.back() : router.replace({ pathname: "/potes", params: { espace: "miamis" } }));
@@ -23,7 +26,7 @@ export function BarreEcranMiamis({ titre, grand = false, icone = "retour", libel
     <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={libelleRetour ?? (icone === "fermer" ? "Fermer" : "Retour")}
+        accessibilityLabel={libelleRetour ?? (icone === "fermer" ? TE.fermer : TE.retour)}
         hitSlop={8}
         onPress={onRetour ?? revenir}
         className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

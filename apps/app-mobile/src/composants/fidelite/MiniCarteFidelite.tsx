@@ -3,7 +3,9 @@ import { Pressable, Text, View } from "react-native";
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-alcool";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { TEXTES_FIDELITE_PAR_LANGUE } from "~/contenus/textes-fidelite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   carte: CarteFidelite;
@@ -12,20 +14,19 @@ type Props = {
 
 /** Une carte de fidélité en petit, pour le carrousel de l'onglet Scan : le lieu, ses tampons, et la récompense quand elle est prête. */
 export function MiniCarteFidelite({ carte, onPress }: Props) {
+  const T = utiliserTextes(TEXTES_FIDELITE_PAR_LANGUE);
   const prete = carte.pretes.length > 0;
   // Une récompense prête garde l'alcool de son gain ; sinon, celle vers laquelle on avance
   const alcool = prete ? carte.pretes[0].alcool === true : carte.recompenseAlcool;
   const libelle = `${
-    prete
-      ? `Carte de fidélité ${carte.lieu.nom} : ${carte.recompense} t'attend !`
-      : `Carte de fidélité ${carte.lieu.nom} : ${carte.tampons} tampon${carte.tampons > 1 ? "s" : ""} sur ${carte.sur}, pour ${carte.recompense}`
-  }${alcool ? ` ${MESSAGE_SANITAIRE_ALCOOL}` : ""}`;
+    prete ? T.miniPreteLu(carte.lieu.nom, carte.recompense) : T.miniProgressionLu(carte.lieu.nom, carte.tampons, carte.sur, carte.recompense)
+  }${alcool ? ` ${T.messageSanitaireLu(MESSAGE_SANITAIRE_ALCOOL)}` : ""}`;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint="Ouvre la carte de fidélité"
+      accessibilityHint={T.ouvrirCarte}
       onPress={() => {
         vibrerLegerement();
         onPress();
@@ -46,7 +47,7 @@ export function MiniCarteFidelite({ carte, onPress }: Props) {
         ))}
       </View>
       <Text numberOfLines={2} className={`font-texte-semi text-[13px] leading-[18px] ${prete ? "text-nuit" : "text-encre"}`}>
-        {prete ? `🎁 ${carte.recompense} t'attend !` : `${carte.tampons}/${carte.sur} · ${carte.recompense}`}
+        {prete ? T.recompenseAttend(carte.recompense) : `${carte.tampons}/${carte.sur} · ${carte.recompense}`}
       </Text>
       {alcool ? <MentionPrevention variante="courte" /> : null}
     </Pressable>

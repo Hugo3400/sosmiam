@@ -1,15 +1,20 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { NOMS_ETIQUETTES_OFFICIELLES_PAR_LANGUE } from "@sos-miam/commun/contenus/etiquettes-officielles";
 import type { SortieMiamisApi } from "@sos-miam/commun/types/communaute";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BadgePublicSortie } from "~/composants/miamis/BadgePublicSortie";
 import { PuceEtiquetteSortie } from "~/composants/miamis/PuceEtiquetteSortie";
 import { RondMiami } from "~/composants/miamis/RondMiami";
-import { TEXTES_SORTIE_MIAMIS } from "~/contenus/textes-sorties-miamis";
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
+import { type TEXTES_SORTIE_MIAMIS, TEXTES_SORTIE_MIAMIS_PAR_LANGUE } from "~/contenus/textes-sorties-miamis";
 import { correspondAMesEnvies } from "~/fonctions/miamis/correspond-a-mes-envies";
 import { ecrireQuandCourt } from "~/fonctions/miamis/ecrire-quand-court";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   sortie: SortieMiamisApi;
@@ -20,30 +25,34 @@ type Props = {
 
 const ETIQUETTES_MONTREES = 3;
 
-function libelleBouton(sortie: SortieMiamisApi): string | null {
+function libelleBouton(sortie: SortieMiamisApi, T: Traduction<typeof TEXTES_SORTIE_MIAMIS>): string | null {
   switch (sortie.moi.place) {
     case "organisateur":
-      return TEXTES_SORTIE_MIAMIS.carteOrganise;
+      return T.carteOrganise;
     case "accepte":
-      return TEXTES_SORTIE_MIAMIS.carteAccepte;
+      return T.carteAccepte;
     case "attente":
-      return TEXTES_SORTIE_MIAMIS.carteAttente;
+      return T.carteAttente;
     case "demande":
-      return TEXTES_SORTIE_MIAMIS.carteDemande;
+      return T.carteDemande;
     case "aucune":
       return null;
   }
 }
 
 export function CarteSortieMiamis({ sortie, envies, envoi, onDemander }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_SORTIE_MIAMIS_PAR_LANGUE);
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
+  const nomsEtiquettes = utiliserTextes(NOMS_ETIQUETTES_OFFICIELLES_PAR_LANGUE);
   const router = useRouter();
   const ouvrir = () => {
     vibrerLegerement();
     router.push({ pathname: "/potes/miamis/sortie/[id]", params: { id: sortie.id } });
   };
-  const etat = libelleBouton(sortie);
-  const quand = ecrireQuandCourt(sortie.quand);
-  const places = `${sortie.participants.length} / ${sortie.places} places`;
+  const etat = libelleBouton(sortie, T);
+  const quand = ecrireQuandCourt(sortie.quand, langue);
+  const places = TE.placesSortie(sortie.participants.length, sortie.places);
   const organisateur = sortie.moi.place === "organisateur";
 
   return (
@@ -58,7 +67,7 @@ export function CarteSortieMiamis({ sortie, envies, envoi, onDemander }: Props) 
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${sortie.titre}, ${sortie.lieu.nom}, ${quand}, ${places}`}
-        accessibilityHint="Ouvre la sortie"
+        accessibilityHint={TE.ouvrirSortie}
         onPress={ouvrir}
         className="gap-0.5 active:opacity-70"
       >
@@ -70,35 +79,35 @@ export function CarteSortieMiamis({ sortie, envies, envoi, onDemander }: Props) 
         </Text>
       </Pressable>
       <View className="flex-row flex-wrap gap-1.5">
-        {correspondAMesEnvies(sortie, envies) ? <PuceEtiquetteSortie nom={TEXTES_SORTIE_MIAMIS.carteCorrespond} accent /> : null}
+        {correspondAMesEnvies(sortie, envies) ? <PuceEtiquetteSortie nom={T.carteCorrespond} accent /> : null}
         {sortie.etiquettes.slice(0, ETIQUETTES_MONTREES).map((e) => (
-          <PuceEtiquetteSortie key={e.nom} nom={e.nom} libre={!e.officielle} />
+          <PuceEtiquetteSortie key={e.nom} nom={e.officielle ? (nomsEtiquettes[e.nom] ?? e.nom) : e.nom} libre={!e.officielle} />
         ))}
       </View>
       <View className="flex-row items-center gap-2">
         <RondMiami personne={sortie.organisateur} taille={28} />
         <Text numberOfLines={1} className="flex-1 font-texte text-[13px] text-encre">
           {organisateur ? (
-            TEXTES_SORTIE_MIAMIS.tuOrganises
+            T.tuOrganises
           ) : (
             <>
               <Text className="font-texte-semi">{`@${sortie.organisateur.pseudo}`}</Text>
-              {` ${TEXTES_SORTIE_MIAMIS.organise}`}
+              {` ${T.organise}`}
             </>
           )}
         </Text>
       </View>
       {etat ? (
-        <Bouton libelle={etat} variante={sortie.moi.place === "accepte" ? "jaune" : "blanc"} petit onPress={ouvrir} indice="Ouvre la sortie" />
+        <Bouton libelle={etat} variante={sortie.moi.place === "accepte" ? "jaune" : "blanc"} petit onPress={ouvrir} indice={TE.ouvrirSortie} />
       ) : (
         <Bouton
-          libelle={envoi ? "Un instant…" : TEXTES_SORTIE_MIAMIS.carteJeViens}
+          libelle={envoi ? TE.unInstant : T.carteJeViens}
           variante="encre"
           petit
           desactive={envoi}
           onPress={onDemander}
-          libelleLu={`${TEXTES_SORTIE_MIAMIS.carteJeViens} à ${sortie.titre}`}
-          indice={`@${sortie.organisateur.pseudo} reçoit ta demande et l'accepte, ou pas`}
+          libelleLu={TE.jeViensA(sortie.titre)}
+          indice={TE.demandeIndice(sortie.organisateur.pseudo)}
         />
       )}
     </View>

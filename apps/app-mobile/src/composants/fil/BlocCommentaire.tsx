@@ -5,7 +5,9 @@ import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/tri
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { LigneCommentaire } from "~/composants/fil/LigneCommentaire";
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   fil: FilCommentaire;
@@ -31,6 +33,7 @@ type Props = {
 /** Un commentaire et ses réponses, repliables. */
 export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onRepondre, onAimer, onOptions, onOuvrirProfil, appuiLong, gerant }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE).reponses;
   const { commentaire, reponses } = fil;
   const nombre = reponses.length;
   const dontLeLieu = reponses.some((r) => r.auteur === "lieu");
@@ -69,7 +72,7 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
       {nombre > 0 ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={deplie ? "Masquer les réponses" : `Voir ${nombre} réponse${nombre > 1 ? "s" : ""}${dontLeLieu ? ", dont celle du lieu" : ""}`}
+          accessibilityLabel={deplie ? T.masquer : T.voirLu(nombre, dontLeLieu)}
           // Le libellé dit déjà « Voir » ou « Masquer » : sur iPhone, l'état « déplié » serait lu en anglais (« expanded »)
           accessibilityState={Platform.OS === "ios" ? undefined : { expanded: deplie }}
           onPress={() => onBasculer(commentaire.id)}
@@ -77,7 +80,7 @@ export function BlocCommentaire({ fil, lieu, maintenant, deplie, onBasculer, onR
         >
           <View className="h-px w-6 bg-gris" />
           <Text className="font-texte-semi text-[13px] text-gris">
-            {deplie ? "Masquer les réponses" : `Voir ${nombre} réponse${nombre > 1 ? "s" : ""}${dontLeLieu ? " · dont le lieu 💛" : ""}`}
+            {deplie ? T.masquer : T.voir(nombre, dontLeLieu)}
           </Text>
           <Ionicons name={deplie ? "chevron-up" : "chevron-down"} size={14} color={couleurs.gris} />
         </Pressable>

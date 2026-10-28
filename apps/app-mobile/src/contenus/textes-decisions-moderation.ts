@@ -6,6 +6,10 @@ export type TexteCibleDecision = { nom: string; feminin: boolean; dansUnePhrase?
 
 export type TexteRemisParDefaut = { auteur: string; signale: string };
 
+/**
+ * Le nom de chaque contenu, s'il est féminin (« Ta liste », « retirée »), et, s'il le faut, comment le dire au milieu d'une
+ * phrase pour qu'on sache de quoi on parle (« ton avis sur un lieu »)
+ */
 const CIBLES: Readonly<Record<CibleDecisionModeration, TexteCibleDecision>> = {
   commentaire: { nom: "commentaire", feminin: false },
   message: { nom: "message", feminin: false },
@@ -24,7 +28,12 @@ const CIBLES: Readonly<Record<CibleDecisionModeration, TexteCibleDecision>> = {
   "comment-actu": { nom: "commentaire", feminin: false, dansUnePhrase: "ton commentaire sous un article des Actus" },
 };
 
+/**
+ * Un profil, une sortie ou un groupe ne disparaissent pas : la modération remet par défaut ce qui posait problème (l'avatar,
+ * le titre de la sortie, le titre du groupe)
+ */
 const REMIS_PAR_DEFAUT: Readonly<Partial<Record<CibleDecisionModeration, TexteRemisParDefaut>>> = {
+  // Décision de Hugo : un profil retenu reçoit un pseudo neutre (« miami » + 4 chiffres) et perd son avatar
   profil: {
     auteur: "L'équipe a remplacé ton pseudo par un pseudo neutre et retiré ton avatar : ils ne respectaient pas une règle de la communauté. Tu peux choisir un nouveau pseudo dans Profil › Modifier mon profil › Mes infos.",
     signale: "L'équipe t'a donné raison : son pseudo et son avatar ont été remis par défaut. Merci de veiller au grain !",

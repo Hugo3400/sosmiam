@@ -7,18 +7,12 @@ import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation"
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { BlocTaBande } from "~/composants/reglages/BlocTaBande";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { TEXTES_REGLAGES_CONFIDENTIALITE_PAR_LANGUE } from "~/contenus/textes-reglages-confidentialite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
-
-const ANNONCE_PRIVE = "🔒 Ton compte est privé. Tes abonnés restent ; les prochains devront frapper à la porte.";
-const ANNONCE_PUBLIC = "🔓 Ton compte est public : tout le monde peut te suivre sans demander.";
-const ANNONCE_RATEE = "Ça n'a pas marché cette fois : ton compte n'a pas changé. Réessaie dans un instant.";
-
-/** « 1 demande en attente sera acceptée », « 3 demandes en attente seront acceptées » */
-const decrireDemandes = (nombre: number) =>
-  nombre > 1 ? `Les ${nombre} demandes en attente seront acceptées.` : "La demande en attente sera acceptée.";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Réglages > Compte privé (« Confidentialité » avec un compte) : en privé, chaque nouvel abonné doit te demander, et ceux qui
@@ -27,6 +21,7 @@ const decrireDemandes = (nombre: number) =>
  */
 export default function ReglagesConfidentialite() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_CONFIDENTIALITE_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const suivis = utiliserSuivisPersonnes();
   const exigerCompte = utiliserCompteRequis();
@@ -44,16 +39,16 @@ export default function ReglagesConfidentialite() {
 
   async function passerEnPublic(): Promise<string> {
     const fait = await suivis.changerConfidentialite("public");
-    if (!fait) return ANNONCE_RATEE;
+    if (!fait) return T.annonceRatee;
     const { acceptees } = fait;
-    if (acceptees === 0) return ANNONCE_PUBLIC;
-    return `🔓 Ton compte est public. ${acceptees > 1 ? `${acceptees} demandes acceptées` : "1 demande acceptée"} : bienvenue à tes nouveaux abonnés !`;
+    if (acceptees === 0) return T.annoncePublic;
+    return T.publicAvecDemandes(acceptees);
   }
 
   function changer(prive: boolean) {
     if (!exigerCompte("suivre")) return;
     if (prive) {
-      void suivis.changerConfidentialite("prive").then((fait) => annoncer(fait ? ANNONCE_PRIVE : ANNONCE_RATEE));
+      void suivis.changerConfidentialite("prive").then((fait) => annoncer(fait ? T.annoncePrive : T.annonceRatee));
       return;
     }
     // Des gens attendent à la porte : on confirme avant de tous les faire entrer
@@ -64,33 +59,29 @@ export default function ReglagesConfidentialite() {
   return (
     <View style={{ flex: 1, backgroundColor: couleurs.creme }}>
       <EcranReglage
-        titre={avecTaBande ? "Confidentialité" : "Compte privé"}
-        sousTitre={avecTaBande ? "Qui peut te suivre, qui peut te trouver, et ce que voit ta bande." : "Qui peut te suivre, et ce que voient ceux qui ne te suivent pas."}
+        titre={avecTaBande ? T.titreAvecBande : T.titreSansBande}
+        sousTitre={avecTaBande ? T.sousTitreAvecBande : T.sousTitreSansBande}
       >
         {!suivis.pret ? (
           <View className="mt-4 items-center">
-            <ActivityIndicator color={couleurs.encre} accessibilityLabel="Chargement de tes réglages" />
+            <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
           </View>
         ) : (
           <View className="gap-6">
             <Interrupteur
               emoji="🔒"
-              titre="Compte privé"
-              detail="Chaque nouvel abonné devra te demander"
+              titre={T.comptePrive}
+              detail={T.comptePriveDetail}
               valeur={suivis.comptePrive}
               onChanger={changer}
             />
 
             <View className="gap-3">
               <Text className="font-texte text-sm leading-5 text-gris">
-                {lierPonctuation(
-                  suivis.source === "compte"
-                    ? "En privé, ceux qui ne te suivent pas voient seulement ton avatar, ton prénom, ton @pseudo et tes compteurs. Tes abonnés voient tes listes et tes badges, et ta bande voit tout."
-                    : "En privé, ceux qui ne te suivent pas voient seulement ton avatar, ton prénom, ton @pseudo et tes compteurs. Tes abonnés voient tout, et ta bande aussi, si vous vous êtes ajoutés en vrai (lien ou QR code).",
-                )}
+                {lierPonctuation(suivis.source === "compte" ? T.explicationCompte : T.explicationTelephone)}
               </Text>
               <Text className="font-texte text-sm leading-5 text-gris">
-                {lierPonctuation("Passer en privé ne met personne dehors : tes abonnés restent. Et si tu repasses en public, les demandes en attente seront acceptées.")}
+                {lierPonctuation(T.passerPrive)}
               </Text>
             </View>
 
@@ -102,11 +93,11 @@ export default function ReglagesConfidentialite() {
       <FeuilleConfirmation
         visible={feuillePublic}
         emoji="🔓"
-        titre="Passer ton compte en public ?"
-        detail={`Tout le monde pourra te suivre sans demander. ${decrireDemandes(nombreDemandes)}`}
-        libelleConfirmer="Passer en public"
-        libelleRester="Je reste en privé"
-        indiceRester="Ton compte reste privé, les demandes attendent"
+        titre={T.feuilleTitre}
+        detail={T.feuilleDetail(T.demandes(nombreDemandes))}
+        libelleConfirmer={T.passerPublic}
+        libelleRester={T.resterPrive}
+        indiceRester={T.resterPriveIndice}
         onConfirmer={() => {
           if (!exigerCompte("suivre")) return;
           feuilleRefermee.current = false;

@@ -19,7 +19,9 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { AstuceDoubleToucher } from "~/composants/chat/AstuceDoubleToucher";
 import { BulleChat } from "~/composants/chat/BulleChat";
 import { MenuMessageChat } from "~/composants/chat/MenuMessageChat";
-import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { ConversationEnrichie, MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { construireLignesDiscussion, type LigneDiscussion } from "~/fonctions/chat/construire-lignes-discussion";
 import { decrireMessageRecu } from "~/fonctions/chat/decrire-message-recu";
@@ -31,8 +33,10 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Ce que l'écran peut demander à la liste */
 export type PoigneeListeMessages = {
@@ -71,6 +75,10 @@ const cleLigne = (ligne: LigneDiscussion) => ligne.message.id;
  */
 export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, onAnnoncer, onRepondre, onModifier, ref }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T_LISTE = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
+  const T_APERCUS = utiliserTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE);
   const { trouverPote, moi } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { trouverLieu } = utiliserLieux();
@@ -100,7 +108,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
 
   const conversationId = conversation.id;
   const groupe = conversation.type === "groupe";
-  const lignes = useMemo(() => construireLignesDiscussion(conversation.messages, trouverPote, aujourdhui, monId), [conversation.messages, trouverPote, aujourdhui, monId]);
+  const lignes = useMemo(() => construireLignesDiscussion(conversation.messages, trouverPote, aujourdhui, monId, langue), [conversation.messages, trouverPote, aujourdhui, monId, langue]);
   // Date du dernier message déjà là : seuls les plus récents sont annoncés (pas ceux qui redeviennent derniers après un signalement)
   const dernierVu = useRef(lignes[lignes.length - 1]?.message.date ?? "");
   const [lignesAuDepart] = useState(() => Math.min(LIGNES_AU_DEPART_MAX, Math.max(LIGNES_AU_DEPART_MIN, lignes.length)));
@@ -124,8 +132,9 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
       prive: !groupe,
       prenomDe: (id) => trouverPote(id)?.prenom ?? null,
       maintenant,
+      langue,
     });
-  }, [lignes, dernierDeMoi, conversation.lectures, groupe, trouverPote, maintenant]);
+  }, [lignes, dernierDeMoi, conversation.lectures, groupe, trouverPote, maintenant, langue]);
 
   /**
    * Défile jusqu'au dernier message. Avec les vraies hauteurs quand on les a : scrollToEnd se fie aux mesures des bulles,
@@ -170,7 +179,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
       if (minuterieSurlignage.current) clearTimeout(minuterieSurlignage.current);
       minuterieSurlignage.current = setTimeout(() => setSurligne(null), DUREE_SURLIGNAGE);
     },
-    [lignes, onAnnoncer, animationsReduites],
+    [lignes, onAnnoncer, animationsReduites, T.citationPlusHaut],
   );
 
   // Un nouveau message : le tien te ramène en bas ; celui d'un pote est lu par le lecteur d'écran, sans qu'il faille aller le chercher
@@ -187,8 +196,8 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
       return;
     }
     if (!collerEnBas.current) setNouveaux((n) => n + 1);
-    const prenom = derniere.message.systeme ? T.sosMiam : (derniere.auteur?.prenom ?? "Quelqu'un");
-    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, prenom, derniere.message.lieuId === undefined ? undefined : trouverLieu(derniere.message.lieuId)?.nom));
+    const prenom = derniere.message.systeme ? T.sosMiam : (derniere.auteur?.prenom ?? T_APERCUS.quelquUn);
+    if (ecranVisible.current) AccessibilityInfo.announceForAccessibility(decrireMessageRecu(derniere.message, prenom, langue, derniere.message.lieuId === undefined ? undefined : trouverLieu(derniere.message.lieuId)?.nom));
     // Une seule annonce par nouveau message : relire les lieux ne la refait pas
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [derniere]);
@@ -258,7 +267,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
   );
 
   const prive = groupe ? null : (membres[0]?.prenom ?? null);
-  const confidentialite = prive ? `🔒 Rien qu'entre ${prive} et toi.` : "🔒 Seuls les membres de la conversation voient ces messages.";
+  const confidentialite = prive ? T_LISTE.confidentialitePrive(prive) : T_LISTE.confidentialiteGroupe;
 
   const { chargerPlusAnciens } = utiliserConversations();
   const plusAnciens = conversation.plusAnciens === true;
@@ -275,18 +284,18 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
             }}
             className="min-h-11 items-center justify-center self-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
           >
-            <Text className="font-texte-gras text-sm text-encre">Voir les messages d'avant</Text>
+            <Text className="font-texte-gras text-sm text-encre">{T_LISTE.voirMessagesAvant}</Text>
           </Pressable>
         ) : null}
         <Text
-          accessibilityLabel={`${confidentialite.replace("🔒 ", "")} Un message qui dérange ? Touche « Options du message » à côté, ou appui long dessus, pour le signaler.`}
+          accessibilityLabel={T_LISTE.signalerLu(confidentialite.replace("🔒 ", ""))}
           className="text-center font-texte text-[13px] leading-[18px] text-gris"
         >
-          {lierPonctuation(`${confidentialite} Un message qui dérange ? Appui long dessus, ou « ⋯ », pour le signaler.`)}
+          {lierPonctuation(T_LISTE.signalerVu(confidentialite))}
         </Text>
       </View>
     ),
-    [confidentialite, plusAnciens, chargerPlusAnciens, conversationId],
+    [confidentialite, plusAnciens, chargerPlusAnciens, conversationId, T_LISTE],
   );
 
   const vide = useMemo(
@@ -296,14 +305,12 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
           👋
         </Text>
         <Text accessibilityRole="header" className="text-center font-titre text-xl text-encre">
-          Tout est encore à écrire
+          {T_LISTE.videTitre}
         </Text>
-        <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Dis bonjour, envoie un lieu, un vocal, une photo… Le premier message, c'est comme une entrée : ça ouvre l'appétit !")}
-        </Text>
+        <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(T_LISTE.videTexte)}</Text>
       </View>
     ),
-    [],
+    [T_LISTE],
   );
 
   return (
@@ -346,7 +353,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
         <View pointerEvents="box-none" className="absolute inset-x-0 bottom-3 items-center">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`${nouveaux} ${nouveaux > 1 ? "nouveaux messages" : "nouveau message"}, aller en bas`}
+            accessibilityLabel={T_LISTE.nouveauxMessagesLu(nouveaux)}
             onPress={() => {
               vibrerLegerement();
               allerEnBas();
@@ -354,7 +361,7 @@ export function ListeMessagesChat({ conversation, membres, aLEcran, onBloque, on
             className="min-h-11 flex-row items-center gap-1.5 rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
           >
             <Ionicons name="arrow-down" size={16} color={couleurs.nuit} />
-            <Text className="font-texte-gras text-sm text-nuit">{nouveaux > 1 ? `${nouveaux} nouveaux messages` : "1 nouveau message"}</Text>
+            <Text className="font-texte-gras text-sm text-nuit">{T_LISTE.nouveauxMessages(nouveaux)}</Text>
           </Pressable>
         </View>
       ) : null}

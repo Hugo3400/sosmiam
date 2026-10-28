@@ -12,17 +12,21 @@ import { BadgesMiamSafe } from "~/composants/miam-safe/BadgesMiamSafe";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { Bouton } from "~/composants/interface/Bouton";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
-import { INDICE_COMPTE } from "~/contenus/indice-compte";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { INDICE_COMPTE_PAR_LANGUE } from "~/contenus/indice-compte";
+import { TEXTES_EXPLORER_LISTE_PAR_LANGUE } from "~/contenus/textes-explorer-liste";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
+import { formaterHeureTexteLangue } from "~/fonctions/langue/formater-heure-texte-langue";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { lireSourceImageLieu } from "~/fonctions/lieux/lire-source-image-lieu";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -46,6 +50,10 @@ const AUTEUR_LIEU = { type: "lieu" } as const;
 export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, depuis, margeHaut, onEnvoyer, onAnnoncer }: Props) {
   // En visite, VoiceOver dit avant qu'on touche qu'il faudra un compte (comme « À la rescousse » en bas de la fiche)
   const avecCompte = utiliserProfil().profil !== null;
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const L = utiliserTextes(TEXTES_EXPLORER_LISTE_PAR_LANGUE);
+  const indiceCompte = utiliserTextes(INDICE_COMPTE_PAR_LANGUE);
   // Sans compte SOS Miam, un lieu ne lance pas de SOS : rien à afficher
   const verifie = estLieuVerifie(lieu);
   // Un SOS dont l'heure de fin est passée ne s'affiche plus (il ne compte plus pour les visites non plus)
@@ -67,7 +75,7 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, depuis,
           <BadgesMiamSafe miamSafe={miamSafe} />
           {sos ? (
             <Text className="overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-nuit">
-              🛟 SOS · {sos.places} place{sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(sos.jusqua)}{sos.offre ? ` · ${sos.offre}` : ""}
+              {L.pastilleSos(sos.places, formaterHeureTexteLangue(sos.jusqua, langue))}{sos.offre ? ` · ${sos.offre}` : ""}
             </Text>
           ) : null}
           {lieu.alerte ? (
@@ -81,17 +89,17 @@ export const EnTeteFicheLieu = memo(function EnTeteFicheLieu({ lieu, km, depuis,
         </Text>
         <Text className="font-texte-moyen text-base text-gris">
           {lieu.info} · 📍 {ecrireQuartierVille(lieu)}
-          {km === null ? "" : ` · ${depuis ? `à ${ecrireDistanceDepuis(km, depuis)}` : formaterDistance(km)}`} · {lieu.prix}
+          {km === null ? "" : ` · ${depuis ? L.aDistance(ecrireDistanceDepuis(km, depuis, langue)) : formaterDistanceLangue(km, langue)}`} · {lieu.prix}
         </Text>
         <Text className="font-texte text-[17px] leading-[26px] text-encre">{lierPonctuation(lieu.texte)}</Text>
         {verifie ? null : <CarteLieuNonVerifie lieu={lieu} />}
         {/* L'un au-dessus de l'autre : côte à côte, « Envoyer à un pote » passerait sur deux lignes sur un iPhone SE */}
         <BoutonSuivreProfil cle={calculerCleSuivi(AUTEUR_LIEU, lieu.id)} nom={lieu.nom} emoji={lieu.emoji} onAnnoncer={onAnnoncer} taille="grand" />
         <Bouton
-          libelle="Envoyer à un pote"
+          libelle={T.envoyer}
           variante="blanc"
           petit
-          indice={avecCompte ? "Choisis des potes de ta bande à qui envoyer ce lieu" : INDICE_COMPTE}
+          indice={avecCompte ? T.envoyerIndice : indiceCompte}
           onPress={onEnvoyer}
           className="self-start"
         />

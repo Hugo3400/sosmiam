@@ -3,12 +3,15 @@ import { Pressable, ScrollView, Text, View, type ImageSourcePropType } from "rea
 
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_EXPLORER_LISTE_PAR_LANGUE } from "~/contenus/textes-explorer-liste";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterHeureTexteLangue } from "~/fonctions/langue/formater-heure-texte-langue";
 import { plafonnerCarrouselSos } from "~/fonctions/lieux/plafonner-carrousel-sos";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
@@ -22,34 +25,33 @@ type Props = {
 
 const LARGEUR_CARTE = 208;
 const LARGEUR_AUTRES = 150;
-const SOUS_TITRE = "De la place et des bons plans : ta fourchette tombe à pic.";
 const PLAFOND_CARTES = 12;
 
 /** « 🛟 SOS ce soir » : les lieux qui ont de la place ou un bon plan ce soir, en cartes qui défilent de côté. */
 export const CarrouselSos = memo(function CarrouselSos({ sos, vignettes, onOuvrir, depuis }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_EXPLORER_LISTE_PAR_LANGUE);
   if (sos.length === 0) return null;
   const cartes = plafonnerCarrouselSos(sos, PLAFOND_CARTES);
   const autres = sos.length - cartes.length;
   return (
     <View className="gap-2 pb-4 pt-1">
       <View className="px-4">
-        <Text accessibilityRole="header" accessibilityLabel="SOS ce soir" className="font-titre-gras text-lg text-encre">🛟 SOS ce soir</Text>
-        <Text className="font-texte text-[13px] text-gris">{lierPonctuation(SOUS_TITRE)}</Text>
+        <Text accessibilityRole="header" accessibilityLabel={T.carrousel.titreLu} className="font-titre-gras text-lg text-encre">{T.carrousel.titre}</Text>
+        <Text className="font-texte text-[13px] text-gris">{lierPonctuation(T.carrousel.sousTitre)}</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3 px-4">
         {cartes.map(({ lieu, km }) => {
-          const distance = km === null ? null : ecrireDistanceDepuis(km, depuis);
-          const ligne = lieu.sos
-            ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}`
-            : (lieu.alerte ?? "");
-          const lu = [lieu.nom, lieu.info, lieu.sos ? `SOS : ${ligne}` : ligne, lieu.sos?.offre, distance ? `À ${distance}` : lieu.ville].filter(Boolean).join(". ");
+          const distance = km === null ? null : ecrireDistanceDepuis(km, depuis, langue);
+          const ligne = lieu.sos ? T.sosPlaces(lieu.sos.places, formaterHeureTexteLangue(lieu.sos.jusqua, langue)) : (lieu.alerte ?? "");
+          const lu = [lieu.nom, lieu.info, lieu.sos ? T.sosLu(ligne) : ligne, lieu.sos?.offre, distance ? T.aDistanceLu(distance) : lieu.ville].filter(Boolean).join(". ");
           return (
             <Pressable
               key={lieu.id}
               accessibilityRole="button"
               accessibilityLabel={lu}
-              accessibilityHint="Ouvre la fiche du lieu"
+              accessibilityHint={T.ouvrirFicheIndice}
               onPress={() => {
                 vibrerLegerement();
                 onOuvrir(lieu.id);
@@ -62,7 +64,7 @@ export const CarrouselSos = memo(function CarrouselSos({ sos, vignettes, onOuvri
                 <Text
                   className={`absolute left-2 top-2 overflow-hidden rounded-full px-2 py-0.5 font-texte-gras text-xs ${lieu.sos ? "border border-encre bg-jaune text-nuit" : "bg-rose-alerte text-rouge-texte"}`}
                 >
-                  {lieu.sos ? "🛟 SOS" : "🔥 Ce soir"}
+                  {lieu.sos ? "🛟 SOS" : T.carrousel.ceSoir}
                 </Text>
               </View>
               <View className="gap-0.5 px-3 pb-3 pt-2">
@@ -78,7 +80,7 @@ export const CarrouselSos = memo(function CarrouselSos({ sos, vignettes, onOuvri
           <View style={{ width: LARGEUR_AUTRES }} className="items-center justify-center gap-1 rounded-carte border-2 border-ligne bg-creme px-3 py-4">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">👇</Text>
             <Text className="text-center font-texte-semi text-[13px] text-encre">
-              {lierPonctuation(`Et ${autres} autre${autres > 1 ? "s" : ""} bon${autres > 1 ? "s" : ""} plan${autres > 1 ? "s" : ""} ${autres > 1 ? "t'attendent" : "t'attend"} plus bas dans la liste !`)}
+              {lierPonctuation(T.carrousel.autres(autres))}
             </Text>
           </View>
         ) : null}

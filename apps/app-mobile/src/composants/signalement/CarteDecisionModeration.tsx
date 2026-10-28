@@ -1,11 +1,16 @@
 import { Text, View } from "react-native";
 
-import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-moderation";
+import { DETAILS_MOTIFS_MODERATION_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-moderation";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { CibleDecisionModeration, DecisionModerationApi } from "@sos-miam/commun/types/signalement";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_DECISIONS_MODERATION_PAR_LANGUE, type TEXTES_DECISIONS_MODERATION } from "~/contenus/textes-decisions-moderation";
 import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   decision: DecisionModerationApi;
@@ -13,28 +18,6 @@ type Props = {
   onContester: () => void;
   /** L'heure de référence pour le délai de contestation */
   maintenant: Date;
-};
-
-/**
- * Le nom de chaque contenu, s'il est féminin (« Ta liste », « retirée »), et, s'il le faut, comment le dire au milieu d'une
- * phrase pour qu'on sache de quoi on parle (« ton avis sur un lieu »)
- */
-const CIBLES: Readonly<Record<CibleDecisionModeration, { nom: string; feminin: boolean; dansUnePhrase?: string }>> = {
-  commentaire: { nom: "commentaire", feminin: false },
-  message: { nom: "message", feminin: false },
-  liste: { nom: "liste", feminin: true },
-  profil: { nom: "profil", feminin: false },
-  sortie: { nom: "sortie", feminin: true },
-  groupe: { nom: "groupe", feminin: false },
-  avis: { nom: "avis", feminin: false, dansUnePhrase: "ton avis sur un lieu" },
-  "reponse-avis": { nom: "réponse à un avis", feminin: true },
-  idee: { nom: "idée", feminin: true, dansUnePhrase: "ton idée dans la boîte à idées" },
-  "comment-idee": { nom: "commentaire", feminin: false, dansUnePhrase: "ton commentaire sur une idée" },
-  miamis: { nom: "sortie des Miamis", feminin: true },
-  "image-lieu": { nom: "image", feminin: true, dansUnePhrase: "la bannière ou le logo de ton lieu" },
-  "article-actu": { nom: "article", feminin: false, dansUnePhrase: "ton article dans les Actus" },
-  "reponse-actu": { nom: "réponse à un article", feminin: true, dansUnePhrase: "la réponse de ton lieu sous un article des Actus" },
-  "comment-actu": { nom: "commentaire", feminin: false, dansUnePhrase: "ton commentaire sous un article des Actus" },
 };
 
 /**
@@ -46,49 +29,32 @@ const MASQUES_A_LA_RELECTURE: readonly CibleDecisionModeration[] = ["avis", "rep
 const FONDS_STATUT: Readonly<Record<DecisionModerationApi["statut"], string>> = { masque: "bg-jaune-clair", retenu: "bg-rose-alerte", rejete: "bg-creme" };
 const EMOJIS_STATUT: Readonly<Record<DecisionModerationApi["statut"], string>> = { masque: "🙈", retenu: "🧹", rejete: "✅" };
 
+type Textes = Traduction<typeof TEXTES_DECISIONS_MODERATION>;
+
 /** « 14 octobre 2026 », ou null si la date est absente ou illisible */
-const ecrireDate = (iso: string | null) => {
+const ecrireDate = (iso: string | null, langue: Langue) => {
   if (!iso) return null;
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? null : formaterDateLongue(formaterDateIso(date));
-};
-
-/**
- * Un profil, une sortie ou un groupe ne disparaissent pas : la modération remet par défaut ce qui posait problème (l'avatar,
- * le titre de la sortie, le titre du groupe)
- */
-const REMIS_PAR_DEFAUT: Readonly<Partial<Record<CibleDecisionModeration, { auteur: string; signale: string }>>> = {
-  // Décision de Hugo : un profil retenu reçoit un pseudo neutre (« miami » + 4 chiffres) et perd son avatar
-  profil: {
-    auteur: "L'équipe a remplacé ton pseudo par un pseudo neutre et retiré ton avatar : ils ne respectaient pas une règle de la communauté. Tu peux choisir un nouveau pseudo dans Profil › Modifier mon profil › Mes infos.",
-    signale: "L'équipe t'a donné raison : son pseudo et son avatar ont été remis par défaut. Merci de veiller au grain !",
-  },
-  sortie: { auteur: "L'équipe a remis le titre de ta sortie par défaut : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre de la sortie a été remis par défaut. Merci de veiller au grain !" },
-  groupe: { auteur: "L'équipe a effacé le titre de ton groupe : il ne respectait pas une règle de la communauté.", signale: "L'équipe t'a donné raison : le titre du groupe a été effacé. Merci de veiller au grain !" },
+  return Number.isNaN(date.getTime()) ? null : ecrireDateLongueLangue(formaterDateIso(date), langue);
 };
 
 /** Ce que c'était, le statut dit simplement, et la phrase qui l'explique (accordés au féminin pour une liste, une sortie ou une réponse) */
-function decrire({ cible, role, statut }: DecisionModerationApi) {
-  const { nom, feminin } = CIBLES[cible] ?? { nom: "contenu", feminin: false };
-  const e = feminin ? "e" : "";
-  const il = feminin ? "elle" : "il";
-  const remis = statut === "retenu" ? REMIS_PAR_DEFAUT[cible] : undefined;
-  if (remis) return { quoi: role === "auteur" ? `${feminin ? "Ta" : "Ton"} ${nom}` : `Ton signalement ${feminin ? "d'une" : "d'un"} ${nom}`, feminin, statut: "Remis par défaut", phrase: remis[role === "auteur" ? "auteur" : "signale"] };
+function decrire({ cible, role, statut }: DecisionModerationApi, T: Textes) {
+  const { nom, feminin } = T.cibles[cible] ?? T.cibleInconnue;
+  const remis = statut === "retenu" ? T.remisParDefaut[cible] : undefined;
+  if (remis) return { quoi: role === "auteur" ? T.quoiAuteur(nom, feminin) : T.quoiSignale(nom, feminin), feminin, statut: T.statutRemis, phrase: remis[role === "auteur" ? "auteur" : "signale"] };
   if (role === "auteur") {
-    const quoi = `${feminin ? "Ta" : "Ton"} ${nom}`;
-    if (statut === "masque")
-      return { quoi, feminin, statut: `Masqué${e} en attendant la modération`, phrase: `${feminin ? "Elle" : "Il"} est caché${e} pour tout le monde, le temps qu'une personne de l'équipe ${feminin ? "la" : "le"} regarde de près.` };
-    if (statut === "retenu") return { quoi, feminin, statut: `Retiré${e}`, phrase: `L'équipe l'a retiré${e} : ${il} ne respectait pas une règle de la communauté.` };
-    if (MASQUES_A_LA_RELECTURE.includes(cible))
-      return { quoi, feminin, statut: "De retour en ligne", phrase: `Bonne nouvelle : l'équipe a tout relu, ${il} respecte les règles de la communauté. ${feminin ? "Elle" : "Il"} est de nouveau visible pour tout le monde.` };
-    return { quoi, feminin, statut: `Rien à redire, ${il} reste en ligne`, phrase: `L'équipe a regardé de près : ${il} respecte les règles de la communauté.` };
+    const quoi = T.quoiAuteur(nom, feminin);
+    if (statut === "masque") return { quoi, feminin, statut: T.statutMasque(feminin), phrase: T.phraseMasque(feminin) };
+    if (statut === "retenu") return { quoi, feminin, statut: T.statutRetire(feminin), phrase: T.phraseRetireAuteur(feminin) };
+    if (MASQUES_A_LA_RELECTURE.includes(cible)) return { quoi, feminin, statut: T.statutDeRetour, phrase: T.phraseDeRetour(feminin) };
+    return { quoi, feminin, statut: T.statutRienARedire(feminin), phrase: T.phraseRienARedireAuteur(feminin) };
   }
-  const quoi = `Ton signalement ${feminin ? "d'une" : "d'un"} ${nom}`;
-  const leContenu = `${feminin ? "la" : "le"} ${nom}`;
-  if (statut === "retenu") return { quoi, feminin, statut: `Retiré${e}`, phrase: `L'équipe t'a donné raison : ${leContenu} est retiré${e}. Merci de veiller au grain !` };
-  if (statut === "rejete")
-    return { quoi, feminin, statut: `Rien à redire, ${il} reste en ligne`, phrase: `L'équipe a regardé de près : ${leContenu} respecte les règles de la communauté. Merci quand même de nous l'avoir dit !` };
-  return { quoi, feminin, statut: "En attente de la modération", phrase: `Une personne de l'équipe va regarder ${leContenu} de près.` };
+  const quoi = T.quoiSignale(nom, feminin);
+  const leContenu = T.leContenu(nom, feminin);
+  if (statut === "retenu") return { quoi, feminin, statut: T.statutRetire(feminin), phrase: T.phraseRetireSignale(leContenu, feminin) };
+  if (statut === "rejete") return { quoi, feminin, statut: T.statutRienARedire(feminin), phrase: T.phraseRienARedireSignale(leContenu) };
+  return { quoi, feminin, statut: T.statutEnAttente, phrase: T.phraseEnAttente(leContenu) };
 }
 
 /**
@@ -99,33 +65,36 @@ function decrire({ cible, role, statut }: DecisionModerationApi) {
  * VoiceOver lit la décision d'un seul tenant, puis le bouton.
  */
 export function CarteDecisionModeration({ decision, onContester, maintenant }: Props) {
-  const { quoi, feminin, statut, phrase } = decrire(decision);
-  const quoiDansUnePhrase = (decision.role === "auteur" ? CIBLES[decision.cible]?.dansUnePhrase : undefined) ?? quoi.toLowerCase();
+  const T = utiliserTextes(TEXTES_DECISIONS_MODERATION_PAR_LANGUE);
+  const motifs = utiliserTextes(DETAILS_MOTIFS_MODERATION_PAR_LANGUE);
+  const { langue } = utiliserLangue();
+  const { quoi, feminin, statut, phrase } = decrire(decision, T);
+  const quoiDansUnePhrase = (decision.role === "auteur" ? T.cibles[decision.cible]?.dansUnePhrase : undefined) ?? quoi.toLowerCase();
   // Un code que cette version de l'app ne connaît pas encore : la règle n'est pas citée, on dit seulement qu'il y en a une
-  const motif = decision.motif ? (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { libelle: string; regle: string } | undefined>>)[decision.motif] : undefined;
-  const regle = decision.motif ? (motif ? `${motif.libelle} : « ${motif.regle} »` : "une des règles de la communauté (nos conditions d'utilisation)") : null;
+  const motif = decision.motif ? (motifs as Readonly<Record<string, { libelle: string; regle: string } | undefined>>)[decision.motif] : undefined;
+  const regle = decision.motif ? (motif ? T.regle(motif.libelle, motif.regle) : T.regleInconnue) : null;
   const motivation = decision.motivation?.trim() || null;
-  const date = ecrireDate(decision.decideLe);
-  const ligneDate = date ? `${decision.statut === "masque" ? `Masqué${feminin ? "e" : ""}` : "Décidé"} le ${date}` : null;
+  const date = ecrireDate(decision.decideLe, langue);
+  const ligneDate = date ? (decision.statut === "masque" ? T.masqueLe(date, feminin) : T.decideLe(date)) : null;
   const limite = decision.contestableJusqua ? new Date(decision.contestableJusqua) : null;
   const dansLesTemps = !!limite && !Number.isNaN(limite.getTime()) && limite.getTime() > maintenant.getTime();
   const contestable = decision.contestation === "aucune" && dansLesTemps;
-  const jusquau = contestable ? ecrireDate(decision.contestableJusqua) : null;
+  const jusquau = contestable ? ecrireDate(decision.contestableJusqua, langue) : null;
 
   const mention =
     decision.contestation === "envoyee"
-      ? { emoji: "📮", texte: "Contestation envoyée : une autre personne de l'équipe réexamine." }
+      ? { emoji: "📮", texte: T.mentionEnvoyee }
       : decision.contestation === "reexaminee"
-        ? { emoji: "🔁", texte: "Réexaminée : une autre personne de l'équipe a relu ta contestation, la décision ci-dessus est la sienne." }
+        ? { emoji: "🔁", texte: T.mentionReexaminee }
         : decision.contestation === "aucune" && limite && !dansLesTemps
-          ? { emoji: "🕰️", texte: "Le délai pour contester (6 mois) est passé." }
+          ? { emoji: "🕰️", texte: T.mentionDelaiPasse }
           : null;
 
   const lu = [
     `${quoi}. ${statut}.`,
     phrase,
-    regle ? `La règle en cause : ${regle}.` : null,
-    motivation ? `L'explication de l'équipe : ${motivation}` : null,
+    regle ? T.luRegle(regle) : null,
+    motivation ? T.luExplication(motivation) : null,
     ligneDate ? `${ligneDate}.` : null,
     mention?.texte ?? null,
   ]
@@ -146,13 +115,13 @@ export function CarteDecisionModeration({ decision, onContester, maintenant }: P
 
         {regle ? (
           <View className="gap-1 border-l-4 border-jaune pl-3">
-            <Text className="font-texte-semi text-sm text-gris">La règle en cause</Text>
+            <Text className="font-texte-semi text-sm text-gris">{T.regleTitre}</Text>
             <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(regle.charAt(0).toUpperCase() + regle.slice(1))}</Text>
           </View>
         ) : null}
         {motivation ? (
           <View className="gap-1 border-l-4 border-ligne pl-3">
-            <Text className="font-texte-semi text-sm text-gris">{"L'explication de l'équipe"}</Text>
+            <Text className="font-texte-semi text-sm text-gris">{T.explicationTitre}</Text>
             <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(motivation)}</Text>
           </View>
         ) : null}
@@ -165,14 +134,14 @@ export function CarteDecisionModeration({ decision, onContester, maintenant }: P
 
       {contestable ? (
         <View className="gap-2">
-          {jusquau ? <Text className="font-texte text-[13px] text-gris">{`Tu peux contester jusqu'au ${jusquau}.`}</Text> : null}
+          {jusquau ? <Text className="font-texte text-[13px] text-gris">{T.contesterJusquau(jusquau)}</Text> : null}
           <Bouton
-            libelle="Contester"
+            libelle={T.contester}
             variante="blanc"
             petit
             className="self-start"
-            libelleLu={`Contester la décision sur ${quoiDansUnePhrase}`}
-            indice="Explique à l'équipe pourquoi tu n'es pas d'accord"
+            libelleLu={T.contesterDecisionLu(quoiDansUnePhrase)}
+            indice={T.contesterIndice}
             onPress={onContester}
           />
         </View>

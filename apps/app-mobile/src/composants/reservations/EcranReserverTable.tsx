@@ -72,7 +72,7 @@ export function EcranReserverTable({ lieu }: Props) {
   const petitMotRefuse = refus?.erreur === "message-refuse";
   const aRelire = refus !== null && ERREURS_RESERVATION_A_RELIRE.includes(refus.erreur);
   const encadreRefus =
-    refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(aRelire ? "creneau-complet" : refus.erreur, refus.details, lieu.nom, textesRefus[refus.erreur]) : null;
+    refus && !refusLimite && !petitMotRefuse ? decrireEchecVisite(aRelire ? "creneau-complet" : refus.erreur, langue, refus.details, lieu.nom, textesRefus[refus.erreur]) : null;
   const bloque = refusLieu !== null && REFUS_BLOQUANTS.includes(refusLieu.erreur);
   const automatique = formulaire.acceptation === "automatique";
   const etape = decrireEtapeReserver(reservation, lieu, automatique, langue);

@@ -25,6 +25,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFilDiscussion } from "~/hooks/utiliser-fil-discussion";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { renouvelerPhotoGroupe } from "~/services/photos-groupes-chat";
@@ -35,6 +36,7 @@ export default function EcranInfosGroupe() {
   const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
   const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   const T_ECRAN = utiliserTextes(TEXTES_ECRAN_DISCUSSION_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
@@ -139,7 +141,7 @@ export default function EcranInfosGroupe() {
           conversation={groupe}
           admin={admin}
           aUnePhoto={aUnePhoto}
-          detail={decrireMembresGroupe(membres.length, createur)}
+          detail={decrireMembresGroupe(membres.length, createur, langue)}
           photoEnCours={photoEnCours}
           onChangerPhoto={() => void choisirPhoto()}
           onRetirerPhoto={() => void changerPhoto(null)}

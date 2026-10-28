@@ -2,8 +2,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   onCharger: () => void;
@@ -17,6 +19,7 @@ const DUREE_MAX = 6000;
 /** Au bout de la liste des commentaires, quand il en reste de plus anciens à lire (100 par page). */
 export function BoutonCommentairesAnciens({ onCharger, charges }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE).reponses;
   const [enCours, setEnCours] = useState(false);
   const [vus, setVus] = useState(charges);
   if (charges !== vus) {
@@ -33,7 +36,7 @@ export function BoutonCommentairesAnciens({ onCharger, charges }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={enCours ? "Les commentaires plus anciens arrivent" : "Voir les commentaires plus anciens"}
+      accessibilityLabel={enCours ? T.anciensArrivent : T.voirAnciens}
       accessibilityState={{ busy: enCours, disabled: enCours }}
       disabled={enCours}
       onPress={() => {
@@ -44,7 +47,7 @@ export function BoutonCommentairesAnciens({ onCharger, charges }: Props) {
       className="mt-1 min-h-11 flex-row items-center justify-center gap-2 self-center px-3 active:opacity-60"
     >
       <View className="h-px w-6 bg-gris" />
-      <Text className="font-texte-semi text-[13px] text-gris">{enCours ? "On remonte le temps…" : "Voir les commentaires plus anciens"}</Text>
+      <Text className="font-texte-semi text-[13px] text-gris">{enCours ? T.remonte : T.voirAnciens}</Text>
       {enCours ? <ActivityIndicator size="small" color={couleurs.gris} /> : <Ionicons name="chevron-down" size={14} color={couleurs.gris} />}
     </Pressable>
   );

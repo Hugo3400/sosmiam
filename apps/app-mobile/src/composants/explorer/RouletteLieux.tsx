@@ -5,17 +5,21 @@ import { AccessibilityInfo, Keyboard, Modal, Platform, Pressable, ScrollView, Te
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_EXPLORER_LISTE_PAR_LANGUE } from "~/contenus/textes-explorer-liste";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterHeureTexteLangue } from "~/fonctions/langue/formater-heure-texte-langue";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 
 type Props = {
@@ -46,12 +50,13 @@ function piocher(lieux: LieuExplorer[], exclus: (number | null)[]): LieuExplorer
   return lieux[0];
 }
 
-function decrire({ lieu, km }: LieuExplorer, depuis: string | null): string {
+function decrire({ lieu, km }: LieuExplorer, depuis: string | null, langue: Langue): string {
+  const T = choisirTextes(TEXTES_EXPLORER_LISTE_PAR_LANGUE, langue);
   return [
     lieu.nom,
     lieu.info,
-    [ecrireQuartierVille(lieu), km === null ? null : `à ${ecrireDistanceDepuis(km, depuis)}`].filter(Boolean).join(", "),
-    lieu.sos ? `SOS ce soir : ${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}${lieu.sos.offre ? `, ${lieu.sos.offre}` : ""}` : null,
+    [ecrireQuartierVille(lieu), km === null ? null : T.aDistance(ecrireDistanceDepuis(km, depuis, langue))].filter(Boolean).join(", "),
+    lieu.sos ? `${T.sosCeSoirLu(T.sosPlaces(lieu.sos.places, formaterHeureTexteLangue(lieu.sos.jusqua, langue)))}${lieu.sos.offre ? `, ${lieu.sos.offre}` : ""}` : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -63,6 +68,9 @@ function decrire({ lieu, km }: LieuExplorer, depuis: string | null): string {
  */
 export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depuis, onFermer, onOuvrir }: Props) {
   const marges = useSafeAreaInsets();
+  const { langue } = utiliserLangue();
+  const T = choisirTextes(TEXTES_EXPLORER_LISTE_PAR_LANGUE, langue);
+  const R = T.roulette;
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
   utiliserInscriptionFeuille(visible, onFermer);
@@ -106,7 +114,7 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
       echelle.value = withSequence(withTiming(1.05, { duration: 140 }), withSpring(1, { damping: 9 }));
     }
     if (Platform.OS === "web") return;
-    const annonce = `La roulette a choisi : ${decrire(tirage, depuis)}`;
+    const annonce = R.annonce(decrire(tirage, depuis, langue));
     // Sur iPhone, l'annonce attend que VoiceOver ait fini sa phrase en cours
     if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(annonce, { queue: true });
     else AccessibilityInfo.announceForAccessibility(annonce);
@@ -169,7 +177,7 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onFermer}>
       <View style={{ paddingTop: marges.top + 16, paddingBottom: marges.bottom + 16 }} className="flex-1 items-center justify-center px-4">
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer la roulette" onPress={onFermer} style={{ position: "absolute", inset: 0 }} className="bg-black/50" />
+        <Pressable accessibilityRole="button" accessibilityLabel={R.fermerLu} onPress={onFermer} style={{ position: "absolute", inset: 0 }} className="bg-black/50" />
         <View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
@@ -181,25 +189,25 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
               <View className="flex-row items-start gap-2">
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">🎰</Text>
                 <Text accessibilityRole="header" className="flex-1 font-titre text-2xl leading-7 text-encre">
-                  {lierPonctuation("Tu sais pas où aller ? On choisit pour toi")}
+                  {lierPonctuation(R.titre)}
                 </Text>
               </View>
               {lieux.length > 1 ? (
-                <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(`${lieux.length} lieux dans la roulette, selon tes filtres.`)}</Text>
+                <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(R.nombre(lieux.length))}</Text>
               ) : null}
             </View>
 
             {lieux.length === 0 ? (
               <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-5 py-6">
                 <Mascotte expression="surprise" taille={96} />
-                <Text className="text-center font-texte-semi text-base leading-6 text-encre">{lierPonctuation("Aucun lieu avec ces filtres : élargis un peu !")}</Text>
+                <Text className="text-center font-texte-semi text-base leading-6 text-encre">{lierPonctuation(R.aucun)}</Text>
               </View>
             ) : (
               <Animated.View style={styleCadre}>
                 {/* Pendant que ça tourne, une seule phrase pour le lecteur d'écran, pas une rafale de noms */}
                 <View
                   accessible
-                  accessibilityLabel={tourne || !affiche ? "La roulette tourne…" : decrire(affiche, depuis)}
+                  accessibilityLabel={tourne || !affiche ? R.tourneLu : decrire(affiche, depuis, langue)}
                   // Sur iPhone, l'état « busy » est lu en anglais : le libellé « La roulette tourne… » suffit
                   accessibilityState={Platform.OS === "ios" ? undefined : { busy: tourne }}
                   className="overflow-hidden rounded-carte border-2 border-encre bg-carte"
@@ -216,7 +224,7 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
                           )}
                           {lieu.sos ? (
                             <Text className="absolute left-3 top-3 overflow-hidden rounded-full border-2 border-encre bg-jaune px-3 py-1 font-texte-gras text-[13px] text-nuit">
-                              🛟 SOS · {lieu.sos.places} place{lieu.sos.places > 1 ? "s" : ""} jusqu'à {formaterHeure(lieu.sos.jusqua)}
+                              {T.pastilleSos(lieu.sos.places, formaterHeureTexteLangue(lieu.sos.jusqua, langue))}
                             </Text>
                           ) : null}
                         </>
@@ -225,12 +233,12 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
                       )}
                     </View>
                     <View className="gap-1 px-4 py-3">
-                      <Text numberOfLines={1} className="font-titre text-xl text-encre">{lieu ? lieu.nom : "On mélange…"}</Text>
+                      <Text numberOfLines={1} className="font-titre text-xl text-encre">{lieu ? lieu.nom : R.melange}</Text>
                       <Text numberOfLines={1} className="font-texte-moyen text-sm text-gris">
                         {lieu ? `${lieu.info} · ${lieu.prix}${lieu.sos?.offre ? ` · ${lieu.sos.offre}` : ""}` : " "}
                       </Text>
                       <Text numberOfLines={1} className="font-texte-moyen text-sm text-encre">
-                        {affiche && lieu ? `📍 ${[affiche.km === null ? null : ecrireDistanceDepuis(affiche.km, depuis), ecrireQuartierVille(lieu)].filter(Boolean).join(" · ")}` : " "}
+                        {affiche && lieu ? `📍 ${[affiche.km === null ? null : ecrireDistanceDepuis(affiche.km, depuis, langue), ecrireQuartierVille(lieu)].filter(Boolean).join(" · ")}` : " "}
                       </Text>
                     </View>
                   </Animated.View>
@@ -239,23 +247,23 @@ export const RouletteLieux = memo(function RouletteLieux({ visible, lieux, depui
             )}
 
             {seul ? (
-              <Text className="text-center font-texte text-sm leading-5 text-gris">{lierPonctuation("C'est le seul lieu qui colle à tes filtres : le destin a parlé !")}</Text>
+              <Text className="text-center font-texte text-sm leading-5 text-gris">{lierPonctuation(R.seul)}</Text>
             ) : null}
 
             <View className="gap-3">
               {lieux.length > 0 ? (
                 <Bouton
-                  libelle={tourne ? "Ça tourne…" : "Voir la fiche"}
+                  libelle={tourne ? R.caTourne : R.voirFiche}
                   desactive={tourne || !affiche}
-                  indice={affiche && !tourne ? `Ouvre la fiche de ${affiche.lieu.nom}` : undefined}
+                  indice={affiche && !tourne ? R.voirFicheIndice(affiche.lieu.nom) : undefined}
                   onPress={() => {
                     if (affiche) onOuvrir(affiche.lieu.id);
                   }}
                 />
               ) : null}
               <View className="flex-row gap-3">
-                {lieux.length > 1 ? <Bouton libelle="Relancer" variante="blanc" petit desactive={tourne} onPress={lancer} className="flex-1" /> : null}
-                <Bouton libelle="Fermer" variante={lieux.length === 0 ? "jaune" : "blanc"} petit onPress={onFermer} className="flex-1" />
+                {lieux.length > 1 ? <Bouton libelle={R.relancer} variante="blanc" petit desactive={tourne} onPress={lancer} className="flex-1" /> : null}
+                <Bouton libelle={R.fermer} variante={lieux.length === 0 ? "jaune" : "blanc"} petit onPress={onFermer} className="flex-1" />
               </View>
             </View>
           </ScrollView>

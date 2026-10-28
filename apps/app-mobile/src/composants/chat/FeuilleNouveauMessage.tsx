@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -14,6 +16,7 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -23,6 +26,8 @@ type Props = {
 /** « Nouveau message » : une feuille qui monte du bas avec ta bande. Toucher un pote ouvre (ou crée) votre conversation privée. */
 export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
+  const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   const router = useRouter();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
@@ -48,7 +53,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+      <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
       <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
@@ -58,9 +63,9 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
         <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
           <PoigneeFeuille geste={geste} className="px-5 pb-2">
             <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-              Nouveau message
+              {T_MESSAGES.nouveauMessage}
             </Text>
-            <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("À qui tu écris ? Un « t'as faim ? » suffit pour commencer.")}</Text>
+            <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.aQuiTuEcris)}</Text>
           </PoigneeFeuille>
 
           <FlatList
@@ -71,32 +76,30 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
               potes.length > 0 ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Nouveau groupe"
-                  accessibilityHint="Pour discuter à plusieurs"
+                  accessibilityLabel={T_MESSAGES.nouveauGroupe}
+                  accessibilityHint={T_MESSAGES.indiceNouveauGroupe}
                   onPress={() => aller("/potes/nouveau-groupe")}
                   className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
                 >
                   <View className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-jaune">
                     <Ionicons name="people" size={20} color={couleurs.nuit} />
                   </View>
-                  <Text className="flex-1 font-texte-gras text-base text-encre">Nouveau groupe</Text>
+                  <Text className="flex-1 font-texte-gras text-base text-encre">{T_MESSAGES.nouveauGroupe}</Text>
                   <Ionicons name="chevron-forward" size={18} color={couleurs.gris} />
                 </Pressable>
               ) : null
             }
             ListEmptyComponent={
               <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
-                <Text className="text-center font-texte text-base leading-6 text-gris">
-                  {lierPonctuation("Ta bande est vide pour l'instant : ajoute un pote, et vous pourrez papoter.")}
-                </Text>
-                <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => aller("/potes/ajouter")} />
+                <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(T.bandeVide)}</Text>
+                <Bouton libelle={T.ajouterPote} variante="blanc" petit onPress={() => aller("/potes/ajouter")} />
               </View>
             }
             renderItem={({ item: pote }) => (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
-                accessibilityHint="Ouvre votre conversation privée"
+                accessibilityHint={T.ouvrePrive}
                 onPress={() => void ecrire(pote.id)}
                 className="min-h-14 flex-row items-center gap-3 border-b border-ligne py-2.5 active:opacity-70"
               >
@@ -114,7 +117,7 @@ export function FeuilleNouveauMessage({ visible, onFermer }: Props) {
             )}
             ListFooterComponent={
               <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
               </Pressable>
             }
           />

@@ -3,6 +3,7 @@ import { memo } from "react";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import { TYPES_EVENEMENT_ECRITS } from "@sos-miam/commun/contenus/types-evenement";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
@@ -10,16 +11,20 @@ import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-a
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
-import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
+import { TEXTES_EXPLORER_LISTE_PAR_LANGUE } from "~/contenus/textes-explorer-liste";
+import { TEXTES_PREVENTION_PAR_LANGUE } from "~/contenus/textes-prevention";
 import { ecrireDistanceDepuis } from "~/fonctions/geo/ecrire-distance-depuis";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
+import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
+import { formaterHeureTexteLangue } from "~/fonctions/langue/formater-heure-texte-langue";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estLigneLieuInchangee } from "~/fonctions/lieux/est-ligne-lieu-inchangee";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 
 type Props = {
@@ -36,18 +41,21 @@ type Props = {
   maintenant: Date;
 };
 
-// « €€ » lu tel quel donnerait « euro euro » : on le dit en mots, avec les mêmes noms que les pastilles de budget (FiltresExplorer)
-const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget plaisir" };
-
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
 export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null, maintenant }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = choisirTextes(TEXTES_EXPLORER_LISTE_PAR_LANGUE, langue);
+  // « €€ » lu tel quel donnerait « euro euro » : on le dit en mots, avec les mêmes noms que les pastilles de budget (FiltresExplorer)
+  const budgetLu = choisirTextes(TEXTES_EXPLORER_PAR_LANGUE, langue).budgetsLus[lieu.prix];
+  const traductionSanitaire = choisirTextes(TEXTES_PREVENTION_PAR_LANGUE, langue).traductionMessageSanitaire;
   const ouvert = estOuvertMaintenant(lieu, maintenant);
-  const distance = km === null ? null : formaterDistance(km);
-  const distanceLue = km === null ? null : ecrireDistanceDepuis(km, depuis);
+  const distance = km === null ? null : formaterDistanceLangue(km, langue);
+  const distanceLue = km === null ? null : ecrireDistanceDepuis(km, depuis, langue);
   // Sans compte SOS Miam : pas de SOS, et c'est dit clairement (« Non vérifié »)
   const verifie = estLieuVerifie(lieu);
-  const sos = verifie && lieu.sos ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
+  const heureSos = lieu.sos ? formaterHeureTexteLangue(lieu.sos.jusqua, langue) : "";
+  const sos = verifie && lieu.sos ? T.sosPlaces(lieu.sos.places, heureSos) : null;
 
   // Le bon plan affiché parle d'alcool (happy hour…) ou l'événement montré en a (comme sur la fiche) : le message sanitaire juste dessous
   const offreAlcool = (!sos && parleDAlcool(lieu.alerte)) || evenement?.alcool === true;
@@ -58,12 +66,13 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
   // Un seul libellé, dans l'ordre de l'écran ; l'état « sélectionné » est annoncé par accessibilityState
   const lu = [
     [lieu.nom, ...quoiEtOu].join(", "),
-    `${distanceLue ? `À ${distanceLue}, ` : ""}${BUDGET_LU[lieu.prix]}, ${ouvert ? "ouvert en ce moment" : "fermé en ce moment"}`,
-    sos ? `SOS : ${sos}` : null,
+    `${distanceLue ? `${T.aDistanceLu(distanceLue)}, ` : ""}${budgetLu}, ${ouvert ? T.ouvertLu : T.fermeLu}`,
+    sos ? T.sosLu(sos) : null,
     lieu.alerte && !sos ? lieu.alerte : null,
-    evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut, maintenant)} à ${ecrireHeure(evenement.debut)}` : null,
+    evenement ? T.evenementLu(evenement.titre, ecrireJourLongLangue(evenement.debut, langue, maintenant), ecrireHeureLangue(evenement.debut, langue)) : null,
     offreAlcool ? MESSAGE_SANITAIRE_ALCOOL : null,
-    verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
+    offreAlcool ? traductionSanitaire : null,
+    verifie ? null : T.nonVerifieLu,
   ]
     .filter(Boolean)
     .join(". ");
@@ -72,7 +81,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={lu}
-      accessibilityHint="Ouvre la fiche du lieu"
+      accessibilityHint={T.ouvrirFicheIndice}
       accessibilityState={{ selected: selectionne }}
       onPress={() => {
         vibrerLegerement();
@@ -90,11 +99,11 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
           {quoiEtOu.join(" · ")}
         </Text>
         <Text numberOfLines={1} className="font-texte-moyen text-[13px] text-gris">
-          {distance ? `${distance} · ` : ""}{lieu.prix} · <Text className={ouvert ? "font-texte-gras text-encre" : "font-texte-semi text-rouge-texte"}>{ouvert ? "Ouvert" : "Fermé"}</Text>
+          {distance ? `${distance} · ` : ""}{lieu.prix} · <Text className={ouvert ? "font-texte-gras text-encre" : "font-texte-semi text-rouge-texte"}>{ouvert ? T.ouvert : T.ferme}</Text>
         </Text>
         {sos ? (
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-xs text-nuit">
-            🛟 SOS · {sos}
+            {T.pastilleSos(lieu.sos?.places ?? 0, heureSos)}
           </Text>
         ) : lieu.alerte ? (
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full bg-rose-alerte px-2 py-0.5 font-texte-gras text-xs text-rouge-texte">
@@ -103,7 +112,7 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
         ) : null}
         {evenement ? (
           <Text numberOfLines={1} className="mt-1 self-start overflow-hidden rounded-full border border-encre bg-carte px-2 py-0.5 font-texte-gras text-xs text-encre">
-            {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLong(evenement.debut, maintenant).split(" ")[0]} ${ecrireHeure(evenement.debut)}`}
+            {`${TYPES_EVENEMENT_ECRITS[evenement.type].emoji} ${evenement.titre} · ${ecrireJourLongLangue(evenement.debut, langue, maintenant).split(" ")[0]} ${ecrireHeureLangue(evenement.debut, langue)}`}
           </Text>
         ) : null}
         {offreAlcool ? (

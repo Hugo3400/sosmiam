@@ -79,7 +79,7 @@ test("en anglais, les statuts, les explications et l'annulation", () => {
   const annulation = decrireAnnulationReservation(reservation({ statut: "acceptee", reponduLe: MAINTENANT }), true, MAINTENANT, "en");
   assert.equal(annulation.titre, "Cancel your booking?");
   assert.equal(annulation.libelleRester, "Keep my table");
-  assert.match(annulation.detail, /^Restaurant du Capitaine Bouiboui, tomorrow at 12:30, 2 people\. It's less than 2 hours away/);
+  assert.match(annulation.detail, /^Restaurant du Capitaine Bouiboui, tomorrow at 12:30, 2\u00a0people\. It's less than 2 hours away/);
   const francais = decrireAnnulationReservation(reservation({ statut: "acceptee", reponduLe: MAINTENANT }), false, MAINTENANT, "fr");
   assert.equal(francais.detail, "Restaurant du Capitaine Bouiboui, demain à 12h30, 2 personnes. En annulant maintenant, ta table repart pour un autre Miami.");
   assert.equal(resumerReservationsComptoir(2, [reservation()], "en"), "2 requests to answer · 1 table expected today");

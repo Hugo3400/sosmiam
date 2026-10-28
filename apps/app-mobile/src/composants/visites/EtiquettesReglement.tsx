@@ -1,7 +1,10 @@
 import { Text, View } from "react-native";
 
-import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import type { ReglementVisite } from "@sos-miam/commun/types/visite";
+import { TEXTES_ETIQUETTES_REGLEMENT_PAR_LANGUE } from "~/contenus/textes-etiquettes-reglement";
+import { decrireReglementLangue } from "~/fonctions/langue/decrire-reglement-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reglement: ReglementVisite | null;
@@ -19,12 +22,14 @@ const FONDS = { paye: "bg-carte border-encre", reduction: "bg-jaune-clair border
  * La collaboration commerciale passe toujours en premier et en noir : elle doit sauter aux yeux.
  */
 export function EtiquettesReglement({ reglement, pour, taille = "normale", centre = false }: Props) {
-  const { titre, etiquettes } = decrireReglement(reglement, pour);
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_ETIQUETTES_REGLEMENT_PAR_LANGUE);
+  const { titre, etiquettes, etiquettesLues, avantages } = decrireReglementLangue(reglement, pour, langue);
   const type = reglement?.type ?? "paye";
   const petite = taille === "petite";
   const texte = petite ? "text-xs" : "text-[13px]";
   const marge = petite ? "px-2 py-0.5" : "px-2.5 py-1";
-  const lu = [titre, ...etiquettes].join(", ");
+  const lu = [titre, ...etiquettesLues].join(", ");
 
   return (
     <View accessible accessibilityLabel={lu} className={`flex-row flex-wrap gap-1.5 ${centre ? "justify-center" : ""}`}>
@@ -34,11 +39,14 @@ export function EtiquettesReglement({ reglement, pour, taille = "normale", centr
           {titre}
         </Text>
       </View>
-      {etiquettes.map((etiquette) => {
-        const commerciale = etiquette === "Collaboration commerciale";
+      {etiquettes.map((etiquette, i) => {
+        const commerciale = avantages[i] === "partenariat";
         return (
-          <View key={etiquette} className={`rounded-full border ${marge} ${commerciale ? "border-encre bg-nuit" : "border-ligne bg-creme"}`}>
-            <Text className={`font-texte-semi ${texte} ${commerciale ? "text-white" : "text-encre"}`}>{etiquette}</Text>
+          <View key={avantages[i]} className={`rounded-full border ${marge} ${commerciale ? "border-encre bg-nuit" : "border-ligne bg-creme"}`}>
+            <Text className={`font-texte-semi ${texte} ${commerciale ? "text-white" : "text-encre"}`}>
+              {etiquette}
+              {commerciale && T.glosePartenariat ? T.glosePartenariat : null}
+            </Text>
           </View>
         );
       })}

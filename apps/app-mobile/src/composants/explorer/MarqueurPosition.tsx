@@ -3,6 +3,8 @@ import { View } from "react-native";
 import { Marker } from "react-native-maps";
 
 import type { PositionLieu } from "@sos-miam/commun/types/lieu";
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Ta position, lue une seule fois quand tu as touché « Autour de moi » */
@@ -22,6 +24,7 @@ const DUREE_SUIVI = 500;
 export const MarqueurPosition = memo(function MarqueurPosition({ position }: Props) {
   // Android dessine le marqueur en image : on le suit le temps de le dessiner, puis on le fige
   const [fige, setFige] = useState(false);
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).marqueurs;
   useEffect(() => {
     const minuterie = setTimeout(() => setFige(true), DUREE_SUIVI);
     return () => clearTimeout(minuterie);
@@ -35,7 +38,7 @@ export const MarqueurPosition = memo(function MarqueurPosition({ position }: Pro
       // Dessiné sous les lieux : un lieu tout proche de toi reste bien visible
       zIndex={-1}
       tracksViewChanges={!fige}
-      accessibilityLabel="Ta position"
+      accessibilityLabel={T.taPosition}
     >
       <View style={{ width: COTE, height: COTE }} className="items-center justify-center">
         <View style={{ position: "absolute", width: COTE, height: COTE, borderRadius: COTE / 2, backgroundColor: BLEU_POSITION, opacity: 0.2 }} />

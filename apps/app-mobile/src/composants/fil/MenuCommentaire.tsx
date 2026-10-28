@@ -5,12 +5,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
+import { TEXTES_MENU_COMMENTAIRE_PAR_LANGUE } from "~/contenus/textes-menu-commentaire";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Commentaire dont on ouvre les options (null : menu fermé) */
@@ -40,6 +42,7 @@ type Option = { cle: string; emoji: string; titre: string; detail: string; actio
  */
 export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprimer, onSignaler, onBloquer, onMasquer, onFermer, gerant }: Props) {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_MENU_COMMENTAIRE_PAR_LANGUE);
   const { potes } = utiliserCommunaute();
   const monId = utiliserMonId();
   const titre = useRef<Text>(null);
@@ -83,41 +86,40 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
   const masquer: Option = {
     cle: "masquer",
     emoji: "🙈",
-    titre: "Masquer (au nom du lieu)",
-    detail: "Il disparaît de ta publication et part en modération",
+    titre: T.masquer,
+    detail: T.detailMasquer,
     action: () => confirmer("masquer"),
   };
   const options: Option[] = aGerer
     ? [
-        { cle: "modifier", emoji: "✏️", titre: "Modifier", detail: "Une faute, un mot à ajouter ? On corrige", action: () => onModifier(commentaire) },
-        { cle: "supprimer", emoji: "🗑️", titre: "Supprimer", detail: "Il disparaîtra de la publication", action: () => confirmer("supprimer") },
+        { cle: "modifier", emoji: "✏️", titre: T.modifier, detail: T.detailModifier, action: () => onModifier(commentaire) },
+        { cle: "supprimer", emoji: "🗑️", titre: T.supprimer, detail: T.detailSupprimer, action: () => confirmer("supprimer") },
       ]
     : [
         ...(gerant && !estLieu ? [masquer] : []),
-        { cle: "signaler", emoji: "🚩", titre: "Signaler", detail: "Insulte, arnaque, contenu choquant…", action: () => onSignaler(commentaire) },
+        { cle: "signaler", emoji: "🚩", titre: T.signaler, detail: T.detailSignaler, action: () => onSignaler(commentaire) },
         ...(estLieu
           ? []
-          : [{ cle: "bloquer", emoji: "🚫", titre: `Bloquer ${nomAuteur}`, detail: "Tu ne verras plus ses commentaires ni ses messages", action: () => confirmer("bloquer") }]),
+          : [{ cle: "bloquer", emoji: "🚫", titre: T.bloquer(nomAuteur), detail: T.detailBloquer, action: () => confirmer("bloquer") }]),
       ];
 
   const titres: Record<Exclude<Confirmation, null>, string> = {
-    supprimer: estMoi ? "Supprimer ton commentaire ?" : "Supprimer la réponse du lieu ?",
-    bloquer: `Bloquer ${nomAuteur} ?`,
-    masquer: `Masquer le commentaire de ${nomAuteur} ?`,
+    supprimer: estMoi ? T.titres.supprimerMien : T.titres.supprimerLieu,
+    bloquer: T.titres.bloquer(nomAuteur),
+    masquer: T.titres.masquer(nomAuteur),
   };
   const details: Record<Exclude<Confirmation, null>, string> = {
-    supprimer: "Il disparaîtra de la publication, et ses J'aime avec. Pas de retour en arrière possible.",
-    bloquer: `${dansBande ? `${nomAuteur} sortira de ta bande, et tu` : "Tu"} ne verras plus ses commentaires ni ses messages. Si tu changes d'avis, ça se passe dans Paramètres, « Personnes bloquées ».`,
-    masquer:
-      "Il disparaît de ta publication pour tout le monde et part en modération : l'équipe SOS Miam le relit. Son auteur est prévenu, et lui seul le voit encore. Tu pourras annuler juste après.",
+    supprimer: T.details.supprimer,
+    bloquer: T.details.bloquer(nomAuteur, dansBande),
+    masquer: T.details.masquer,
   };
-  const boutons: Record<Exclude<Confirmation, null>, string> = { supprimer: "Supprimer", bloquer: `Bloquer ${nomAuteur}`, masquer: "Masquer" };
-  const titreMenu = confirmation ? titres[confirmation] : estMoi ? "Ton commentaire" : estLieu && gerant ? "La réponse du lieu" : `Commentaire de ${nomAuteur}`;
+  const boutons: Record<Exclude<Confirmation, null>, string> = { supprimer: T.supprimer, bloquer: T.bloquer(nomAuteur), masquer: T.boutonMasquer };
+  const titreMenu = confirmation ? titres[confirmation] : estMoi ? T.titreMien : estLieu && gerant ? T.titreLieu : T.titreAutre(nomAuteur);
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <Animated.View entering={FadeIn.duration(160)} style={StyleSheet.absoluteFill}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer les options" onPress={onFermer} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }} />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }} />
       </Animated.View>
       <Animated.View entering={SlideInDown.duration(220)} style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
         <Animated.View accessibilityViewIsModal onAccessibilityEscape={reculer} onLayout={geste.mesurerFeuille} style={geste.styleFeuille}>
@@ -144,7 +146,7 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
                     <Text className="font-texte-gras text-base text-white">{boutons[confirmation]}</Text>
                   </Pressable>
                   <Pressable accessibilityRole="button" onPress={() => confirmer(null)} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Non, on garde</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T.garder}</Text>
                   </Pressable>
                 </View>
               ) : (
@@ -171,7 +173,7 @@ export function MenuCommentaire({ commentaire, nomAuteur, onModifier, onSupprime
                     </Pressable>
                   ))}
                   <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
                   </Pressable>
                 </>
               )}

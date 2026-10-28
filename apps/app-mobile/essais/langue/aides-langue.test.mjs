@@ -10,6 +10,8 @@ import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
 import { direDeLieuLangue } from "~/fonctions/langue/dire-de-lieu-langue";
 import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
 import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
+import { ecrireHeureParisLangue } from "~/fonctions/langue/ecrire-heure-paris-langue";
+import { ecrireHeureParis } from "~/fonctions/dates/ecrire-heure-paris";
 import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
 import { ecrireNombreCouvertsLangue } from "~/fonctions/langue/ecrire-nombre-couverts-langue";
 import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
@@ -137,4 +139,12 @@ test("règlement d'une visite : le français ne bouge pas, l'anglais garde « Co
   });
   assert.equal(decrireReglementLangue(reglements[4], "client", "en").titre, "Gifted by the venue");
   assert.equal(decrireReglementLangue(null, "lieu", "en").titre, "Paid");
+});
+
+test("heure de Paris : le français rend ecrireHeureParis, l'anglais écrit 24 h avec deux chiffres", () => {
+  for (const iso of ["2026-10-28T19:30:00.000Z", "2026-10-28T08:05:00.000Z", "2026-07-01T22:00:00.000Z", "pas une date"]) assert.equal(ecrireHeureParisLangue(iso, "fr"), ecrireHeureParis(iso));
+  assert.equal(ecrireHeureParisLangue("2026-10-28T19:30:00.000Z", "en"), "20:30");
+  assert.equal(ecrireHeureParisLangue("2026-10-28T08:05:00.000Z", "en"), "09:05");
+  assert.equal(ecrireHeureParisLangue("2026-07-01T22:00:00.000Z", "en"), "00:00");
+  assert.equal(ecrireHeureParisLangue("pas une date", "en"), "");
 });

@@ -1,8 +1,10 @@
 import { Text, View } from "react-native";
 
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { formaterCodeLu } from "~/fonctions/visites/formater-code-lu";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Le code à montrer (4 chiffres pour une addition) */
@@ -27,6 +29,7 @@ const TAILLES = {
  * l'équipe à côté du même code. VoiceOver lit tout d'un bloc, le code chiffre par chiffre (« 4, 8, 2, 1 »).
  */
 export function CodeRapprochement({ code, prenom, avatar, legende, taille = "grand" }: Props) {
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
   const t = TAILLES[taille];
   const chiffres = Array.from(code);
   return (
@@ -34,7 +37,7 @@ export function CodeRapprochement({ code, prenom, avatar, legende, taille = "gra
       <View className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-carte bg-encre" />
       <View
         accessible
-        accessibilityLabel={`${legende}. Code ${formaterCodeLu(code)}. Au nom de ${prenom}${prenom.endsWith(".") ? "" : "."}`}
+        accessibilityLabel={T.codeLu(legende, formaterCodeLu(code), prenom)}
         className={`items-center rounded-carte border-2 border-encre bg-carte ${taille === "grand" ? "px-4 py-5" : "px-3 py-4"}`}
       >
         <Text className="text-center font-texte-semi text-sm text-gris">{lierPonctuation(legende)}</Text>

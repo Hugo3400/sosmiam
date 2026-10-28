@@ -5,13 +5,18 @@ import { AccessibilityInfo, Alert, KeyboardAvoidingView, Modal, Platform, Pressa
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import { REACTIONS_PAR_CODE } from "@sos-miam/commun/regles/chat";
-import { REACTIONS_CHAT, type MessageChat, type ReactionChat } from "@sos-miam/commun/types/conversations";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { REACTIONS_CHAT, type ReactionChat } from "@sos-miam/commun/types/conversations";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
-import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_CHAT_MENUS_PAR_LANGUE } from "~/contenus/textes-chat-menus";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
+import { TEXTES_SONDAGE_PAR_LANGUE } from "~/contenus/textes-sondage";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
@@ -25,8 +30,10 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -53,24 +60,25 @@ const REACTIONS_MENU: readonly ReactionChat[] = [REACTIONS_PAR_CODE.miam, ...REA
 // Le temps que la feuille se referme : la confirmation n'est pas coupée par le lecteur d'écran qui revient sur la conversation
 const DELAI_ANNONCE_REACTION = 400;
 
-/** Ce qu'on signale : « ce message », « cette photo », « cette note vocale », « ce lieu partagé » */
-const SUJETS: Record<MessageChat["type"], string> = { texte: "ce message", lieu: "ce lieu partagé", photo: "cette photo", vocal: "cette note vocale", vote: "ce sondage", gif: "ce GIF" };
-
 /** Le message en petit, en haut de la feuille, pour savoir de quoi on parle : ce qu'on voit, et ce que lit le lecteur d'écran (sans emoji) */
-function resumer(message: MessageChatEnrichi, nomDuLieu: (id: number) => string | undefined, photos: number): { vu: string; lu: string } {
+function resumer(message: MessageChatEnrichi, nomDuLieu: (id: number) => string | undefined, photos: number, langue: Langue): { vu: string; lu: string } {
+  const T = choisirTextes(TEXTES_CHAT_MENUS_PAR_LANGUE, langue);
   if (message.type === "lieu") {
-    const nom = (message.lieuId === undefined ? undefined : nomDuLieu(message.lieuId)) ?? "un lieu";
-    return { vu: `📍 ${nom}`, lu: `Un lieu partagé : ${nom}` };
+    const nom = (message.lieuId === undefined ? undefined : nomDuLieu(message.lieuId)) ?? T.unLieu;
+    return { vu: `📍 ${nom}`, lu: T.lieuPartageLu(nom) };
   }
   if (message.type === "photo") {
-    const nombre = photos > 1 ? `${photos} photos` : "Une photo";
-    return { vu: `📷 ${nombre}${message.legende ? ` · ${message.legende}` : ""}`, lu: `${nombre}${message.legende ? ` : ${message.legende}` : ""}` };
+    const nombre = photos > 1 ? T.nPhotos(photos) : T.unePhoto;
+    return { vu: `📷 ${nombre}${message.legende ? ` · ${message.legende}` : ""}`, lu: T.photosLu(nombre, message.legende) };
   }
-  if (message.type === "gif") return { vu: "🎞️ Un GIF", lu: "Un GIF" };
-  if (message.type === "vote") return { vu: `🗳️ ${message.texte ?? "Un sondage"}`, lu: `Un sondage : ${message.texte ?? ""}` };
+  if (message.type === "gif") return { vu: T.unGif, lu: T.unGifLu };
+  if (message.type === "vote") {
+    const question = choisirTextes(TEXTES_SONDAGE_PAR_LANGUE, langue).question;
+    return { vu: `🗳️ ${question}`, lu: T.sondageLu(question) };
+  }
   if (message.type === "vocal") {
-    const duree = message.dureeSecondes ? formaterDureeVocalLue(message.dureeSecondes) : null;
-    return { vu: `🎙️ Une note vocale${message.dureeSecondes ? ` · ${formaterDureeVocal(message.dureeSecondes)}` : ""}`, lu: `Une note vocale${duree ? ` de ${duree}` : ""}` };
+    const duree = message.dureeSecondes ? formaterDureeVocalLue(message.dureeSecondes, langue) : null;
+    return { vu: T.unVocal(message.dureeSecondes ? formaterDureeVocal(message.dureeSecondes) : null), lu: T.unVocalLu(duree) };
   }
   return { vu: message.texte ?? "", lu: message.texte ?? "" };
 }
@@ -82,6 +90,10 @@ function resumer(message: MessageChatEnrichi, nomDuLieu: (id: number) => string 
  */
 export function MenuMessageChat({ visible, conversationId, message, album, auteur, deMoi, onFermer, onBloque, onAnnoncer, onRepondre, onModifier }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T_MENUS = utiliserTextes(TEXTES_CHAT_MENUS_PAR_LANGUE);
+  const T_BULLES = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -134,15 +146,15 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
     const supprimer = () => {
       (album ?? [message]).filter((m) => !m.etat).forEach((m) => supprimerMessage(conversationId, m.id));
       onFermer();
-      AccessibilityInfo.announceForAccessibility(plusieurs ? "Photos supprimées pour tout le monde." : "Message supprimé pour tout le monde.");
+      AccessibilityInfo.announceForAccessibility(plusieurs ? T_MENUS.photosSupprimees : T_MENUS.messageSupprime);
     };
     if (Platform.OS === "web") return supprimer();
     const [titre, detail] = plusieurs
-      ? ["Supprimer ces photos ?", "Elles disparaissent toutes pour tout le monde, petit mot compris."]
-      : ["Supprimer ce message ?", "Il disparaît pour tout le monde. Il restera juste « Message supprimé » à sa place."];
+      ? [T_MENUS.supprimerPhotosTitre, T_MENUS.supprimerPhotosDetail]
+      : [T_MENUS.supprimerMessageTitre, T_MENUS.supprimerMessageDetail];
     Alert.alert(titre, detail, [
-      { text: "Annuler", style: "cancel" },
-      { text: "Supprimer", style: "destructive", onPress: supprimer },
+      { text: T_MENUS.annuler, style: "cancel" },
+      { text: T_MENUS.supprimer, style: "destructive", onPress: supprimer },
     ]);
   }
 
@@ -159,22 +171,22 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
     vibrerLegerement();
     basculerReaction(conversationId, message.id, reaction);
     onFermer();
-    const annonce = `Réaction ${nommerReactionChat(reaction)} ${dejaChoisie ? "retirée" : "mise"}`;
+    const annonce = T_MENUS.reactionAnnonce(nommerReactionChat(reaction, langue), dejaChoisie);
     setTimeout(() => {
       if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(annonce, { queue: true });
       else AccessibilityInfo.announceForAccessibility(annonce);
     }, DELAI_ANNONCE_REACTION);
   }
 
-  const prenom = auteur?.prenom ?? "cette personne";
+  const prenom = auteur?.prenom ?? T_MENUS.cettePersonne;
   const enOptions = deMoi || !((vue === "signaler" && message) || (vue === "bloquer" && auteur));
   // Quelqu'un d'un groupe n'est pas forcément dans ta bande : on ne lui annonce pas qu'il en sort
   const dansBande = !!auteur && potes.some((p) => p.id === auteur.id);
-  const sujet = message ? (plusieurs ? "ces photos" : SUJETS[message.type]) : "ce message";
+  const sujet = message ? (plusieurs ? T_MENUS.cesPhotos : T_MENUS.sujets[message.type]) : T_MENUS.ceMessage;
   // Les réactions bougent pendant que la feuille est ouverte (un pote réagit) : on lit la version à jour quand elle existe encore
   const reactions = (message && trouverConversation(conversationId)?.messages.find((m) => m.id === message.id)?.reactions) ?? message?.reactions ?? {};
   const avecLegende = album?.find((m) => m.legende) ?? message;
-  const resume = message ? resumer(avecLegende ?? message, (id) => trouverLieu(id)?.nom, album?.length ?? 1) : null;
+  const resume = message ? resumer(avecLegende ?? message, (id) => trouverLieu(id)?.nom, album?.length ?? 1, langue) : null;
   // Compte connecté : ton message déjà parti se supprime pour tout le monde (il reste « Message supprimé »)
   const supprimable = deMoi && source === "compte" && !!message && !message.etat;
   const visibleSurMessage = !!message && !message.etat;
@@ -188,19 +200,19 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
   const options = deMoi
     ? [
         ...communes,
-        ...(supprimable ? [{ cle: "supprimer" as const, emoji: "🗑️", titre: "Supprimer pour tout le monde", detail: "Il restera « Message supprimé » dans la discussion" }] : []),
+        ...(supprimable ? [{ cle: "supprimer" as const, emoji: "🗑️", titre: T_MENUS.supprimerPourTous, detail: T_MENUS.supprimerPourTousDetail }] : []),
       ]
     : [
         ...communes,
-        { cle: "signaler" as const, emoji: "🚩", titre: "Signaler ce message", detail: "Insulte, harcèlement, arnaque… dis-nous ce qui cloche" },
-        ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Tu ne verras plus ses messages ni ses commentaires" }] : []),
+        { cle: "signaler" as const, emoji: "🚩", titre: T_MENUS.signalerMessage, detail: T_MENUS.signalerMessageDetail },
+        ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: T_MENUS.bloquer(prenom), detail: T_MENUS.bloquerMessageDetail }] : []),
       ];
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T_MENUS.fermerMenu} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
@@ -211,27 +223,25 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
             <PoigneeFeuille geste={geste} className="px-5">
               {enOptions ? (
                 <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
-                  {deMoi ? "Ton message" : `Message de ${prenom}`}
+                  {deMoi ? T_MENUS.tonMessage : T_MENUS.messageDe(prenom)}
                 </Text>
               ) : null}
             </PoigneeFeuille>
             <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
               {vue === "signaler" && message && !deMoi ? (
-                <SignalerContenu cible="message" cibleId={message.id} sujet={`${sujet} de ${prenom}`} onTermine={terminerSignalement} />
+                <SignalerContenu cible="message" cibleId={message.id} sujet={T_MENUS.sujetDe(sujet, prenom)} onTermine={terminerSignalement} />
               ) : vue === "bloquer" && auteur && !deMoi ? (
                 <View className="gap-4">
                   <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                    {lierPonctuation(`Bloquer ${prenom} ?`)}
+                    {lierPonctuation(T_MENUS.bloquerTitre(prenom))}
                   </Text>
                   <Text className="font-texte text-base leading-6 text-encre">
                     {lierPonctuation(
-                      dansBande
-                        ? `${prenom} sortira de ta bande, ses messages disparaîtront pour toi et vous ne pourrez plus vous écrire en privé. Tu restes tranquille, c'est tout ce qui compte.`
-                        : "Ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.",
+                      dansBande ? T_MENUS.bloquerDansBande(prenom) : T_MENUS.bloquerHorsBande,
                     )}
                   </Text>
                   <Bouton
-                    libelle={`Bloquer ${prenom}`}
+                    libelle={T_MENUS.bloquer(prenom)}
                     variante="encre"
                     onPress={() => {
                       bloquer(auteur.id);
@@ -239,7 +249,7 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
                     }}
                   />
                   <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Non, je reviens</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T_MENUS.nonJeReviens}</Text>
                   </Pressable>
                 </View>
               ) : (
@@ -254,7 +264,7 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
 
                   {message ? (
                     <View className="mb-2 gap-2">
-                      <Text className="font-texte-semi text-sm text-gris">Ta réaction</Text>
+                      <Text className="font-texte-semi text-sm text-gris">{T_MENUS.taReaction}</Text>
                       <View className="flex-row flex-wrap justify-between gap-2">
                         {REACTIONS_MENU.map((reaction, i) => {
                           const choisie = (reactions[reaction] ?? []).includes(monId);
@@ -263,8 +273,8 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
                               key={reaction}
                               accessibilityRole="button"
                               accessibilityState={{ selected: choisie }}
-                              accessibilityLabel={`${nommerReactionChat(reaction)}, réaction ${i + 1} sur ${REACTIONS_MENU.length}`}
-                              accessibilityHint={choisie ? "Retire ta réaction" : "Réagis à ce message"}
+                              accessibilityLabel={T_MENUS.reactionLu(nommerReactionChat(reaction, langue), i + 1, REACTIONS_MENU.length)}
+                              accessibilityHint={choisie ? T_BULLES.retireReaction : T_MENUS.reagisMessage}
                               onPress={() => reagir(reaction, choisie)}
                               style={{ width: TAILLE_REACTION, height: TAILLE_REACTION, borderRadius: TAILLE_REACTION / 2 }}
                               className={`items-center justify-center border-2 active:opacity-70 ${choisie ? "border-encre bg-jaune" : "border-ligne bg-carte"}`}
@@ -304,7 +314,7 @@ export function MenuMessageChat({ visible, conversationId, message, album, auteu
                     </Pressable>
                   ))}
                   <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T_MENUS.annuler}</Text>
                   </Pressable>
                 </>
               )}

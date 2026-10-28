@@ -6,9 +6,11 @@ import { JOURS_HONNEUR_RECOMPENSES } from "@sos-miam/commun/regles/fidelite";
 import type { CarteFidelite } from "@sos-miam/commun/types/fidelite";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
+import { TEXTES_FIDELITE_PAR_LANGUE } from "~/contenus/textes-fidelite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   carte: CarteFidelite;
@@ -25,19 +27,18 @@ const minuscule = (texte: string) => texte.charAt(0).toLocaleLowerCase("fr-FR") 
  */
 export function CarteFideliteListe({ carte, onPress }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_FIDELITE_PAR_LANGUE);
   const prete = carte.pretes[0];
   const restantes = Math.max(0, carte.sur - carte.tampons);
   // Une récompense prête garde l'alcool de son gain ; sinon, celle vers laquelle on avance
   const alcool = prete ? prete.alcool === true : carte.recompenseAlcool;
-  const phrase = prete
-    ? `🎁 ${majuscule(prete.libelle)} t'attend !`
-    : `Encore ${restantes} visite${restantes > 1 ? "s" : ""} pour ${minuscule(carte.recompense)}`;
+  const phrase = prete ? T.recompenseAttend(majuscule(prete.libelle)) : T.encore(restantes, minuscule(carte.recompense));
   const lu = [
-    `Carte de fidélité ${carte.lieu.nom}`,
-    `${carte.tampons} tampon${carte.tampons > 1 ? "s" : ""} sur ${carte.sur}`,
+    T.carteDe(carte.lieu.nom),
+    T.tamponsSur(carte.tampons, carte.sur),
     phrase.replace("🎁 ", ""),
-    carte.programmeActif ? null : "Programme en pause",
-    alcool ? MESSAGE_SANITAIRE_ALCOOL : null,
+    carte.programmeActif ? null : T.programmePauseLu,
+    alcool ? T.messageSanitaireLu(MESSAGE_SANITAIRE_ALCOOL) : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -46,7 +47,7 @@ export function CarteFideliteListe({ carte, onPress }: Props) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={lu}
-      accessibilityHint="Ouvre ta carte en grand"
+      accessibilityHint={T.ouvrirEnGrand}
       onPress={() => {
         vibrerLegerement();
         onPress();
@@ -64,7 +65,7 @@ export function CarteFideliteListe({ carte, onPress }: Props) {
       <RangeeTampons tampons={carte.tampons} sur={carte.sur} taille="petite" />
       <Text className="font-texte-semi text-[15px] leading-[21px] text-encre">{lierPonctuation(phrase)}</Text>
       {carte.programmeActif ? null : (
-        <Text className="font-texte text-[13px] text-gris">{lierPonctuation(`⏸ Programme en pause : une récompense prête reste valable ${JOURS_HONNEUR_RECOMPENSES} jours.`)}</Text>
+        <Text className="font-texte text-[13px] text-gris">{lierPonctuation(T.programmePause(JOURS_HONNEUR_RECOMPENSES))}</Text>
       )}
       {alcool ? <MentionPrevention variante="courte" /> : null}
     </Pressable>

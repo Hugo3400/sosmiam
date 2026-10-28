@@ -4,10 +4,14 @@ import { Pressable, Text, View } from "react-native";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondGroupe } from "~/composants/chat/RondGroupe";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { listerPrenomsDiscussion } from "~/fonctions/chat/lister-prenoms-discussion";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = {
@@ -26,17 +30,20 @@ const TAILLE = 44;
 /** Le haut d'une conversation : retour, puis le pote (vers son profil) ou le groupe (photo ou emoji, titre, membres : vers ses infos), et « ⋯ » pour le menu. */
 export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, onVoirProfil, onVoirGroupe }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
+  const T_APERCUS = utiliserTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE);
   const groupe = conversation.type === "groupe";
   const pote = groupe ? null : (membres[0] ?? null);
-  const prenoms = listerPrenomsDiscussion(membres);
-  const titre = groupe ? nommerGroupe(conversation.titre) : (pote?.prenom ?? "Compte supprimé");
+  const prenoms = listerPrenomsDiscussion(membres, langue);
+  const titre = groupe ? nommerGroupe(conversation.titre, langue) : (pote?.prenom ?? T_APERCUS.compteSupprime);
   const nombre = membres.length + 1;
 
   return (
     <View className="flex-row items-center gap-2.5 border-b-2 border-ligne px-4 pb-2.5 pt-2">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Retour"
+        accessibilityLabel={T.retour}
         hitSlop={8}
         onPress={onRetour}
         className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -46,8 +53,8 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={groupe ? `${titre}, groupe de ${nombre} : ${prenoms}` : pote ? `${titre}, @${pote.pseudo}` : titre}
-        accessibilityHint={groupe ? "Ouvre les infos du groupe : photo, membres, partages" : pote ? "Ouvre son profil" : undefined}
+        accessibilityLabel={groupe ? T.groupeDe(titre, nombre, prenoms) : pote ? `${titre}, @${pote.pseudo}` : titre}
+        accessibilityHint={groupe ? T.ouvreInfosGroupe : pote ? T.ouvreProfil : undefined}
         accessibilityState={{ disabled: !groupe && !pote }}
         disabled={!groupe && !pote}
         onPress={() => {
@@ -79,15 +86,15 @@ export function EnTeteDiscussion({ conversation, membres, onRetour, onOptions, o
             {titre}
           </Text>
           <Text numberOfLines={1} className="font-texte text-[13px] leading-[18px] text-gris">
-            {groupe ? prenoms : pote ? `@${pote.pseudo} · voir son profil` : "Plus sur SOS Miam"}
+            {groupe ? prenoms : pote ? T.voirSonProfil(pote.pseudo) : T.plusSurSosMiam}
           </Text>
         </View>
       </Pressable>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={groupe ? "Options du groupe" : "Options de la discussion"}
-        accessibilityHint={groupe ? "Voir les membres, quitter le groupe" : "Voir le profil, signaler ou bloquer"}
+        accessibilityLabel={groupe ? T.optionsGroupe : T.optionsDiscussion}
+        accessibilityHint={groupe ? T.optionsGroupeIndice : T.optionsDiscussionIndice}
         hitSlop={8}
         onPress={() => {
           vibrerLegerement();

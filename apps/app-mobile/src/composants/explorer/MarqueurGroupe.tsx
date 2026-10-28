@@ -3,8 +3,11 @@ import { Platform, Text, View } from "react-native";
 import { Marker } from "react-native-maps";
 
 import { DIAMETRE_GROSSE_BULLE_POINTS, DIAMETRE_MARQUEUR_POINTS, NOMBRE_GROSSE_BULLE } from "~/contenus/regroupement-carte";
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
+import { formaterNombreCourtLangue } from "~/fonctions/langue/formater-nombre-court-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
@@ -23,7 +26,9 @@ const PLAN_DEVANT = 4;
 
 export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitude, longitude, devant, onPress }: Props) {
   const { schema } = utiliserTheme();
-  const apparence = `${nombre}|${schema}`;
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).marqueurs;
+  const apparence = `${nombre}|${schema}|${langue}`;
   const [apparenceFigee, setApparenceFigee] = useState<string | null>(null);
   useEffect(() => {
     if (Platform.OS !== "android") return;
@@ -31,7 +36,7 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
     return () => clearTimeout(minuterie);
   }, [apparence]);
 
-  const texte = formaterNombreCourt(nombre).replace(" ", "\u202f");
+  const texte = formaterNombreCourtLangue(nombre, langue).replace(" ", "\u202f");
   const diametre = nombre >= NOMBRE_GROSSE_BULLE ? DIAMETRE_GROSSE_BULLE_POINTS : DIAMETRE_MARQUEUR_POINTS;
   const autour = (COTE - diametre) / 2;
   const police = texte.length <= 2 ? "text-base" : texte.length === 3 ? "text-[15px]" : "text-xs";
@@ -49,8 +54,8 @@ export const MarqueurGroupe = memo(function MarqueurGroupe({ cle, nombre, latitu
         onPress(cle);
       }}
       accessibilityRole="button"
-      accessibilityLabel={`${nombre} lieux, touche pour zoomer`}
-      accessibilityHint="Rapproche la carte pour les voir un par un"
+      accessibilityLabel={T.groupeLu(nombre)}
+      accessibilityHint={T.groupeIndice}
     >
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: COTE, height: COTE }} className="items-center justify-center">
         <View

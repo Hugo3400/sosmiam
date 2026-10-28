@@ -4,14 +4,16 @@ import { Text, View } from "react-native";
 import type { PublicSortieMiamis } from "@sos-miam/commun/types/sorties-miamis";
 import { decrirePublicSortie } from "~/fonctions/miamis/decrire-public-sortie";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 
 type Props = {
   publicSortie: PublicSortieMiamis;
 };
 
 export function BadgePublicSortie({ publicSortie }: Props) {
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
-  const { nom, quiVoit } = decrirePublicSortie(publicSortie);
+  const { nom, quiVoit } = decrirePublicSortie(publicSortie, langue);
   if (!quiVoit) return null;
   return (
     <View className="flex-row items-center gap-1.5 self-start rounded-lg bg-nuit px-2.5 py-1">

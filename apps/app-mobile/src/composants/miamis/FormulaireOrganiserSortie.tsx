@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Platform, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import { peutOrganiserPourPublic } from "@sos-miam/commun/fonctions/sorties-miamis/peut-organiser-pour-public";
 import { LONGUEUR_MAX_TITRE_SORTIE } from "@sos-miam/commun/regles/potes";
 import { LONGUEUR_MAX_DESCRIPTION_SORTIE_MIAMIS, MAX_PLACES_SORTIE_MIAMIS, MIN_PLACES_SORTIE_MIAMIS } from "@sos-miam/commun/regles/sorties-miamis";
@@ -23,17 +23,20 @@ import { ChoixPublicSortie } from "~/composants/miamis/ChoixPublicSortie";
 import { LigneToujoursActive } from "~/composants/miamis/LigneToujoursActive";
 import { ChoixQuandSortie } from "~/composants/potes/ChoixQuandSortie";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { REFUS_ETIQUETTE } from "~/contenus/textes-etiquettes";
-import { TEXTES_ORGANISER, type ChoixPublicSortie as ChoixPublic } from "~/contenus/textes-sorties-miamis";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
-import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
+import { REFUS_ETIQUETTE_PAR_LANGUE } from "~/contenus/textes-etiquettes";
+import { TEXTES_ORGANISER_PAR_LANGUE, type ChoixPublicSortie as ChoixPublic } from "~/contenus/textes-sorties-miamis";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
+import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
 import { construirePublicSortie } from "~/fonctions/miamis/construire-public-sortie";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGesteCommunaute } from "~/hooks/utiliser-geste-communaute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfilVisibiliteMiamis } from "~/hooks/utiliser-profil-visibilite-miamis";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Erreurs = Partial<Record<ChampNouvelleSortieMiamis | "envoi", string>>;
 
@@ -45,6 +48,12 @@ const demainSoir = () => {
 };
 
 export function FormulaireOrganiserSortie() {
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_ORGANISER_PAR_LANGUE);
+  const { langue } = utiliserLangue();
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const refusEtiquette = utiliserTextes(REFUS_ETIQUETTE_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { trouverLieu } = utiliserLieux();
@@ -86,20 +95,20 @@ export function FormulaireOrganiserSortie() {
     if (!lue.ok) {
       const texte =
         lue.champ === "titre" && lue.raison === "mot-interdit"
-          ? TEXTES_ORGANISER.erreurs.titreMot
+          ? T.erreurs.titreMot
           : lue.champ === "etiquettes" && lue.raison && lue.raison !== "mot-interdit"
-            ? REFUS_ETIQUETTE[lue.raison]
-            : TEXTES_ORGANISER.erreurs[lue.champ];
+            ? refusEtiquette[lue.raison]
+            : T.erreurs[lue.champ];
       trouvees = { [lue.champ]: texte };
-    } else if (!peutOrganiserPourPublic(lue.sortie.public, profil)) trouvees = { public: TEXTES_ORGANISER.erreurs.public };
+    } else if (!peutOrganiserPourPublic(lue.sortie.public, profil)) trouvees = { public: T.erreurs.public };
     else {
       const r = await agir("creer", (s) => s.creerSortie(lue.sortie, cle));
       if (r.ok) {
         router.replace({ pathname: "/potes/miamis/sortie/[id]", params: { id: r.reponse.sortie.id } });
         return;
       }
-      if (r.erreur === "compte-limite") setRefusLimite(REFUS_LIMITATION.sortie);
-      else trouvees = { envoi: r.erreur === "hors-ligne" ? TEXTES_ORGANISER.erreurs.reseau : MESSAGES_SERVICE[r.erreur].texte };
+      if (r.erreur === "compte-limite") setRefusLimite(refusLimitation.sortie);
+      else trouvees = { envoi: r.erreur === "hors-ligne" ? T.erreurs.reseau : messagesService[r.erreur].texte };
     }
     setErreurs(trouvees);
     const premiere = Object.values(trouvees).find(Boolean);
@@ -111,15 +120,15 @@ export function FormulaireOrganiserSortie() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
       <KeyboardAvoidingView behavior={Platform.OS === "web" ? undefined : "padding"} style={{ flex: 1 }}>
-        <BarreEcranMiamis titre={TEXTES_ORGANISER.titre} grand icone="fermer" libelleRetour={TEXTES_ORGANISER.fermer} />
+        <BarreEcranMiamis titre={T.titre} grand icone="fermer" libelleRetour={T.fermer} />
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8 pt-2" keyboardShouldPersistTaps="handled">
-          <SectionReglages titre={TEXTES_ORGANISER.avecQui}>
+          <SectionReglages titre={T.avecQui}>
             <View className="pt-2">
               <ChoixAvecQui />
             </View>
           </SectionReglages>
 
-          <SectionReglages titre={TEXTES_ORGANISER.pourQui}>
+          <SectionReglages titre={T.pourQui}>
             <View className="pt-2">
               <ChoixPublicSortie
                 choix={choix}
@@ -134,38 +143,38 @@ export function FormulaireOrganiserSortie() {
             </View>
           </SectionReglages>
 
-          <SectionReglages titre={TEXTES_ORGANISER.nom}>
+          <SectionReglages titre={T.nom}>
             <View className="gap-4 pt-2">
               <ChampTexte
-                libelle={TEXTES_ORGANISER.nom}
+                libelle={T.nom}
                 valeur={titre}
                 onChangeTexte={(t) => {
                   setTitre(t);
                   effacer("titre");
                 }}
-                placeholder={TEXTES_ORGANISER.nomPlaceholder}
+                placeholder={T.nomPlaceholder}
                 maxLength={LONGUEUR_MAX_TITRE_SORTIE}
-                aide={`${titre.length}/${LONGUEUR_MAX_TITRE_SORTIE} caractères`}
+                aide={TE.caracteres(titre.length, LONGUEUR_MAX_TITRE_SORTIE)}
                 erreur={erreurs.titre}
               />
               <ChampTexte
-                libelle={TEXTES_ORGANISER.description}
-                mention={TEXTES_ORGANISER.descriptionMention}
+                libelle={T.description}
+                mention={T.descriptionMention}
                 valeur={description}
                 onChangeTexte={(t) => {
                   setDescription(t);
                   effacer("description");
                 }}
-                placeholder={TEXTES_ORGANISER.descriptionPlaceholder}
+                placeholder={T.descriptionPlaceholder}
                 maxLength={LONGUEUR_MAX_DESCRIPTION_SORTIE_MIAMIS}
                 multiline
-                aide={`${description.length}/${LONGUEUR_MAX_DESCRIPTION_SORTIE_MIAMIS} caractères`}
+                aide={TE.caracteres(description.length, LONGUEUR_MAX_DESCRIPTION_SORTIE_MIAMIS)}
                 erreur={erreurs.description}
               />
             </View>
           </SectionReglages>
 
-          <SectionReglages titre={TEXTES_ORGANISER.etiquettes}>
+          <SectionReglages titre={T.etiquettes}>
             <View className="pt-2">
               <ChoixEtiquettesSortie
                 etiquettes={etiquettes}
@@ -178,7 +187,7 @@ export function FormulaireOrganiserSortie() {
             </View>
           </SectionReglages>
 
-          <SectionReglages titre={TEXTES_ORGANISER.quand}>
+          <SectionReglages titre={T.quand}>
             <View className="pt-2">
               <ChoixQuandSortie
                 quand={quand}
@@ -186,14 +195,14 @@ export function FormulaireOrganiserSortie() {
                   setQuand(date);
                   effacer("quand");
                 }}
-                jour={ecrireJourLong(quand)}
-                heure={ecrireHeure(quand)}
+                jour={ecrireJourLongLangue(quand, langue)}
+                heure={ecrireHeureLangue(quand, langue)}
                 erreur={erreurs.quand}
               />
             </View>
           </SectionReglages>
 
-          <SectionReglages titre={TEXTES_ORGANISER.ou}>
+          <SectionReglages titre={T.ou}>
             <View className="pt-2">
               <ChoixLieuSortieMiamis
                 lieu={lieu}
@@ -206,22 +215,22 @@ export function FormulaireOrganiserSortie() {
             </View>
           </SectionReglages>
 
-          <SectionReglages titre={TEXTES_ORGANISER.places}>
+          <SectionReglages titre={T.places}>
             <View className="flex-row items-center justify-between gap-3 pt-2">
-              <Text className="flex-1 font-texte text-sm text-gris">{TEXTES_ORGANISER.placesNote}</Text>
+              <Text className="flex-1 font-texte text-sm text-gris">{T.placesNote}</Text>
               <CompteurPlusMoins
-                libelle={TEXTES_ORGANISER.places}
+                libelle={T.places}
                 valeur={places}
                 min={MIN_PLACES_SORTIE_MIAMIS}
                 max={MAX_PLACES_SORTIE_MIAMIS}
-                unite={(n) => `${n} places`}
+                unite={TE.nombrePlaces}
                 onChanger={setPlaces}
               />
             </View>
-            <Interrupteur titre={TEXTES_ORGANISER.recurrente} detail={TEXTES_ORGANISER.recurrenteTexte} valeur={recurrente} onChanger={setRecurrente} />
-            <Interrupteur titre={TEXTES_ORGANISER.placeNouveau} detail={TEXTES_ORGANISER.placeNouveauTexte} valeur={placeGardeePourNouveau} onChanger={setPlaceGardeePourNouveau} />
-            <LigneToujoursActive titre={TEXTES_ORGANISER.accepteChaque} detail={TEXTES_ORGANISER.accepteChaqueTexte} />
-            <Text className="pt-3 font-texte text-xs leading-4 text-gris">{lierPonctuation(TEXTES_ORGANISER.rappelNote)}</Text>
+            <Interrupteur titre={T.recurrente} detail={T.recurrenteTexte} valeur={recurrente} onChanger={setRecurrente} />
+            <Interrupteur titre={T.placeNouveau} detail={T.placeNouveauTexte} valeur={placeGardeePourNouveau} onChanger={setPlaceGardeePourNouveau} />
+            <LigneToujoursActive titre={T.accepteChaque} detail={T.accepteChaqueTexte} />
+            <Text className="pt-3 font-texte text-xs leading-4 text-gris">{lierPonctuation(T.rappelNote)}</Text>
           </SectionReglages>
         </ScrollView>
 
@@ -230,7 +239,7 @@ export function FormulaireOrganiserSortie() {
           {erreurBas ? (
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreurBas)}</Text>
           ) : null}
-          <Bouton libelle={envoi ? TEXTES_ORGANISER.envoi : TEXTES_ORGANISER.publier} variante="encre" desactive={envoi} onPress={() => void publier()} indice={TEXTES_ORGANISER.publierIndice} />
+          <Bouton libelle={envoi ? T.envoi : T.publier} variante="encre" desactive={envoi} onPress={() => void publier()} indice={T.publierIndice} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -2,9 +2,9 @@ import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
 import { Platform, ScrollView, Text, View } from "react-native";
 
-import { TEXTE_VISITE_OFFERTE } from "@sos-miam/commun/contenus/libelles-reglement";
-import { LIBELLES_MODE_VALIDATION } from "@sos-miam/commun/contenus/modes-validation";
-import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
+import { TEXTE_VISITE_OFFERTE_PAR_LANGUE } from "@sos-miam/commun/contenus/libelles-reglement";
+import { LIBELLES_MODE_VALIDATION_PAR_LANGUE } from "@sos-miam/commun/contenus/modes-validation";
+import { NOMS_PALIERS_PAR_LANGUE } from "@sos-miam/commun/contenus/noms-paliers";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import type { ResultatValidation } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
@@ -13,12 +13,16 @@ import { CompteurPoints } from "~/composants/visites/CompteurPoints";
 import { ConfettisVisite } from "~/composants/visites/ConfettisVisite";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
 import { RangeeTampons } from "~/composants/visites/RangeeTampons";
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { decrireReglementLangue } from "~/fonctions/langue/decrire-reglement-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireOuvertureAvis } from "~/fonctions/visites/decrire-ouverture-avis";
 import { decrireTamponVisite } from "~/fonctions/visites/decrire-tampon-visite";
 import { resumerCelebration } from "~/fonctions/visites/resumer-celebration";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPointsTotaux } from "~/hooks/utiliser-points-totaux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
@@ -39,10 +43,15 @@ const DELAI_FOCUS_MS = 600;
  * placé sur un seul bloc, qui lit tout d'une traite (resumerCelebration) : l'écran parent n'annonce rien de plus.
  */
 export function CelebrationVisite({ resultat, onFermer }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
+  const modes = utiliserTextes(LIBELLES_MODE_VALIDATION_PAR_LANGUE);
+  const nomsPaliers = utiliserTextes(NOMS_PALIERS_PAR_LANGUE);
+  const texteVisiteOfferte = utiliserTextes(TEXTE_VISITE_OFFERTE_PAR_LANGUE);
   const { visite, dejaValidee } = resultat;
   const fete = !dejaValidee;
-  const tampon = decrireTamponVisite(resultat);
-  const avis = decrireOuvertureAvis(visite.avis);
+  const tampon = decrireTamponVisite(resultat, langue);
+  const avis = decrireOuvertureAvis(visite.avis, langue);
 
   // Palier franchi : les points d'avant la visite et d'après. La liste des visites peut ne pas encore compter celle-ci
   // (elle se relit juste après la validation) : on regarde si elle y est pour ne jamais la retirer ou l'ajouter deux fois
@@ -60,7 +69,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
   const palierApres = calculerPalier(avant + visite.points);
   const palier = fete && pointsConnus && visite.points > 0 && palierApres.index > palierAvant.index ? palierApres.actuel : null;
 
-  const resume = resumerCelebration(resultat, palier);
+  const resume = resumerCelebration(resultat, palier, langue);
   const bloc = useRef<View>(null);
 
   useEffect(() => {
@@ -70,7 +79,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
   }, [visite.id, fete]);
 
   const compteur = fete && visite.points > 0;
-  const offert = decrireReglement(visite.reglement, "client").offert;
+  const offert = decrireReglementLangue(visite.reglement, "client", langue).offert;
 
   return (
     <View className="flex-1 bg-creme">
@@ -79,12 +88,12 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
           <Mascotte expression={fete ? "miam" : "clin"} taille={128} flotte={fete} />
 
           <View className="items-center gap-1.5">
-            <Text className="text-center font-titre text-4xl text-encre">{lierPonctuation(fete ? "Visite validée !" : "C'est déjà validé")}</Text>
+            <Text className="text-center font-titre text-4xl text-encre">{lierPonctuation(fete ? T.valideeTitre : T.dejaTitre)}</Text>
             <Text className="text-center font-texte-semi text-lg text-encre">
               {visite.lieu.emoji} {visite.lieu.nom}
             </Text>
             <Text className="text-center font-texte text-[15px] leading-6 text-gris">
-              {lierPonctuation(fete ? LIBELLES_MODE_VALIDATION[visite.mode] : "Tu as tout bon ! Cette visite compte déjà : pas besoin de la scanner deux fois.")}
+              {lierPonctuation(fete ? modes[visite.mode] : T.dejaTexte)}
             </Text>
             {fete ? (
               <View className="mt-2">
@@ -96,7 +105,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
           {fete && offert ? (
             <View className="w-full flex-row items-start gap-3 rounded-carte border-2 border-encre bg-rose-alerte p-4">
               <Text className="text-2xl">🎁</Text>
-              <Text className="flex-1 font-texte text-[15px] leading-6 text-encre">{lierPonctuation(TEXTE_VISITE_OFFERTE)}</Text>
+              <Text className="flex-1 font-texte text-[15px] leading-6 text-encre">{lierPonctuation(texteVisiteOfferte)}</Text>
             </View>
           ) : null}
 
@@ -105,7 +114,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
               {compteur ? <CompteurPoints points={visite.points} sos={visite.pendantSos} /> : null}
               {compteur && visite.pendantSos ? (
                 <Text className="text-center font-texte-semi text-[15px] leading-6 text-encre">
-                  {lierPonctuation(`+${visite.points} points : ta visite tombe pile pendant leur SOS.`)}
+                  {lierPonctuation(T.pointsSos(visite.points))}
                 </Text>
               ) : null}
               {tampon ? (
@@ -123,8 +132,8 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
             <View className="w-full flex-row items-center gap-3 rounded-carte border-2 border-encre bg-jaune p-4">
               <Text className="text-4xl">{palier.emoji}</Text>
               <View className="flex-1 gap-0.5">
-                <Text className="font-titre-gras text-xl text-nuit">{lierPonctuation(`Tu passes ${palier.nom} !`)}</Text>
-                <Text className="font-texte text-sm leading-5 text-nuit">Nouveau palier Ambassadeur : ta ville te dit merci.</Text>
+                <Text className="font-titre-gras text-xl text-nuit">{lierPonctuation(T.palierTitre(nomsPaliers[palier.cle]))}</Text>
+                <Text className="font-texte text-sm leading-5 text-nuit">{T.palierTexte}</Text>
               </View>
             </View>
           ) : null}
@@ -137,7 +146,7 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
           ) : null}
         </View>
 
-        <Bouton libelle={fete ? "Trop bien !" : "Parfait"} onPress={onFermer} indice="Ferme cet écran" className="mt-auto self-stretch" />
+        <Bouton libelle={fete ? T.feteBouton : T.dejaBouton} onPress={onFermer} indice={T.fermerIndice} className="mt-auto self-stretch" />
       </ScrollView>
       {fete ? <ConfettisVisite /> : null}
     </View>

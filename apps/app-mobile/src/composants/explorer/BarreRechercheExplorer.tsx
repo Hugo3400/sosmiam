@@ -2,9 +2,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRef } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   valeur: string;
@@ -16,6 +18,7 @@ const LONGUEUR_MAX = 60;
 /** La recherche d'Explorer, posée sur la carte : bord noir arrondi, loupe, et une croix « Effacer » dès qu'il y a du texte. */
 export function BarreRechercheExplorer({ valeur, onChange }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).recherche;
   const champ = useRef<TextInput>(null);
 
   function effacer() {
@@ -33,10 +36,10 @@ export function BarreRechercheExplorer({ valeur, onChange }: Props) {
         <Ionicons name="search" size={20} color={couleurs.encre} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
         <TextInput
           ref={champ}
-          accessibilityLabel="Rechercher un lieu, un plat ou un quartier"
+          accessibilityLabel={T.lu}
           value={valeur}
           onChangeText={onChange}
-          placeholder="Un lieu, un plat, un quartier…"
+          placeholder={T.exemple}
           placeholderTextColor={couleurs.gris}
           selectionColor={couleurs.encre}
           cursorColor={couleurs.encre}
@@ -52,7 +55,7 @@ export function BarreRechercheExplorer({ valeur, onChange }: Props) {
         {valeur.length > 0 ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Effacer la recherche"
+            accessibilityLabel={T.effacer}
             onPress={effacer}
             className="h-11 w-11 items-center justify-center rounded-full active:opacity-60"
           >

@@ -6,10 +6,12 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixEmojiSortie } from "~/composants/potes/ChoixEmojiSortie";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -21,6 +23,9 @@ type Props = {
 };
 
 export function FeuilleRenommerGroupe({ visible, conversationId, titre, emoji, onFermer, onRenomme }: Props) {
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
+  const T_LISTE = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
+  const T_REFUS = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { renommerGroupe } = utiliserConversations();
   const [nom, setNom] = useState(titre);
   const [choisi, setChoisi] = useState(emoji);
@@ -46,7 +51,7 @@ export function FeuilleRenommerGroupe({ visible, conversationId, titre, emoji, o
     setEnvoi(false);
     if (resultat === "ok") return onRenomme(T.renomme);
     if (resultat === "titre") return setErreur(T.titreRefuse);
-    const texte = resultat === "interdit" ? T.reserveAdmins : resultat === "compte-limite" ? REFUS_LIMITATION.groupe : T.reseau;
+    const texte = resultat === "interdit" ? T.reserveAdmins : resultat === "compte-limite" ? T_REFUS.groupe : T.reseau;
     setSouci(texte);
     AccessibilityInfo.announceForAccessibility(texte);
   }
@@ -61,8 +66,8 @@ export function FeuilleRenommerGroupe({ visible, conversationId, titre, emoji, o
           {souci ? (
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(souci)}</Text>
           ) : null}
-          <Bouton libelle={envoi ? "Un instant…" : T.enregistrer} desactive={envoi || nom.trim() === ""} onPress={() => void enregistrer()} />
-          <Bouton libelle="Annuler" variante="blanc" onPress={onFermer} />
+          <Bouton libelle={envoi ? T_LISTE.unInstant : T.enregistrer} desactive={envoi || nom.trim() === ""} onPress={() => void enregistrer()} />
+          <Bouton libelle={T_LISTE.annuler} variante="blanc" onPress={onFermer} />
         </>
       }
     >
@@ -76,7 +81,7 @@ export function FeuilleRenommerGroupe({ visible, conversationId, titre, emoji, o
           }}
           maxLength={LONGUEUR_MAX_TITRE_GROUPE}
           returnKeyType="done"
-          aide={`${nom.length}/${LONGUEUR_MAX_TITRE_GROUPE} caractères`}
+          aide={T_LISTE.caracteres(nom.length, LONGUEUR_MAX_TITRE_GROUPE)}
           erreur={erreur}
         />
         <ChoixEmojiSortie choisi={choisi} onChoisir={setChoisi} libelle={T.emoji} />

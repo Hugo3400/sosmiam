@@ -4,7 +4,9 @@ import { Text, View } from "react-native";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { AideUrgence } from "~/composants/signalement/AideUrgence";
+import { TEXTES_SIGNALEMENT_PAR_LANGUE } from "~/contenus/textes-signalement";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Raison grave : on rappelle encore les numéros d'urgence et Pharos */
@@ -17,6 +19,7 @@ type Props = {
 /** Dernière étape du signalement : merci, ce qui se passe maintenant, et retour au fil. */
 export function MerciSignalement({ grave, masqueePourTous, onFermer }: Props) {
   const enTete = useRef<Text>(null);
+  const T = utiliserTextes(TEXTES_SIGNALEMENT_PAR_LANGUE);
 
   // Ce qu'on vient de toucher a disparu : le lecteur d'écran repart du « Merci » (après le fondu d'entrée)
   useEffect(() => {
@@ -27,23 +30,17 @@ export function MerciSignalement({ grave, masqueePourTous, onFermer }: Props) {
   return (
     <View className="items-center gap-3 pb-2 pt-1">
       <Mascotte expression="clin" taille={96} />
-      <Text ref={enTete} accessibilityRole="header" accessibilityLabel="Merci, c'est noté" className="text-center font-titre text-2xl text-encre">
-        Merci, c'est noté 🚩
+      <Text ref={enTete} accessibilityRole="header" accessibilityLabel={T.merciNote} className="text-center font-titre text-2xl text-encre">
+        {T.merciNote} 🚩
       </Text>
-      <Text className="text-center font-texte text-base leading-6 text-encre">
-        {masqueePourTous
-          ? "Cette publication n'apparaîtra plus dans ton fil. Ce type de contenu sera masqué pour tout le monde dès son premier signalement, puis vérifié à la main par un modérateur : retiré pour de bon s'il pose problème, remis en ligne sinon."
-          : "Cette publication n'apparaîtra plus dans ton fil. On va regarder ça de près."}
-      </Text>
-      <Text className="text-center font-texte text-sm leading-5 text-gris">
-        {"Ton signalement est parti à l'équipe SOS Miam, sans ton nom : personne ne sait qui l'a envoyé. Sans réseau, il attend sur ton téléphone et part dès que ça revient."}
-      </Text>
+      <Text className="text-center font-texte text-base leading-6 text-encre">{masqueePourTous ? T.masqueePourTous : T.pasMasquee}</Text>
+      <Text className="text-center font-texte text-sm leading-5 text-gris">{T.anonyme}</Text>
       {grave ? (
         <View className="self-stretch">
           <AideUrgence />
         </View>
       ) : null}
-      <Bouton libelle="Retour au fil" onPress={onFermer} className="mt-2 self-stretch" />
+      <Bouton libelle={T.retourFil} onPress={onFermer} className="mt-2 self-stretch" />
     </View>
   );
 }

@@ -12,10 +12,10 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
 import { AideUrgence } from "~/composants/signalement/AideUrgence";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
-
-// Affiché avec un singe qui se cache les yeux (🙈), lu sans
-const MASQUAGE_IMMEDIAT =
-  "Ce type de contenu sera masqué pour tout le monde dès son premier signalement, le temps qu'un modérateur le vérifie (dès que l'app sera reliée à notre serveur).";
+import { TEXTES_SIGNALEMENT_PAR_LANGUE } from "~/contenus/textes-signalement";
+import { traduireRaisonSignalement } from "~/fonctions/signalement/traduire-raison-signalement";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   raison: ChoixRaisonSignalement;
@@ -28,6 +28,9 @@ type Props = {
 
 /** Deuxième étape du signalement : préciser la raison et expliquer pourquoi, avec ses mots. */
 export function DetailsSignalement({ raison, precision, onChoisirPrecision, explication, onChangerExplication, onEnvoyer }: Props) {
+  const T = utiliserTextes(TEXTES_SIGNALEMENT_PAR_LANGUE);
+  const { langue } = utiliserLangue();
+  const precisionsAffichees = traduireRaisonSignalement(raison, langue).precisions;
   const obligatoire = RAISONS_AVEC_EXPLICATION_OBLIGATOIRE.includes(raison.cle);
   const manque = obligatoire && nettoyerTexteSignalement(explication).length < LONGUEUR_MIN_EXPLICATION_SIGNALEMENT;
   const masqueePourTous = RAISONS_AVEC_MASQUAGE_IMMEDIAT.includes(raison.cle);
@@ -37,19 +40,19 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
       {raison.precisions.length > 0 ? (
         <View className="gap-3">
           <Text className="font-texte-semi text-base text-encre">
-            C'est plutôt… <Text className="font-texte text-gris">(facultatif)</Text>
+            {T.plutot} <Text className="font-texte text-gris">({T.facultatif})</Text>
           </Text>
           <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">
             {raison.precisions.map((p, i) => (
               <Pastille
                 key={p}
-                libelle={p}
+                libelle={precisionsAffichees[i] ?? p}
                 role="radio"
                 choisi={precision === p}
                 position={i + 1}
                 total={raison.precisions.length}
                 // Facultatif : une précision choisie s'enlève en la touchant encore
-                indice={precision === p ? "Touche encore pour l'enlever" : undefined}
+                indice={precision === p ? T.toucherEncore : undefined}
                 onPress={() => onChoisirPrecision(precision === p ? null : p)}
               />
             ))}
@@ -58,41 +61,39 @@ export function DetailsSignalement({ raison, precision, onChoisirPrecision, expl
       ) : null}
 
       <ChampTexte
-        libelle="Pourquoi ?"
-        mention={obligatoire ? `obligatoire, au moins ${LONGUEUR_MIN_EXPLICATION_SIGNALEMENT} caractères` : "facultatif"}
+        libelle={T.pourquoi}
+        mention={obligatoire ? T.obligatoire(LONGUEUR_MIN_EXPLICATION_SIGNALEMENT) : T.facultatif}
         valeur={explication}
         onChangeTexte={onChangerExplication}
-        placeholder="En quelques mots : ce qui ne va pas, à quel moment…"
-        aide={`${explication.length}/${LONGUEUR_MAX_EXPLICATION_SIGNALEMENT} · Plus c'est précis, plus l'équipe peut agir vite.`}
+        placeholder={T.placeholder}
+        aide={T.aide(explication.length, LONGUEUR_MAX_EXPLICATION_SIGNALEMENT)}
         multiline
         textAlignVertical="top"
         maxLength={LONGUEUR_MAX_EXPLICATION_SIGNALEMENT}
         autoCapitalize="sentences"
       />
 
+      {/* Affiché avec un singe qui se cache les yeux (🙈), lu sans */}
       {masqueePourTous ? (
-        <Text accessibilityLabel={MASQUAGE_IMMEDIAT} className="font-texte text-sm leading-5 text-encre">
-          🙈 {MASQUAGE_IMMEDIAT}
+        <Text accessibilityLabel={T.masquageImmediat} className="font-texte text-sm leading-5 text-encre">
+          🙈 {T.masquageImmediat}
         </Text>
       ) : null}
 
       {raison.grave ? <AideUrgence /> : null}
 
-      <Text className="font-texte text-xs leading-5 text-gris">
-        En envoyant, tu confirmes que ton signalement est sincère et, à ta connaissance, exact. Signaler un contenu comme illicite en sachant que
-        c'est faux, pour le faire retirer, peut être sanctionné par la loi.
-      </Text>
+      <Text className="font-texte text-xs leading-5 text-gris">{T.sincerite}</Text>
 
       {manque ? (
         <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm text-gris">
-          Écris au moins {LONGUEUR_MIN_EXPLICATION_SIGNALEMENT} caractères pour qu'on sache quoi regarder.
+          {T.manque(LONGUEUR_MIN_EXPLICATION_SIGNALEMENT)}
         </Text>
       ) : null}
       <Bouton
-        libelle="Envoyer le signalement"
+        libelle={T.envoyer}
         onPress={onEnvoyer}
         desactive={manque}
-        indice={manque ? `Écris d'abord au moins ${LONGUEUR_MIN_EXPLICATION_SIGNALEMENT} caractères dans « Pourquoi ? »` : "Envoie ton signalement à l'équipe SOS Miam"}
+        indice={manque ? T.indiceManque(LONGUEUR_MIN_EXPLICATION_SIGNALEMENT, T.pourquoi) : T.indiceEnvoyer}
       />
     </View>
   );

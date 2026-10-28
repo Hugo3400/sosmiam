@@ -2,9 +2,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef } from "react";
 import { AccessibilityInfo, ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   actif: boolean;
@@ -13,22 +15,19 @@ type Props = {
   onArreter: () => void;
 };
 
-const INDICE_INACTIF =
-  "Trie les lieux du plus proche au plus loin. Ta position n'est lue que quand tu touches, gardée en mémoire et jamais enregistrée";
-const INDICE_ACTIF = "Autour de moi est actif : relit où tu es, pour des distances à jour";
-
 export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).autourDeMoi;
   const refBouton = useRef<View>(null);
   const precedent = useRef(actif);
   useEffect(() => {
     if (precedent.current === actif) return;
     precedent.current = actif;
-    if (actif && Platform.OS !== "web") AccessibilityInfo.announceForAccessibility("Autour de moi : les lieux les plus proches d'abord");
-  }, [actif]);
+    if (actif && Platform.OS !== "web") AccessibilityInfo.announceForAccessibility(T.annonceActif);
+  }, [actif, T.annonceActif]);
 
-  const libelle = recherche ? "On te cherche…" : "Autour de moi";
-  const libelleLu = recherche ? libelle : actif ? "Autour de moi, actualiser ta position" : libelle;
+  const libelle = recherche ? T.enCours : T.libelle;
+  const libelleLu = recherche ? libelle : actif ? T.actualiserLu : libelle;
   const couleurIcone = actif ? couleurs["sur-choix"] : couleurs.encre;
 
   function arreter() {
@@ -45,7 +44,7 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
           ref={refBouton}
           accessibilityRole="button"
           accessibilityLabel={libelleLu}
-          accessibilityHint={actif ? INDICE_ACTIF : INDICE_INACTIF}
+          accessibilityHint={actif ? T.indiceActif : T.indiceInactif}
           accessibilityState={{ disabled: recherche, ...(Platform.OS === "ios" ? {} : { busy: recherche }) }}
           disabled={recherche}
           onPress={() => {
@@ -64,8 +63,8 @@ export function BoutonAutourDeMoi({ actif, recherche, onToucher, onArreter }: Pr
         {actif ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Arrêter Autour de moi"
-            accessibilityHint="Oublie ta position : les distances ne partiront plus de toi"
+            accessibilityLabel={T.arreter}
+            accessibilityHint={T.arreterIndice}
             onPress={arreter}
             className="h-11 w-11 items-center justify-center rounded-r-full active:opacity-60"
           >

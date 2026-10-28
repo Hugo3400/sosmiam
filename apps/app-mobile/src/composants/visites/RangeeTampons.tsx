@@ -2,6 +2,9 @@ import { useEffect } from "react";
 import { Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSequence, withSpring, withTiming } from "react-native-reanimated";
 
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 type Props = {
   /** Tampons déjà posés */
   tampons: number;
@@ -29,6 +32,7 @@ const DELAI_COUP_DE_TAMPON_MS = 900;
  * porte le cadeau. Lu d'une traite par le lecteur d'écran (« 4 tampons sur 5 »).
  */
 export function RangeeTampons({ tampons, sur, animerDernier = false, taille = "petite" }: Props) {
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
   const animationsReduites = useReducedMotion();
   const total = Math.max(1, Math.round(sur));
   const poses = Math.min(total, Math.max(0, Math.round(tampons)));
@@ -54,7 +58,7 @@ export function RangeeTampons({ tampons, sur, animerDernier = false, taille = "p
     transform: [{ scale: 2.4 - 1.4 * avancee.value }, { rotate: `${-35 * (1 - Math.min(1, avancee.value))}deg` }],
   }));
 
-  const libelle = poses === total ? `Carte pleine, ${total} tampons sur ${total}` : `${poses} tampon${poses > 1 ? "s" : ""} sur ${total}`;
+  const libelle = poses === total ? T.tamponsPleins(total) : T.tamponsPoses(poses, total);
 
   return (
     <View accessible accessibilityLabel={libelle} className="flex-row flex-wrap justify-center" style={{ gap: dim.ecart }}>

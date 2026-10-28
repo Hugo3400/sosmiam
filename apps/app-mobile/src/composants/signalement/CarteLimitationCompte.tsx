@@ -1,13 +1,16 @@
 import { Text, View } from "react-native";
 
-import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-moderation";
+import { DETAILS_MOTIFS_MODERATION_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-moderation";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { LimitationCompteApi } from "@sos-miam/commun/types/limitation-compte";
 import { Bouton } from "~/composants/interface/Bouton";
-import { TEXTES_LIMITATION as t } from "~/contenus/limitation-compte";
-import { decrireFinLimitation } from "~/fonctions/compte/decrire-fin-limitation";
-import { ecrireMomentLong } from "~/fonctions/dates/ecrire-moment-long";
+import { TEXTES_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_DECISIONS_MODERATION_PAR_LANGUE } from "~/contenus/textes-decisions-moderation";
+import { decrireFinLimitationLangue } from "~/fonctions/langue/decrire-fin-limitation-langue";
+import { ecrireMomentLongLangue } from "~/fonctions/langue/ecrire-moment-long-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   limitation: LimitationCompteApi;
@@ -41,20 +44,30 @@ const capitale = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(
  * la morale. « Va être limité » si elle commence plus tard, « était limité » si elle a pris fin.
  */
 export function CarteLimitationCompte({ limitation, maintenant, onContester }: Props) {
+  const t = utiliserTextes(TEXTES_LIMITATION_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_DECISIONS_MODERATION_PAR_LANGUE);
+  const motifs = utiliserTextes(DETAILS_MOTIFS_MODERATION_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const etat = lireEtat(limitation, maintenant);
-  const fin = decrireFinLimitation(limitation.fin);
-  const debut = ecrireMomentLong(limitation.debut);
+  const fin = decrireFinLimitationLangue(limitation.fin, langue);
+  const debut = ecrireMomentLongLangue(limitation.debut, langue);
   const titre = etat === "active" ? t.titre : etat === "a-venir" ? t.titreAVenir : t.titreFinie;
-  const intro = etat === "active" ? remplirModele(t.intro, { fin }) : etat === "a-venir" ? remplirModele(t.introAVenir, { debut: debut ?? "bientôt", fin }) : t.introFinie;
-  const pastille = etat === "active" ? { emoji: "⏸️", texte: capitale(fin) } : etat === "a-venir" ? { emoji: "🗓️", texte: debut ? `À partir du ${debut}` : "Bientôt" } : { emoji: "✅", texte: "C'est fini" };
+  const intro =
+    etat === "active" ? remplirModele(t.intro, { fin }) : etat === "a-venir" ? remplirModele(t.introAVenir, { debut: debut ?? T.limitation.bientot, fin }) : t.introFinie;
+  const pastille =
+    etat === "active"
+      ? { emoji: "⏸️", texte: capitale(fin) }
+      : etat === "a-venir"
+        ? { emoji: "🗓️", texte: debut ? T.limitation.aPartirDu(debut) : T.limitation.bientotPastille }
+        : { emoji: "✅", texte: T.limitation.fini };
 
   // Un code que cette version de l'app ne connaît pas encore : on dit seulement qu'il y a une règle
-  const motif = (DETAILS_MOTIFS_MODERATION as Readonly<Record<string, { libelle: string; regle: string } | undefined>>)[limitation.motif];
-  const regle = motif ? `${motif.libelle} : « ${motif.regle} »` : t.regleInconnue;
+  const motif = (motifs as Readonly<Record<string, { libelle: string; regle: string } | undefined>>)[limitation.motif];
+  const regle = motif ? T.regle(motif.libelle, motif.regle) : t.regleInconnue;
   const motivation = limitation.motivation?.trim() || null;
 
-  const contesteLe = ecrireMomentLong(limitation.contesteLe);
-  const reexamineLe = ecrireMomentLong(limitation.reexamineLe);
+  const contesteLe = ecrireMomentLongLangue(limitation.contesteLe, langue);
+  const reexamineLe = ecrireMomentLongLangue(limitation.reexamineLe, langue);
   const contestation = limitation.contestation?.trim() || null;
   const contestable = etat === "active" && limitation.peutContester;
   const suiteContestation = reexamineLe
@@ -63,7 +76,7 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
 
   /** Un bloc de la carte (titre en petit, texte), lu d'un seul tenant par VoiceOver */
   const bloc = (titreBloc: string, texte: string, encadre = false) => (
-    <View accessible accessibilityLabel={lierPonctuation(`${titreBloc} : ${texte}`)} className="gap-1">
+    <View accessible accessibilityLabel={lierPonctuation(T.limitation.bloc(titreBloc, texte))} className="gap-1">
       <Text className="font-texte-semi text-sm text-gris">{titreBloc}</Text>
       <View className={encadre ? "rounded-2xl border-2 border-encre bg-carte px-3 py-2.5" : ""}>
         <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(texte)}</Text>
@@ -108,12 +121,12 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
             <>
               <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(t.contester)}</Text>
               <Bouton
-                libelle="Contester"
+                libelle={T.contester}
                 variante="blanc"
                 petit
                 className="self-start"
-                libelleLu="Contester la limitation de ton compte"
-                indice="Explique à l'équipe pourquoi tu n'es pas d'accord"
+                libelleLu={T.limitation.contesterLu}
+                indice={T.contesterIndice}
                 onPress={onContester}
               />
             </>

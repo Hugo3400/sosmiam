@@ -9,8 +9,12 @@ import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement"
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
 import { MerciSignalement } from "~/composants/signalement/MerciSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
+import { TEXTES_SIGNALEMENT_PAR_LANGUE } from "~/contenus/textes-signalement";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { traduireRaisonSignalement } from "~/fonctions/signalement/traduire-raison-signalement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Ce que la personne a choisi et écrit ; le fil y ajoute la publication et la date. */
 export type ChoixSignalement = Pick<Signalement, "raison" | "precision" | "explication">;
@@ -32,14 +36,16 @@ type Props = {
 /** Signaler une publication, en trois temps : la raison, les précisions et le pourquoi, puis merci. */
 export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoyer, onRetourMenu, onFermer, sousTitre: sousTitreChoisi }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_SIGNALEMENT_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);
   const [explication, setExplication] = useState("");
   const enTete = useRef<Text>(null);
 
   const details = etape === "details" && raison !== null;
-  const titre = details ? raison.titre : "Pourquoi tu signales ?";
-  const sousTitre = details ? "Dis-nous-en plus, ça aide l'équipe." : (sousTitreChoisi ?? `Publication sur ${nomLieu}`);
+  const titre = details ? traduireRaisonSignalement(raison, langue).titre : T.pourquoiTuSignales;
+  const sousTitre = details ? T.disNousEnPlus : (sousTitreChoisi ?? T.publicationSur(nomLieu));
 
   // Le contenu change sous le doigt : le lecteur d'écran repart du titre de la nouvelle étape
   useEffect(() => {
@@ -73,7 +79,7 @@ export function SignalementPublication({ nomLieu, etape, onChangerEtape, onEnvoy
       <View className="flex-row items-center gap-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={details ? "Retour aux raisons" : "Retour au menu"}
+          accessibilityLabel={details ? T.retourRaisons : T.retourMenu}
           hitSlop={8}
           onPress={() => (details ? onChangerEtape("raison") : onRetourMenu())}
           className="-ml-2 h-11 w-11 items-center justify-center rounded-full active:opacity-70"

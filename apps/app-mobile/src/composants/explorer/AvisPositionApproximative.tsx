@@ -2,21 +2,21 @@ import { useEffect } from "react";
 import { AccessibilityInfo, Linking, Platform, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   onFermer: () => void;
 };
 
-const TITRE = "Le Capitaine te voit un peu flou";
-const TEXTE = "Ta position est approximative : active Position exacte pour SOS Miam dans les réglages, pour des distances au mètre près.";
-
 export function AvisPositionApproximative({ onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).approximative;
+  const annonce = `${T.titre}. ${T.texte}`;
   useEffect(() => {
-    const texte = `${TITRE}. ${TEXTE}`;
-    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
-    else if (Platform.OS !== "web") AccessibilityInfo.announceForAccessibility(texte);
-  }, []);
+    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(annonce, { queue: true });
+    else if (Platform.OS !== "web") AccessibilityInfo.announceForAccessibility(annonce);
+  }, [annonce]);
 
   function ouvrirReglages() {
     onFermer();
@@ -25,13 +25,13 @@ export function AvisPositionApproximative({ onFermer }: Props) {
 
   return (
     <View className="gap-2 rounded-carte border-2 border-encre bg-jaune-clair p-3">
-      <Text accessibilityRole="header" accessibilityLabel={TITRE} className="font-texte-gras text-[15px] text-encre">
-        🔭 {TITRE}
+      <Text accessibilityRole="header" accessibilityLabel={T.titre} className="font-texte-gras text-[15px] text-encre">
+        🔭 {T.titre}
       </Text>
-      <Text className="font-texte text-[14px] leading-5 text-encre">{lierPonctuation(TEXTE)}</Text>
+      <Text className="font-texte text-[14px] leading-5 text-encre">{lierPonctuation(T.texte)}</Text>
       <View className="flex-row flex-wrap gap-3 pt-1">
-        <Bouton libelle="Ouvrir les réglages" indice="Ouvre les réglages de SOS Miam sur ton téléphone" petit onPress={ouvrirReglages} />
-        <Bouton libelle="Plus tard" variante="blanc" indice="Range ce message" petit onPress={onFermer} />
+        <Bouton libelle={T.ouvrirReglages} indice={T.ouvrirReglagesIndice} petit onPress={ouvrirReglages} />
+        <Bouton libelle={T.plusTard} variante="blanc" indice={T.plusTardIndice} petit onPress={onFermer} />
       </View>
     </View>
   );

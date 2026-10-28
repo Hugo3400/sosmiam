@@ -1,0 +1,33 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_CONTESTATION } from "~/contenus/textes-contestation";
+
+export const TEXTES_CONTESTATION_ANGLAIS: Traduction<typeof TEXTES_CONTESTATION> = {
+  nombre: (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ","),
+  tropCourtTitre: "Just a little more",
+  tropCourt: (min: number) => `At least ${min} characters, so we can understand what's wrong.`,
+  tropLongTitre: "A bit long",
+  tropLong: (max: string) => `${max} characters max. Trim it a little – we read every word.`,
+  envoiEnCours: "Sending",
+  onEnvoie: "Sending…",
+  reessayer: "Try again",
+  envoyer: "Send my appeal",
+  indiceTropCourt: (min: number) => `Write at least ${min} characters first`,
+  indiceDecision: "Someone else on the SOS Miam team will review the decision",
+  indiceLimitation: "Someone else on the SOS Miam team will review the restriction",
+  rienEnvoye: "Nothing will be sent",
+  finalementNon: "Actually, no",
+  fermer: "Close",
+  titreEnvoye: "Sent 📮",
+  titre: "Don't agree?",
+  sousTitreDecision: "Tell us why and we'll take another look. You have 6 months.",
+  sousTitreLimitation: "Tell us why: someone else on the SOS Miam team will read everything again. One appeal per restriction.",
+  envoyeeDecision: "Appeal sent: someone else on the SOS Miam team is reviewing it.",
+  suiteDecision: "You'll find their decision here. Thank you for taking the time to write to us.",
+  envoyeeLimitation: "Appeal sent: someone else on the SOS Miam team is reading it.",
+  suiteLimitation: "You'll find their answer here. Thank you for taking the time to write to us.",
+  pourquoi: "Why?",
+  mention: (min: number, max: string) => `${min} to ${max} characters`,
+  placeholderDecision: "What the SOS Miam team might have missed, the context, what feels unfair to you…",
+  placeholderLimitation: "What happened, the context, what we might have missed…",
+  aide: (longueur: number, max: string) => `${longueur}/${max} · Only the SOS Miam team reads your appeal.`,
+};

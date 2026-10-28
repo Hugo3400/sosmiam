@@ -8,7 +8,8 @@ import { FeuilleNouveauMessage } from "~/composants/chat/FeuilleNouveauMessage";
 import { LigneConversation } from "~/composants/chat/LigneConversation";
 import { RechercheDiscussions } from "~/composants/chat/RechercheDiscussions";
 import { Bouton } from "~/composants/interface/Bouton";
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { filtrerConversations } from "~/fonctions/chat/filtrer-conversations";
 import { listerNomsConversation } from "~/fonctions/chat/lister-noms-conversation";
@@ -19,7 +20,9 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   enTete: ReactElement;
@@ -30,6 +33,9 @@ type LigneListe = { cle: string; titre: string; icone: "pin" | "chatbubbles-outl
 
 export function ContenuMessages({ enTete, margeBas }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
   const router = useRouter();
   const { pret, conversations, invitations } = utiliserConversations();
   const { pret: communautePrete, potes, trouverPote, bloques } = utiliserCommunaute();
@@ -41,7 +47,7 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
 
   const maintenant = useMemo(() => new Date(maintenantMs), [maintenantMs]);
   const idsBloques = new Set(bloques.map((b) => b.id));
-  const affichees = filtrerConversations(conversations, recherche, (c) => listerNomsConversation(c, monId, trouverPote, idsBloques));
+  const affichees = filtrerConversations(conversations, recherche, (c) => listerNomsConversation(c, monId, trouverPote, idsBloques, langue));
   const pretes = pret && communautePrete;
   const cherche = recherche.trim();
   const epinglees = affichees.filter((c) => c.epinglee);
@@ -49,15 +55,15 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
     epinglees.length === 0
       ? affichees.map((c) => ({ cle: c.id, conversation: c }))
       : [
-          { cle: "titre-epinglees", titre: TEXTES_MESSAGES.sectionEpinglees, icone: "pin" },
+          { cle: "titre-epinglees", titre: T_MESSAGES.sectionEpinglees, icone: "pin" },
           ...epinglees.map((c) => ({ cle: c.id, conversation: c })),
-          ...(epinglees.length < affichees.length ? [{ cle: "titre-toutes", titre: TEXTES_MESSAGES.sectionToutes, icone: "chatbubbles-outline" as const }] : []),
+          ...(epinglees.length < affichees.length ? [{ cle: "titre-toutes", titre: T_MESSAGES.sectionToutes, icone: "chatbubbles-outline" as const }] : []),
           ...affichees.filter((c) => !c.epinglee).map((c) => ({ cle: c.id, conversation: c })),
         ];
 
   const actions = [
-    { cle: "message", libelle: TEXTES_MESSAGES.nouveauMessage, icone: "create" as const, fond: "bg-jaune", texte: "text-nuit", teinte: couleurs.nuit, indice: TEXTES_MESSAGES.indiceNouveauMessage, faire: () => setFeuilleOuverte(true) },
-    { cle: "groupe", libelle: TEXTES_MESSAGES.nouveauGroupe, icone: "people" as const, fond: "bg-carte", texte: "text-encre", teinte: couleurs.encre, indice: TEXTES_MESSAGES.indiceNouveauGroupe, faire: () => router.push("/potes/nouveau-groupe") },
+    { cle: "message", libelle: T_MESSAGES.nouveauMessage, icone: "create" as const, fond: "bg-jaune", texte: "text-nuit", teinte: couleurs.nuit, indice: T_MESSAGES.indiceNouveauMessage, faire: () => setFeuilleOuverte(true) },
+    { cle: "groupe", libelle: T_MESSAGES.nouveauGroupe, icone: "people" as const, fond: "bg-carte", texte: "text-encre", teinte: couleurs.encre, indice: T_MESSAGES.indiceNouveauGroupe, faire: () => router.push("/potes/nouveau-groupe") },
   ];
 
   if (!pretes) return <View className="px-5">{enTete}</View>;
@@ -118,32 +124,32 @@ export function ContenuMessages({ enTete, margeBas }: Props) {
               <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
                 🔍
               </Text>
-              <Text className="text-center font-texte-gras text-base text-encre">{TEXTES_MESSAGES.aucunResultatTitre}</Text>
-              <Text className="text-center font-texte text-[15px] leading-6 text-gris">{lierPonctuation(TEXTES_MESSAGES.aucunResultat(cherche))}</Text>
+              <Text className="text-center font-texte-gras text-base text-encre">{T_MESSAGES.aucunResultatTitre}</Text>
+              <Text className="text-center font-texte text-[15px] leading-6 text-gris">{lierPonctuation(T_MESSAGES.aucunResultat(cherche))}</Text>
             </View>
           ) : (
             <View className="mt-2 items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
               <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
                 💬
               </Text>
-              <Text className="text-center font-texte-gras text-base text-encre">Pas encore de discussion</Text>
+              <Text className="text-center font-texte-gras text-base text-encre">{T.pasEncoreDeDiscussion}</Text>
               <Text className="text-center font-texte text-base leading-6 text-gris">
                 {lierPonctuation(
                   potes.length > 0
-                    ? "Ta messagerie est plus calme qu'une cuisine à 16h. Écris à un pote ou monte un groupe : le prochain resto se décide ici."
-                    : "Ajoute d'abord un pote ou deux : parler tout seul, ça marche moins bien par écrit.",
+                    ? T.messagerieCalme
+                    : T.messagerieSansPote,
                 )}
               </Text>
-              {potes.length === 0 ? <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} /> : null}
+              {potes.length === 0 ? <Bouton libelle={T.ajouterPote} variante="blanc" petit onPress={() => router.push("/potes/ajouter")} /> : null}
             </View>
           )
         }
         ListFooterComponent={
           <Text
-            accessibilityLabel="Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message, ou ses options, pour le signaler."
+            accessibilityLabel={T.confidentialiteListeLu}
             className="mt-6 text-center font-texte text-[13px] leading-[18px] text-gris"
           >
-            {lierPonctuation("🔒 Seuls les membres d'une conversation la voient. Un souci ? Appui long sur un message pour le signaler.")}
+            {lierPonctuation(T.confidentialiteListe)}
           </Text>
         }
       />

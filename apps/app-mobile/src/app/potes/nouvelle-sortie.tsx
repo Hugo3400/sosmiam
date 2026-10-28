@@ -30,7 +30,7 @@ import { ChoixQuandSortie } from "~/composants/potes/ChoixQuandSortie";
 import { LieuxProposesSortie } from "~/composants/potes/LieuxProposesSortie";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
-import { TEXTES_ECRAN_NOUVELLE_SORTIE, TEXTES_ECRAN_NOUVELLE_SORTIE_PAR_LANGUE } from "~/contenus/textes-ecran-nouvelle-sortie";
+import { type TEXTES_ECRAN_NOUVELLE_SORTIE, TEXTES_ECRAN_NOUVELLE_SORTIE_PAR_LANGUE } from "~/contenus/textes-ecran-nouvelle-sortie";
 import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";

@@ -16,7 +16,7 @@ import { DiscussionSortie, type LigneDiscussion } from "~/composants/potes/Discu
 import { EnTeteSortie } from "~/composants/potes/EnTeteSortie";
 import { MembresSortie } from "~/composants/potes/MembresSortie";
 import { VoteSortie } from "~/composants/potes/VoteSortie";
-import { TEXTES_ECRAN_SORTIE_POTES, TEXTES_ECRAN_SORTIE_POTES_PAR_LANGUE } from "~/contenus/textes-ecran-sortie-potes";
+import { type TEXTES_ECRAN_SORTIE_POTES, TEXTES_ECRAN_SORTIE_POTES_PAR_LANGUE } from "~/contenus/textes-ecran-sortie-potes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";

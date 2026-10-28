@@ -3,7 +3,9 @@ import { Pressable, Text, View } from "react-native";
 
 import { AvisPositionApproximative } from "~/composants/explorer/AvisPositionApproximative";
 import { BoutonAutourDeMoi } from "~/composants/explorer/BoutonAutourDeMoi";
+import { TEXTES_EXPLORER_PAR_LANGUE } from "~/contenus/textes-explorer";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nombre: number;
@@ -20,18 +22,19 @@ type Props = {
 
 export function OutilsListeExplorer(props: Props) {
   const { nombre, resume, refCompteur, autourDeMoiActif, recherche, avisApproximative } = props;
+  const T = utiliserTextes(TEXTES_EXPLORER_PAR_LANGUE).outils;
   return (
     <View className="gap-1 px-4 pb-2">
       <View className="flex-row flex-wrap items-center justify-end gap-2">
         <Text ref={refCompteur} accessibilityRole="header" className="grow font-titre text-xl text-encre">
-          {nombre} lieu{nombre > 1 ? "x" : ""}
+          {T.nombreLieux(nombre)}
         </Text>
         <View className="flex-row items-center gap-2">
           <BoutonAutourDeMoi actif={autourDeMoiActif} recherche={recherche} onToucher={props.onToucherAutourDeMoi} onArreter={props.onArreterAutourDeMoi} />
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Roulette"
-            accessibilityHint="Tire un lieu au hasard parmi ceux qui correspondent à tes filtres"
+            accessibilityLabel={T.roulette}
+            accessibilityHint={T.rouletteIndice}
             onPress={() => {
               vibrerLegerement();
               props.onRoulette();

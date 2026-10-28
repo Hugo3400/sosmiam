@@ -16,7 +16,8 @@ import { RouletteLieux } from "~/composants/explorer/RouletteLieux";
 import { VideExplorer } from "~/composants/explorer/VideExplorer";
 import { Annonce } from "~/composants/interface/Annonce";
 import { RAYON_PROCHE_KM, type PorteeExplorer, type ZonePortee } from "~/contenus/portee-explorer";
-import { ANNONCE_POSITION_OUBLIEE } from "~/contenus/textes-position";
+import { TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE } from "~/contenus/textes-onglets-principaux";
+import { ANNONCE_POSITION_OUBLIEE_PAR_LANGUE } from "~/contenus/textes-position";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres } from "~/contenus/type-filtres-explorer";
 import { alerterErreurPosition } from "~/fonctions/geo/alerter-erreur-position";
 import { calculerCadrePortee } from "~/fonctions/geo/calculer-cadre-portee";
@@ -46,6 +47,7 @@ import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPositionActuelle } from "~/hooks/utiliser-position-actuelle";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRayonExplorer } from "~/hooks/utiliser-rayon-explorer";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Sur l'aperçu web, pas de carte : la liste prend toute la place
 const avecCarte = Platform.OS !== "web";
@@ -74,6 +76,8 @@ export default function Explorer() {
   const focus = useIsFocused();
   const { profil } = utiliserProfil();
   const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE).explorer;
+  const annoncePositionOubliee = utiliserTextes(ANNONCE_POSITION_OUBLIEE_PAR_LANGUE);
   const pointDeDepart = utiliserPointDeDepart();
   const { position, approximative, recherche, chercher, oublier, oubliApresAbsence, marquerOubliDit } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
@@ -203,7 +207,7 @@ export default function Explorer() {
   }
   if (focus && oubliApresAbsence !== null && oubliDit !== oubliApresAbsence) {
     setOubliDit(oubliApresAbsence);
-    setAnnonce({ texte: ANNONCE_POSITION_OUBLIEE, numero: oubliApresAbsence });
+    setAnnonce({ texte: annoncePositionOubliee, numero: oubliApresAbsence });
   }
   useEffect(() => {
     if (oubliDit !== null) marquerOubliDit(oubliDit);
@@ -232,21 +236,12 @@ export default function Explorer() {
     if (sauter) return;
     const minuterie = setTimeout(() => {
       const { lieux: n, recherche: avecRecherche, filtres: filtresActifs, fauteDeDepart: sansDepart } = nombre.current;
-      const texte =
-        n > 0
-          ? `${n} lieu${n > 1 ? "x" : ""}`
-          : sansDepart
-            ? "Aucun lieu : on ne sait pas où tu es"
-            : avecRecherche
-              ? "Aucun lieu pour cette recherche"
-              : filtresActifs
-                ? "Aucun lieu avec ces filtres"
-                : "Aucun lieu par ici pour l'instant";
+      const texte = n > 0 ? T.lieux(n) : sansDepart ? T.aucunSansDepart : avecRecherche ? T.aucunRecherche : filtresActifs ? T.aucunFiltres : T.aucunIci;
       if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(texte, { queue: true });
       else AccessibilityInfo.announceForAccessibility(texte);
     }, DELAI_ANNONCE_NOMBRE);
     return () => clearTimeout(minuterie);
-  }, [choixAnnonces]);
+  }, [choixAnnonces, T]);
 
   const annoncer = (texte: string) => setAnnonce({ texte, numero: Date.now() });
   const finAnnonce = useCallback(() => setAnnonce(null), []);
@@ -262,7 +257,7 @@ export default function Explorer() {
       if (!alerterErreurPosition(resultat.erreur, message, langue)) annoncer(message);
       return;
     }
-    if (actualisation) return annoncer("Ta position est à jour 📍");
+    if (actualisation) return annoncer(T.positionAJour);
     setPorteeAvantAutour({ portee: porteeAvant });
     setPorteeChoisie("proche");
     setFiltres((f) => (f.ville ? { ...f, ville: null } : f));
@@ -271,7 +266,7 @@ export default function Explorer() {
   function arreterAutourDeMoi() {
     oublier();
     const repli = ecrireRepliDistances(depuisVille, langue);
-    annoncer(repli ? `Autour de moi arrêté : ${repli}` : "Autour de moi arrêté : ta position est oubliée");
+    annoncer(repli ? T.autourArreteRepli(repli) : T.autourArrete);
   }
 
   /** Remet les filtres à zéro depuis la liste vide (la recherche aussi si demandé) ; le lecteur d'écran passe sur le compteur */
@@ -287,8 +282,8 @@ export default function Explorer() {
   const depuis = position ? DEPUIS_TOI : depuisVille;
   const autourDe = depuis ?? (profil?.ville ? direDeVille(profil.ville, langue) : DEPUIS_TOI);
   const ouOnRegarde = decrireZoneRegardee(zone, region, autourDe, langue);
-  const tri = position ? "les plus proches d'abord" : profil ? "selon tes envies" : null;
-  const origine = zone?.portee !== "proche" && depuis ? `distances à partir ${depuis}` : null;
+  const tri = position ? T.plusProches : profil ? T.selonEnvies : null;
+  const origine = zone?.portee !== "proche" && depuis ? T.origine(depuis) : null;
   const resume = [ouOnRegarde, tri, origine].filter(Boolean).join(" · ");
 
   function choisirPortee(portee: PorteeExplorer | null) {

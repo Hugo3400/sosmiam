@@ -4,7 +4,7 @@ import { FlatList, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, S
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import type { FilCommentaire } from "@sos-miam/commun/fonctions/commentaires/trier-commentaires";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
@@ -20,6 +20,7 @@ import { BandeauAnnuler } from "~/composants/interface/BandeauAnnuler";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { FeuilleCreerComptePosee } from "~/composants/invite/FeuilleCreerComptePosee";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { trouverAuteurCommentaire } from "~/fonctions/commentaires/trouver-auteur-commentaire";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
@@ -30,6 +31,7 @@ import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer"
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserOrdreCommentaires } from "~/hooks/utiliser-ordre-commentaires";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { poserFeuilleOuverte } from "~/services/feuilles-ouvertes";
 
 type Props = {
@@ -65,6 +67,8 @@ const HAUTEUR_CHAMP_GERANT = 112;
  * Le gérant du lieu peut répondre au nom du lieu, et masquer un commentaire (il part en modération, « Annuler » juste après).
  */
 export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE);
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const animationsReduites = useReducedMotion();
@@ -217,7 +221,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   };
   const finAnnonce = useCallback(() => setAnnonce(null), []);
   // « Quelqu'un » : un compte supprimé
-  const nomDe = (c: Commentaire) => (c.auteur === "lieu" ? lieu.nom : (trouverAuteurCommentaire(c, trouverPote)?.prenom ?? "Quelqu'un"));
+  const nomDe = (c: Commentaire) => (c.auteur === "lieu" ? lieu.nom : (trouverAuteurCommentaire(c, trouverPote)?.prenom ?? T.quelquUn));
   // Tous les commentaires déjà lus, réponses comprises : quand ce nombre bouge, la suite est arrivée
   const charges = fils.reduce((total, f) => total + 1 + f.reponses.length, 0);
 
@@ -252,7 +256,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
       setEdition((e) => (e === id ? null : e));
       setTexte("");
       Keyboard.dismiss();
-      annoncer("C'est corrigé ✏️");
+      annoncer(T.annonces.corrige);
       return verdict;
     }
     const sous = reponse;
@@ -269,7 +273,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     setReponse(null);
     setTexte("");
     Keyboard.dismiss();
-    annoncer(auNomDuLieu ? "Envoyé au nom du lieu 💬" : sous ? "Réponse envoyée 💬" : "Commentaire envoyé 💬");
+    annoncer(auNomDuLieu ? T.annonces.envoyeLieu : sous ? T.annonces.reponseEnvoyee : T.annonces.commentaireEnvoye);
     return verdict;
   }
 
@@ -305,7 +309,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
       setTexte("");
     }
     if (reponse?.id === commentaire.id) setReponse(null);
-    revenirAuTitre("Commentaire supprimé 🗑️");
+    revenirAuTitre(T.annonces.supprime);
   }
 
   // Gérant : il disparaît tout de suite (et part en modération), « Annuler » le remet
@@ -313,7 +317,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     setOptions(null);
     if (reponse?.id === commentaire.id) setReponse(null);
     revenirAuTitre();
-    montrerBandeau("Commentaire masqué, parti en modération 🙈", () => void changerMasque(commentaire.id, false));
+    montrerBandeau(T.annonces.masque, () => void changerMasque(commentaire.id, false));
     void changerMasque(commentaire.id, true);
   }
 
@@ -321,8 +325,8 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     const erreur = await discussion.masquerCommeLieu(id, masque);
     if (!erreur) return;
     if (masque) fermerBandeau();
-    const message = MESSAGES_SERVICE[erreur];
-    annoncer(`Oups, ${masque ? "pas masqué" : "pas remis"}. ${message.titre} ${message.emoji}`);
+    const message = messagesService[erreur];
+    annoncer(T.annonces.masqueRate(masque, message.titre, message.emoji));
   }
 
   function bloquer(commentaire: Commentaire) {
@@ -330,7 +334,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
     setOptions(null);
     communaute.bloquer(commentaire.auteur);
     if (reponse?.auteurs.includes(commentaire.auteur)) setReponse(null);
-    revenirAuTitre(`C'est fait, tu ne verras plus ${nom} ici 🚫`);
+    revenirAuTitre(T.annonces.bloque(nom));
   }
 
   // Le signalement prend la place de la liste et place lui-même le lecteur d'écran sur son titre
@@ -365,7 +369,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
         importantForAccessibility={options || invitation ? "no-hide-descendants" : "auto"}
       >
         {/* Le haut reste transparent : la vidéo continue au-dessus, comme sur TikTok */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer les commentaires" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/20" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/20" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
@@ -383,7 +387,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
                 <SignalerContenu
                   cible="commentaire"
                   cibleId={signale.id}
-                  sujet={`le commentaire de ${nomDe(signale)}`}
+                  sujet={T.sujetSignalement(nomDe(signale))}
                   onTermine={finSignalement}
                 />
               </ScrollView>

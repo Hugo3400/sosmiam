@@ -3,17 +3,19 @@ import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, Sc
 import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Visite } from "@sos-miam/commun/types/visite";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
+import { TEXTES_CONTESTATION_VISITE_PAR_LANGUE } from "~/contenus/textes-contestation-visite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -39,6 +41,8 @@ const COMPTEUR_DES = 400;
  */
 export function FeuilleContestation({ visible, visite, onFermer, onContestee }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CONTESTATION_VISITE_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const services = utiliserServices();
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
@@ -97,8 +101,8 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
     }
   }
 
-  const lieu = visite?.lieu.nom ?? "le lieu";
-  const message = erreur ? MESSAGES_SERVICE[erreur] : null;
+  const lieu = visite?.lieu.nom ?? T.lieuInconnu;
+  const message = erreur ? messages[erreur] : null;
   const envoyee = etape === "envoyee";
   const enCours = etape === "envoi";
 
@@ -106,7 +110,7 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer, sans rien envoyer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermerSansEnvoyer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={onFermer}
@@ -121,32 +125,28 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
               </View>
               <View className="gap-2">
                 <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-                  {envoyee ? "On regarde ça de près" : lierPonctuation("Une erreur, tu crois ?")}
+                  {envoyee ? T.titreEnvoyee : lierPonctuation(T.titre)}
                 </Text>
                 <Text className="text-center font-texte text-base leading-6 text-gris">
-                  {lierPonctuation(
-                    envoyee
-                      ? "Un humain répondra. Merci de nous l'avoir dit !"
-                      : `Si tu as bien payé chez ${lieu}, dis-le-nous. C'est l'équipe SOS Miam qui lit ton mot, jamais le lieu.`,
-                  )}
+                  {lierPonctuation(envoyee ? T.texteEnvoyee : T.texte(lieu))}
                 </Text>
               </View>
 
               {envoyee ? null : (
                 <View className="gap-2">
                   <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-encre">
-                    Ton petit mot <Text className="font-texte text-gris">(facultatif)</Text>
+                    {T.motTitre} <Text className="font-texte text-gris">{T.motFacultatif}</Text>
                   </Text>
                   <TextInput
-                    accessibilityLabel="Ton petit mot, facultatif"
-                    accessibilityHint="Ce qui s'est passé, en quelques mots. 500 caractères au plus."
+                    accessibilityLabel={T.motLu}
+                    accessibilityHint={T.motIndice}
                     value={mot}
                     onChangeText={setMot}
                     editable={!enCours}
                     multiline
                     maxLength={MOT_MAX}
                     textAlignVertical="top"
-                    placeholder="Ex. : j'ai payé vers 20 h, en terrasse, avec ma sœur."
+                    placeholder={T.motPlaceholder}
                     placeholderTextColor={couleurs.gris}
                     selectionColor={couleurs.encre}
                     cursorColor={couleurs.encre}
@@ -175,28 +175,28 @@ export function FeuilleContestation({ visible, visite, onFermer, onContestee }: 
 
             <View className="mt-5 gap-3 px-5">
               {envoyee ? (
-                <Bouton libelle="Fermer" variante="encre" onPress={onFermer} />
+                <Bouton libelle={T.fermer} variante="encre" onPress={onFermer} />
               ) : enCours ? (
                 // Pas d'état « occupé » (lu en anglais par VoiceOver) : le libellé dit ce qui se passe
                 <View
                   accessible
-                  accessibilityLabel="Envoi en cours"
+                  accessibilityLabel={T.envoiLu}
                   className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-nuit"
                 >
                   <ActivityIndicator color={couleurs.jaune} />
-                  <Text className="font-texte-gras text-base text-jaune">On envoie…</Text>
+                  <Text className="font-texte-gras text-base text-jaune">{T.envoi}</Text>
                 </View>
               ) : (
-                <Bouton libelle={erreur ? "Réessayer" : "Envoyer"} variante="encre" indice="L'équipe SOS Miam reçoit ta contestation" onPress={() => void envoyer()} />
+                <Bouton libelle={erreur ? T.reessayer : T.envoyer} variante="encre" indice={T.envoyerIndice} onPress={() => void envoyer()} />
               )}
               {envoyee ? null : (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityHint="Rien n'est envoyé"
+                  accessibilityHint={T.renoncerIndice}
                   onPress={onFermer}
                   className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
                 >
-                  <Text className="font-texte-gras text-base text-encre">Finalement non</Text>
+                  <Text className="font-texte-gras text-base text-encre">{T.renoncer}</Text>
                 </Pressable>
               )}
             </View>

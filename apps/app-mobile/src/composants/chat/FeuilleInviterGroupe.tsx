@@ -5,13 +5,16 @@ import { MAX_PARTICIPANTS_GROUPE } from "@sos-miam/commun/regles/chat";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_CHAT_LISTE_PAR_LANGUE } from "~/contenus/textes-chat-liste";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
 import type { ConversationEnrichie } from "~/contenus/type-discussion-chat";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -21,6 +24,10 @@ type Props = {
 };
 
 export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvites }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
+  const T_LISTE = utiliserTextes(TEXTES_CHAT_LISTE_PAR_LANGUE);
+  const T_REFUS = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { potes } = utiliserCommunaute();
   const { inviterAuGroupe, peutDiscuterAvec } = utiliserConversations();
   const [choisis, setChoisis] = useState<string[]>([]);
@@ -47,12 +54,12 @@ export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvite
     const resultat = await inviterAuGroupe(conversation.id, choisis);
     setEnvoi(false);
     if (resultat !== "ok") {
-      const texte = resultat === "plein" ? T.groupePlein : resultat === "interdit" ? T.reserveAdmins : resultat === "compte-limite" ? REFUS_LIMITATION.groupe : T.reseau;
+      const texte = resultat === "plein" ? T.groupePlein : resultat === "interdit" ? T.reserveAdmins : resultat === "compte-limite" ? T_REFUS.groupe : T.reseau;
       setSouci(texte);
       AccessibilityInfo.announceForAccessibility(texte);
       return;
     }
-    const prenoms = listerPrenoms(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
+    const prenoms = listerPrenomsLangue(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom), langue);
     onInvites(T.invitesEnvoyees(prenoms, choisis.length));
   }
 
@@ -69,13 +76,13 @@ export function FeuilleInviterGroupe({ visible, conversation, onFermer, onInvite
           ) : null}
           {possibles.length > 0 && places > 0 ? (
             <Bouton
-              libelle={envoi ? "Un instant…" : T.inviter(choisis.length)}
+              libelle={envoi ? T_LISTE.unInstant : T.inviter(choisis.length)}
               desactive={envoi || choisis.length === 0}
               indice={T.inviterIndiceCompte}
               onPress={() => void inviter()}
             />
           ) : null}
-          <Bouton libelle={possibles.length > 0 && places > 0 ? "Annuler" : "Fermer"} variante="blanc" onPress={onFermer} />
+          <Bouton libelle={possibles.length > 0 && places > 0 ? T_LISTE.annuler : T_LISTE.fermer} variante="blanc" onPress={onFermer} />
         </>
       }
     >

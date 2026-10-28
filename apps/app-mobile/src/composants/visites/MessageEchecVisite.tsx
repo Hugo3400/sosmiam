@@ -6,6 +6,7 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 
 export type ActionEchecVisite = { libelle: string; onPress: () => void; variante?: "jaune" | "blanc" };
 
@@ -30,7 +31,8 @@ type Props = {
  * (dans une feuille, sur la caméra, dans une carte).
  */
 export function MessageEchecVisite({ erreur, details, lieuNom, texte, titre, actions = [], refTitre }: Props) {
-  const decrit = decrireEchecVisite(erreur, details, lieuNom, texte);
+  const { langue } = utiliserLangue();
+  const decrit = decrireEchecVisite(erreur, langue, details, lieuNom, texte);
   const message = titre ? { ...decrit, titre } : decrit;
   return (
     <View className="items-center">

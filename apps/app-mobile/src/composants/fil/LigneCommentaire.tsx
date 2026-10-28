@@ -2,19 +2,23 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { CALENDRIER_PAR_LANGUE } from "@sos-miam/commun/contenus/calendrier";
 import type { Commentaire } from "@sos-miam/commun/types/commentaires";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { LigneCommentaireSupprime } from "~/composants/fil/LigneCommentaireSupprime";
 import { RondPote } from "~/composants/potes/RondPote";
 import { TexteAvecMentions } from "~/composants/fil/TexteAvecMentions";
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { compterJaimesCommentaire } from "~/fonctions/commentaires/compter-jaimes-commentaire";
 import { estCommentaireAime } from "~/fonctions/commentaires/est-commentaire-aime";
 import { trouverAuteurCommentaire } from "~/fonctions/commentaires/trouver-auteur-commentaire";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
+import { formaterNombreCourtLangue } from "~/fonctions/langue/formater-nombre-court-langue";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   commentaire: Commentaire;
@@ -41,21 +45,21 @@ type Props = {
 // Les actions de VoiceOver et TalkBack qui ouvrent le profil d'une personne mentionnée (le texte est lu d'un bloc)
 const ACTION_PROFIL = "profil:";
 
-const MOIS_COURTS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+type TextesLigne = (typeof TEXTES_COMMENTAIRES_FIL_PAR_LANGUE)["fr"]["ligne"];
 
 // « il y a 5 min » à l'écran, « il y a 5 minutes » pour VoiceOver
-function formaterIlYa(dateIso: string, maintenant: number, long: boolean): string {
+function formaterIlYa(dateIso: string, maintenant: number, long: boolean, T: TextesLigne, moisCourts: readonly string[]): string {
   const minutes = Math.floor((maintenant - Date.parse(dateIso)) / 60_000);
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} ${long ? (minutes > 1 ? "minutes" : "minute") : "min"}`;
+  if (minutes < 1) return T.aLInstant;
+  if (minutes < 60) return T.minutes(minutes, long);
   const heures = Math.floor(minutes / 60);
-  if (heures < 24) return `il y a ${heures} ${long ? (heures > 1 ? "heures" : "heure") : "h"}`;
+  if (heures < 24) return T.heures(heures, long);
   const jours = Math.floor(heures / 24);
-  if (jours === 1) return "hier";
-  if (jours < 7) return `il y a ${jours} ${long ? "jours" : "j"}`;
-  if (jours < 28) return `il y a ${Math.floor(jours / 7)} ${long ? (jours >= 14 ? "semaines" : "semaine") : "sem."}`;
+  if (jours === 1) return T.hier;
+  if (jours < 7) return T.jours(jours, long);
+  if (jours < 28) return T.semaines(Math.floor(jours / 7), long);
   const date = new Date(dateIso);
-  return `le ${date.getDate()} ${MOIS_COURTS[date.getMonth()]}`;
+  return T.date(date.getDate(), moisCourts[date.getMonth()]);
 }
 
 /**
@@ -64,6 +68,9 @@ function formaterIlYa(dateIso: string, maintenant: number, long: boolean): strin
  */
 export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRepondre, onAimer, onOptions, onOuvrirProfil, appuiLong, gerant }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const { ligne: T, quelquUn } = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE);
+  const moisCourts = CALENDRIER_PAR_LANGUE[langue].moisCourts;
   const { trouverPote } = utiliserCommunaute();
   const monId = utiliserMonId();
   const zoneTexte = useRef<View>(null);
@@ -76,7 +83,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
   // La communauté la connaît, sinon ce qu'en dit le serveur (visite) ; null : le lieu, ou un compte supprimé
   const pote = trouverAuteurCommentaire(commentaire, trouverPote);
   const estMoi = commentaire.auteur === monId;
-  const nom = estLieu ? lieu.nom : (pote?.prenom ?? "Quelqu'un");
+  const nom = estLieu ? lieu.nom : (pote?.prenom ?? quelquUn);
   const pseudo = pote?.pseudo ? `@${pote.pseudo}` : null;
   const aime = estCommentaireAime(commentaire, monId);
   const nombreJaimes = compterJaimesCommentaire(commentaire);
@@ -87,20 +94,20 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
   // Chaque profil mentionné une seule fois dans les actions du lecteur d'écran
   const mentions = commentaire.serveur?.mentions;
   const profils = [...new Map((mentions ?? []).map((m) => [m.id, m])).values()];
-  const actions = profils.map((m) => ({ name: `${ACTION_PROFIL}${m.id}`, label: `Voir le profil de @${m.pseudo}` }));
+  const actions = profils.map((m) => ({ name: `${ACTION_PROFIL}${m.id}`, label: T.voirProfil(m.pseudo) }));
 
   const description = [
-    estLieu ? `${nom}, le lieu` : `${nom}${estMoi ? ", toi" : ""}${pseudo ? `, ${pseudo}` : ""}`,
+    estLieu ? T.lieuLu(nom) : `${nom}${estMoi ? T.toiLu : ""}${pseudo ? `, ${pseudo}` : ""}`,
     commentaire.texte,
-    `${formaterIlYa(commentaire.date, maintenant, true)}${modifie ? ", modifié" : ""}`,
-    masque ? "Masqué par le lieu : toi seul le vois, le temps que l'équipe le relise" : null,
-    suspendu ? "En attente de la modération : toi seul le vois" : null,
+    `${formaterIlYa(commentaire.date, maintenant, true, T, moisCourts)}${modifie ? T.modifieLu : ""}`,
+    masque ? T.masqueLu : null,
+    suspendu ? T.suspenduLu : null,
   ].filter(Boolean).join(". ");
 
   const libelleOptions =
     estMoi || (estLieu && gerant)
-      ? `Options de ${estMoi ? "ton commentaire" : "la réponse du lieu"} : modifier, supprimer`
-      : `Options du commentaire de ${nom} : signaler${estLieu ? "" : ", bloquer"}${gerant && !estLieu ? ", masquer au nom du lieu" : ""}`;
+      ? T.optionsMiennes(estMoi)
+      : T.optionsAutres(nom, estLieu, gerant && !estLieu);
 
   return (
     <View className={`flex-row gap-3 ${reponse ? "ml-[52px] py-1.5" : "py-2"} ${estLieu && !reponse ? "-mx-2 rounded-carte bg-jaune-clair px-2" : ""}`}>
@@ -150,7 +157,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
               {nom}
             </Text>
             {estLieu ? (
-              <Text className="overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-[11px] text-nuit">Le lieu</Text>
+              <Text className="overflow-hidden rounded-full border border-encre bg-jaune px-2 py-0.5 font-texte-gras text-[11px] text-nuit">{T.leLieu}</Text>
             ) : null}
             {pseudo ? (
               <Text numberOfLines={1} className="shrink font-texte text-[13px] text-gris">
@@ -159,23 +166,23 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
             ) : null}
           </View>
           <TexteAvecMentions texte={commentaire.texte} mentions={mentions} onOuvrirProfil={onOuvrirProfil} className="mt-0.5" />
-          {masque ? <Text className="mt-1 font-texte-semi text-xs leading-4 text-gris">🙈 Masqué par le lieu : toi seul le vois, le temps que l'équipe le relise.</Text> : null}
-          {suspendu ? <Text className="mt-1 font-texte-semi text-xs leading-4 text-gris">⏳ En attente de la modération : toi seul le vois.</Text> : null}
+          {masque ? <Text className="mt-1 font-texte-semi text-xs leading-4 text-gris">{T.masque}</Text> : null}
+          {suspendu ? <Text className="mt-1 font-texte-semi text-xs leading-4 text-gris">{T.suspendu}</Text> : null}
         </Pressable>
 
         <View className="flex-row items-center">
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte text-[13px] text-gris">
-            {formaterIlYa(commentaire.date, maintenant, false)}
-            {modifie ? " · (modifié)" : ""}
+            {formaterIlYa(commentaire.date, maintenant, false, T, moisCourts)}
+            {modifie ? T.modifie : ""}
           </Text>
           <Pressable
             ref={boutonRepondre}
             accessibilityRole="button"
-            accessibilityLabel={`Répondre à ${nom}`}
+            accessibilityLabel={T.repondreA(nom)}
             onPress={() => onRepondre(commentaire, boutonRepondre.current)}
             className="ml-2 min-h-11 justify-center px-2 active:opacity-60"
           >
-            <Text className="font-texte-semi text-[13px] text-gris">Répondre</Text>
+            <Text className="font-texte-semi text-[13px] text-gris">{T.repondre}</Text>
           </Pressable>
           <Pressable
             ref={boutonOptions}
@@ -192,7 +199,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
       <Pressable
         ref={boutonJaime}
         accessibilityRole="button"
-        accessibilityLabel={aime ? `Retirer ton J'aime, ${nombreJaimes} J'aime` : `J'aime ce commentaire${nombreJaimes > 0 ? `, ${nombreJaimes} J'aime` : ""}`}
+        accessibilityLabel={aime ? T.jaimeRetirer(nombreJaimes) : T.jaime(nombreJaimes)}
         accessibilityState={{ selected: aime }}
         onPress={() => {
           vibrerLegerement();
@@ -201,7 +208,7 @@ export function LigneCommentaire({ commentaire, lieu, reponse, maintenant, onRep
         className="min-h-11 min-w-11 items-center pt-1 active:scale-90"
       >
         <Ionicons name={aime ? "heart" : "heart-outline"} size={reponse ? 18 : 20} color={aime ? couleurs.tomate : couleurs.gris} />
-        {nombreJaimes > 0 ? <Text className={`font-texte-semi text-xs ${aime ? "text-rouge-texte" : "text-gris"}`}>{formaterNombreCourt(nombreJaimes)}</Text> : null}
+        {nombreJaimes > 0 ? <Text className={`font-texte-semi text-xs ${aime ? "text-rouge-texte" : "text-gris"}`}>{formaterNombreCourtLangue(nombreJaimes, langue)}</Text> : null}
       </Pressable>
     </View>
   );

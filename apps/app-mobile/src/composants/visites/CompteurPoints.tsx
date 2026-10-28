@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from "react-native-reanimated";
 
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 type Props = {
   /** Points gagnés (+15, ou +25 pendant un SOS) */
   points: number;
@@ -17,6 +20,7 @@ const DUREE_DEFILEMENT_MS = 800;
  * « Réduire les animations » est actif). Lu une seule fois, avec la valeur finale, jamais les chiffres qui défilent.
  */
 export function CompteurPoints({ points, sos = false }: Props) {
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
   const animationsReduites = useReducedMotion();
   const total = Math.max(0, Math.round(points));
   const figer = animationsReduites || total === 0;
@@ -51,14 +55,14 @@ export function CompteurPoints({ points, sos = false }: Props) {
   const styleRebond = useAnimatedStyle(() => ({ transform: [{ scale: rebond.value }] }));
 
   return (
-    <View accessible accessibilityLabel={`+${total} points${sos ? ", pendant un SOS" : ""}`} className="items-center">
+    <View accessible accessibilityLabel={T.compteurLu(total, sos)} className="items-center">
       {/* Le rebond sur une vue animée, le style sur la vue dedans (className ne passe pas sur les vues de Reanimated) */}
       <Animated.View style={styleRebond}>
         <View className={`flex-row items-baseline gap-1.5 rounded-full border-2 border-encre px-6 py-2 ${sos ? "bg-tomate" : "bg-jaune"}`}>
           <Text className="font-titre text-5xl text-nuit" style={{ fontVariant: ["tabular-nums"] }}>
             +{affiche}
           </Text>
-          <Text className="font-texte-gras text-lg text-nuit">{sos ? "points SOS" : "points"}</Text>
+          <Text className="font-texte-gras text-lg text-nuit">{sos ? T.compteurUniteSos : T.compteurUnite}</Text>
         </View>
       </Animated.View>
     </View>

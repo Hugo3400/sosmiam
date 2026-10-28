@@ -7,10 +7,14 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { DetailsSignalement } from "~/composants/signalement/DetailsSignalement";
 import { ListeRaisonsSignalement } from "~/composants/signalement/ListeRaisonsSignalement";
 import type { ChoixRaisonSignalement } from "~/contenus/raisons-signalement";
+import { TEXTES_SIGNALEMENT_PAR_LANGUE } from "~/contenus/textes-signalement";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { traduireRaisonSignalement } from "~/fonctions/signalement/traduire-raison-signalement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   cible: SignalementContenu["cible"];
@@ -33,6 +37,8 @@ const CIBLES_CACHEES: readonly SignalementContenu["cible"][] = ["commentaire", "
 export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
   const couleurs = utiliserCouleurs();
   const { signaler, source } = utiliserCommunaute();
+  const T = utiliserTextes(TEXTES_SIGNALEMENT_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const [raison, setRaison] = useState<ChoixRaisonSignalement | null>(null);
   const [precision, setPrecision] = useState<string | null>(null);
   const [explication, setExplication] = useState("");
@@ -51,39 +57,31 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
     // Avec un compte, le signalement est parti au serveur ; sans compte, il reste sur le téléphone
     const avecCompte = source === "compte";
     const cache = CIBLES_CACHEES.includes(cible);
-    const titre = avecCompte ? "Merci, on regarde ça" : "Merci, c'est noté";
+    const titre = avecCompte ? T.merciOnRegarde : T.merciNote;
     return (
       <View className="items-center gap-3 pb-2 pt-1">
         <Text ref={titreMerci} accessibilityRole="header" accessibilityLabel={titre} className="text-center font-titre text-2xl text-encre">
           {titre} 🚩
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-encre">
-          {avecCompte
-            ? cache
-              ? "Ça a déjà disparu de ton écran."
-              : "L'équipe te dira ce qu'elle a décidé."
-            : cible === "profil"
-              ? "On va regarder ce profil de près."
-              : "Ça n'apparaîtra plus pour toi, et on va regarder ça de près."}
+          {avecCompte ? (cache ? T.dejaDisparu : T.equipeDira) : cible === "profil" ? T.profilDePres : T.nApparaitraPlus}
         </Text>
         <Text className="text-center font-texte text-sm leading-5 text-gris">
-          {lierPonctuation(
-            avecCompte
-              ? `${cache ? "L'équipe te dira ce qu'elle a décidé" : "Tu retrouveras sa décision"} dans Paramètres › Décisions de la modération. La personne concernée ne saura jamais que c'est toi.`
-              : "Pour l'instant, ton signalement est gardé sur ton téléphone : il partira à l'équipe SOS Miam dès que l'app sera reliée à notre serveur.",
-          )}
+          {lierPonctuation(avecCompte ? T.ouRetrouver(cache) : T.gardeSurTelephone)}
         </Text>
-        <Bouton libelle="Fermer" onPress={onTermine} className="mt-2 self-stretch" />
+        <Bouton libelle={T.fermer} onPress={onTermine} className="mt-2 self-stretch" />
       </View>
     );
   }
+
+  const raisonAffichee = raison ? traduireRaisonSignalement(raison, langue) : null;
 
   return (
     <View className="gap-4">
       <View className="flex-row items-center gap-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={raison ? "Retour aux raisons" : "Retour"}
+          accessibilityLabel={raison ? T.retourRaisons : T.retour}
           hitSlop={8}
           onPress={() => (raison ? setRaison(null) : onTermine())}
           className="-ml-2 h-11 w-11 items-center justify-center rounded-full active:opacity-70"
@@ -94,14 +92,14 @@ export function SignalerContenu({ cible, cibleId, sujet, onTermine }: Props) {
           <Text
             ref={titreEtape}
             accessibilityRole="header"
-            accessibilityLabel={raison ? raison.titre : `Signaler ${sujet}`}
+            accessibilityLabel={raisonAffichee ? raisonAffichee.titre : T.signaler(sujet)}
             numberOfLines={2}
             className="font-titre text-2xl text-encre"
           >
-            {raison ? `${raison.emoji} ${raison.titre}` : `Signaler ${sujet}`}
+            {raisonAffichee ? `${raisonAffichee.emoji} ${raisonAffichee.titre}` : T.signaler(sujet)}
           </Text>
           <Text numberOfLines={1} className="font-texte text-sm text-gris">
-            {raison ? "Dis-nous-en plus, ça aide l'équipe." : "Pourquoi tu le signales ?"}
+            {raison ? T.disNousEnPlus : T.pourquoiTuLeSignales}
           </Text>
         </View>
       </View>

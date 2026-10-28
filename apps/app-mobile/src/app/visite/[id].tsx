@@ -13,11 +13,13 @@ import { CelebrationVisite } from "~/composants/visites/CelebrationVisite";
 import { EtatVisiteTerminee } from "~/composants/visites/EtatVisiteTerminee";
 import { FeuilleContestation } from "~/composants/visites/FeuilleContestation";
 import { MessageEchecVisite } from "~/composants/visites/MessageEchecVisite";
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
 
 /** Visites déjà fêtées depuis le lancement de l'app : rouvertes, elles montrent leur résumé (ou « C'est déjà validé ») */
@@ -34,6 +36,7 @@ const DELAI_FOCUS_MS = 450;
  */
 export default function EcranVisite() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_VISITE_PAR_LANGUE);
   const router = useRouter();
   const navigation = useNavigation();
   const { id, celebrer, deja } = useLocalSearchParams<{ id: string; celebrer?: string; deja?: string }>();
@@ -91,7 +94,7 @@ export default function EcranVisite() {
 
   // Comme le voit l'équipe du lieu : prénom, initiale du nom, emoji ou Miami (jamais la photo)
   const initiale = profil?.nom?.trim().charAt(0).toLocaleUpperCase("fr-FR");
-  const signature = profil ? (initiale ? `${profil.prenom} ${initiale}.` : profil.prenom) : "Toi";
+  const signature = profil ? (initiale ? `${profil.prenom} ${initiale}.` : profil.prenom) : T.toi;
   const emoji = ecrireAvatarPublic(avatar) ?? "🙂";
 
   // Ouverte par-dessus le parcours du Scan (« Tu es chez qui ? », le scanner) : on referme tout le parcours d'un coup, pour
@@ -109,7 +112,7 @@ export default function EcranVisite() {
   let contenu;
   if (!pret) {
     contenu = (
-      <View accessible accessibilityLabel="On ouvre ta visite…" className="flex-1 items-center justify-center">
+      <View accessible accessibilityLabel={T.chargement} className="flex-1 items-center justify-center">
         <ActivityIndicator color={couleurs.encre} size="large" />
       </View>
     );
@@ -120,7 +123,7 @@ export default function EcranVisite() {
           erreur={echec?.erreur ?? "introuvable"}
           details={echec?.details}
           refTitre={refTitre}
-          actions={[{ libelle: "Fermer", onPress: fermer }]}
+          actions={[{ libelle: T.fermer, onPress: fermer }]}
         />
       </ScrollView>
     );
@@ -146,7 +149,7 @@ export default function EcranVisite() {
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Fermer"
+          accessibilityLabel={T.fermer}
           hitSlop={8}
           onPress={fermer}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -157,8 +160,8 @@ export default function EcranVisite() {
           {visite && dansLeLieu && !enFete ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Miam Safe"
-              accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
+              accessibilityLabel={T.miamSafe}
+              accessibilityHint={T.miamSafeIndice}
               hitSlop={8}
               onPress={() => setMiamSafeOuvert(true)}
               className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

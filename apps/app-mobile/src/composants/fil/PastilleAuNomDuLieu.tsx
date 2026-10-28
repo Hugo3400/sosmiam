@@ -2,8 +2,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { TEXTES_COMMENTAIRES_FIL_PAR_LANGUE } from "~/contenus/textes-commentaires-fil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Pick<Lieu, "nom" | "emoji">;
@@ -15,11 +17,12 @@ type Props = {
 /** Pour le gérant du lieu de la publication, au-dessus du champ : écrire sous son prénom, ou au nom du lieu. */
 export function PastilleAuNomDuLieu({ lieu, active, onBasculer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_COMMENTAIRES_FIL_PAR_LANGUE).auNomDuLieu;
   return (
     <Pressable
       accessibilityRole="switch"
-      accessibilityLabel={`Répondre au nom de ${lieu.nom}`}
-      accessibilityHint={active ? "Ton commentaire part avec le nom et le badge du lieu" : "Ton commentaire part sous ton prénom"}
+      accessibilityLabel={T.lu(lieu.nom)}
+      accessibilityHint={active ? T.indiceActive : T.indiceInactive}
       accessibilityState={{ checked: active }}
       hitSlop={4}
       onPress={() => {
@@ -31,7 +34,7 @@ export function PastilleAuNomDuLieu({ lieu, active, onBasculer }: Props) {
       <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" allowFontScaling={false} className="text-base">
         {lieu.emoji}
       </Text>
-      <Text className={`font-texte-gras text-[13px] ${active ? "text-nuit" : "text-encre"}`}>Répondre au nom du lieu</Text>
+      <Text className={`font-texte-gras text-[13px] ${active ? "text-nuit" : "text-encre"}`}>{T.libelle}</Text>
       <Ionicons name={active ? "checkmark-circle" : "ellipse-outline"} size={18} color={active ? couleurs.nuit : couleurs.encre} />
     </Pressable>
   );
