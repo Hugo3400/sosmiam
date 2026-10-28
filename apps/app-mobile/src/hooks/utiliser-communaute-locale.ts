@@ -16,6 +16,7 @@ import {
 } from "@sos-miam/commun/regles/potes";
 import type { Pote, PropositionSortie, Sortie } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
+import { TEXTES_COMMUNAUTE_LOCALE_PAR_LANGUE } from "~/contenus/textes-communaute-locale";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
 import { basculerVote } from "~/fonctions/communaute/basculer-vote";
 import { construireMoi } from "~/fonctions/communaute/construire-moi";
@@ -25,6 +26,7 @@ import type { EtatCommunaute, ResultatAjoutBande, ResultatTexte } from "~/hooks/
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { effacerCommunauteLocale, enregistrerCommunauteLocale, lireCommunauteLocale, type CommunauteLocale } from "~/stockage/communaute-locale";
 
 /** Personne pour l'instant : tes vrais potes viennent du serveur avec un compte ; « exemples: 0 » la distingue d'un état ancien */
@@ -61,6 +63,7 @@ const choisirGagnant = (propositions: PropositionSortie[]) => choisirLieuGagnant
  */
 export function utiliserCommunauteLocale(): EtatCommunaute {
   const { profil, avatar } = utiliserProfil();
+  const T = utiliserTextes(TEXTES_COMMUNAUTE_LOCALE_PAR_LANGUE);
   const activite = utiliserActivite();
   const { compte } = utiliserSession();
   const { trouverLieu } = utiliserLieux();
@@ -87,7 +90,7 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         // Les données du téléphone te désignent par « moi » : les écrans le lisent par utiliserMonId
         id: ID_MOI,
         pseudo: profil?.pseudo ?? "",
-        prenom: profil?.prenom ?? "Toi",
+        prenom: profil?.prenom ?? T.prenomParDefaut,
         avatar: ecrireAvatarPublic(avatar) ?? "📷",
         ville: profil?.ville ?? "",
         points: compte?.points ?? 0,
@@ -96,7 +99,7 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         gardes: activite.gardes,
         badges: compte?.badges ?? [],
       }),
-    [profil, avatar, compte, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
+    [profil, avatar, compte, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes, T],
   );
 
   const parId = useMemo(() => new Map<string, Pote>([[ID_MOI, moi]]), [moi]);
