@@ -1,7 +1,7 @@
 import { ENTETE_LANGUE, LANGUE_PAR_DEFAUT, type Langue } from "../../../../packages/commun/src/regles/langues.ts";
 import type { ThemeSaisonApi } from "../../../../packages/commun/src/types/theme-saison.ts";
 import { calculerThemeSaisonLocal } from "~/fonctions/themes-saison/calculer-theme-saison-local";
-import { lireThemeSaisonApi } from "~/fonctions/themes-saison/lire-theme-saison-api";
+import { lireThemeSaisonApi } from "../../../../packages/commun/src/fonctions/themes-saison/lire-theme-saison-api.ts";
 
 const ADRESSE_API = process.env.ADRESSE_API ?? "http://127.0.0.1:5192";
 const DELAI_API = 1500;

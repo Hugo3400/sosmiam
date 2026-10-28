@@ -61,7 +61,7 @@ const repondreThemes = (themes: unknown[]) => {
   reponseThemes = { statut: 200, corps: { ok: true, jour: "2026-11-15", themes } };
 };
 
-const { lireThemeSaisonApi } = await import("../src/fonctions/themes-saison/lire-theme-saison-api.ts");
+const { lireThemeSaisonApi } = await import("../../../packages/commun/src/fonctions/themes-saison/lire-theme-saison-api.ts");
 const { calculerThemeSaisonLocal } = await import("../src/fonctions/themes-saison/calculer-theme-saison-local.ts");
 const { lireThemeSaisonAccueil } = await import("../src/services/themes-saison.server.ts");
 
