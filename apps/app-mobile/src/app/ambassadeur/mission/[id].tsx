@@ -71,14 +71,14 @@ export default function EcranMission() {
     void recharger();
   }, [recharger]);
 
-  /** Lit la position (en démo : à 30 m du lieu, sauf « Vérifier ma vraie position »), puis la fait vérifier */
+  /** Lit la position, puis la fait vérifier */
   const verifierPresence = useCallback(async () => {
     const cible = mission?.lieu?.position;
     if (!mission || !cible || occupe.current) return;
     occupe.current = true;
     try {
       setPresence("position");
-      const lecture = await lirePosition(cible);
+      const lecture = await lirePosition();
       if (!lecture.ok) return setEchec({ erreur: lecture.erreur });
       setPresence("envoi");
       const r = await ambassadeur.signalerPresence(mission.id, lecture.position);

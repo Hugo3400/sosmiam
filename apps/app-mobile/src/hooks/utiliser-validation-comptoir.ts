@@ -4,15 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps 
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import { AGE_POSITION_MAX_MS, DUREE_NOUVEL_ESSAI_COMPTOIR_MS } from "@sos-miam/commun/regles/visites";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
-import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
+import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { LecturePosition } from "@sos-miam/commun/types/position";
 import type { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
-import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
 import { classerCodeScanne } from "~/fonctions/scan/classer-code-scanne";
 import { utiliserDemandeCompte } from "~/hooks/utiliser-demande-compte";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPositionValidation, type ResultatLecturePosition } from "~/hooks/utiliser-position-validation";
-import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { enregistrerExplicationPositionVue, lireExplicationPositionVue } from "~/stockage/explication-position-vue";
@@ -51,8 +49,8 @@ function decrireVitrine(lieu: Lieu): EchecValidationComptoir {
 }
 
 /**
- * Le scanner du QR du comptoir, sans l'appareil photo : explique la position la première fois, la lit (pendant qu'on vise,
- * en vraie position), range le texte scanné (invitation refusée, vitrine, autre chose : aucune adresse lue n'est jamais
+ * Le scanner du QR du comptoir, sans l'appareil photo : explique la position la première fois, la lit (pendant qu'on vise),
+ * range le texte scanné (invitation refusée, vitrine, autre chose : aucune adresse lue n'est jamais
  * ouverte), envoie le QR du comptoir, puis ouvre la célébration. Sans réseau, réessaie tout seul pendant une minute.
  * Pose la feuille « Petite vérif' de position » dans l'écran avec `propsFeuille`. La position n'est jamais gardée au-delà.
  */
@@ -68,10 +66,8 @@ export function utiliserValidationComptoir(): {
   const { contenu } = utiliserSession();
   const { trouverLieu, chargerLieu } = utiliserLieux();
   const demanderCompte = utiliserDemandeCompte();
-  const { reglages } = utiliserReglagesDemo();
   const { lire: lirePosition } = utiliserPositionValidation();
-  // La démo place le téléphone à 30 m du lieu du QR (qu'on ne connaît qu'au scan) ; sinon, on lit la vraie position
-  const vraiePosition = services.source === "api" || (services.source === "demo" && reglages.vraiePosition);
+  const vraiePosition = services.source === "api";
 
   const [etape, setEtape] = useState<EtapeValidationComptoir>("repos");
   const [echec, setEchec] = useState<EchecValidationComptoir | null>(null);
@@ -82,7 +78,7 @@ export function utiliserValidationComptoir(): {
   const occupe = useRef(false);
   const reponseFeuille = useRef<((acceptee: boolean) => void) | null>(null);
   const explication = useRef<Promise<boolean> | null>(null);
-  // La lecture lancée pendant qu'on vise (vraie position seulement), servie une fois au scan qui suit
+  // La lecture lancée pendant qu'on vise, servie une fois au scan qui suit
   const lectureAvance = useRef<{ promesse: Promise<LectureDatee>; lanceeLeMs: number } | null>(null);
 
   useEffect(() => {
@@ -107,21 +103,16 @@ export function utiliserValidationComptoir(): {
     [trouverLieu, chargerLieu],
   );
 
-  /** Le lieu d'un QR de vitrine : la démo garde ses QR d'exemple, sinon le serveur le retrouve par son code */
+  /** Le lieu d'un QR de vitrine, retrouvé par le serveur grâce à son code */
   const decrireCodeVitrine = useCallback(
     async (codePublic: string): Promise<EchecValidationComptoir> => {
-      let lieuId: number | undefined;
-      if (services.source === "demo") lieuId = Object.values(validationLieuxExemples).find((v) => v.codePublic === codePublic)?.lieuId;
-      else {
-        const r = await contenu.trouverParCode(codePublic);
-        if (!r.ok && r.erreur !== "lieu-inconnu" && r.erreur !== "introuvable") return { erreur: r.erreur };
-        lieuId = r.ok ? r.lieuId : undefined;
-      }
-      const lieu = lieuId === undefined ? "inconnu" : await lireLieu(lieuId);
+      const r = await contenu.trouverParCode(codePublic);
+      if (!r.ok && r.erreur !== "lieu-inconnu" && r.erreur !== "introuvable") return { erreur: r.erreur };
+      const lieu = r.ok ? await lireLieu(r.lieuId) : "inconnu";
       if (lieu === "hors-ligne") return { erreur: "hors-ligne" };
       return lieu === "inconnu" ? { erreur: "introuvable" } : decrireVitrine(lieu);
     },
-    [services.source, contenu, lireLieu],
+    [contenu, lireLieu],
   );
 
   const repondreFeuille = useCallback((acceptee: boolean) => {
@@ -153,8 +144,8 @@ export function utiliserValidationComptoir(): {
   }, []);
 
   const lireDatee = useCallback(
-    async (cible: PositionLieu | null): Promise<LectureDatee> => {
-      const lue = await lirePosition(cible);
+    async (): Promise<LectureDatee> => {
+      const lue = await lirePosition();
       return lue.ok ? { ok: true, datee: dater(lue.position) } : lue;
     },
     [lirePosition],
@@ -167,21 +158,21 @@ export function utiliserValidationComptoir(): {
     if (!(await expliquer(null))) return false;
     const avance = lectureAvance.current;
     if (vraiePosition && monte.current && (!avance || Date.now() - avance.lanceeLeMs > AGE_POSITION_MAX_MS - MARGE_FRAICHEUR_MS)) {
-      lectureAvance.current = { promesse: lireDatee(null), lanceeLeMs: Date.now() };
+      lectureAvance.current = { promesse: lireDatee(), lanceeLeMs: Date.now() };
     }
     return true;
   }, [demanderCompte, services.source, expliquer, vraiePosition, lireDatee]);
 
   /** La lecture faite pendant qu'on visait si elle est encore bonne (une seule fois), sinon une lecture toute fraîche */
   const obtenirPosition = useCallback(
-    async (cible: PositionLieu | null): Promise<LectureDatee> => {
+    async (): Promise<LectureDatee> => {
       const avance = vraiePosition ? lectureAvance.current : null;
       lectureAvance.current = null;
       if (avance) {
         const lue = await avance.promesse;
         if (lue.ok ? vieillir(lue.datee) !== null : lue.erreur !== "position-introuvable") return lue;
       }
-      return lireDatee(cible);
+      return lireDatee();
     },
     [vraiePosition, lireDatee],
   );
@@ -199,7 +190,7 @@ export function utiliserValidationComptoir(): {
         let position = vieillir(datee);
         if (!position) {
           // Lecture trop vieille (une minute de nouveaux essais) : on en relit une toute fraîche
-          const relue = await lireDatee(lieu.position ?? null);
+          const relue = await lireDatee();
           if (!monte.current) return false;
           if (!relue.ok) {
             setEchec({ erreur: relue.erreur, details });
@@ -250,7 +241,7 @@ export function utiliserValidationComptoir(): {
         if (!monte.current) return;
 
         setEtape("position");
-        const lecture = await obtenirPosition(lieu.position ?? null);
+        const lecture = await obtenirPosition();
         if (!monte.current) return;
         if (!lecture.ok) return setEchec({ erreur: lecture.erreur, details });
         validee = await envoyer(texte, lecture.datee, lieu, details);

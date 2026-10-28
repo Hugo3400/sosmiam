@@ -40,7 +40,6 @@ export const textesConnexionQr = {
   raisonBiometrie: "Confirme que c'est bien toi pour connecter cet appareil",
   biometrieAnnulee: "Pas de confirmation, pas de connexion : rien n'a bougé. Retouche « Oui, c'est moi » pour réessayer.",
   fait: (appareil: string) => `Et voilà, connexion acceptée pour ${appareil} ! Tu peux la couper quand tu veux avec « Me déconnecter partout ».`,
-  faitDemo: "Démo : sur un vrai compte, l'appareil serait maintenant connecté. Ici, rien n'est parti sur le serveur.",
   refuse: "Refusé : personne n'entre. Si quelqu'un t'a envoyé ce QR ou ce lien, c'est sûrement une arnaque : ne l'ouvre pas une deuxième fois.",
   expire: "Trop tard, ce QR a expiré. Demande-en un nouveau sur l'appareil à connecter, ça prend une seconde.",
   // Nouveau téléphone : montrer le QR et attendre

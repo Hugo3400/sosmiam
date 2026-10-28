@@ -84,7 +84,7 @@ export default function TuEsChezQui() {
   const { lire } = position;
   const lirePosition = useCallback(async () => {
     setLecture({ etat: "attente" });
-    const r = await lire(null, null);
+    const r = await lire(null);
     if (r.ok) setLecture({ etat: "ok", position: { latitude: r.position.latitude, longitude: r.position.longitude } });
     else setLecture(r.erreur === "annulee" ? { etat: "annulee" } : { etat: "echec", erreur: r.erreur });
   }, [lire]);

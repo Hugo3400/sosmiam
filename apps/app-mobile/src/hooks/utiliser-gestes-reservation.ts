@@ -7,7 +7,6 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { TEXTES_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
 import { listerActionsEchecReservation } from "~/fonctions/reservations/lister-actions-echec-reservation";
-import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserServices } from "~/hooks/utiliser-services";
 
@@ -21,7 +20,6 @@ const A_RELIRE: readonly ErreurService[] = ["transition-interdite", "delai-depas
 export function utiliserGestesReservation(o: { remplacer: (reservation: Reservation) => void; actualiser: () => Promise<void> }) {
   const router = useRouter();
   const services = utiliserServices();
-  const { trouverLieu } = utiliserLieux();
   const position = utiliserPositionExpliquee();
   const [presence, setPresence] = useState<PresenceEnCours | null>(null);
   const [echec, setEchec] = useState<EchecGesteReservation | null>(null);
@@ -56,7 +54,7 @@ export function utiliserGestesReservation(o: { remplacer: (reservation: Reservat
       occupe.current = true;
       try {
         setPresence({ reservationId: reservation.id, texte: TEXTES_MES_RESERVATIONS.positionEnCours });
-        const lecture = await lire(trouverLieu(reservation.lieu.id)?.position ?? null, reservation.lieu.nom);
+        const lecture = await lire(reservation.lieu.nom);
         if (!lecture.ok) {
           if (lecture.erreur !== "annulee") echouer({ erreur: lecture.erreur, reservation, geste: "presence" });
           return;
@@ -72,7 +70,7 @@ export function utiliserGestesReservation(o: { remplacer: (reservation: Reservat
         setPresence(null);
       }
     },
-    [lire, trouverLieu, services, remplacer, echouer, router],
+    [lire, services, remplacer, echouer, router],
   );
 
   const actionsEchec = echec

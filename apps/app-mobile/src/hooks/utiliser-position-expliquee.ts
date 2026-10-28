@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 
-import type { PositionLieu } from "@sos-miam/commun/types/lieu";
 import type { FeuillePositionVisite } from "~/composants/visites/FeuillePositionVisite";
 import { utiliserPositionValidation, type ResultatLecturePosition } from "~/hooks/utiliser-position-validation";
 import { enregistrerExplicationPositionVue, lireExplicationPositionVue } from "~/stockage/explication-position-vue";
@@ -14,7 +13,7 @@ export type LecturePositionExpliquee = ResultatLecturePosition | { ok: false; er
  * ne pas, sans rien lire. `lire` reste la même d'un rendu à l'autre. La position n'est jamais gardée ici.
  */
 export function utiliserPositionExpliquee(): {
-  lire: (cible: PositionLieu | null, lieuNom: string | null) => Promise<LecturePositionExpliquee>;
+  lire: (lieuNom: string | null) => Promise<LecturePositionExpliquee>;
   propsFeuille: ComponentProps<typeof FeuillePositionVisite>;
   enCours: boolean;
 } {
@@ -41,7 +40,7 @@ export function utiliserPositionExpliquee(): {
   );
 
   const lire = useCallback(
-    async (cible: PositionLieu | null, lieuNom: string | null): Promise<LecturePositionExpliquee> => {
+    async (lieuNom: string | null): Promise<LecturePositionExpliquee> => {
       if (!(await lireExplicationPositionVue())) {
         // Une explication déjà ouverte (deux appuis rapides) : l'ancienne demande s'arrête là
         reponse.current?.(false);
@@ -52,7 +51,7 @@ export function utiliserPositionExpliquee(): {
         if (!acceptee) return { ok: false, erreur: "annulee" };
         await enregistrerExplicationPositionVue();
       }
-      return lirePosition(cible);
+      return lirePosition();
     },
     [lirePosition],
   );

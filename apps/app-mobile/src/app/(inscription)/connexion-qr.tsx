@@ -13,7 +13,6 @@ import { type EtatAffichageQr, utiliserAttenteConnexionQr } from "~/hooks/utilis
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { montrerErreurCompte, utiliserEntreeCompte } from "~/hooks/utiliser-entree-compte";
 import { type ServiceConnexionQr, utiliserServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
-import { simulerConnexionQrDemo } from "~/services/demo/connexion-qr-demo";
 
 const TAILLE_QR = 232;
 
@@ -26,14 +25,13 @@ const EMOJIS: Partial<Record<EtatAffichageQr, string>> = { scanne: "📲", accep
  * après une connexion par e-mail ; si le profil n'a pas pu être lu, on réessaie avec la même session (rendue une seule fois).
  */
 export default function ConnexionQr() {
-  const { service, demo } = utiliserServiceConnexionQr();
-  return <AfficherQr service={service} demo={demo} />;
+  const { service } = utiliserServiceConnexionQr();
+  return <AfficherQr service={service} />;
 }
 
-function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: boolean }) {
+function AfficherQr({ service }: { service: ServiceConnexionQr }) {
   const couleurs = utiliserCouleurs();
   const { entrer } = utiliserEntreeCompte();
-  const [finDemo, setFinDemo] = useState(false);
   // La session rendue par l'API (une seule fois) : gardée pour réessayer d'entrer sans nouveau QR
   const [ouverte, setOuverte] = useState<SessionOuverte | null>(null);
   const [entree, setEntree] = useState<"en-cours" | "ratee">("en-cours");
@@ -44,24 +42,20 @@ function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: bool
     if (!ok) setEntree("ratee");
   }
 
-  // En démo, la « session » rendue est vide : on s'arrête là, sans rien ouvrir
   const attente = utiliserAttenteConnexionQr(service, (rendue) => {
-    if (demo) return setFinDemo(true);
     setOuverte(rendue);
     void essayerEntrer(rendue);
   });
   const { demande, etat } = attente;
-  const entreeRatee = etat === "accepte" && !finDemo && entree === "ratee";
+  const entreeRatee = etat === "accepte" && entree === "ratee";
 
   const message =
     etat === "scanne"
       ? textesConnexionQr.scanne
       : etat === "accepte"
-        ? finDemo
-          ? "🧪 Démo : c'est accepté ! Sur un vrai téléphone, tu serais maintenant dans ton compte."
-          : entreeRatee
-            ? textesConnexionQr.entreeRatee
-            : textesConnexionQr.accepteIci
+        ? entreeRatee
+          ? textesConnexionQr.entreeRatee
+          : textesConnexionQr.accepteIci
         : etat === "refuse"
           ? textesConnexionQr.refuseAilleurs
           : etat === "expire"
@@ -107,7 +101,7 @@ function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: bool
           {entreeRatee ? "😕" : (EMOJIS[etat] ?? "😕")}
         </Text>
         <Text className="text-center font-texte-gras text-base leading-6 text-encre">{lierPonctuation(message ?? "")}</Text>
-        {etat === "scanne" || (etat === "accepte" && !finDemo && !entreeRatee) ? <ActivityIndicator color={couleurs.encre} /> : null}
+        {etat === "scanne" || (etat === "accepte" && !entreeRatee) ? <ActivityIndicator color={couleurs.encre} /> : null}
         {entreeRatee && ouverte ? <Bouton libelle="Réessayer" onPress={() => void essayerEntrer(ouverte)} /> : null}
         {etat === "refuse" || etat === "expire" || etat === "erreur" || entreeRatee ? (
           <Bouton libelle="Un nouveau QR code" variante={entreeRatee ? "blanc" : "jaune"} petit={entreeRatee} onPress={() => void attente.nouvelle()} />
@@ -124,16 +118,6 @@ function AfficherQr({ service, demo }: { service: ServiceConnexionQr; demo: bool
       <View className="gap-6">
         {contenu}
         <Text className="font-texte text-base leading-6 text-encre">{lierPonctuation(textesConnexionQr.aideAfficher)}</Text>
-        {demo && demande && (etat === "attente" || etat === "scanne") ? (
-          <View className="gap-3 rounded-2xl border-2 border-dashed border-ligne bg-carte p-4">
-            <Text className="font-texte-semi text-sm text-gris">🧪 Démo : joue l'autre téléphone</Text>
-            <View className="flex-row flex-wrap gap-2">
-              {etat === "attente" ? <Bouton libelle="Scanné" variante="blanc" petit onPress={() => simulerConnexionQrDemo(demande.secret, "scanne")} /> : null}
-              <Bouton libelle="Accepté" variante="blanc" petit onPress={() => simulerConnexionQrDemo(demande.secret, "accepte")} />
-              <Bouton libelle="Refusé" variante="blanc" petit onPress={() => simulerConnexionQrDemo(demande.secret, "refuse")} />
-            </View>
-          </View>
-        ) : null}
       </View>
     </EcranEtape>
   );

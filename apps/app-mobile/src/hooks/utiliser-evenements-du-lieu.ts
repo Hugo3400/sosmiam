@@ -4,8 +4,6 @@ import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import { listerEvenementsPublicsDemo } from "~/services/demo/lieu-pro-demo";
 
 export type EvenementsDuLieu = {
   /** Un événement par ligne (sa prochaine date), le plus proche d'abord ; null : pas encore lus */
@@ -17,9 +15,8 @@ export type EvenementsDuLieu = {
 };
 
 /**
- * Les événements à venir d'un lieu (« À venir » sur sa fiche) : lus sans compte (démo : ceux joués sur le téléphone), un par
- * événement (la prochaine date ; « chaque semaine » est dit à côté). En visite sans compte (âge inconnu), jamais un événement
- * avec alcool. Avec un compte, les « Ça m'intéresse » sont lus et basculés sur le serveur.
+ * Les événements à venir d'un lieu (« À venir » sur sa fiche) : lus sans compte, un par événement (la prochaine date ;
+ * « chaque semaine » est dit à côté). En visite sans compte (âge inconnu), jamais un événement avec alcool. Avec un compte, les « Ça m'intéresse » sont lus et basculés sur le serveur.
  */
 export function utiliserEvenementsDuLieu(lieuId: number, age: number | null): EvenementsDuLieu {
   const { contenu } = utiliserSession();
@@ -30,8 +27,7 @@ export function utiliserEvenementsDuLieu(lieuId: number, age: number | null): Ev
 
   useEffect(() => {
     let actif = true;
-    const lire = DEMO_VISITES_ACTIVE ? Promise.resolve({ ok: true as const, evenements: listerEvenementsPublicsDemo(lieuId, Date.now()) }) : contenu.listerEvenementsDuLieu(lieuId);
-    lire.then((r) => actif && setLus(r.ok ? r.evenements : []));
+    contenu.listerEvenementsDuLieu(lieuId).then((r) => actif && setLus(r.ok ? r.evenements : []));
     return () => {
       actif = false;
     };

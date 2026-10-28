@@ -85,7 +85,7 @@ export function BoutonDemanderAddition({ lieu, variante = "jaune", libelle = "De
     occupe.current = true;
     try {
       setEtape("position");
-      const lecture = await lire(lieu.position ?? null, lieu.nom);
+      const lecture = await lire(lieu.nom);
       if (!lecture.ok) {
         if (lecture.erreur !== "annulee" && monte.current) setEchec({ erreur: lecture.erreur });
         return;

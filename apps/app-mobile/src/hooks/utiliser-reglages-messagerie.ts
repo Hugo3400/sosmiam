@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { ReglagesMessagerie } from "@sos-miam/commun/types/social";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
-import { changerReglagesMessagerieDemo, ecouterReglagesMessagerieDemo, lireReglagesMessagerieDemo } from "~/services/demo/reglages-messagerie-demo";
 
 export type EtatReglagesMessagerie = {
   disponible: boolean;
@@ -24,8 +23,6 @@ export function utiliserReglagesMessagerie(): EtatReglagesMessagerie {
   const source = utiliserSourceSociale();
   const { sociaux } = utiliserSession();
   const compte = source === "compte";
-  const demo = source === "demo";
-  const reglagesDemo = useSyncExternalStore(ecouterReglagesMessagerieDemo, lireReglagesMessagerieDemo, lireReglagesMessagerieDemo);
   const [reglages, setReglages] = useState<ReglagesMessagerie>(PAR_DEFAUT);
   const [pret, setPret] = useState(false);
   const courant = useRef(reglages);
@@ -53,10 +50,6 @@ export function utiliserReglagesMessagerie(): EtatReglagesMessagerie {
 
   const changer = useCallback(
     async (changements: Partial<ReglagesMessagerie>): Promise<ErreurService | null> => {
-      if (demo) {
-        changerReglagesMessagerieDemo(changements);
-        return null;
-      }
       if (!compte) return "session-app-requise";
       const avant = courant.current;
       setReglages({ ...avant, ...changements });
@@ -68,11 +61,11 @@ export function utiliserReglagesMessagerie(): EtatReglagesMessagerie {
       setReglages(lireReglages(r.moi.reglages));
       return null;
     },
-    [compte, demo, sociaux],
+    [compte, sociaux],
   );
 
   return useMemo(
-    () => ({ disponible: compte || demo, pret: demo || pret, reglages: demo ? reglagesDemo : reglages, changer }),
-    [compte, demo, pret, reglagesDemo, reglages, changer],
+    () => ({ disponible: compte, pret, reglages, changer }),
+    [compte, pret, reglages, changer],
   );
 }

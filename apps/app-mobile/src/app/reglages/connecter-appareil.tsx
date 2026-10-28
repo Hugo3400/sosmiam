@@ -21,15 +21,15 @@ import { type EtapeValidationQr, utiliserValidationConnexionQr } from "~/hooks/u
  * d'un nouveau téléphone, vérifier qui demande et d'où, puis confirmer avec Face ID, l'empreinte ou le code du téléphone.
  */
 export default function ConnecterAppareil() {
-  const { service, demo } = utiliserServiceConnexionQr();
+  const { service } = utiliserServiceConnexionQr();
   const { code } = useLocalSearchParams<{ code?: string }>();
-  return <ValidationConnexion service={service} demo={demo} code={code} />;
+  return <ValidationConnexion service={service} code={code} />;
 }
 
 /** La fin du parcours : titre, emoji (à part, caché aux lecteurs d'écran) et texte ; null tant que ce n'est pas fini */
-function lireFin(etape: EtapeValidationQr, demo: boolean): { titre: string; emoji: string; texte: string } | null {
+function lireFin(etape: EtapeValidationQr): { titre: string; emoji: string; texte: string } | null {
   if (etape.type === "fait")
-    return demo ? { titre: "C'est accepté (en démo) !", emoji: "🧪", texte: textesConnexionQr.faitDemo } : { titre: "C'est connecté !", emoji: "🎉", texte: textesConnexionQr.fait(etape.appareil) };
+    return { titre: "C'est connecté !", emoji: "🎉", texte: textesConnexionQr.fait(etape.appareil) };
   if (etape.type === "refuse") return { titre: "Refusé", emoji: "🛑", texte: textesConnexionQr.refuse };
   if (etape.type === "lien-refuse") return { titre: "Personne n'entre", emoji: "🛡️", texte: textesConnexionQr.lienRefuse };
   if (etape.type === "expire") return { titre: "Trop tard", emoji: "⏱️", texte: textesConnexionQr.expire };
@@ -39,13 +39,13 @@ function lireFin(etape: EtapeValidationQr, demo: boolean): { titre: string; emoj
   return { titre: erreur?.titre ?? "Oups", emoji: erreur?.emoji ?? "😕", texte: erreur?.texte ?? "Ça n'a pas marché cette fois. Réessaie dans un instant." };
 }
 
-function ValidationConnexion({ service, demo, code }: { service: ServiceConnexionQr; demo: boolean; code?: string }) {
+function ValidationConnexion({ service, code }: { service: ServiceConnexionQr; code?: string }) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const validation = utiliserValidationConnexionQr(service, code);
   const { etape } = validation;
   const [lienColle, setLienColle] = useState("");
-  const fin = lireFin(etape, demo);
+  const fin = lireFin(etape);
   // Toujours vers Mon compte : celui d'en dessous s'il y est, sinon il remplace cet écran (les onglets restent dessous)
   const revenirAuCompte = () => router.dismissTo("/reglages/compte");
 
@@ -61,19 +61,11 @@ function ValidationConnexion({ service, demo, code }: { service: ServiceConnexio
     if (annonce) annoncerLecteurEcran(retirerEmoji(annonce));
   }, [annonce]);
 
-  // Démo : le rappel reste là jusqu'au bout (la demande montrée est inventée, rien ne se connecte)
-  const bandeauDemo = demo ? (
-    <Text className="rounded-2xl bg-jaune-clair px-4 py-2 font-texte-semi text-sm text-encre">
-      {lierPonctuation("🧪 Démo : rien ne part sur le serveur, aucun appareil n'est vraiment connecté.")}
-    </Text>
-  ) : null;
-
   // Un lien ouvert dans l'app : l'appareil photo du téléphone… ou un escroc qui l'a envoyé. Rien ne part avant ce choix
   if (etape.type === "lien") {
     return (
       <EcranReglage titre={textesConnexionQr.titreLien}>
         <View className="gap-5">
-          {bandeauDemo}
           <View className="flex-row gap-3 rounded-2xl border-2 border-rouge-texte bg-carte px-4 py-3">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
               ⚠️
@@ -91,7 +83,6 @@ function ValidationConnexion({ service, demo, code }: { service: ServiceConnexio
     return (
       <EcranReglage titre="Vérifie bien avant de dire oui" sousTitre="Une connexion, c'est l'accès à tout ton compte.">
         <View className="gap-5">
-          {bandeauDemo}
           <CarteDemandeConnexion
             demande={etape.demande}
             secondesRestantes={validation.secondesRestantes}
@@ -109,7 +100,6 @@ function ValidationConnexion({ service, demo, code }: { service: ServiceConnexio
     return (
       <EcranReglage titre={fin.titre}>
         <View className="gap-5">
-          {bandeauDemo}
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-5xl">
             {fin.emoji}
           </Text>
@@ -124,7 +114,6 @@ function ValidationConnexion({ service, demo, code }: { service: ServiceConnexio
   return (
     <EcranReglage titre={textesConnexionQr.titreScanner} sousTitre={textesConnexionQr.sousTitreScanner}>
       <View className="gap-5">
-        {bandeauDemo}
         {textesConnexionQr.etapesScanner.map((texte, i) => (
           <View key={texte} className="flex-row gap-3">
             <Text className="font-titre text-xl text-encre">{i + 1}.</Text>
