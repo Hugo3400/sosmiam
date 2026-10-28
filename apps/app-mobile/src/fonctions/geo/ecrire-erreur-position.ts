@@ -1,19 +1,19 @@
 import { Platform } from "react-native";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { TEXTES_LOCALISATION_PAR_LANGUE } from "~/contenus/textes-localisation";
 import type { ErreurPosition } from "~/fonctions/geo/lire-position-telephone";
 import { ecrireRepliDistances } from "~/fonctions/geo/ecrire-repli-distances";
 
-const CHEMIN_LOCALISATION =
-  Platform.OS === "ios" ? "Réglages > Confidentialité et sécurité > Service de localisation" : "les réglages du téléphone (Localisation)";
-
-export function ecrireErreurPosition(erreur: ErreurPosition, actualisation: boolean, depuisVille: string | null): string {
-  const repli = actualisation ? ecrireRepliDistances(depuisVille) : null;
-  const enAttendant = repli ? ` En attendant, ${repli}.` : "";
-  if (erreur === "coupee") return `Ta localisation est éteinte : allume-la dans ${CHEMIN_LOCALISATION}.${enAttendant}`;
-  if (erreur === "refus-definitif") return `SOS Miam n'a pas accès à ta position : tu peux l'autoriser dans les réglages du téléphone.${enAttendant}`;
-  if (erreur === "introuvable") {
-    return actualisation ? "On ne te retrouve pas pour l'instant : on garde ta position d'avant." : "On ne te trouve pas pour l'instant : réessaie dans un instant.";
-  }
-  if (!actualisation) return "Pas de souci : la liste suit tes envies 💛";
-  return repli ? `Pas de souci : ta position est oubliée, ${repli} 💛` : "Pas de souci : ta position est oubliée 💛";
+export function ecrireErreurPosition(erreur: ErreurPosition, actualisation: boolean, depuisVille: string | null, langue: Langue): string {
+  const T = choisirTextes(TEXTES_LOCALISATION_PAR_LANGUE, langue);
+  const chemin = Platform.OS === "ios" ? T.cheminLocalisationIos : T.cheminLocalisationAndroid;
+  const repli = actualisation ? ecrireRepliDistances(depuisVille, langue) : null;
+  const enAttendant = repli ? T.enAttendant(repli) : "";
+  if (erreur === "coupee") return T.coupee(chemin, enAttendant);
+  if (erreur === "refus-definitif") return T.refusDefinitif(enAttendant);
+  if (erreur === "introuvable") return actualisation ? T.introuvableActualisation : T.introuvable;
+  if (!actualisation) return T.refusSansActualisation;
+  return repli ? T.oublieeAvecRepli(repli) : T.oubliee;
 }

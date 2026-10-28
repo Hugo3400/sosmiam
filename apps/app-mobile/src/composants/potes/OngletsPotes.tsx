@@ -1,6 +1,8 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_ONGLETS_POTES_PAR_LANGUE } from "~/contenus/textes-onglets-potes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type OngletPotes = "sorties" | "bande" | "listes";
 
@@ -17,16 +19,12 @@ type Props = {
   invitationsListes?: number;
 };
 
-const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
-
-const onglets: { cle: OngletPotes; nom: string }[] = [
-  { cle: "sorties", nom: "Sorties" },
-  { cle: "bande", nom: "Ma bande" },
-  { cle: "listes", nom: "Listes" },
-];
+const CLES_ONGLETS: OngletPotes[] = ["sorties", "bande", "listes"];
 
 /** Les trois onglets de Potes (Sorties, Ma bande, Listes), sur fond crème pour rester lisibles quand ils restent collés en haut. */
 export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0, invitationsSorties = 0, invitationsListes = 0 }: Props) {
+  const T = utiliserTextes(TEXTES_ONGLETS_POTES_PAR_LANGUE).onglets;
+  const onglets = CLES_ONGLETS.map((cle) => ({ cle, nom: T.noms[cle] }));
   return (
     // Fond crème sur toute la largeur : les onglets restent lisibles quand ils restent collés en haut de l'écran
     <View className="bg-creme px-5 pt-1">
@@ -36,12 +34,12 @@ export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0,
           const pastille = o.cle === "sorties" ? nouveautes + invitationsSorties : o.cle === "bande" ? demandesBande : invitationsListes;
           const quoi =
             o.cle === "bande"
-              ? `${pluriel(pastille, "demande")} pour rejoindre ta bande`
+              ? T.demandesBande(pastille)
               : o.cle === "listes"
-                ? `${pluriel(pastille, "invitation")} à remplir une liste`
+                ? T.invitationsListes(pastille)
                 : [
-                    nouveautes > 0 ? `${nouveautes} lieu${nouveautes > 1 ? "x" : ""} reçu${nouveautes > 1 ? "s" : ""} pas encore vu${nouveautes > 1 ? "s" : ""}` : null,
-                    invitationsSorties > 0 ? `${pluriel(invitationsSorties, "invitation")} à une sortie` : null,
+                    nouveautes > 0 ? T.lieuxRecus(nouveautes) : null,
+                    invitationsSorties > 0 ? T.invitationsSorties(invitationsSorties) : null,
                   ]
                     .filter(Boolean)
                     .join(", ");
@@ -51,7 +49,7 @@ export function OngletsPotes({ onglet, onChoisir, nouveautes, demandesBande = 0,
             <Pressable
               key={o.cle}
               accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-              accessibilityLabel={Platform.OS === "ios" ? `${lu}, onglet ${i + 1} sur ${onglets.length}` : lu}
+              accessibilityLabel={Platform.OS === "ios" ? T.ongletSur(lu, i + 1, onglets.length) : lu}
               accessibilityState={{ selected: actif }}
               onPress={() => {
                 vibrerLegerement();

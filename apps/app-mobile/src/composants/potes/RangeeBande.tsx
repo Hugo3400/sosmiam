@@ -4,16 +4,19 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_ONGLETS_POTES_PAR_LANGUE } from "~/contenus/textes-onglets-potes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const TAILLE_ROND = 60;
 
 /** Ta bande en rangée qui défile (toucher un pote ouvre son profil), avec de quoi en ajouter d'autres. */
 export function RangeeBande() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ONGLETS_POTES_PAR_LANGUE).bande;
   const router = useRouter();
   const { potes } = utiliserCommunaute();
   const ajouter = () => router.push("/potes/ajouter");
@@ -22,10 +25,10 @@ export function RangeeBande() {
     <View className="gap-3">
       <View>
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-          {potes.length > 0 ? `Ta bande (${potes.length})` : "Ta bande"}
+          {T.titre(potes.length)}
         </Text>
         <Text className="font-texte text-sm text-gris">
-          {lierPonctuation(potes.length > 0 ? "Touche un pote pour voir son profil." : "Personne pour l'instant : invite tes potes, la table sera plus joyeuse.")}
+          {lierPonctuation(potes.length > 0 ? T.sousTitre : T.sousTitreVide)}
         </Text>
       </View>
 
@@ -33,8 +36,8 @@ export function RangeeBande() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-5" contentContainerClassName="gap-3 px-5 py-1">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Ajouter un pote"
-          accessibilityHint="Par son pseudo, ton lien ou ton QR code"
+          accessibilityLabel={T.ajouterPote}
+          accessibilityHint={T.ajouterIndice}
           onPress={() => {
             vibrerLegerement();
             ajouter();
@@ -49,7 +52,7 @@ export function RangeeBande() {
             <Ionicons name="add" size={28} color={couleurs.encre} />
           </View>
           <Text numberOfLines={1} className="font-texte-semi text-[13px] text-encre">
-            Ajouter
+            {T.ajouter}
           </Text>
         </Pressable>
 
@@ -58,7 +61,7 @@ export function RangeeBande() {
             key={pote.id}
             accessibilityRole="button"
             accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
-            accessibilityHint="Ouvre son profil"
+            accessibilityHint={T.profilIndice}
             onPress={() => {
               vibrerLegerement();
               router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
@@ -74,7 +77,7 @@ export function RangeeBande() {
         ))}
       </ScrollView>
 
-      <Bouton libelle="Inviter un pote" variante="blanc" indice="Par son pseudo, ton lien ou ton QR code" onPress={ajouter} />
+      <Bouton libelle={T.inviter} variante="blanc" indice={T.ajouterIndice} onPress={ajouter} />
     </View>
   );
 }

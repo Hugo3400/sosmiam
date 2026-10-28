@@ -40,8 +40,8 @@ export const STATUTS_RESERVATION_PRO_PAR_LANGUE: ParLangue<Traduction<typeof STA
 export const RESUMES_RESERVATIONS_PRO = {
   aRepondre: (n: number) => `${n} demande${n > 1 ? "s" : ""} à répondre`,
   attendues: (n: number) => `${n} table${n > 1 ? "s" : ""} attendue${n > 1 ? "s" : ""} aujourd'hui`,
-  places: (n: number) => `${n}⍽place${n > 1 ? "s" : ""}`,
-  demande: (nom: string, personnes: number, heure: string, suite: string) => `${nom} · ${personnes}⍽pers. · ${heure}${suite}`,
+  places: (n: number) => `${n} place${n > 1 ? "s" : ""}`,
+  demande: (nom: string, personnes: number, heure: string, suite: string) => `${nom} · ${personnes} pers. · ${heure}${suite}`,
   aHeure: (heure: string) => `à ${heure}`,
   services: (n: number) => `${n} service${n > 1 ? "s" : ""}`,
 } as const;

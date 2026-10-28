@@ -13,9 +13,11 @@ import { RetourAjoutPote, type RetourAjout } from "~/composants/potes/RetourAjou
 import { ScannerQrCode } from "~/composants/potes/ScannerQrCode";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { TEXTES_ECRAN_AJOUTER_POTE_PAR_LANGUE } from "~/contenus/textes-ecran-ajouter-pote";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Un pseudo seul (« @lea.croque » ou « lea.croque »), sans « @ » et en minuscules ; null si ce n'en est pas un */
 const lirePseudoSeul = (texte: string): string | null => {
@@ -28,6 +30,7 @@ const lirePseudoSeul = (texte: string): string | null => {
  * lien ou un QR code avec son code secret vous met dans la même bande tout de suite ; un pseudo seul envoie une demande.
  */
 export default function AjouterPote() {
+  const T = utiliserTextes(TEXTES_ECRAN_AJOUTER_POTE_PAR_LANGUE);
   const communaute = utiliserCommunaute();
   const { sociaux } = utiliserSession();
   const [enCours, setEnCours] = useState(false);
@@ -83,22 +86,22 @@ export default function AjouterPote() {
   }
 
   return (
-    <EcranReglage titre="Ajouter un pote" sousTitre="Plus on est de fous, plus on sauve de lieux.">
-      <SectionReglages titre="Ton QR code">
+    <EcranReglage titre={T.titre} sousTitre={T.sousTitre}>
+      <SectionReglages titre={T.tonQr}>
         <View className="gap-3 pt-1">
           <Text className="font-texte text-sm leading-5 text-gris">
-            {lierPonctuation("Ton pote le scanne dans l'app (Potes, « Ajouter un pote »), et hop : vous êtes dans la même bande.")}
+            {lierPonctuation(T.tonQrTexte)}
           </Text>
           <CodeQrInvitation pseudo={communaute.moi.pseudo} />
         </View>
       </SectionReglages>
 
-      <SectionReglages titre="Scanner un QR code">
+      <SectionReglages titre={T.scanner}>
         <View className="gap-3 pt-1">
-          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Ton pote te montre le sien (dans Potes, « Ajouter un pote ») : vise, c'est fait.")}</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.scannerTexte)}</Text>
           <ScannerQrCode onLu={(texte) => void ajouterDepuis(texte, "qr")} onOuvrir={() => setRetour(null)} />
           <ChampTexte
-            libelle="Ou colle le lien de ton pote"
+            libelle={T.lienLibelle}
             valeur={lienColle}
             onChangeTexte={setLienColle}
             placeholder="sosmiam.fr/invitation/…"
@@ -113,35 +116,31 @@ export default function AjouterPote() {
             }}
           />
           <Bouton
-            libelle={enCours ? "Un instant…" : "Ajouter avec ce lien"}
+            libelle={enCours ? T.unInstant : T.ajouterLien}
             variante="blanc"
             petit
             desactive={lienColle.trim() === "" || enCours}
-            indice="Retrouve ton pote grâce à son lien et l'ajoute à ta bande"
+            indice={T.ajouterLienIndice}
             onPress={() => void ajouterDepuis(lienColle, "champ")}
           />
           {retour ? <RetourAjoutPote retour={retour} /> : null}
         </View>
       </SectionReglages>
 
-      <SectionReglages titre="Chercher un pseudo">
+      <SectionReglages titre={T.chercher}>
         <View className="gap-3 pt-1">
-          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Tu connais son @ ? Tape-le, on te dit si on le trouve.")}</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.chercherTexte)}</Text>
           <RecherchePseudo />
         </View>
       </SectionReglages>
       <FeuilleConfirmation
         visible={aConfirmer !== null}
         emoji="🤝"
-        titre={aConfirmer?.avecCode ? `Rejoindre la bande de @${aConfirmer.pseudo} ?` : `Demander @${aConfirmer?.pseudo ?? ""} en pote ?`}
-        detail={
-          aConfirmer?.avecCode
-            ? "Ce lien vient de l'extérieur de l'app. Dans une bande, vous voyez chacun la ville, les points et les lieux gardés de l'autre : rejoins seulement quelqu'un que tu connais."
-            : "Ce lien vient de l'extérieur de l'app. Une demande partira : cette personne pourra l'accepter ou non."
-        }
-        libelleConfirmer={aConfirmer?.avecCode ? "Rejoindre sa bande" : "Envoyer la demande"}
-        libelleRester="Non merci"
-        indiceRester="Rien ne part, tu restes sur cet écran"
+        titre={aConfirmer?.avecCode ? T.rejoindreTitre(aConfirmer.pseudo) : T.demanderTitre(aConfirmer?.pseudo ?? "")}
+        detail={aConfirmer?.avecCode ? T.rejoindreDetail : T.demanderDetail}
+        libelleConfirmer={aConfirmer?.avecCode ? T.rejoindre : T.envoyerDemande}
+        libelleRester={T.nonMerci}
+        indiceRester={T.nonMerciIndice}
         onConfirmer={() => {
           if (aConfirmer) void ajouterDepuis(aConfirmer.lien, "champ");
         }}

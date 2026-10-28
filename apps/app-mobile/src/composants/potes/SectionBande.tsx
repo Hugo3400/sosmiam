@@ -6,9 +6,10 @@ import { ClassementPotes } from "~/composants/potes/ClassementPotes";
 import { DemandesBande } from "~/composants/potes/DemandesBande";
 import { RangeeBande } from "~/composants/potes/RangeeBande";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
+import { TEXTES_ONGLETS_POTES_PAR_LANGUE } from "~/contenus/textes-onglets-potes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const TYPES_SUGGESTIONS = ["personne"] as const;
-const SOUS_TITRE_SUGGESTIONS = "Des potes de tes potes. Suivre, c'est voir passer leurs listes ; Ma bande, c'est pour sortir ensemble.";
 
 type Props = {
   /** Lieux connus de l'app, par identifiant */
@@ -22,13 +23,14 @@ type Props = {
  * l'agrandir, puis des potes de potes à suivre.
  */
 export function SectionBande({ lieux, onRetire }: Props) {
+  const T = utiliserTextes(TEXTES_ONGLETS_POTES_PAR_LANGUE).bande;
   return (
     <View className="gap-8">
       <DemandesBande />
       <ClassementPotes />
       <ActivitePotes lieux={lieux} onRetire={onRetire} />
       <RangeeBande />
-      <SuggestionsSuivre titre="Tu pourrais suivre" sousTitre={SOUS_TITRE_SUGGESTIONS} types={TYPES_SUGGESTIONS} />
+      <SuggestionsSuivre titre={T.suggestionsTitre} sousTitre={T.suggestionsSousTitre} types={TYPES_SUGGESTIONS} />
     </View>
   );
 }

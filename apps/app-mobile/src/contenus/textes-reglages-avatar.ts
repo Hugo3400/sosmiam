@@ -1,0 +1,56 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_REGLAGES_AVATAR_ANGLAIS } from "~/contenus/anglais/textes-reglages-avatar";
+
+export const TEXTES_REGLAGES_AVATAR = {
+  nommer: {
+    photo: "ta photo",
+    miamiInconnu: (id: string) => `Miami ${id}`,
+    emoji: (nom: string) => nom,
+  },
+  taPhoto: "ta photo",
+  avatarNomme: (nom: string) => `avatar ${nom}`,
+  photoEnLigneLue: "Ta photo est en ligne : ta bande et les Miamis la voient.",
+  avatarRate: "Oups, ton avatar n'a pas pu être enregistré. Réessaie dans un instant.",
+  choixNote: (avatar: string) => `C'est noté : ${avatar}.`,
+  photoPasPreparee: "Ta photo n'a pas pu être préparée. Réessaie, ou choisis-en une autre.",
+  photoChoisieCompte: "C'est noté : ta photo est ton nouvel avatar. Elle part sur SOS Miam.",
+  photoChoisie: "C'est noté : ta photo est ton nouvel avatar.",
+  photoPart: "C'est parti : ta photo part sur SOS Miam.",
+  photoResteIci: "D'accord, ta photo reste sur ce téléphone.",
+  cameraRefuseeLue: "Pas d'accès à l'appareil photo. Tu peux l'autoriser dans les réglages de ton téléphone.",
+  cameraRatee: "Impossible d'ouvrir l'appareil photo. Réessaie, ou choisis une photo dans ta galerie.",
+  galerieRatee: "Impossible de récupérer cette photo. Réessaie, ou prends-en une nouvelle.",
+  retraitRate: "Oups, ta photo n'a pas pu être retirée. Réessaie dans un instant.",
+  photoRetireeLue: "Photo retirée : retour à ton avatar d'avant.",
+  retirerTitre: "Retirer ta photo ?",
+  retirerTexteCompte: (avatarParDefaut: string) =>
+    `Elle disparaît de SOS Miam, pour toi comme pour les autres, et tu retrouves ton avatar d'avant (ou l'${avatarParDefaut}).`,
+  retirerTexteVisite: (avatarParDefaut: string) => `Elle sera effacée de ce téléphone et tu repartiras avec l'${avatarParDefaut}, à changer quand tu veux.`,
+  garderPhoto: "Garder ma photo",
+  retirer: "Retirer",
+  reglagesRates: "Les réglages du téléphone n'ont pas voulu s'ouvrir. Tu les trouveras dans l'appli Réglages.",
+  titre: "Ton avatar",
+  sousTitre: "Un Miami de la Brigade, un emoji qui te ressemble, ou ta vraie bouille.",
+  avatarActuelLu: (avatar: string) => `Ton avatar actuel : ${avatar}`,
+  unMiami: "Un Miami",
+  unMiamiDetail: "Les matelots de la Brigade, chacun avec son couvre-chef.",
+  unEmoji: "Ou un emoji",
+  choisirEmojiLu: "Choisis un emoji",
+  emojiLuIos: (nom: string, position: number, total: number) => `Avatar ${nom}, ${position} sur ${total}`,
+  emojiLu: (nom: string) => `Avatar ${nom}`,
+  unePhoto: "Ou une photo",
+  prendrePhoto: "Prendre une photo",
+  prendrePhotoDetail: "Ton plus beau sourire (ou ta tête de faim)",
+  choisirGalerie: "Choisir dans ta galerie",
+  choisirGalerieDetail: "Une photo que tu as déjà",
+  retirerPhoto: "Retirer ma photo",
+  retirerPhotoDetailCompte: "Retour à ton avatar d'avant",
+  retirerPhotoDetailVisite: (avatarParDefaut: string) => `Retour à l'${avatarParDefaut}`,
+  photoEnLigne: "✅ Ta photo est en ligne : ta bande et les Miamis la voient.",
+  pasDAcces: "Pas d'accès à l'appareil photo",
+  pasDAccesTexte:
+    "Pour prendre ta photo de profil, SOS Miam a besoin de l'appareil photo, et seulement pour ça. Tu as dit non, et c'est ton droit ! Si tu changes d'avis, ça se passe dans les réglages de ton téléphone. Sinon, une photo de ta galerie fera très bien l'affaire.",
+  ouvrirReglages: "Ouvrir les réglages du téléphone",
+} as const;
+
+export const TEXTES_REGLAGES_AVATAR_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_REGLAGES_AVATAR>> = { fr: TEXTES_REGLAGES_AVATAR, en: TEXTES_REGLAGES_AVATAR_ANGLAIS };

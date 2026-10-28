@@ -1,18 +1,23 @@
+import { ecrireMoisLangue } from "@sos-miam/commun/fonctions/langue/ecrire-mois-langue";
 import { decalerJour } from "@sos-miam/commun/fonctions/temps/decaler-jour";
 import { lireJourSemaine } from "@sos-miam/commun/fonctions/temps/lire-jour-semaine";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 
 export type MoisCalendrier = { cle: string; titre: string; semaines: (string | null)[][] };
 
-const MOIS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+function nommerMois(jour: string, langue: Langue): string {
+  const nom = ecrireMoisLangue({ annee: Number(jour.slice(0, 4)), mois: Number(jour.slice(5, 7)) }, langue);
+  return nom.charAt(0).toLocaleUpperCase("fr-FR") + nom.slice(1);
+}
 
-export function listerMoisCalendrier(aujourdhui: string, nombreJours: number): MoisCalendrier[] {
+export function listerMoisCalendrier(aujourdhui: string, nombreJours: number, langue: Langue): MoisCalendrier[] {
   const fin = decalerJour(aujourdhui, nombreJours - 1);
   const mois: MoisCalendrier[] = [];
   for (let jour = aujourdhui; jour !== "" && jour <= fin; jour = decalerJour(jour, 1)) {
     const cle = jour.slice(0, 7);
     let courant = mois.at(-1);
     if (!courant || courant.cle !== cle) {
-      courant = { cle, titre: `${MOIS[Number(jour.slice(5, 7)) - 1]} ${jour.slice(0, 4)}`, semaines: [] };
+      courant = { cle, titre: nommerMois(jour, langue), semaines: [] };
       mois.push(courant);
     }
     const colonne = ((lireJourSemaine(jour) ?? 1) + 6) % 7;

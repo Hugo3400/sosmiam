@@ -124,10 +124,14 @@ test("règlement d'une visite : le français ne bouge pas, l'anglais garde « Co
     { type: "offert", reductionPourcent: null, avantages: ["autre", "autre"] },
   ];
   for (const r of reglements) {
-    for (const pour of ["client", "lieu"]) assert.deepEqual(decrireReglementLangue(r, pour, "fr"), decrireReglement(r, pour));
+    for (const pour of ["client", "lieu"]) {
+      const { titre, etiquettes, offert } = decrireReglementLangue(r, pour, "fr");
+      assert.deepEqual({ titre, etiquettes, offert }, decrireReglement(r, pour));
+    }
   }
-  assert.deepEqual(decrireReglementLangue(reglements[2], "lieu", "en"), {
-    titre: "Paid with a discount (−20%)",
+  const { titre, etiquettes, offert } = decrireReglementLangue(reglements[2], "lieu", "en");
+  assert.deepEqual({ titre, etiquettes, offert }, {
+    titre: "Paid with a discount −20%",
     etiquettes: ["Collaboration commerciale", "Happy hour or set menu"],
     offert: false,
   });

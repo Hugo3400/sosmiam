@@ -4,10 +4,13 @@ import { Text, View } from "react-native";
 import { SectionPliable } from "~/composants/interface/SectionPliable";
 import { BoutonContour } from "~/composants/profil/BoutonContour";
 import { CarteDefi } from "~/composants/profil/CarteDefi";
-import { TEXTES_DEFIS_PROFIL, TEXTES_PROFIL } from "~/contenus/textes-profil";
+import { TEXTES_DEFIS_PROFIL_PAR_LANGUE, TEXTES_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil";
+import { TEXTES_LISTE_DEFIS_PAR_LANGUE } from "~/contenus/textes-profil-defis";
 import { resumerDefis } from "~/fonctions/defis/resumer-defis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserDefis } from "~/hooks/utiliser-defis";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const DEFIS_VISIBLES = 2;
 
@@ -16,6 +19,10 @@ const DEFIS_VISIBLES = 2;
  * Rien tant qu'ils ne sont pas lus ; un mot si aucun n'est publié, ou si la lecture a raté avant d'en avoir montré.
  */
 export function ListeDefis() {
+  const T = utiliserTextes(TEXTES_LISTE_DEFIS_PAR_LANGUE);
+  const textesProfil = utiliserTextes(TEXTES_PROFIL_PAR_LANGUE);
+  const textesDefis = utiliserTextes(TEXTES_DEFIS_PROFIL_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const { defis, erreur } = utiliserDefis();
   const [tousVisibles, setTousVisibles] = useState(false);
   if (defis === null && erreur === null) return null;
@@ -24,21 +31,21 @@ export function ListeDefis() {
   const mot =
     defis === null
       ? erreur === "hors-ligne"
-        ? { emoji: "📶", texte: "Tes défis arrivent dès que le réseau revient. Ils t'attendent bien au chaud !" }
-        : { emoji: "😴", texte: "Tes défis font une petite sieste. Repasse sur ton profil dans un instant pour les réveiller." }
+        ? { emoji: "📶", texte: T.horsLigne }
+        : { emoji: "😴", texte: T.sieste }
       : defis.length === 0
-        ? { emoji: "🧑‍🍳", texte: "Pas de défi en ce moment : la Brigade en mijote de nouveaux. Reviens vite y goûter !" }
+        ? { emoji: "🧑‍🍳", texte: T.aucun }
         : null;
 
-  const resume = !mot && defis ? resumerDefis(defis) : null;
+  const resume = !mot && defis ? resumerDefis(defis, langue) : null;
   const liste = defis ?? [];
   const autres = liste.length - DEFIS_VISIBLES;
 
   return (
     <SectionPliable
       section="defis"
-      titre="Défis du moment"
-      sousTitre="Des petites quêtes gourmandes, des points en plus."
+      titre={T.titre}
+      sousTitre={T.sousTitre}
       resume={resume ? [resume.compte, resume.accroche] : undefined}
       pliable={resume !== null}
     >
@@ -56,8 +63,8 @@ export function ListeDefis() {
           ))}
           {autres > 0 ? (
             <BoutonContour
-              libelle={tousVisibles ? TEXTES_PROFIL.voirMoins : TEXTES_DEFIS_PROFIL.voirAutres(autres)}
-              libelleLu={tousVisibles ? TEXTES_DEFIS_PROFIL.voirMoinsLu : undefined}
+              libelle={tousVisibles ? textesProfil.voirMoins : textesDefis.voirAutres(autres)}
+              libelleLu={tousVisibles ? textesDefis.voirMoinsLu : undefined}
               onPress={() => setTousVisibles(!tousVisibles)}
             />
           ) : null}

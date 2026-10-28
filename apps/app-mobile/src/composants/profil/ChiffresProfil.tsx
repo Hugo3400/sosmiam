@@ -1,5 +1,8 @@
 import { Text, View } from "react-native";
 
+import { TEXTES_CHIFFRES_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
 type Props = {
   lieuxSauves: number;
   premiersSauvetages: number;
@@ -10,21 +13,22 @@ type Props = {
 type Chiffre = { valeur: string; libelle: string; lu: string };
 
 export function ChiffresProfil({ lieuxSauves, premiersSauvetages, badgesObtenus, badgesTotal }: Props) {
+  const T = utiliserTextes(TEXTES_CHIFFRES_PROFIL_PAR_LANGUE);
   const chiffres: Chiffre[] = [
     {
       valeur: String(lieuxSauves),
-      libelle: lieuxSauves > 1 ? "lieux sauvés" : "lieu sauvé",
-      lu: `${lieuxSauves} ${lieuxSauves > 1 ? "lieux sauvés" : "lieu sauvé"}`,
+      libelle: T.lieuxSauves(lieuxSauves),
+      lu: T.lieuxSauvesLu(lieuxSauves),
     },
     {
       valeur: String(premiersSauvetages),
-      libelle: premiersSauvetages > 1 ? "sauvés en premier" : "sauvé en premier",
-      lu: `${premiersSauvetages} ${premiersSauvetages > 1 ? "lieux sauvés" : "lieu sauvé"} en premier`,
+      libelle: T.premiers(premiersSauvetages),
+      lu: T.premiersLu(premiersSauvetages),
     },
     {
       valeur: `${badgesObtenus}/${badgesTotal}`,
       libelle: "badges",
-      lu: `${badgesObtenus} badge${badgesObtenus > 1 ? "s" : ""} obtenu${badgesObtenus > 1 ? "s" : ""} sur ${badgesTotal}`,
+      lu: T.badgesLu(badgesObtenus, badgesTotal),
     },
   ];
 

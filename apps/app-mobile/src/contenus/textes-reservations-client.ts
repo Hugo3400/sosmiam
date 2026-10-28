@@ -9,7 +9,7 @@ import {
 
 type Place = "table" | "place";
 
-const JE_SUIS_LA = "« Je⍽suis⍽là »";
+const JE_SUIS_LA = "« Je suis là »";
 
 const CONSOLATIONS: Readonly<Record<MotifRefusReservation, string>> = {
   complet: "Pas de panique, il reste plein d'autres créneaux (et plein d'autres pépites).",
@@ -22,7 +22,7 @@ export const EXPLICATIONS_RESERVATION = {
   consolations: CONSOLATIONS,
   annuleeParLieu: (motif: string) => `Le lieu a dû annuler : ${motif}. Désolé pour le contretemps, tu n'y es pour rien.`,
   retireeAvantReponse: (place: Place) => `Tu l'as retirée avant sa réponse : le lieu ne cherchera pas de ${place} pour rien. Pas de souci !`,
-  annuleeTardive: (heures: number) => `Annulée moins de ${heures}⍽h avant : le lieu l'a vue passer. Rien de grave si ça reste rare.`,
+  annuleeTardive: (heures: number) => `Annulée moins de ${heures} h avant : le lieu l'a vue passer. Rien de grave si ça reste rare.`,
   annuleeATemps: (place: Place) => `Annulée à temps : ta ${place} est repartie pour un autre Miami. Merci pour le lieu !`,
   nonPointeeAvecPresence: `Tu as touché ${JE_SUIS_LA}, mais le lieu n'a pas noté ton passage à temps : cette visite ne pourra pas compter. Rien n'est noté contre toi.`,
   nonPointee: "Le créneau est passé sans que le lieu note ton passage : cette visite ne pourra pas compter. Rien n'est noté contre toi, promis.",
@@ -53,7 +53,7 @@ export const ANNULATION_RESERVATION = {
   reservation: {
     titre: "Annuler ta réservation ?",
     detailTardive: (resume: string, heures: number) =>
-      `${resume} Il reste moins de ${heures}⍽h : le lieu verra passer cette annulation de dernière minute. Rien de grave si ça reste rare, promis.`,
+      `${resume} Il reste moins de ${heures} h : le lieu verra passer cette annulation de dernière minute. Rien de grave si ça reste rare, promis.`,
     detail: (resume: string, place: Place) => `${resume} En annulant maintenant, ta ${place} repart pour un autre Miami.`,
     libelleConfirmer: "Annuler la réservation",
     libelleRester: (place: Place) => `Je garde ma ${place}`,
@@ -72,13 +72,13 @@ export const ARRIVEE_RESERVATION = {
   visiteComptera: (souhait: string) => `Ta visite comptera dès que l'équipe touche « Venu ». ${souhait}`,
   souhaitRepas: "Bon appétit !",
   souhaitSortie: "Profite bien !",
-  presencePossible: "Tu arrives ? Une fois sur place, touche « Je⍽suis⍽là » : c'est ce qui fait compter ta visite.",
+  presencePossible: "Tu arrives ? Une fois sur place, touche « Je suis là » : c'est ce qui fait compter ta visite.",
   bouton: "📍 Je suis là",
   boutonLu: (chezLieu: string) => `Je suis là, ${chezLieu}`,
   boutonIndice: (chezLieu: string) => `Confirme que tu es bien ${chezLieu}, grâce à ta position`,
   position: "Ta position sert juste à vérifier que tu es là : elle n'est jamais gardée.",
   attenteCreneau: (heures: number) =>
-    `Le lieu t'attend ! « Je⍽suis⍽là » s'allume ${heures}⍽h avant ton créneau : touche-le sur place pour que ta visite compte.`,
+    `Le lieu t'attend ! « Je suis là » s'allume ${heures} h avant ton créneau : touche-le sur place pour que ta visite compte.`,
   code: "Ton code d'arrivée",
   codeLu: (code: string) => `Ton code d'arrivée : ${code}`,
 } as const;
@@ -88,7 +88,7 @@ export const ARRIVEE_RESERVATION_PAR_LANGUE: ParLangue<Traduction<typeof ARRIVEE
 export const CARTE_RESERVATION = {
   petitMot: "Ton petit mot",
   voirLieu: "Voir le lieu",
-  voirLieuLu: (deLieu: string) => `Voir la fiche ${deLieu}`,
+  voirLieuLu: (deLieu: string, _nom: string) => `Voir la fiche ${deLieu}`,
   voirLieuIndice: "Ouvre la fiche du lieu",
   annulerDemande: "Annuler la demande",
   annulerReservation: "Annuler la réservation",

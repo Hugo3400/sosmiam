@@ -1,61 +1,55 @@
-import { LIBELLES_MOTIF_REFUS_RESERVATION } from "@sos-miam/commun/contenus/motifs-refus";
+import { LIBELLES_MOTIF_REFUS_RESERVATION_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-refus";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import { ANNULATION_TARDIVE_MS } from "@sos-miam/commun/regles/reservations";
 import type { MotifRefusReservation, Reservation } from "@sos-miam/commun/types/reservation";
 
+import { EXPLICATIONS_RESERVATION_PAR_LANGUE } from "~/contenus/textes-reservations-client";
 import { estReservationNonPointee } from "~/fonctions/reservations/est-reservation-non-pointee";
 import { nommerPlaceReservation } from "~/fonctions/reservations/nommer-place-reservation";
 
 const HEURES_ANNULATION_TARDIVE = Math.round(ANNULATION_TARDIVE_MS / 3_600_000);
-const JE_SUIS_LA = "« Je suis là »";
 
-const CONSOLATIONS: Readonly<Record<MotifRefusReservation, string>> = {
-  complet: "Pas de panique, il reste plein d'autres créneaux (et plein d'autres pépites).",
-  ferme: "Pas de panique, il reste plein d'autres créneaux (et plein d'autres pépites).",
-  "groupe-trop-grand": "Appelle le lieu pour en parler de vive voix, ou tente une autre pépite.",
-  autre: "Pas de panique, il reste plein d'autres pépites à découvrir.",
-};
+type Explications = (typeof EXPLICATIONS_RESERVATION_PAR_LANGUE)["fr"];
 
-const citerMotif = (motif: MotifRefusReservation | null) => `« ${LIBELLES_MOTIF_REFUS_RESERVATION[motif ?? "autre"]} »`;
+const citerMotif = (motif: MotifRefusReservation | null, langue: Langue) =>
+  citer(choisirTextes(LIBELLES_MOTIF_REFUS_RESERVATION_PAR_LANGUE, langue)[motif ?? "autre"], langue);
 
-function expliquerAnnulation(reservation: Reservation): string {
+function expliquerAnnulation(reservation: Reservation, T: Explications, langue: Langue): string {
   const place = nommerPlaceReservation(reservation.lieu.type);
-  if (reservation.motifRefus) return `Le lieu a dû annuler : ${citerMotif(reservation.motifRefus)}. Désolé pour le contretemps, tu n'y es pour rien.`;
-  if (reservation.reponduLe === null) return `Tu l'as retirée avant sa réponse : le lieu ne cherchera pas de ${place} pour rien. Pas de souci !`;
-  if (reservation.tardive) return `Annulée moins de ${HEURES_ANNULATION_TARDIVE} h avant : le lieu l'a vue passer. Rien de grave si ça reste rare.`;
-  return `Annulée à temps : ta ${place} est repartie pour un autre Miami. Merci pour le lieu !`;
+  if (reservation.motifRefus) return T.annuleeParLieu(citerMotif(reservation.motifRefus, langue));
+  if (reservation.reponduLe === null) return T.retireeAvantReponse(place);
+  if (reservation.tardive) return T.annuleeTardive(HEURES_ANNULATION_TARDIVE);
+  return T.annuleeATemps(place);
 }
 
-function expliquerAcceptee(reservation: Reservation, maintenantMs: number): string | null {
+function expliquerAcceptee(reservation: Reservation, maintenantMs: number, T: Explications): string | null {
   if (!estReservationNonPointee(reservation, maintenantMs)) return null;
-  return reservation.presenceLe
-    ? `Tu as touché ${JE_SUIS_LA}, mais le lieu n'a pas noté ton passage à temps : cette visite ne pourra pas compter. Rien n'est noté contre toi.`
-    : "Le créneau est passé sans que le lieu note ton passage : cette visite ne pourra pas compter. Rien n'est noté contre toi, promis.";
+  return reservation.presenceLe ? T.nonPointeeAvecPresence : T.nonPointee;
 }
 
-function expliquerHonoree(reservation: Reservation, presencePossible: boolean): string {
-  if (presencePossible) return `Le lieu a noté ton arrivée ! Touche ${JE_SUIS_LA} pour que ta visite compte.`;
-  return reservation.presenceLe
-    ? "Le lieu a noté ton passage, et ta visite compte dans « Mes visites ». Reviens quand tu veux !"
-    : `Le lieu a noté ton passage, mais sans ${JE_SUIS_LA} sur place, la visite n'a pas pu compter. La prochaine fois, touche-le en arrivant !`;
+function expliquerHonoree(reservation: Reservation, presencePossible: boolean, T: Explications): string {
+  if (presencePossible) return T.honoreePresencePossible;
+  return reservation.presenceLe ? T.honoreeAvecPresence : T.honoreeSansPresence;
 }
 
-export function expliquerReservation(reservation: Reservation, presencePossible: boolean, maintenantMs: number): string | null {
+export function expliquerReservation(reservation: Reservation, presencePossible: boolean, maintenantMs: number, langue: Langue): string | null {
+  const T = choisirTextes(EXPLICATIONS_RESERVATION_PAR_LANGUE, langue);
   switch (reservation.statut) {
     case "demandee":
-      return reservation.creneauxProposes.length > 1
-        ? "Le lieu choisit l'horaire qui l'arrange parmi les tiens et te répond ici. Sans réponse à temps, la demande s'endort toute seule : rien n'est compté contre toi."
-        : "Le lieu te répond ici, avant ton créneau. Sans réponse à temps, la demande s'endort toute seule : rien n'est compté contre toi.";
+      return reservation.creneauxProposes.length > 1 ? T.demandeePlusieurs : T.demandee;
     case "acceptee":
-      return expliquerAcceptee(reservation, maintenantMs);
+      return expliquerAcceptee(reservation, maintenantMs, T);
     case "refusee":
-      return `Le lieu a répondu : ${citerMotif(reservation.motifRefus)}. ${CONSOLATIONS[reservation.motifRefus ?? "autre"]}`;
+      return T.refusee(citerMotif(reservation.motifRefus, langue), T.consolations[reservation.motifRefus ?? "autre"]);
     case "annulee":
-      return expliquerAnnulation(reservation);
+      return expliquerAnnulation(reservation, T, langue);
     case "expiree":
-      return "Le lieu n'a pas répondu à temps, alors la demande s'est endormie. Rien n'est compté contre toi.";
+      return T.expiree;
     case "honoree":
-      return expliquerHonoree(reservation, presencePossible);
+      return expliquerHonoree(reservation, presencePossible, T);
     case "absent":
-      return `Le lieu a noté une absence. Un imprévu, ça arrive ! La prochaine fois, annule dans l'app : ta ${nommerPlaceReservation(reservation.lieu.type)} fera le bonheur d'un autre Miami.`;
+      return T.absent(nommerPlaceReservation(reservation.lieu.type));
   }
 }

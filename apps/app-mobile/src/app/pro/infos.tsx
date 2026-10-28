@@ -9,13 +9,15 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
 import { InfosPratiquesLieu } from "~/composants/lieux/InfosPratiquesLieu";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_INFOS_PRATIQUES_PAR_LANGUE } from "~/contenus/textes-ecran-pro-mon-lieu";
 import { creerBrouillonInfosPratiques, type BrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Les infos pratiques du lieu, remplies par le gérant : de quoi le joindre, les animaux, l'accès, les équipements, la
@@ -23,6 +25,8 @@ import { utiliserServices } from "~/hooks/utiliser-services";
  */
 export default function EcranInfosPratiquesPro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_INFOS_PRATIQUES_PAR_LANGUE);
+  const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
@@ -57,8 +61,8 @@ export default function EcranInfosPratiquesPro() {
     const r = await comptoir.reglerInfosPratiques(lieuPro.id, valide.infos);
     setEnregistrement(false);
     if (!r.ok) {
-      if (r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.ficheLieu);
-      return setAnnonce({ texte: "Les infos n'ont pas pu être enregistrées. Réessaie dans un instant ?", numero: Date.now() });
+      if (r.erreur === "compte-limite") return setRefusLimite(TL.ficheLieu);
+      return setAnnonce({ texte: T.echec, numero: Date.now() });
     }
     vibrerLegerement();
     fermer();
@@ -70,7 +74,7 @@ export default function EcranInfosPratiquesPro() {
         <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={T.retour}
             hitSlop={8}
             onPress={fermer}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -78,24 +82,24 @@ export default function EcranInfosPratiquesPro() {
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            Infos pratiques
+            {T.titre}
           </Text>
         </View>
 
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-8 pt-2">
-          <Text className="font-texte text-base leading-6 text-gris">Ce que les gourmands voient sur ta fiche avant de venir. Ce que tu ne coches pas n'apparaît pas.</Text>
+          <Text className="font-texte text-base leading-6 text-gris">{T.intro}</Text>
 
           <ChampsInfosPratiques brouillon={brouillon} onChanger={changer} erreur={erreur} />
 
           <View className="gap-2">
-            <Text className="font-texte-gras text-base text-encre">Aperçu sur ta fiche</Text>
+            <Text className="font-texte-gras text-base text-encre">{T.apercu}</Text>
             <InfosPratiquesLieu nom={lieuPro.nom} pratique={apercu.ok ? apercu.infos : undefined} />
           </View>
         </ScrollView>
 
         <View className="gap-3 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
           <RefusLimitationEnPlace texte={refusLimite} />
-          <Bouton libelle={enregistrement ? "Enregistrement…" : "Enregistrer"} desactive={enregistrement} onPress={enregistrer} />
+          <Bouton libelle={enregistrement ? T.enregistrement : T.enregistrer} desactive={enregistrement} onPress={enregistrer} />
         </View>
       </KeyboardAvoidingView>
       <Annonce annonce={annonce} haut={marges.top + 12} onFin={() => setAnnonce(null)} />

@@ -8,6 +8,7 @@ import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { TEXTES_MENUS_POTES_PAR_LANGUE } from "~/contenus/textes-menus-potes";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -15,6 +16,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -32,6 +34,7 @@ type Vue = "options" | "signaler" | "bloquer";
 /** Le menu d'un message d'un pote, dans une feuille qui monte du bas : le signaler, ou bloquer son auteur (avec confirmation). */
 export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MENUS_POTES_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -73,19 +76,19 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
   // Fin du signalement : « Fermer » après le merci ferme le menu ; le retour sans rien envoyer ramène aux options
   const terminerSignalement = () => (message && !dejaSignale && estSignale(message.id) ? onFermer() : aller("options"));
 
-  const prenom = auteur?.prenom ?? "cette personne";
+  const prenom = auteur?.prenom ?? T.message.cettePersonne;
   // Quelqu'un d'une sortie n'est pas forcément dans ta bande : on ne lui annonce pas qu'il en sort
   const dansBande = !!auteur && potes.some((p) => p.id === auteur.id);
   const options = [
-    { cle: "signaler" as const, emoji: "🚩", titre: "Signaler ce message", detail: "Insulte, harcèlement, arnaque… dis-nous ce qui cloche" },
-    ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${prenom}`, detail: "Tu ne verras plus ses messages ni ses commentaires" }] : []),
+    { cle: "signaler" as const, emoji: "🚩", titre: T.message.signaler, detail: T.message.signalerDetail },
+    ...(auteur ? [{ cle: "bloquer" as const, emoji: "🚫", titre: T.bloquer(prenom), detail: T.message.bloquerDetail }] : []),
   ];
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermerMenu} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
@@ -96,21 +99,19 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
             <PoigneeFeuille geste={geste} />
             <ScrollView ref={defilement} keyboardShouldPersistTaps="handled" contentContainerClassName="px-5">
               {vue === "signaler" && message ? (
-                <SignalerContenu cible="message" cibleId={message.id} sujet={`ce message de ${prenom}`} onTermine={terminerSignalement} />
+                <SignalerContenu cible="message" cibleId={message.id} sujet={T.message.sujet(prenom)} onTermine={terminerSignalement} />
               ) : vue === "bloquer" && auteur ? (
                 <View className="gap-4">
                   <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                    {lierPonctuation(`Bloquer ${prenom} ?`)}
+                    {lierPonctuation(T.bloquerTitre(prenom))}
                   </Text>
                   <Text className="font-texte text-base leading-6 text-encre">
                     {lierPonctuation(
-                      dansBande
-                        ? `${prenom} sortira de ta bande, et ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.`
-                        : "Ses messages et ses commentaires disparaîtront pour toi. Tu restes tranquille, c'est tout ce qui compte.",
+                      dansBande ? T.message.bloquerDansBande(prenom) : T.message.bloquerHorsBande,
                     )}
                   </Text>
                   <Bouton
-                    libelle={`Bloquer ${prenom}`}
+                    libelle={T.bloquer(prenom)}
                     variante="encre"
                     onPress={() => {
                       bloquer(auteur.id);
@@ -118,13 +119,13 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
                     }}
                   />
                   <Pressable accessibilityRole="button" onPress={() => aller("options")} className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Non, je reviens</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T.nonJeReviens}</Text>
                   </Pressable>
                 </View>
               ) : (
                 <>
                   <Text ref={titreOptions} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
-                    {`Message de ${prenom}`}
+                    {T.message.titre(prenom)}
                   </Text>
                   {message ? (
                     <View className="mb-2 rounded-2xl border-2 border-ligne bg-carte px-3.5 py-2.5">
@@ -153,7 +154,7 @@ export function MenuMessage({ visible, message, auteur, onFermer, onBloque }: Pr
                     </Pressable>
                   ))}
                   <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
                   </Pressable>
                 </>
               )}

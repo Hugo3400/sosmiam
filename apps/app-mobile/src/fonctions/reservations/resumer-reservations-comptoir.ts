@@ -1,12 +1,14 @@
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 
-import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
+import { TEXTES_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-reservations-pro";
+import { RESUMES_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-statut-reservation";
 
-const accorder = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
-
-export function resumerReservationsComptoir(aRepondre: number, arrivees: readonly ReservationPro[]): string {
+export function resumerReservationsComptoir(aRepondre: number, arrivees: readonly ReservationPro[], langue: Langue): string {
+  const T = choisirTextes(RESUMES_RESERVATIONS_PRO_PAR_LANGUE, langue);
   const morceaux: string[] = [];
-  if (aRepondre > 0) morceaux.push(`${accorder(aRepondre, "demande")} à répondre`);
-  if (arrivees.length > 0) morceaux.push(`${accorder(arrivees.length, "table")} attendue${arrivees.length > 1 ? "s" : ""} aujourd'hui`);
-  return morceaux.length > 0 ? morceaux.join(" · ") : TEXTES_RESERVATIONS_PRO.entreeVide;
+  if (aRepondre > 0) morceaux.push(T.aRepondre(aRepondre));
+  if (arrivees.length > 0) morceaux.push(T.attendues(arrivees.length));
+  return morceaux.length > 0 ? morceaux.join(" · ") : choisirTextes(TEXTES_RESERVATIONS_PRO_PAR_LANGUE, langue).entreeVide;
 }

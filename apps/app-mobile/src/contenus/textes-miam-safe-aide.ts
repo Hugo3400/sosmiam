@@ -1,0 +1,72 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_MIAM_SAFE_AIDE_ANGLAIS } from "~/contenus/anglais/textes-miam-safe-aide";
+
+export const TEXTES_MIAM_SAFE_AIDE = {
+  badge: "🛡️ Miam Safe",
+  boutonLu: "Miam Safe",
+  boutonIndice: "Tu ne te sens pas en sécurité ici ? Les secours, et un écran à montrer à l'équipe",
+  engageLu: "Lieu Miam Safe : son équipe sait quoi faire si tu ne te sens pas en sécurité",
+  repere: "Les Miamis s'y sentent bien",
+  dangerReel: "Danger réel ? Appelle tout de suite.",
+  fermer: "Fermer",
+  fermerEcranLu: "Fermer l'écran Miam Safe",
+  retour: "Retour",
+  titres: {
+    choix: "Miam Safe",
+    pote: "Prévenir un pote",
+    comptoir: "Demander au comptoir",
+    alerte: "Alerter le comptoir",
+    raconter: "Raconte-nous",
+  },
+  sousTitreChoix: (nomLieu: string) => `${nomLieu} · on est là, prends ton temps.`,
+  sousTitreSecours: (nomLieu: string) => `${nomLieu} · on est là.`,
+  onEstLa: "On est là.",
+  ecranEnClair: {
+    signee: "Ce lieu a signé la charte Miam Safe. L'écran dit en clair à son équipe que tu as besoin d'aide, et quoi faire.",
+    "pas-signee": "Ce lieu n'a pas signé la charte Miam Safe : son équipe ne connaît peut-être pas Miam Safe. L'écran lui dit en clair que tu as besoin d'aide, et quoi faire.",
+    "en-cours": "On vérifie si ce lieu a signé la charte Miam Safe. L'écran dit en clair à l'équipe que tu as besoin d'aide, et quoi faire.",
+    inconnue: "On n'a pas pu vérifier si ce lieu a signé la charte Miam Safe. L'écran dit en clair à l'équipe que tu as besoin d'aide, et quoi faire.",
+  },
+  souciEquipe: "Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.",
+  souciEquipeLieu: "Le souci vient de l'équipe du lieu ? Appelle plutôt un proche ou les secours.",
+  direPhrase: "Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres.",
+  prononciationPhrase: "",
+  sensPhrase: "",
+  pasEnvieDeParler: "Pas envie de parler ? Montre l'écran : il est sombre et discret, la consigne n'est écrite qu'en petit.",
+  traductionConsigneEquipe: "",
+  montrerEcranPersonnel: "Montrer l'écran au personnel",
+  montrerEcranEquipe: "Montrer l'écran à l'équipe",
+  montrerEcranIndice: "Un écran qui dit en clair à l'équipe que tu as besoin d'aide",
+  traductionConsigne: "",
+  demanderAuComptoir: "Demander au comptoir",
+  texteComptoir: "Montre cet écran à quelqu'un de l'équipe : il dit en clair que tu as besoin d'aide, et quoi faire, même à une équipe qui ne connaît pas Miam Safe.",
+  sansInternet: "Ces numéros marchent sans Internet, comme l'écran à montrer à l'équipe.",
+  avecUnCompte: "prévenir un pote, alerter le comptoir en silence ou nous raconter ce qui s'est passé depuis l'app",
+  texteSansCompte: (avecUnCompte: string) => `Pour ${avecUnCompte}, il te faut un compte : c'est ce qui nous permet de prendre chaque alerte au sérieux.`,
+  indiceCreerCompte: (avecUnCompte: string) => `Pour ${avecUnCompte}`,
+  creerCompte: "Créer mon compte",
+  choix: {
+    pote: { titre: "Prévenir un pote", detail: "Une notification, et ta position pendant 1 h." },
+    comptoir: { titre: "Demander au comptoir", detailSignee: "Une phrase à dire, ou un écran à montrer.", detail: "Un écran à montrer à l'équipe." },
+    alerte: { titre: "Alerter le comptoir en silence", detail: "Si tu ne peux pas y aller." },
+    raconter: { titre: "Raconter ce qui s'est passé", detail: "Reste entre toi et notre équipe." },
+  },
+  charte: {
+    "pas-signee":
+      "Ce lieu n'a pas signé la charte Miam Safe : son équipe ne connaît peut-être pas Miam Safe, et l'alerte silencieuse n'y marche pas. L'écran lui dit quoi faire, en clair.",
+    "en-cours": "On vérifie si ce lieu a signé la charte Miam Safe…",
+    inconnue: "On n'a pas pu vérifier si ce lieu a signé la charte Miam Safe.",
+  },
+  suivi: {
+    enRoute: (heure: string) => `Ton alerte au comptoir : l'équipe a répondu « On arrive » à ${heure}.`,
+    debut: (heure: string) => `Ton alerte au comptoir de ${heure}`,
+    relecture: (debut: string) => `${debut} : on regarde si l'équipe a répondu…`,
+    sansReponse: (debut: string) => `${debut} : l'équipe n'a pas encore répondu.`,
+    aucunTelephone: (debut: string) => `${debut} : aucun téléphone de l'équipe ne l'a reçue.`,
+    partie: (debut: string) => `${debut} est partie : on attend la réponse de l'équipe.`,
+  },
+  suiviIndice: "Ouvre le suivi de ton alerte",
+  voir: "Voir",
+};
+
+export const TEXTES_MIAM_SAFE_AIDE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MIAM_SAFE_AIDE>> = { fr: TEXTES_MIAM_SAFE_AIDE, en: TEXTES_MIAM_SAFE_AIDE_ANGLAIS };

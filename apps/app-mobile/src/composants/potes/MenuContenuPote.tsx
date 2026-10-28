@@ -9,6 +9,7 @@ import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
+import { TEXTES_MENUS_POTES_PAR_LANGUE } from "~/contenus/textes-menus-potes";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -16,6 +17,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Ce qu'un pote a partagé avec toi : un lieu envoyé (identifiant de la recommandation) ou une liste, et ce pote */
 export type ContenuPote = { cible: "recommandation" | "liste"; id: string; pote: Pote };
@@ -36,21 +38,6 @@ type Vue = "options" | "signaler-contenu" | "signaler-profil" | "bloquer";
 // Toujours la même liste vide : une nouvelle à chaque rendu relancerait sans fin la copie des choix affichés
 const AUCUNE_ACTION: ActionContenuPote[] = [];
 
-const TEXTES = {
-  recommandation: {
-    titre: (prenom: string) => `Lieu envoyé par ${prenom}`,
-    signaler: "Signaler ce lieu envoyé",
-    detail: "Pub déguisée, arnaque, mot qui blesse… il disparaît pour toi",
-    sujet: (prenom: string) => `le lieu envoyé par ${prenom}`,
-  },
-  liste: {
-    titre: (prenom: string) => `Liste de ${prenom}`,
-    signaler: "Signaler cette liste",
-    detail: "Titre choquant, arnaque, pub déguisée… elle disparaît pour toi",
-    sujet: (prenom: string) => `la liste de ${prenom}`,
-  },
-};
-
 /**
  * Le menu « ⋯ » d'un lieu envoyé par un pote ou de sa liste : les choix propres à l'endroit (retirer, ne plus suivre…), puis voir
  * son profil, signaler ce contenu (il disparaît pour toi), signaler son profil, ou le bloquer (tout ce qui vient de lui disparaît
@@ -58,6 +45,7 @@ const TEXTES = {
  */
 export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MENUS_POTES_PAR_LANGUE);
   const router = useRouter();
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(contenu !== null, onFermer);
@@ -106,20 +94,20 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
 
   if (!affiche) return null;
   const { pote, cible, id } = affiche;
-  const textes = TEXTES[cible];
+  const textes = T[cible];
   const dansBande = potes.some((p) => p.id === pote.id);
 
   const options = [
-    { cle: "profil" as const, emoji: "👀", titre: `Voir le profil de ${pote.prenom}`, detail: `@${pote.pseudo}` },
+    { cle: "profil" as const, emoji: "👀", titre: T.contenu.voirProfil(pote.prenom), detail: `@${pote.pseudo}` },
     { cle: "signaler-contenu" as const, emoji: "🚩", titre: textes.signaler, detail: textes.detail },
-    { cle: "signaler-profil" as const, emoji: "🙅", titre: `Signaler ${pote.prenom}`, detail: "Son profil pose problème ? On regarde ça de près" },
-    { cle: "bloquer" as const, emoji: "🚫", titre: `Bloquer ${pote.prenom}`, detail: "Ses messages, ses lieux envoyés et ses listes disparaissent pour toi" },
+    { cle: "signaler-profil" as const, emoji: "🙅", titre: T.contenu.signalerProfil(pote.prenom), detail: T.contenu.signalerProfilDetail },
+    { cle: "bloquer" as const, emoji: "🚫", titre: T.bloquer(pote.prenom), detail: T.contenu.bloquerDetail },
   ];
 
   return (
     <Modal visible={contenu !== null} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermerMenu} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
@@ -132,21 +120,19 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
               {vue === "signaler-contenu" ? (
                 <SignalerContenu cible={cible} cibleId={id} sujet={textes.sujet(pote.prenom)} onTermine={() => terminerSignalement(id)} />
               ) : vue === "signaler-profil" ? (
-                <SignalerContenu cible="profil" cibleId={pote.id} sujet={`le profil de ${pote.prenom}`} onTermine={() => terminerSignalement(pote.id)} />
+                <SignalerContenu cible="profil" cibleId={pote.id} sujet={T.contenu.sujetProfil(pote.prenom)} onTermine={() => terminerSignalement(pote.id)} />
               ) : vue === "bloquer" ? (
                 <View className="gap-3">
                   <Text ref={titreBlocage} accessibilityRole="header" className="font-titre text-2xl text-encre">
-                    {lierPonctuation(`Bloquer ${pote.prenom} ?`)}
+                    {lierPonctuation(T.bloquerTitre(pote.prenom))}
                   </Text>
                   <Text className="font-texte text-base leading-6 text-encre">
                     {lierPonctuation(
-                      dansBande
-                        ? `${pote.prenom} sortira de ta bande, et tu ne verras plus ses messages, ses commentaires, ses lieux envoyés ni ses listes.`
-                        : "Tu ne verras plus ses messages, ses commentaires, ses lieux envoyés ni ses listes. Tu restes tranquille, c'est tout ce qui compte.",
+                      dansBande ? T.contenu.bloquerDansBande(pote.prenom) : T.contenu.bloquerHorsBande,
                     )}
                   </Text>
                   <Bouton
-                    libelle={`Bloquer ${pote.prenom}`}
+                    libelle={T.bloquer(pote.prenom)}
                     variante="encre"
                     onPress={() => {
                       bloquer(pote.id);
@@ -154,7 +140,7 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
                     }}
                     className="mt-2"
                   />
-                  <Bouton libelle="Non, je reviens" variante="blanc" onPress={() => aller("options")} />
+                  <Bouton libelle={T.nonJeReviens} variante="blanc" onPress={() => aller("options")} />
                 </View>
               ) : (
                 <>
@@ -209,7 +195,7 @@ export function MenuContenuPote({ contenu, actionsEnPlus = AUCUNE_ACTION, onFerm
                     </Pressable>
                   ))}
                   <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
                   </Pressable>
                 </>
               )}

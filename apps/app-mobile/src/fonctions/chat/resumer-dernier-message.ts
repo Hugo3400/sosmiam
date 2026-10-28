@@ -1,5 +1,8 @@
-import { QUESTION_SONDAGE } from "@sos-miam/commun/regles/chat";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { MessageChat } from "@sos-miam/commun/types/conversations";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_SONDAGE_PAR_LANGUE } from "~/contenus/textes-sondage";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 
@@ -13,27 +16,29 @@ function couper(texte: string): string {
 }
 
 /** Le contenu seul : à l'écran (avec emoji) ou pour le lecteur d'écran */
-function decrireContenu(message: MessageChat, lieuNom: string | undefined, pourLecteurEcran: boolean): string {
+function decrireContenu(message: MessageChat, langue: Langue, lieuNom: string | undefined, pourLecteurEcran: boolean): string {
+  const T = choisirTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE, langue);
   // Compte connecté : un message qui n'est plus visible se dit comme dans sa bulle
-  if (message.etat === "supprime") return "Message supprimé";
-  if (message.etat === "masque") return "Masqué en attendant la modération";
-  if (message.etat === "retire") return "Retiré par la modération";
-  if (message.etat === "illisible") return "Message illisible";
+  if (message.etat === "supprime") return T.messageSupprime;
+  if (message.etat === "masque") return T.masque;
+  if (message.etat === "retire") return T.retire;
+  if (message.etat === "illisible") return T.illisible;
   // Même durée, même icône que la bulle et le menu du message
   const duree = message.dureeSecondes;
   switch (message.type) {
     case "photo":
-      return pourLecteurEcran ? "photo" : "📷 Photo";
+      return pourLecteurEcran ? T.photoLue : T.photo;
     case "vocal":
-      if (pourLecteurEcran) return `note vocale${duree !== undefined ? ` de ${formaterDureeVocalLue(duree)}` : ""}`;
-      return `🎙️ Note vocale${duree !== undefined ? ` · ${formaterDureeVocal(duree)}` : ""}`;
+      if (pourLecteurEcran) return T.vocalLu(duree !== undefined ? formaterDureeVocalLue(duree, langue) : null);
+      return T.vocal(duree !== undefined ? formaterDureeVocal(duree) : null);
     case "lieu":
-      if (pourLecteurEcran) return `lieu partagé${lieuNom ? ` : ${lieuNom}` : ""}`;
-      return `📍 ${lieuNom ?? "Un lieu"}`;
+      return pourLecteurEcran ? T.lieuLu(lieuNom) : T.lieu(lieuNom);
     case "gif":
-      return pourLecteurEcran ? "GIF" : "🎞️ GIF";
-    case "vote":
-      return pourLecteurEcran ? `sondage : ${message.texte ?? QUESTION_SONDAGE}` : `🗳️ ${message.texte ?? QUESTION_SONDAGE}`;
+      return pourLecteurEcran ? T.gifLu : T.gif;
+    case "vote": {
+      const question = choisirTextes(TEXTES_SONDAGE_PAR_LANGUE, langue).question;
+      return pourLecteurEcran ? T.sondageLu(question) : T.sondage(question);
+    }
     default:
       return couper(message.texte ?? "");
   }
@@ -46,7 +51,7 @@ function decrireContenu(message: MessageChat, lieuNom: string | undefined, pourL
  * `lieuNom` : le nom du lieu partagé (type « lieu »), s'il est connu.
  * `pourLecteurEcran` : version lue par VoiceOver et TalkBack, sans emoji ni « 0:12 » (« Toi : note vocale de 12 secondes »).
  */
-export function resumerDernierMessage(message: MessageChat, auteur: string | null, lieuNom?: string, pourLecteurEcran = false): string {
-  const contenu = decrireContenu(message, lieuNom, pourLecteurEcran);
-  return auteur ? `${auteur} : ${contenu}` : contenu;
+export function resumerDernierMessage(message: MessageChat, auteur: string | null, langue: Langue, lieuNom?: string, pourLecteurEcran = false): string {
+  const contenu = decrireContenu(message, langue, lieuNom, pourLecteurEcran);
+  return auteur ? choisirTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE, langue).avecAuteur(auteur, contenu) : contenu;
 }

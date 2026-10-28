@@ -7,21 +7,21 @@ import { ecrireDepuisVille } from "~/fonctions/geo/ecrire-depuis-ville";
 import { retrouverPorteeSansPosition } from "~/fonctions/lieux/retrouver-portee-sans-position";
 
 test("« de » devant une ville, contracté comme on le dit : du Havre, des Abymes, d'Agde, de La Rochelle", () => {
-  assert.equal(direDeVille("Le Havre"), "du Havre");
-  assert.equal(direDeVille("Le Mans"), "du Mans");
-  assert.equal(direDeVille("Les Abymes"), "des Abymes");
-  assert.equal(direDeVille("Les Sables-d'Olonne"), "des Sables-d'Olonne");
-  assert.equal(direDeVille("La Rochelle"), "de La Rochelle");
-  assert.equal(direDeVille("Agde"), "d'Agde");
-  assert.equal(direDeVille("Orléans"), "d'Orléans");
-  assert.equal(direDeVille("Montpellier"), "de Montpellier");
-  assert.equal(direDeVille("Lens"), "de Lens");
-  assert.equal(direDeVille("Lesneven"), "de Lesneven");
-  assert.equal(ecrireDepuisVille("le havre"), "du Havre");
-  assert.equal(ecrireDepuisVille("Les Abymes"), "des Abymes");
-  assert.equal(ecrireDepuisVille("Montpellier"), "de Montpellier");
-  assert.equal(ecrireDepuisVille("Trifouilly-les-Oies"), null);
-  for (const ville of villesFrance) assert.doesNotMatch(direDeVille(ville.nom), /^de (Le|Les) /, ville.nom);
+  assert.equal(direDeVille("Le Havre", "fr"), "du Havre");
+  assert.equal(direDeVille("Le Mans", "fr"), "du Mans");
+  assert.equal(direDeVille("Les Abymes", "fr"), "des Abymes");
+  assert.equal(direDeVille("Les Sables-d'Olonne", "fr"), "des Sables-d'Olonne");
+  assert.equal(direDeVille("La Rochelle", "fr"), "de La Rochelle");
+  assert.equal(direDeVille("Agde", "fr"), "d'Agde");
+  assert.equal(direDeVille("Orléans", "fr"), "d'Orléans");
+  assert.equal(direDeVille("Montpellier", "fr"), "de Montpellier");
+  assert.equal(direDeVille("Lens", "fr"), "de Lens");
+  assert.equal(direDeVille("Lesneven", "fr"), "de Lesneven");
+  assert.equal(ecrireDepuisVille("le havre", "fr"), "du Havre");
+  assert.equal(ecrireDepuisVille("Les Abymes", "fr"), "des Abymes");
+  assert.equal(ecrireDepuisVille("Montpellier", "fr"), "de Montpellier");
+  assert.equal(ecrireDepuisVille("Trifouilly-les-Oies", "fr"), null);
+  for (const ville of villesFrance) assert.doesNotMatch(direDeVille(ville.nom, "fr"), /^de (Le|Les) /, ville.nom);
 });
 
 test("Autour de moi éteint : la portée d'avant revient, et sans point de départ on retourne sur toute la France", () => {

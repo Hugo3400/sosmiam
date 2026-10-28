@@ -1,8 +1,10 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
-import { TEXTES_ESPACE_COMMUNAUTE } from "~/contenus/textes-miamis";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
+import { TEXTES_ESPACE_COMMUNAUTE_PAR_LANGUE } from "~/contenus/textes-miamis";
+import { TEXTES_ONGLETS_POTES_PAR_LANGUE } from "~/contenus/textes-onglets-potes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type EspaceCommunaute = "messages" | "bande" | "miamis";
 
@@ -12,24 +14,24 @@ type Props = {
   nonLus: number;
 };
 
-const ESPACES: { cle: EspaceCommunaute; nom: string }[] = [
-  { cle: "messages", nom: TEXTES_ESPACE_COMMUNAUTE.messages },
-  { cle: "bande", nom: TEXTES_ESPACE_COMMUNAUTE.bande },
-  { cle: "miamis", nom: TEXTES_ESPACE_COMMUNAUTE.miamis },
-];
+const CLES_ESPACES: EspaceCommunaute[] = ["messages", "bande", "miamis"];
 
 export function SelecteurEspaceCommunaute({ espace, onChoisir, nonLus }: Props) {
+  const T = utiliserTextes(TEXTES_ESPACE_COMMUNAUTE_PAR_LANGUE);
+  const MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const ONGLETS = utiliserTextes(TEXTES_ONGLETS_POTES_PAR_LANGUE).onglets;
+  const ESPACES = CLES_ESPACES.map((cle) => ({ cle, nom: T[cle] }));
   return (
-    <View accessibilityRole="tablist" accessibilityLabel={TEXTES_ESPACE_COMMUNAUTE.choisir} className="flex-row gap-1 rounded-2xl border-2 border-encre bg-carte p-1">
+    <View accessibilityRole="tablist" accessibilityLabel={T.choisir} className="flex-row gap-1 rounded-2xl border-2 border-encre bg-carte p-1">
       {ESPACES.map((e, i) => {
         const actif = e.cle === espace;
         const pastille = e.cle === "messages" && nonLus > 0 ? (nonLus > 99 ? "99+" : String(nonLus)) : null;
-        const lu = pastille ? `${e.nom}, ${TEXTES_MESSAGES.nonLus(nonLus)}` : e.nom;
+        const lu = pastille ? `${e.nom}, ${MESSAGES.nonLus(nonLus)}` : e.nom;
         return (
           <Pressable
             key={e.cle}
             accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-            accessibilityLabel={Platform.OS === "ios" ? `${lu}, onglet ${i + 1} sur ${ESPACES.length}` : lu}
+            accessibilityLabel={Platform.OS === "ios" ? ONGLETS.ongletSur(lu, i + 1, ESPACES.length) : lu}
             accessibilityState={{ selected: actif }}
             onPress={() => {
               if (actif) return;

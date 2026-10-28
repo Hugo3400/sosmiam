@@ -14,21 +14,19 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { CompteurPlusMoins } from "~/composants/interface/CompteurPlusMoins";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { ApercuCarteFidelite } from "~/composants/pro/ApercuCarteFidelite";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_FIDELITE_PAR_LANGUE, type TEXTES_ECRAN_FIDELITE } from "~/contenus/textes-ecran-pro-mon-lieu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const VIERGE: ReglageFidelite = { actif: true, visitesRequises: VISITES_FIDELITE_DEFAUT, recompense: "", alcool: false, recompenseSansAlcool: null };
 
-const ERREURS = {
-  recompense: "Entre 3 et 60 caractères, sans gros mot : un café, un dessert maison…",
-  recompenseSansAlcool: "Entre 3 et 60 caractères, sans gros mot et sans une goutte d'alcool : un jus pressé, un sirop maison…",
-  visitesRequises: "Entre 3 et 10 visites.",
-} as const;
+type ChampErreur = keyof typeof TEXTES_ECRAN_FIDELITE.erreurs;
 
 /**
  * La carte de fidélité du lieu (gérant) : ce qu'il offre, au bout de combien de visites, avec l'aperçu de ce que verront
@@ -37,12 +35,14 @@ const ERREURS = {
  */
 export default function EcranFidelitePro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_FIDELITE_PAR_LANGUE);
+  const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
   const { comptoir } = utiliserServices();
   const [reglage, setReglage] = useState<ReglageFidelite>(VIERGE);
-  const [erreur, setErreur] = useState<keyof typeof ERREURS | null>(null);
+  const [erreur, setErreur] = useState<ChampErreur | null>(null);
   const [enregistrement, setEnregistrement] = useState(false);
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
   // Compte limité : dit au-dessus du bouton jusqu'au prochain essai (l'annonce du haut passerait sous celle de toute l'app)
@@ -77,8 +77,8 @@ export default function EcranFidelitePro() {
     const r = await comptoir.reglerProgramme(lieuPro.id, valide.reglage);
     setEnregistrement(false);
     if (!r.ok) {
-      if (r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.fidelite);
-      return setAnnonce({ texte: "La carte n'a pas pu être enregistrée. Réessaie dans un instant ?", numero: Date.now() });
+      if (r.erreur === "compte-limite") return setRefusLimite(TL.fidelite);
+      return setAnnonce({ texte: T.echec, numero: Date.now() });
     }
     vibrerLegerement();
     fermer();
@@ -90,7 +90,7 @@ export default function EcranFidelitePro() {
         <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={T.retour}
             hitSlop={8}
             onPress={fermer}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -98,57 +98,57 @@ export default function EcranFidelitePro() {
             <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
           </Pressable>
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            Carte de fidélité
+            {T.titre}
           </Text>
         </View>
 
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-5 px-5 pb-8 pt-2">
           <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("C'est toi qui offres, c'est toi qui choisis. Prends quelque chose que tu peux tenir même un samedi soir plein.")}
+            {lierPonctuation(T.intro)}
           </Text>
-          <Interrupteur titre="Carte active" detail="En pause, tes clients ne la voient plus (les récompenses gagnées restent valables 30 jours)" valeur={reglage.actif} onChanger={(actif) => changer({ actif })} />
+          <Interrupteur titre={T.actif} detail={T.actifDetail} valeur={reglage.actif} onChanger={(actif) => changer({ actif })} />
           <ChampTexte
-            libelle="Ce que tu offres"
+            libelle={T.recompense}
             valeur={reglage.recompense}
             onChangeTexte={(recompense) => changer({ recompense })}
-            aide="Un café, un dessert maison, une boule de glace…"
-            erreur={erreur === "recompense" ? ERREURS.recompense : null}
+            aide={T.recompenseAide}
+            erreur={erreur === "recompense" ? T.erreurs.recompense : null}
             maxLength={60}
           />
           {alcoolDetecte ? (
-            <Text className="font-texte text-sm leading-5 text-gris">🍷 Il y a de l'alcool dedans : tes clients verront le petit message de prévention à côté.</Text>
+            <Text className="font-texte text-sm leading-5 text-gris">{T.alcoolDetecte}</Text>
           ) : (
-            <Interrupteur titre="Il y a de l'alcool dedans" valeur={reglage.alcool} onChanger={(a) => changer({ alcool: a, recompenseSansAlcool: a ? reglage.recompenseSansAlcool : null })} />
+            <Interrupteur titre={T.alcool} valeur={reglage.alcool} onChanger={(a) => changer({ alcool: a, recompenseSansAlcool: a ? reglage.recompenseSansAlcool : null })} />
           )}
           {alcool ? (
             <ChampTexte
-              libelle="Et une version sans alcool ?"
-              mention="facultatif"
+              libelle={T.sansAlcool}
+              mention={T.facultatif}
               valeur={reglage.recompenseSansAlcool ?? ""}
               onChangeTexte={(t) => changer({ recompenseSansAlcool: t })}
-              aide="Si tu veux, une idée sans une goutte d'alcool en plus : un jus pressé, un sirop maison…"
-              erreur={erreur === "recompenseSansAlcool" ? ERREURS.recompenseSansAlcool : null}
+              aide={T.sansAlcoolAide}
+              erreur={erreur === "recompenseSansAlcool" ? T.erreurs.recompenseSansAlcool : null}
               maxLength={60}
             />
           ) : null}
           <View className="gap-2">
-            <Text className="font-texte-gras text-base text-encre">Visites avant la récompense</Text>
+            <Text className="font-texte-gras text-base text-encre">{T.visites}</Text>
             <CompteurPlusMoins
-              libelle="Visites avant la récompense"
+              libelle={T.visites}
               valeur={reglage.visitesRequises}
               min={VISITES_FIDELITE_MIN}
               max={VISITES_FIDELITE_MAX}
-              unite={(n) => `${n} visites`}
+              unite={T.visitesUnite}
               onChanger={(visitesRequises) => changer({ visitesRequises })}
             />
-            {erreur === "visitesRequises" ? <Text className="font-texte-semi text-sm text-rouge-texte">{ERREURS.visitesRequises}</Text> : null}
+            {erreur === "visitesRequises" ? <Text className="font-texte-semi text-sm text-rouge-texte">{T.erreurs.visitesRequises}</Text> : null}
           </View>
           <ApercuCarteFidelite nomLieu={lieuPro.nom} emoji={lieuPro.emoji} visites={reglage.visitesRequises} recompense={reglage.recompense} actif={reglage.actif} />
         </ScrollView>
 
         <View className="gap-3 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
           <RefusLimitationEnPlace texte={refusLimite} />
-          <Bouton libelle={enregistrement ? "Enregistrement…" : "Enregistrer la carte"} desactive={enregistrement} onPress={enregistrer} />
+          <Bouton libelle={enregistrement ? T.enregistrement : T.enregistrer} desactive={enregistrement} onPress={enregistrer} />
         </View>
       </KeyboardAvoidingView>
       <Annonce annonce={annonce} haut={marges.top + 12} onFin={() => setAnnonce(null)} />

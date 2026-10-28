@@ -1,24 +1,26 @@
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { ReservationPro } from "@sos-miam/commun/types/reservation";
 
+import { STATUTS_RESERVATION_PRO_PAR_LANGUE } from "~/contenus/textes-statut-reservation";
 import type { EtiquetteReservation } from "~/fonctions/reservations/decrire-statut-reservation";
 
-export function decrireStatutReservationPro(reservation: Pick<ReservationPro, "statut" | "presence">): EtiquetteReservation {
+export function decrireStatutReservationPro(reservation: Pick<ReservationPro, "statut" | "presence">, langue: Langue): EtiquetteReservation {
+  const T = choisirTextes(STATUTS_RESERVATION_PRO_PAR_LANGUE, langue);
   switch (reservation.statut) {
     case "demandee":
-      return { texte: "⏳ À répondre", lu: "Demande à répondre", ton: "attente" };
+      return { ...T.demandee, ton: "attente" };
     case "acceptee":
-      return reservation.presence
-        ? { texte: "📍 Sur place", lu: "Acceptée, et le client est sur place", ton: "jaune" }
-        : { texte: "✅ Acceptée", lu: "Acceptée", ton: "jaune" };
+      return reservation.presence ? { ...T.surPlace, ton: "jaune" } : { ...T.acceptee, ton: "jaune" };
     case "honoree":
-      return { texte: "🎉 Venu", lu: "Venu, passage noté", ton: "jaune" };
+      return { ...T.honoree, ton: "jaune" };
     case "absent":
-      return { texte: "🪑 Pas venu", lu: "Pas venu", ton: "rose" };
+      return { ...T.absent, ton: "rose" };
     case "refusee":
-      return { texte: "Refusée", lu: "Refusée", ton: "doux" };
+      return { ...T.refusee, ton: "doux" };
     case "annulee":
-      return { texte: "Annulée", lu: "Annulée", ton: "doux" };
+      return { ...T.annulee, ton: "doux" };
     case "expiree":
-      return { texte: "😴 Sans réponse à temps", lu: "Demande endormie, sans réponse à temps", ton: "doux" };
+      return { ...T.expiree, ton: "doux" };
   }
 }

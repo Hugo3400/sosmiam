@@ -3,7 +3,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { TEXTES_COLLECTIONS_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -16,11 +18,12 @@ type Props = {
 
 /** Une case carrée de la grille Gardés / J'aime : l'image (ou le dégradé du lieu), avec le nom du lieu lisible dessus. */
 export function VignetteCollection({ lieu, image, libelle, onPress }: Props) {
+  const T = utiliserTextes(TEXTES_COLLECTIONS_PROFIL_PAR_LANGUE);
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint="Ouvre la fiche du lieu"
+      accessibilityHint={T.indiceVignette}
       onPress={() => {
         vibrerLegerement();
         onPress();

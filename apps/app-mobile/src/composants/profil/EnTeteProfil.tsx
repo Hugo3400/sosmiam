@@ -6,10 +6,12 @@ import type { Profil } from "@sos-miam/commun/types/profil";
 import { BoutonNotifications } from "~/composants/notifications/BoutonNotifications";
 import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { CompteursSuivi } from "~/composants/suivi/CompteursSuivi";
+import { TEXTES_EN_TETE_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { Avatar } from "~/stockage/avatar-local";
 
 type Props = {
@@ -22,6 +24,7 @@ const TAILLE_AVATAR = 88;
 
 export function EnTeteProfil({ profil, avatar, age }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_EN_TETE_PROFIL_PAR_LANGUE);
   const router = useRouter();
   const { pret, comptePrive } = utiliserSuivisPersonnes();
   const monId = utiliserMonId();
@@ -35,8 +38,8 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Paramètres"
-        accessibilityHint="Ton compte, tes alertes et tes données"
+        accessibilityLabel={T.parametres}
+        accessibilityHint={T.indiceParametres}
         onPress={() => {
           vibrerLegerement();
           router.push("/reglages");
@@ -48,7 +51,7 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Changer ton avatar"
+        accessibilityLabel={T.changerAvatar}
         onPress={() => {
           vibrerLegerement();
           router.push("/reglages/avatar");
@@ -69,14 +72,14 @@ export function EnTeteProfil({ profil, avatar, age }: Props) {
         <View className="flex-row flex-wrap items-center justify-center gap-2">
           {profil.pseudo ? <Text className="text-center font-texte-semi text-base text-encre">@{profil.pseudo}</Text> : null}
           {prive ? (
-            <View accessible accessibilityLabel="Compte privé" className="rounded-full border-2 border-encre bg-jaune-clair px-2.5 py-0.5">
-              <Text className="font-texte-gras text-xs text-encre">🔒 Privé</Text>
+            <View accessible accessibilityLabel={T.comptePrive} className="rounded-full border-2 border-encre bg-jaune-clair px-2.5 py-0.5">
+              <Text className="font-texte-gras text-xs text-encre">{T.prive}</Text>
             </View>
           ) : null}
         </View>
       ) : null}
-      <Text accessibilityLabel={`${profil.ville}, ${age} ans`} className="text-center font-texte text-base text-gris">
-        📍 {profil.ville} · {age} ans
+      <Text accessibilityLabel={T.villeAgeLu(profil.ville, age)} className="text-center font-texte text-base text-gris">
+        {T.villeAge(profil.ville, age)}
       </Text>
       <CompteursSuivi id={monId} />
     </View>
