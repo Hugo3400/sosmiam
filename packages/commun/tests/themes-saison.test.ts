@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { TEXTES_THEMES_SAISON_ANGLAIS } from "../src/contenus/anglais/themes-saison.ts";
 import { TEXTES_THEMES_SAISON } from "../src/contenus/themes-saison.ts";
 import { choisirThemeDuJour } from "../src/fonctions/themes-saison/choisir-theme-du-jour.ts";
+import { lireThemeSaisonApi } from "../src/fonctions/themes-saison/lire-theme-saison-api.ts";
 import { listerThemesDuJour } from "../src/fonctions/themes-saison/lister-themes-du-jour.ts";
 import { preparerThemeSaisonApi } from "../src/fonctions/themes-saison/preparer-theme-saison-api.ts";
 import { THEMES_SAISON } from "../src/regles/calendrier-themes-saison.ts";
@@ -154,4 +155,51 @@ test("preparerThemeSaisonApi : la période du jour, les textes dans la langue et
   assert.equal(api.sobre, true);
   assert.deepEqual(api.lienInfo?.langue, "fr");
   assert.notDeepEqual(api.couleursSombres, api.couleurs);
+});
+
+test("lireThemeSaisonApi : un thème complet passe, une tenue, une couleur, un texte ou un lien douteux non", () => {
+  const halloween = preparerThemeSaisonApi(choisirThemeDuJour("2026-10-25")!, "fr");
+  assert.deepEqual(lireThemeSaisonApi(JSON.parse(JSON.stringify(halloween))), halloween);
+  const { couleursSombres: _, ...sansSombres } = halloween;
+  assert.deepEqual(lireThemeSaisonApi(sansSombres)?.couleursSombres, halloween.couleurs);
+  for (const abime of [
+    null,
+    [],
+    "halloween",
+    { ...halloween, id: "black-friday" },
+    { ...halloween, tenue: "../../secret" },
+    { ...halloween, famille: "pub" },
+    { ...halloween, couleurs: { ...halloween.couleurs, fond: "red; background:url(x)" } },
+    { ...halloween, textes: { ...halloween.textes, titre: "" } },
+    { ...halloween, textes: { ...halloween.textes, bouton: 3 } },
+    { ...halloween, debut: "demain" },
+  ]) {
+    assert.equal(lireThemeSaisonApi(abime), null, JSON.stringify(abime)?.slice(0, 80));
+  }
+  const rose = preparerThemeSaisonApi(choisirThemeDuJour("2026-10-10")!, "fr");
+  assert.equal(rose.lienInfo?.langue, "fr");
+  assert.deepEqual(lireThemeSaisonApi(JSON.parse(JSON.stringify(rose))), rose);
+  for (const lienInfo of [
+    { adresse: "javascript:alert(1)", langue: "fr" },
+    { adresse: "http://www.cancer.fr/", langue: "fr" },
+    { adresse: "https://moi:secret@exemple.fr/", langue: "fr" },
+    { adresse: "https://moi@exemple.fr/", langue: "fr" },
+    { adresse: "https://exemple.fr/ une phrase", langue: "fr" },
+    { adresse: "pas une adresse", langue: "fr" },
+    { adresse: "https://www.cancer.fr/", langue: "de" },
+    "https://www.cancer.fr/",
+  ]) {
+    assert.equal(lireThemeSaisonApi({ ...rose, lienInfo })?.lienInfo, null, JSON.stringify(lienInfo));
+  }
+  const vus = new Set<string>();
+  for (let jour = Date.parse("2026-01-01T12:00:00Z"); jour < Date.parse("2029-01-01T12:00:00Z"); jour += 86_400_000) {
+    for (const duJour of listerThemesDuJour(new Date(jour).toISOString().slice(0, 10), "Paris")) {
+      vus.add(duJour.theme.id);
+      for (const langue of ["fr", "en"] as const) {
+        const api = preparerThemeSaisonApi(duJour, langue);
+        assert.deepEqual(lireThemeSaisonApi(JSON.parse(JSON.stringify(api))), api, `${api.id} ${langue}`);
+      }
+    }
+  }
+  assert.deepEqual([...vus].sort(), [...IDS_THEMES_SAISON].sort());
 });
