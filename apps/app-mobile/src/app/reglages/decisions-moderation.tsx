@@ -78,20 +78,14 @@ export default function DecisionsModeration() {
   }
 
   function contenu() {
-    if (source === "demo" || source === "visite") {
+    if (source === "visite") {
       return (
         <MessageDecisionsModeration
           emoji="🛡️"
           titre="Ici, la modération te répond"
-          texte={
-            source === "demo"
-              ? "En démo, rien ne part à l'équipe, donc rien à décider. Avec un compte, c'est ici qu'arrivent les décisions sur tes contenus et sur tes signalements : la règle en cause, l'explication de l'équipe, et de quoi contester pendant 6 mois."
-              : "C'est ici qu'arrivent les décisions de l'équipe sur tes contenus et sur tes signalements : la règle en cause, son explication, et de quoi contester pendant 6 mois. Pour ça, il te faut un compte."
-          }
+          texte="C'est ici qu'arrivent les décisions de l'équipe sur tes contenus et sur tes signalements : la règle en cause, son explication, et de quoi contester pendant 6 mois. Pour ça, il te faut un compte."
         >
-          {source === "visite" ? (
-            <Bouton libelle="Créer mon compte" petit className="mt-3" indice="Ouvre la création de ton compte" onPress={() => void exigerCompte("signaler")} />
-          ) : null}
+          <Bouton libelle="Créer mon compte" petit className="mt-3" indice="Ouvre la création de ton compte" onPress={() => void exigerCompte("signaler")} />
         </MessageDecisionsModeration>
       );
     }

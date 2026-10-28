@@ -160,15 +160,6 @@ export default function Notifications() {
           Notifications
         </Text>
 
-        {source === "demo" ? (
-          <View accessible className="flex-row gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
-            <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
-              🧪
-            </Text>
-            <Text className="flex-1 font-texte text-sm leading-5 text-encre">{lierPonctuation("Notifications d'exemple, pour voir à quoi ça ressemble.")}</Text>
-          </View>
-        ) : null}
-
         {!pretAAfficher ? null : (
           <>
             <DemandesBande />

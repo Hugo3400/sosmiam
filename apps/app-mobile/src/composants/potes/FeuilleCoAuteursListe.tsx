@@ -23,11 +23,10 @@ type Ligne = { pote: Pote; statut: "invite" | "accepte" | null };
 
 /**
  * « Remplir à plusieurs » (l'auteur seulement) : les co-auteurs de la liste avec leur statut (« invité », « remplit avec toi »),
- * à retirer d'un geste, puis les potes de ta bande à inviter (10 co-auteurs au plus). Démo : le pote invité accepte tout seul
- * quelques secondes plus tard.
+ * à retirer d'un geste, puis les potes de ta bande à inviter (10 co-auteurs au plus).
  */
 export function FeuilleCoAuteursListe({ visible, liste, onFermer }: Props) {
-  const { potes, trouverPote, bloques, demo, inviterCoAuteur, retirerCoAuteur } = utiliserCommunaute();
+  const { potes, trouverPote, bloques, inviterCoAuteur, retirerCoAuteur } = utiliserCommunaute();
   const [enCours, setEnCours] = useState<string | null>(null);
   const [souci, setSouci] = useState<string | null>(null);
   // À chaque ouverture, on repart sans message
@@ -112,9 +111,6 @@ export function FeuilleCoAuteursListe({ visible, liste, onFermer }: Props) {
         ) : (
           coAuteurs.map((c, i) => ligne(c, i, coAuteurs.length))
         )}
-        {demo && coAuteurs.some((c) => c.statut === "invite") ? (
-          <Text className="mt-1 font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation("Démo : ton pote d'exemple dit oui dans quelques secondes.")}</Text>
-        ) : null}
       </View>
 
       <View className="gap-1">

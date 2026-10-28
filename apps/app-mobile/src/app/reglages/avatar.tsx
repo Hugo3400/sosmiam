@@ -44,7 +44,7 @@ export default function ReglagesAvatar() {
   const couleurs = utiliserCouleurs();
   const { avatar, changerAvatar, retirerPhoto: retirerPhotoProfil, etatPhoto, profil } = utiliserProfil();
   const sourceSociale = utiliserSourceSociale();
-  const partage = sourceSociale === "demo" ? "demo" : profil !== null ? "compte" : "visite";
+  const partage = profil !== null ? "compte" : "visite";
   const { width } = useWindowDimensions();
   // Une seule ouverture du sélecteur à la fois (deux appuis rapides n'ouvrent pas deux fois l'appareil photo)
   const occupe = useRef(false);

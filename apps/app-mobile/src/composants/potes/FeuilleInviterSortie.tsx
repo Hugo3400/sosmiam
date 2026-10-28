@@ -22,11 +22,10 @@ type Props = {
 
 /**
  * « Inviter d'autres potes » (l'organisateur seulement) : les potes de ta bande qui ne sont ni dans la sortie ni déjà invités,
- * dans la limite de 15 personnes en tout (toi et les invitations en attente compris). Démo : ils rejoignent la sortie tout de
- * suite ; avec un compte, chacun reçoit « Tu viens ? ».
+ * dans la limite de 15 personnes en tout (toi et les invitations en attente compris) ; chacun reçoit « Tu viens ? ».
  */
 export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: Props) {
-  const { potes, demo, inviterASortie } = utiliserCommunaute();
+  const { potes, inviterASortie } = utiliserCommunaute();
   const [choisis, setChoisis] = useState<string[]>([]);
   const [envoi, setEnvoi] = useState(false);
   const [souci, setSouci] = useState<string | null>(null);
@@ -58,7 +57,7 @@ export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: P
       return;
     }
     const prenoms = listerPrenoms(potes.filter((p) => choisis.includes(p.id)).map((p) => p.prenom));
-    onInvites(demo ? `🎉 ${prenoms} ${choisis.length > 1 ? "rejoignent" : "rejoint"} la sortie !` : `📨 C'est envoyé : ${prenoms} ${choisis.length > 1 ? "reçoivent" : "reçoit"} « Tu viens ? »`);
+    onInvites(`📨 C'est envoyé : ${prenoms} ${choisis.length > 1 ? "reçoivent" : "reçoit"} « Tu viens ? »`);
   }
 
   return (
@@ -76,7 +75,7 @@ export function FeuilleInviterSortie({ visible, sortie, onFermer, onInvites }: P
             <Bouton
               libelle={envoi ? "Un instant…" : choisis.length > 0 ? `Inviter (${choisis.length})` : "Inviter"}
               desactive={envoi || choisis.length === 0}
-              indice={demo ? "Ils rejoignent la sortie" : "Chacun reçoit « Tu viens ? »"}
+              indice="Chacun reçoit « Tu viens ? »"
               onPress={() => void inviter()}
             />
           ) : null}

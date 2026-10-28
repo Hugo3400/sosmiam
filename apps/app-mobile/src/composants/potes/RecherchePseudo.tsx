@@ -18,19 +18,17 @@ const DELAI_ANNONCE = 700;
 
 /**
  * Chercher quelqu'un par son pseudo : avatar, @pseudo et prénom (à toucher pour ouvrir son profil), puis « Ajouter » (une
- * demande qu'il accepte ; démo : ajouté tout de suite) ou « Déjà dans ta bande ». Les personnes bloquées n'apparaissent pas.
+ * demande qu'il accepte) ou « Déjà dans ta bande ». Les personnes bloquées n'apparaissent pas.
  */
 export function RecherchePseudo() {
   const router = useRouter();
-  const { demanderAjout, demandesEnvoyees, demo } = utiliserCommunaute();
+  const { demanderAjout, demandesEnvoyees } = utiliserCommunaute();
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const cherche = texte.trim().replace(/^@/, "");
   const { resultats, enCours, erreur: rechercheRatee } = utiliserRecherchePseudo(texte);
   const nombre = resultats.length;
-  const aucun = demo
-    ? `On ne trouve personne pour @${cherche} dans la démo. Essaie @camille !`
-    : `On ne trouve personne pour @${cherche}. Vérifie l'orthographe, ou demande-lui plutôt son lien ou son QR code !`;
+  const aucun = `On ne trouve personne pour @${cherche}. Vérifie l'orthographe, ou demande-lui plutôt son lien ou son QR code !`;
 
   // VoiceOver ignore accessibilityLiveRegion (qui sert à TalkBack) : sur iPhone, on annonce les résultats une fois la frappe posée
   useEffect(() => {
@@ -84,7 +82,7 @@ export function RecherchePseudo() {
       />
 
       {cherche.length < 2 ? (
-        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(demo ? "Tape au moins 2 lettres. Pour essayer la démo : cherche @camille !" : "Tape au moins 2 lettres.")}</Text>
+        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Tape au moins 2 lettres.")}</Text>
       ) : enCours && resultats.length === 0 ? (
         <Text className="font-texte text-sm leading-5 text-gris">On cherche…</Text>
       ) : rechercheRatee ? (
@@ -131,7 +129,7 @@ export function RecherchePseudo() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Ajouter ${pote.prenom}, @${pote.pseudo}`}
-                  accessibilityHint={demo ? "L'ajoute à ta bande" : "Lui demande de rejoindre ta bande"}
+                  accessibilityHint="Lui demande de rejoindre ta bande"
                   onPress={() => void ajouter(pote)}
                   className="min-h-11 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
                 >

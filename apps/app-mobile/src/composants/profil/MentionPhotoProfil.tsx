@@ -5,13 +5,13 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 const REGLES = "https://sosmiam.fr/cgu#photo-profil";
 
 type Props = {
-  partage: "compte" | "demo" | "visite";
+  partage: "compte" | "visite";
   photoLocale: boolean;
 };
 
 export function MentionPhotoProfil({ partage, photoLocale }: Props) {
   if (partage !== "compte") {
-    const texte = partage === "demo" ? "🔒 En mode démo, ta photo reste sur ton téléphone : rien ne part." : "🔒 Sans compte, ta photo reste sur ton téléphone.";
+    const texte = "🔒 Sans compte, ta photo reste sur ton téléphone.";
     return <Text className="mt-6 font-texte text-sm leading-5 text-gris">{lierPonctuation(texte)}</Text>;
   }
   return (
