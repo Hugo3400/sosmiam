@@ -3,7 +3,7 @@
 // téléphone). Contrat de l'API : session Site (routes /comptes/qr et /app/qr).
 
 import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
-import { textesConnexionQrAnglais } from "~/contenus/anglais/connexion-qr";
+import { TEXTES_CONNEXION_QR_ANGLAIS } from "~/contenus/anglais/connexion-qr";
 
 /** Un QR vit 2 minutes, et sert une seule fois */
 export const DUREE_QR_CONNEXION_S = 120;
@@ -59,4 +59,4 @@ export const textesConnexionQr = {
   renouvele: "Nouveau QR toutes les 2 minutes : c'est plus sûr.",
 };
 
-export const textesConnexionQrParLangue: ParLangue<Traduction<typeof textesConnexionQr>> = { fr: textesConnexionQr, en: textesConnexionQrAnglais };
+export const TEXTES_CONNEXION_QR_PAR_LANGUE: ParLangue<Traduction<typeof textesConnexionQr>> = { fr: textesConnexionQr, en: TEXTES_CONNEXION_QR_ANGLAIS };

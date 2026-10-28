@@ -1,4 +1,5 @@
-import type { FamilleDeBadges } from "~/contenus/familles-badges";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { FamilleDeBadges, TITRE_FAMILLE_AUTRES } from "~/contenus/familles-badges";
 
 export const FAMILLES_BADGES_ANGLAIS: readonly FamilleDeBadges[] = [
   {
@@ -40,4 +41,4 @@ export const FAMILLES_BADGES_ANGLAIS: readonly FamilleDeBadges[] = [
   },
 ];
 
-export const TITRE_FAMILLE_AUTRES_ANGLAIS = "Others";
+export const TITRE_FAMILLE_AUTRES_ANGLAIS: Traduction<typeof TITRE_FAMILLE_AUTRES> = "Others";

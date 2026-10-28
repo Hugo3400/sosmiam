@@ -85,6 +85,6 @@ const raisons: Record<RaisonCompte, Omit<ChoixRaisonCompte, "titre">> = {
   },
 };
 
-export const raisonsCompteAnglais: Traduction<typeof raisonsCompte> = Object.fromEntries(
+export const RAISONS_COMPTE_ANGLAIS: Traduction<typeof raisonsCompte> = Object.fromEntries(
   Object.entries(raisons).map(([cle, raison]) => [cle, { ...raison, titre: `Create your account to ${raison.action}` }]),
 ) as Record<RaisonCompte, ChoixRaisonCompte>;

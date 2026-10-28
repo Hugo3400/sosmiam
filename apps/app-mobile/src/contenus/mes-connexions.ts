@@ -2,7 +2,7 @@
 // Mêmes mots que la partie « Mes façons de me connecter » du site (apps/site-web/src/contenus/mes-connexions.ts).
 
 import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
-import { aideAjouterMotDePasseAnglais, AVERTISSEMENT_RELAIS_APPLE_ANGLAIS, CHAPO_MES_CONNEXIONS_ANGLAIS, messagesMesConnexionsAnglais } from "~/contenus/anglais/mes-connexions";
+import { AIDE_AJOUTER_MOT_DE_PASSE_ANGLAIS, AVERTISSEMENT_RELAIS_APPLE_ANGLAIS, CHAPO_MES_CONNEXIONS_ANGLAIS, MESSAGES_MES_CONNEXIONS_ANGLAIS } from "~/contenus/anglais/mes-connexions";
 
 export type FournisseurConnexion = "apple" | "google";
 
@@ -38,6 +38,6 @@ export const AVERTISSEMENT_RELAIS_APPLE =
   "C'est une adresse masquée d'Apple : le lien n'arrive que si le transfert des e-mails est activé pour SOS Miam, dans les réglages de ton identifiant Apple (« Se connecter avec Apple »).";
 
 export const CHAPO_MES_CONNEXIONS_PAR_LANGUE: ParLangue<Traduction<typeof CHAPO_MES_CONNEXIONS>> = { fr: CHAPO_MES_CONNEXIONS, en: CHAPO_MES_CONNEXIONS_ANGLAIS };
-export const messagesMesConnexionsParLangue: ParLangue<Traduction<typeof messagesMesConnexions>> = { fr: messagesMesConnexions, en: messagesMesConnexionsAnglais };
-export const aideAjouterMotDePasseParLangue: ParLangue<Traduction<typeof aideAjouterMotDePasse>> = { fr: aideAjouterMotDePasse, en: aideAjouterMotDePasseAnglais };
+export const MESSAGES_MES_CONNEXIONS_PAR_LANGUE: ParLangue<Traduction<typeof messagesMesConnexions>> = { fr: messagesMesConnexions, en: MESSAGES_MES_CONNEXIONS_ANGLAIS };
+export const AIDE_AJOUTER_MOT_DE_PASSE_PAR_LANGUE: ParLangue<Traduction<typeof aideAjouterMotDePasse>> = { fr: aideAjouterMotDePasse, en: AIDE_AJOUTER_MOT_DE_PASSE_ANGLAIS };
 export const AVERTISSEMENT_RELAIS_APPLE_PAR_LANGUE: ParLangue<Traduction<typeof AVERTISSEMENT_RELAIS_APPLE>> = { fr: AVERTISSEMENT_RELAIS_APPLE, en: AVERTISSEMENT_RELAIS_APPLE_ANGLAIS };

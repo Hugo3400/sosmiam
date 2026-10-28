@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_MISE_A_JOUR_ANGLAIS } from "~/contenus/anglais/textes-mise-a-jour";
+
 export const TEXTES_MISE_A_JOUR = {
   obligatoire: {
     surtitre: "Escale au port",
@@ -28,3 +31,5 @@ export const TEXTES_MISE_A_JOUR = {
     detailNouvelle: "La fenêtre douce, avec « Mettre à jour » et « Plus tard »",
   },
 } as const;
+
+export const TEXTES_MISE_A_JOUR_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MISE_A_JOUR>> = { fr: TEXTES_MISE_A_JOUR, en: TEXTES_MISE_A_JOUR_ANGLAIS };

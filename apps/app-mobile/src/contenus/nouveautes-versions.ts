@@ -1,3 +1,6 @@
+import type { ParLangue } from "@sos-miam/commun/types/traduction";
+import { NOUVEAUTES_VERSIONS_ANGLAIS } from "~/contenus/anglais/nouveautes-versions";
+
 export type PointNouveaute = {
   emoji: string;
   titre: string;
@@ -67,3 +70,5 @@ export const NOUVEAUTES_VERSIONS: readonly NouveautesVersion[] = [
     ],
   },
 ];
+
+export const NOUVEAUTES_VERSIONS_PAR_LANGUE: ParLangue<readonly NouveautesVersion[]> = { fr: NOUVEAUTES_VERSIONS, en: NOUVEAUTES_VERSIONS_ANGLAIS };

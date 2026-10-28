@@ -5,8 +5,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const DOSSIERS = [new URL("../../src/contenus/", import.meta.url), new URL("../../../../packages/commun/src/contenus/", import.meta.url)];
 const MARQUES = /SOS Miam|Miam Safe|BIG SOS|Capitaine Bouiboui|Miamis?|Brigade|Instagram|TikTok|Facebook|Google|Apple|GIPHY|Expo|iPhone|Android|Spotify|Deezer|Lydia|SAMU|CNIL/g;
-const IDENTIQUES_PERMIS = new Set(["menu", "brunch", "ok", "email", "info", "photos", "photo", "pause", "notes", "message", "messages", "collaboration commerciale", "actus", "miam", "tops", "français", "english", "toujours en français", "always in english", "halloween", "movember", "chandeleur", "fête de la musique"]);
-const IDENTIFIANT = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const PHRASES_IDENTIQUES = new Set(["collaboration commerciale", "français", "english", "toujours en français", "always in english", "fête de la musique"]);
+const MOTS_IDENTIQUES = new Set(["menu", "menus", "brunch", "email", "info", "infos", "photo", "photos", "pause", "note", "notes", "message", "messages", "actus", "miam", "tops", "point", "points", "vote", "votes", "admin", "gif", "gifs", "discrimination", "powered", "giphy", "halloween", "movember", "chandeleur", "bio", "solo", "duo", "golf", "karaoke", "quiz", "concert", "concerts", "sport", "brunchs", "burger", "burgers", "pizza", "pizzas", "sushi", "tapas", "bar", "bars", "restaurant", "restaurants", "type", "minimum", "maximum", "total", "service", "services", "ambassador", "max", "vegan", "local", "version", "play", "store", "app", "halal", "casher", "kosher", "wifi"]);
+const IDENTIFIANT = /^([a-z0-9]+(-[a-z0-9]+)*|\/[^\s]*|(sms|tel|mailto|https?):[^\s]*)$/;
 const ARGUMENTS = [[], [2], [2, 3], ["Léa"], ["Léa", 2], [2, "Léa"], ["Léa", "Paris"]];
 
 async function listerPaires() {
@@ -25,9 +26,10 @@ async function listerPaires() {
 }
 
 function estTexteAvecMots(texte) {
-  if (IDENTIFIANT.test(texte)) return false;
+  if (IDENTIFIANT.test(texte) || PHRASES_IDENTIQUES.has(texte.trim().toLowerCase())) return false;
   const sansMarques = texte.replace(MARQUES, " ").replace(/\{[^}]*\}|\$\{[^}]*\}/g, " ").replace(/\d+\s?(min|km|h)\b/g, " ");
-  return /[A-Za-zÀ-ÿ]{3,}/.test(sansMarques) && !IDENTIQUES_PERMIS.has(texte.trim().toLowerCase());
+  const mots = sansMarques.toLowerCase().split(/[^a-zà-ÿ]+/).filter((mot) => mot.length >= 3);
+  return mots.some((mot) => !MOTS_IDENTIQUES.has(mot));
 }
 
 function comparer(fr, en, chemin, problemes) {

@@ -1,3 +1,5 @@
+import type { ParLangue } from "@sos-miam/commun/types/traduction";
+import { TYPES_NOTIFICATIONS_ANGLAIS } from "~/contenus/anglais/types-notifications";
 import type { TypeNotification } from "~/stockage/reglages-notifications";
 
 /** Une sorte de notification, telle qu'on la montre dans les réglages. */
@@ -28,3 +30,5 @@ export const typesNotifications: ChoixTypeNotification[] = [
   { type: "demande", emoji: "📨", titre: "Demandes d'abonnement", detail: "Quelqu'un veut te suivre", groupe: "abonnements" },
   { type: "publication-suivie", emoji: "🎬", titre: "Nouveautés des comptes suivis", detail: "Un lieu ou un créateur que tu suis publie", groupe: "abonnements" },
 ];
+
+export const TYPES_NOTIFICATIONS_PAR_LANGUE: ParLangue<ChoixTypeNotification[]> = { fr: typesNotifications, en: TYPES_NOTIFICATIONS_ANGLAIS };

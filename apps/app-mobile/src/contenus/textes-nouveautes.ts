@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_NOUVEAUTES_ANGLAIS } from "~/contenus/anglais/textes-nouveautes";
+
 export const TEXTES_NOUVEAUTES = {
   fenetre: {
     surtitre: (libelle: string) => `Nouveau dans la ${libelle}`,
@@ -20,3 +23,5 @@ export const TEXTES_NOUVEAUTES = {
     detail: "Celui qui s'ouvre une fois après chaque mise à jour",
   },
 } as const;
+
+export const TEXTES_NOUVEAUTES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_NOUVEAUTES>> = { fr: TEXTES_NOUVEAUTES, en: TEXTES_NOUVEAUTES_ANGLAIS };

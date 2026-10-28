@@ -1,7 +1,7 @@
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import type { raisonsSignalement } from "~/contenus/raisons-signalement";
 
-export const raisonsSignalementAnglais: Traduction<typeof raisonsSignalement> = [
+export const RAISONS_SIGNALEMENT_ANGLAIS: Traduction<typeof raisonsSignalement> = [
   {
     cle: "faux-lieu",
     emoji: "🏚️",

@@ -1,7 +1,7 @@
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import type { textesConnexionQr } from "~/contenus/connexion-qr";
 
-export const textesConnexionQrAnglais: Traduction<typeof textesConnexionQr> = {
+export const TEXTES_CONNEXION_QR_ANGLAIS: Traduction<typeof textesConnexionQr> = {
   titreScanner: "Connect a device",
   sousTitreScanner: "Your computer or a new phone, without typing your password again.",
   etapesScanner: [

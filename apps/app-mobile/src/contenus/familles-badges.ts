@@ -1,4 +1,6 @@
 import type { IdBadge } from "@sos-miam/commun/types/badge";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { FAMILLES_BADGES_ANGLAIS, TITRE_FAMILLE_AUTRES_ANGLAIS } from "~/contenus/anglais/familles-badges";
 
 export type FamilleDeBadges = {
   titre: string;
@@ -46,3 +48,7 @@ export const FAMILLES_BADGES: readonly FamilleDeBadges[] = [
 ];
 
 export const TITRE_FAMILLE_AUTRES = "Autres";
+
+export const FAMILLES_BADGES_PAR_LANGUE: ParLangue<readonly FamilleDeBadges[]> = { fr: FAMILLES_BADGES, en: FAMILLES_BADGES_ANGLAIS };
+
+export const TITRE_FAMILLE_AUTRES_PAR_LANGUE: ParLangue<Traduction<typeof TITRE_FAMILLE_AUTRES>> = { fr: TITRE_FAMILLE_AUTRES, en: TITRE_FAMILLE_AUTRES_ANGLAIS };

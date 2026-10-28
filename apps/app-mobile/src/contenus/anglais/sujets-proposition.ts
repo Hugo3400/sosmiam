@@ -1,7 +1,7 @@
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import type { sujetsProposition } from "~/contenus/sujets-proposition";
 
-export const sujetsPropositionAnglais: Traduction<typeof sujetsProposition> = [
+export const SUJETS_PROPOSITION_ANGLAIS: Traduction<typeof sujetsProposition> = [
   { sujet: "horaires", emoji: "🕐", libelle: "Opening hours" },
   { sujet: "contact", emoji: "📞", libelle: "Phone, website", partie: "contact" },
   { sujet: "adresse", emoji: "📍", libelle: "Address" },

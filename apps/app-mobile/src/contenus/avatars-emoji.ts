@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { AVATARS_EMOJI_ANGLAIS } from "~/contenus/anglais/avatars-emoji";
+
 /** Les emoji qu'on peut choisir comme avatar, avec le nom lu par le lecteur d'écran (le premier est celui par défaut). */
 export const avatarsEmoji: { emoji: string; nom: string }[] = [
   { emoji: "🦸", nom: "super-héros" },
@@ -25,3 +28,5 @@ export const avatarsEmoji: { emoji: string; nom: string }[] = [
   { emoji: "🧁", nom: "cupcake" },
   { emoji: "🍜", nom: "bol de ramen" },
 ];
+
+export const AVATARS_EMOJI_PAR_LANGUE: ParLangue<Traduction<typeof avatarsEmoji>> = { fr: avatarsEmoji, en: AVATARS_EMOJI_ANGLAIS };

@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_BADGES_ANGLAIS } from "~/contenus/anglais/textes-badges";
+
 export const TEXTES_BADGES = {
   titre: "Tes badges",
   retour: "Retour au profil",
@@ -10,3 +13,5 @@ export const TEXTES_BADGES = {
   obtenu: "Obtenu",
   possible: "À débloquer, c'est possible dès maintenant !",
 } as const;
+
+export const TEXTES_BADGES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_BADGES>> = { fr: TEXTES_BADGES, en: TEXTES_BADGES_ANGLAIS };

@@ -1,4 +1,6 @@
 import type { IdBadge } from "@sos-miam/commun/types/badge";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { PRECISIONS_BADGES_ANGLAIS } from "~/contenus/anglais/precisions-badges";
 
 /**
  * Ce que la grille des badges ajoute sous un badge pas encore obtenu (les autres : « possible dès maintenant »). `possible` :
@@ -15,3 +17,5 @@ export const PRECISIONS_BADGES: Partial<Record<IdBadge, { possible: boolean; tex
   iode: { possible: false, texte: "Il arrivera quand l'app saura ce qu'il y a dans ton assiette. Les huîtres peuvent patienter !" },
   bande: { possible: false, texte: "Les sorties entre potes sont là, mais on ne compte pas encore les visites à plusieurs. Garde ta bande au chaud : il arrive bientôt !" },
 };
+
+export const PRECISIONS_BADGES_PAR_LANGUE: ParLangue<Traduction<typeof PRECISIONS_BADGES>> = { fr: PRECISIONS_BADGES, en: PRECISIONS_BADGES_ANGLAIS };

@@ -4,7 +4,7 @@ import type { aideAjouterMotDePasse, AVERTISSEMENT_RELAIS_APPLE, CHAPO_MES_CONNE
 export const CHAPO_MES_CONNEXIONS_ANGLAIS: Traduction<typeof CHAPO_MES_CONNEXIONS> =
   "One account, several keys – keep the ones that suit you. Your SOS Miam email address stays the same whatever happens.";
 
-export const messagesMesConnexionsAnglais: Traduction<typeof messagesMesConnexions> = {
+export const MESSAGES_MES_CONNEXIONS_ANGLAIS: Traduction<typeof messagesMesConnexions> = {
   relie: (nom: string) =>
     `Linked! You can now log in with ${nom}, as well as with your other keys. Your SOS Miam email address stays exactly as it is.`,
   delie: (nom: string) => `Unlinked: ${nom} no longer opens the door to SOS Miam. Your other keys still work.`,
@@ -17,7 +17,7 @@ export const messagesMesConnexionsAnglais: Traduction<typeof messagesMesConnexio
   lectureRatee: "Your keys couldn't load (the network, most likely)",
 };
 
-export const aideAjouterMotDePasseAnglais: Traduction<typeof aideAjouterMotDePasse> = (email: string) => `We'll send a link to ${email} so you can choose it (valid for 24 hours).`;
+export const AIDE_AJOUTER_MOT_DE_PASSE_ANGLAIS: Traduction<typeof aideAjouterMotDePasse> = (email: string) => `We'll send a link to ${email} so you can choose it (valid for 24 hours).`;
 
 export const AVERTISSEMENT_RELAIS_APPLE_ANGLAIS: Traduction<typeof AVERTISSEMENT_RELAIS_APPLE> =
   "This is a Hide My Email address from Apple: the link will only arrive if email forwarding is turned on for SOS Miam in your Apple Account settings (“Sign in with Apple”).";
