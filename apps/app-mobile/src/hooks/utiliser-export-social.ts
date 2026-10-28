@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { enregistrerExportSocial } from "~/fonctions/donnees/enregistrer-export-social";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 
@@ -21,6 +22,7 @@ export type EtatExportSocial = {
 export function utiliserExportSocial(): EtatExportSocial {
   const source = utiliserSourceSociale();
   const { sociaux } = utiliserSession();
+  const { langue } = utiliserLangue();
   const [enCours, setEnCours] = useState(false);
   const disponible = source === "compte";
 
@@ -30,13 +32,13 @@ export function utiliserExportSocial(): EtatExportSocial {
     try {
       const r = await sociaux.social.exporter().catch(() => ({ ok: false as const, erreur: "hors-ligne" as ErreurService }));
       if (!r.ok) return r.erreur;
-      return (await enregistrerExportSocial(r.export, new Date())) === "partage" ? "ok" : "indisponible";
+      return (await enregistrerExportSocial(r.export, new Date(), langue)) === "partage" ? "ok" : "indisponible";
     } catch {
       return "erreur-serveur";
     } finally {
       setEnCours(false);
     }
-  }, [disponible, sociaux]);
+  }, [disponible, sociaux, langue]);
 
   return { disponible, enCours, exporter };
 }

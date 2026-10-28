@@ -4,13 +4,6 @@ import type { SuggestionPersonneApi } from "@sos-miam/commun/types/social";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserSession } from "~/hooks/utiliser-session";
 
-/** La raison affichée sous le nom : jamais le nom du pote en commun */
-export const RAISONS_SUGGESTION: Record<SuggestionPersonneApi["raison"], string> = {
-  "te-suit": "Te suit",
-  "ta-bande": "Ta bande",
-  "potes-en-commun": "Dans la bande de tes potes",
-};
-
 /**
  * « Tu pourrais suivre », côté personnes, avec un compte connecté : GET /app/personnes/suggestions (10 au plus, déjà sans
  * toi, ce que tu suis, les bloqués et ce que tu as masqué), lu à l'ouverture de l'écran qui les montre ; la communauté

@@ -5,6 +5,7 @@ import { Alert } from "react-native";
 import type { SessionOuverte } from "@sos-miam/commun/client-api/contrat-compte";
 import type { DetailsErreur } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
+import { TEXTES_CONNEXION_FOURNISSEURS_PAR_LANGUE } from "~/contenus/textes-connexion-fournisseurs";
 import { convertirProfilServeur } from "~/fonctions/compte/convertir-profil-serveur";
 import { lancerConnexionApple } from "~/fonctions/compte/lancer-connexion-apple";
 import { lancerConnexionGoogle } from "~/fonctions/compte/lancer-connexion-google";
@@ -12,6 +13,7 @@ import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { lireLangueActuelle } from "~/services/langue-actuelle";
 
 /** Montre un refus de l'API (texte de contenus/messages-services.ts, au tutoiement) */
@@ -31,6 +33,7 @@ export function utiliserEntreeCompte() {
   const session = utiliserSession();
   const { profil, enregistrer } = utiliserProfil();
   const { modifier } = utiliserBrouillonInscription();
+  const T = utiliserTextes(TEXTES_CONNEXION_FOURNISSEURS_PAR_LANGUE);
   const [enCours, setEnCours] = useState<"apple" | "google" | "email" | null>(null);
   const occupe = useRef(false);
 
@@ -76,8 +79,8 @@ export function utiliserEntreeCompte() {
       if (!natif.ok) {
         if (natif.raison === "indisponible") {
           Alert.alert(
-            fournisseur === "apple" ? "Apple n'est pas dispo ici" : "Google n'est pas dispo ici",
-            "Ce bouton marche dans l'app installée depuis l'App Store ou Google Play. En attendant, passe par ton e-mail : ça marche partout.",
+            fournisseur === "apple" ? T.indisponibleApple : T.indisponibleGoogle,
+            T.indisponibleTexte,
           );
         } else if (natif.raison === "echec") montrerErreurCompte("jeton-externe-invalide");
         return;

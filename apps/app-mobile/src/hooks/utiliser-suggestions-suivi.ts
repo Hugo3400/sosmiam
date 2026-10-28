@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import { calculerAge } from "@sos-miam/commun/regles/calculer-age";
+import { TEXTES_SUGGESTIONS_PERSONNES_PAR_LANGUE } from "~/contenus/textes-suggestions-personnes";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { suggererCreateurs } from "~/fonctions/suivi/suggerer-createurs";
@@ -14,7 +16,7 @@ import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
-import { RAISONS_SUGGESTION, utiliserSuggestionsPersonnesCompte } from "~/hooks/utiliser-suggestions-personnes-compte";
+import { utiliserSuggestionsPersonnesCompte } from "~/hooks/utiliser-suggestions-personnes-compte";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
 
 /**
@@ -66,13 +68,13 @@ export function utiliserSuggestionsSuivi(types: readonly TypeSuggestion[], max =
             const pote = trouverPote(personne.id);
             if (!pote || !estCandidat(personne.id)) return [];
             const ouvrir = { pathname: "/potes/profil/[id]" as const, params: { id: personne.id } };
-            return [{ cle: `personne:${personne.id}`, type: "personne" as const, emoji: pote.avatar, nom: pote.prenom, raison: RAISONS_SUGGESTION[raison], ouvrir }];
+            return [{ cle: `personne:${personne.id}`, type: "personne" as const, emoji: pote.avatar, nom: pote.prenom, raison: choisirTextes(TEXTES_SUGGESTIONS_PERSONNES_PAR_LANGUE, langue).raisons[raison], ouvrir }];
           });
         }
         const prenomDe = (id: string) => trouverPote(id)?.prenom ?? id;
         // Celles qui te suivent déjà, en tête et avec « Te suit » : la carte n'a que le nom et la raison pour le dire
         // (son bouton compact affiche « Suivre », pas « Suivre en retour »)
-        const teSuivent = abonnes.map((a) => a.pote.id).filter(estCandidat).map((id) => ({ id, raison: "Te suit" }));
+        const teSuivent = abonnes.map((a) => a.pote.id).filter(estCandidat).map((id) => ({ id, raison: choisirTextes(TEXTES_SUGGESTIONS_PERSONNES_PAR_LANGUE, langue).teSuit }));
         const potesDePotes = suggererPersonnes({ monId, bande: potes.map((p) => p.id), bandes: {}, estCandidat, prenomDe }, langue).filter((s) => !teSuivent.some((t) => t.id === s.id));
         return [...teSuivent, ...potesDePotes].flatMap(({ id, raison }) => {
           const pote = trouverPote(id);

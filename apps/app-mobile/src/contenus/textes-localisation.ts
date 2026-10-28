@@ -2,7 +2,6 @@ import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
 import { TEXTES_LOCALISATION_ANGLAIS } from "~/contenus/anglais/textes-localisation";
 
 export const TEXTES_LOCALISATION = {
-  depuisToi: "de toi",
   distanceDepuis: (distance: string, depuis: string) => `${distance} ${depuis}`,
   repliDistances: (depuisVille: string) => `les distances repartent ${depuisVille}`,
   zoneProche: (rayonKm: number, autourDe: string) => `à moins de ${rayonKm} km ${autourDe}`,

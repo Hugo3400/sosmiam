@@ -1,28 +1,29 @@
 import { useEffect, useRef } from "react";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
+import { TEXTES_GESTE_RESCOUSSE_PAR_LANGUE } from "~/contenus/textes-geste-rescousse";
 import { utiliserActivite, type FinRescousse, type ResultatRescousse } from "~/hooks/utiliser-activite";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+
+type TextesGesteRescousse = (typeof TEXTES_GESTE_RESCOUSSE_PAR_LANGUE)["fr"];
+type MessagesService = (typeof MESSAGES_SERVICE_PAR_LANGUE)["fr"];
 
 /** Un lieu tout juste arrivé peut faire de toi son premier sauveteur : on attend la réponse de l'API, au plus ce temps-là */
 const ATTENTE_CONFIRMATION_MS = 3000;
 
-const NON_VERIFIE = "Ce lieu n'a pas encore de compte SOS Miam : invite-le ! 📣";
-const EPUISEE = "Plus de rescousse cette semaine, reviens lundi ! 🛟";
-const SANS_SESSION = "🔑 Connecte-toi à ton compte pour donner tes rescousses";
-
 /** Ce qu'on dit quand la rescousse n'a pas pu partir (ou être reprise) : elle est défaite, rien n'est compté */
-function decrireEchec(fin: Extract<FinRescousse, { ok: false }>, donnee: boolean): string {
-  if (fin.erreur === "plus-de-rescousse") return EPUISEE;
-  if (fin.erreur === "lieu-non-verifie") return NON_VERIFIE;
-  if (fin.erreur === "connexion-requise") return SANS_SESSION;
+function decrireEchec(fin: Extract<FinRescousse, { ok: false }>, donnee: boolean, T: TextesGesteRescousse, messages: MessagesService): string {
+  if (fin.erreur === "plus-de-rescousse") return T.epuisee;
+  if (fin.erreur === "lieu-non-verifie") return T.nonVerifie;
+  if (fin.erreur === "connexion-requise") return T.sansSession;
   // Le texte « hors-ligne » des services parle de la porte et du wifi du lieu : une rescousse se donne de partout
   if (fin.erreur === "hors-ligne") {
-    return donnee ? "📶 Pas de réseau : ta rescousse n'est pas partie, réessaie dans un instant" : "📶 Pas de réseau : ta rescousse est toujours là, réessaie dans un instant";
+    return donnee ? T.horsLignePasPartie : T.horsLigneToujoursLa;
   }
-  const message = MESSAGES_SERVICE[fin.erreur];
-  return `${message.emoji} ${message.titre.replace(/[\s!.]+$/, "")}, ${donnee ? "ta rescousse n'est pas partie" : "ta rescousse est toujours là"}`;
+  const message = messages[fin.erreur];
+  return T.echecService(message.emoji, message.titre.replace(/[\s!.]+$/, ""), donnee);
 }
 
 /**
@@ -34,6 +35,8 @@ function decrireEchec(fin: Extract<FinRescousse, { ok: false }>, donnee: boolean
  */
 export function utiliserGesteRescousse(annoncer: (texte: string) => void) {
   const activite = utiliserActivite();
+  const T = utiliserTextes(TEXTES_GESTE_RESCOUSSE_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   // Dernier appui sur chaque lieu : la confirmation d'un appui plus ancien sur le même lieu ne dit plus rien
   const appuis = useRef(new Map<number, number>());
   const numero = useRef(0);
@@ -53,8 +56,8 @@ export function utiliserGesteRescousse(annoncer: (texte: string) => void) {
     const dernier = () => appuis.current.get(lieu.id) === appui;
     // activite est l'état d'avant l'appui
     const reste = activite.restantes - 1;
-    const merci = reste > 0 ? `🛟 Merci ! Encore ${reste} rescousse${reste > 1 ? "s" : ""} cette semaine` : "Dernière rescousse donnée, merci pour eux ! 🦸";
-    const premier = `🚀 Premier sauveteur ! ${lieu.nom} vient d'arriver et tu es déjà là : +${POINTS_AMBASSADEUR.premierSauveteur} points`;
+    const merci = reste > 0 ? T.merci(reste) : T.derniere;
+    const premier = T.premierSauveteur(lieu.nom, POINTS_AMBASSADEUR.premierSauveteur);
     let annonce: "attendue" | "faite" = lieu.nouveau ? "attendue" : "faite";
     let attente: ReturnType<typeof setTimeout> | null = null;
     let resultat: ResultatRescousse | undefined;
@@ -70,17 +73,17 @@ export function utiliserGesteRescousse(annoncer: (texte: string) => void) {
       if (!dernier()) return;
       const etaitAttendue = annonce === "attendue";
       annonce = "faite";
-      if (!fin.ok) return annoncer(decrireEchec(fin, resultat !== "annulee"));
+      if (!fin.ok) return annoncer(decrireEchec(fin, resultat !== "annulee", T, messages));
       if (resultat !== "donnee") return;
       if (fin.premierSauveteur) annoncer(premier);
       else if (etaitAttendue) annoncer(merci);
     };
 
     resultat = activite.basculerRescousse(lieu, surFin);
-    if (resultat === "non-verifie") return annoncer(NON_VERIFIE);
-    if (resultat === "epuisee") return annoncer(EPUISEE);
-    if (resultat === "sans-session") return annoncer(SANS_SESSION);
-    if (resultat === "annulee") return annoncer("Rescousse reprise");
+    if (resultat === "non-verifie") return annoncer(T.nonVerifie);
+    if (resultat === "epuisee") return annoncer(T.epuisee);
+    if (resultat === "sans-session") return annoncer(T.sansSession);
+    if (resultat === "annulee") return annoncer(T.reprise);
     surDonnee?.();
     if (annonce === "faite") return annoncer(merci);
     attente = setTimeout(() => {

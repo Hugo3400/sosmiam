@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { TEXTES_MENTIONS_CHAMP_PAR_LANGUE } from "~/contenus/textes-mentions-champ";
 import { insererMention } from "~/fonctions/chat/inserer-mention";
 import { trouverMentionEnCours } from "~/fonctions/chat/trouver-mention-en-cours";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const MAX_SUGGESTIONS = 4;
 
 type Selection = { start: number; end: number };
 
 export function utiliserMentionsChamp(texte: string, membres: readonly Pote[], onChanger: (texte: string) => void) {
+  const T = utiliserTextes(TEXTES_MENTIONS_CHAMP_PAR_LANGUE);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [texteVu, setTexteVu] = useState(texte);
   if (texte !== texteVu) {
@@ -31,9 +34,9 @@ export function utiliserMentionsChamp(texte: string, membres: readonly Pote[], o
   const avaitSuggestions = useRef(false);
   useEffect(() => {
     const nombre = suggestions.length;
-    if (nombre > 0 && !avaitSuggestions.current) annoncerLecteurEcran(`${nombre} pote${nombre > 1 ? "s" : ""} à mentionner, juste au-dessus du champ`);
+    if (nombre > 0 && !avaitSuggestions.current) annoncerLecteurEcran(T.suggestions(nombre));
     avaitSuggestions.current = nombre > 0;
-  }, [suggestions.length]);
+  }, [suggestions.length, T]);
 
   return {
     suggestions,
