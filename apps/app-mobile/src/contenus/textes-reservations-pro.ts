@@ -1,5 +1,7 @@
 import { ABSENT_APRES_CRENEAU_MS, VENU_AVANT_CRENEAU_MS } from "@sos-miam/commun/regles/reservations";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
 
+import { TEXTES_RESERVATIONS_PRO_ANGLAIS } from "~/contenus/anglais/textes-reservations-pro";
 import { ecrireAttente } from "~/fonctions/dates/ecrire-attente";
 
 const AVANT_VENU = ecrireAttente(VENU_AVANT_CRENEAU_MS);
@@ -39,3 +41,8 @@ export const TEXTES_RESERVATIONS_PRO = {
   annonceVenu: "🎉 Passage de {nom} noté",
   annonceAbsent: "Absence de {nom} notée",
 } as const;
+
+export const TEXTES_RESERVATIONS_PRO_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_RESERVATIONS_PRO>> = {
+  fr: TEXTES_RESERVATIONS_PRO,
+  en: TEXTES_RESERVATIONS_PRO_ANGLAIS,
+};

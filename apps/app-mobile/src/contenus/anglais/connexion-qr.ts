@@ -1,0 +1,41 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { textesConnexionQr } from "~/contenus/connexion-qr";
+
+export const textesConnexionQrAnglais: Traduction<typeof textesConnexionQr> = {
+  titreScanner: "Connect a device",
+  sousTitreScanner: "Your computer or a new phone, without typing your password again.",
+  etapesScanner: [
+    "On the device you want to connect, choose “Log in with the app” on sosmiam.fr, or “Log in with a QR code” in the app.",
+    "Point this phone at the QR code.",
+    "Check carefully where it's connecting, then confirm with Face ID, your fingerprint or your passcode.",
+  ],
+  pasUnQr: "This QR code isn't for connecting a device. Point at the one from “Log in with the app” on sosmiam.fr, or from “Log in with a QR code” in the app.",
+  titreLien: "You've just opened a login link",
+  texteLien:
+    "It's for connecting another device to YOUR account. Have you just pointed your phone at a QR code right in front of you, on your computer or another phone? Then carry on. Did someone send it to you (message, email, social media)? It's a scam to get into your account – decline.",
+  refuserLien: "No, decline",
+  continuerLien: "I scanned a QR code",
+  lienRefuse: "Well done – nothing's been sent and no one gets in. If someone sent you this link, delete the message and don't open it again.",
+  attention: "If someone sent you this QR code or link (message, email, social media), decline – it's a scam to get into your account.",
+  questionConfirmer: "Is this you, right here, right now?",
+  refuser: "No, decline",
+  accepter: "Yes, it's me",
+  tempsRestant: (secondes: number) => `${secondes} second${secondes === 1 ? "" : "s"} left to answer`,
+  plusQue: (secondes: number) => `Only ${secondes} second${secondes === 1 ? "" : "s"} left to answer.`,
+  raisonBiometrie: "Confirm it's really you to connect this device",
+  biometrieAnnulee: "No confirmation, no login – nothing's changed. Tap “Yes, it's me” to try again.",
+  fait: (appareil: string) => `All done – login accepted for ${appareil}! You can cut it off whenever you like with “Log out everywhere”.`,
+  refuse: "Declined. No one gets in. If someone sent you this QR code or link, it's most likely a scam – don't open it a second time.",
+  expire: "Too late – this QR code has expired. Ask for a new one on the device you want to connect – it only takes a second.",
+  titreAfficher: "Log in with a QR code",
+  sousTitreAfficher: "Your other phone, already logged in, just has to scan it.",
+  aideAfficher: "On your phone that's already logged in: Profile → ⚙️ Settings → My account → “Connect a device”, then point it at this QR code.",
+  scanne: "Spotted! Now confirm on your other phone…",
+  accepteIci: "Accepted! Opening your account…",
+  entreeRatee: "It's accepted, but your account couldn't open (the network, most likely). Nothing's lost – tap “Try again”.",
+  refuseAilleurs: "Declined on your other phone. No worries – if it was a mistake, ask for a new QR code.",
+  expireIci: "Too late – your other phone didn't answer in time. Don't panic: tap “New QR code” and we'll start again.",
+  erreurPreparer: "The QR code couldn't be prepared. Try again in a moment.",
+  erreurAttente: "We've lost touch with SOS Miam (the network, most likely). Tap “New QR code” as soon as you've got signal.",
+  renouvele: "A new QR code every 2 minutes – it's safer that way.",
+};

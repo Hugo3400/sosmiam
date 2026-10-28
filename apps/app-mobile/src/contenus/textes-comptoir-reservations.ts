@@ -1,3 +1,12 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  ANNONCES_COMPTOIR_RESERVATIONS_ANGLAIS,
+  CONFIRMATIONS_COMPTOIR_RESERVATIONS_ANGLAIS,
+  TEXTES_COMPTOIR_RESERVATIONS_ANGLAIS,
+  TEXTES_FERMER_JOUR_ANGLAIS,
+  TEXTES_REMPLISSAGE_ANGLAIS,
+} from "~/contenus/anglais/textes-comptoir-reservations";
+
 export const TEXTES_COMPTOIR_RESERVATIONS = {
   changer: "Changer",
   changerIndice: "Ouvre les réglages des réservations",
@@ -33,6 +42,11 @@ export const TEXTES_COMPTOIR_RESERVATIONS = {
   enCours: "On prévient le client…",
 } as const;
 
+export const TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_COMPTOIR_RESERVATIONS>> = {
+  fr: TEXTES_COMPTOIR_RESERVATIONS,
+  en: TEXTES_COMPTOIR_RESERVATIONS_ANGLAIS,
+};
+
 export const CONFIRMATIONS_COMPTOIR_RESERVATIONS = {
   depasser: {
     titre: "Accepter quand même ?",
@@ -49,6 +63,11 @@ export const CONFIRMATIONS_COMPTOIR_RESERVATIONS = {
   },
 } as const;
 
+export const CONFIRMATIONS_COMPTOIR_RESERVATIONS_PAR_LANGUE: ParLangue<Traduction<typeof CONFIRMATIONS_COMPTOIR_RESERVATIONS>> = {
+  fr: CONFIRMATIONS_COMPTOIR_RESERVATIONS,
+  en: CONFIRMATIONS_COMPTOIR_RESERVATIONS_ANGLAIS,
+};
+
 export const ANNONCES_COMPTOIR_RESERVATIONS = {
   acceptee: "✅ Table de {nom} acceptée à {heure} · code {code}",
   annulee: "Table de {nom} annulée : on l'a prévenu",
@@ -56,6 +75,11 @@ export const ANNONCES_COMPTOIR_RESERVATIONS = {
   nouvelleAuto: "⚡ Nouvelle table : {nom}, {personnes}, {quand}",
   nouvelles: "📬 {nombre} nouvelles tables à voir",
 } as const;
+
+export const ANNONCES_COMPTOIR_RESERVATIONS_PAR_LANGUE: ParLangue<Traduction<typeof ANNONCES_COMPTOIR_RESERVATIONS>> = {
+  fr: ANNONCES_COMPTOIR_RESERVATIONS,
+  en: ANNONCES_COMPTOIR_RESERVATIONS_ANGLAIS,
+};
 
 export const TEXTES_FERMER_JOUR = {
   fermer: "🛑 Plus de résa aujourd'hui",
@@ -70,6 +94,8 @@ export const TEXTES_FERMER_JOUR = {
   annonceFerme: "🛑 Plus de résa aujourd'hui : c'est noté",
   annonceRouvert: "✅ Les résas d'aujourd'hui sont rouvertes",
 } as const;
+
+export const TEXTES_FERMER_JOUR_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_FERMER_JOUR>> = { fr: TEXTES_FERMER_JOUR, en: TEXTES_FERMER_JOUR_ANGLAIS };
 
 export const TEXTES_REMPLISSAGE = {
   titre: "Aujourd'hui, côté places",
@@ -88,3 +114,5 @@ export const TEXTES_REMPLISSAGE = {
   invitationTexte: "Règle tes services et tes couverts : tu verras ce qu'il te reste, créneau par créneau.",
   invitationBouton: "Régler mes réservations",
 } as const;
+
+export const TEXTES_REMPLISSAGE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_REMPLISSAGE>> = { fr: TEXTES_REMPLISSAGE, en: TEXTES_REMPLISSAGE_ANGLAIS };

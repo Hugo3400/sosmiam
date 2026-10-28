@@ -2,6 +2,9 @@
 // QR d'un ordinateur (site) ou d'un nouveau téléphone, puis confirme (écran, puis Face ID, l'empreinte ou le code du
 // téléphone). Contrat de l'API : session Site (routes /comptes/qr et /app/qr).
 
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { textesConnexionQrAnglais } from "~/contenus/anglais/connexion-qr";
+
 /** Un QR vit 2 minutes, et sert une seule fois */
 export const DUREE_QR_CONNEXION_S = 120;
 /** Après le scan, on a 60 secondes pour accepter (et jamais après la fin du QR : c'est l'API qui tranche) */
@@ -55,3 +58,5 @@ export const textesConnexionQr = {
   erreurAttente: "On a perdu le fil avec SOS Miam (le réseau, sûrement). Touche « Un nouveau QR code » dès que ça capte.",
   renouvele: "Nouveau QR toutes les 2 minutes : c'est plus sûr.",
 };
+
+export const textesConnexionQrParLangue: ParLangue<Traduction<typeof textesConnexionQr>> = { fr: textesConnexionQr, en: textesConnexionQrAnglais };

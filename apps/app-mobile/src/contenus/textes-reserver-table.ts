@@ -1,6 +1,19 @@
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { MomentCreneau } from "@sos-miam/commun/types/reglages-reservations";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
 
+import {
+  ACTIONS_REFUS_RESERVATION_ANGLAIS,
+  MOMENTS_CRENEAUX_ANGLAIS,
+  PETIT_MOT_REFUSE_ANGLAIS,
+  SANS_CRENEAU_ANGLAIS,
+  TEXTES_DEMANDE_ENVOYEE_ANGLAIS,
+  TEXTES_HORAIRES_SECOURS_ANGLAIS,
+  TEXTES_PLAN_B_ANGLAIS,
+  TEXTES_REFUS_RESERVATION_ANGLAIS,
+  TEXTES_RESERVER_TABLE_ANGLAIS,
+  TROP_TARD_VEILLE_ANGLAIS,
+} from "~/contenus/anglais/textes-reserver-table";
 import type { RaisonSansCreneau } from "~/fonctions/reservations/lire-raison-sans-creneau";
 
 export const TEXTES_RESERVER_TABLE = {
@@ -55,6 +68,11 @@ export const TEXTES_RESERVER_TABLE = {
   voirExplorer: "Voir d'autres pépites",
 } as const;
 
+export const TEXTES_RESERVER_TABLE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_RESERVER_TABLE>> = {
+  fr: TEXTES_RESERVER_TABLE,
+  en: TEXTES_RESERVER_TABLE_ANGLAIS,
+};
+
 export const SANS_CRENEAU: Readonly<Record<RaisonSansCreneau, { emoji: string; court: string; lu: string; titre: string; texte: string }>> = {
   ferme: {
     emoji: "😴",
@@ -86,7 +104,11 @@ export const SANS_CRENEAU: Readonly<Record<RaisonSansCreneau, { emoji: string; c
   },
 };
 
+export const SANS_CRENEAU_PAR_LANGUE: ParLangue<Traduction<typeof SANS_CRENEAU>> = { fr: SANS_CRENEAU, en: SANS_CRENEAU_ANGLAIS };
+
 export const TROP_TARD_VEILLE = "Ici, on réserve au plus tard la veille : l'équipe aime s'organiser. Demain, ça te dit ?";
+
+export const TROP_TARD_VEILLE_PAR_LANGUE: ParLangue<Traduction<typeof TROP_TARD_VEILLE>> = { fr: TROP_TARD_VEILLE, en: TROP_TARD_VEILLE_ANGLAIS };
 
 export const MOMENTS_CRENEAUX: Readonly<Record<MomentCreneau, { emoji: string; libelle: string }>> = {
   matin: { emoji: "🌅", libelle: "Le matin" },
@@ -94,6 +116,8 @@ export const MOMENTS_CRENEAUX: Readonly<Record<MomentCreneau, { emoji: string; l
   "apres-midi": { emoji: "🍰", libelle: "L'après-midi" },
   soir: { emoji: "🌙", libelle: "Le soir" },
 };
+
+export const MOMENTS_CRENEAUX_PAR_LANGUE: ParLangue<Traduction<typeof MOMENTS_CRENEAUX>> = { fr: MOMENTS_CRENEAUX, en: MOMENTS_CRENEAUX_ANGLAIS };
 
 export const TEXTES_PLAN_B = {
   ouvrir: "＋ Ajouter un plan B",
@@ -114,11 +138,18 @@ export const TEXTES_PLAN_B = {
   secoursPartis: "{heures} ne sont plus libres : on les a retirés de ton plan B.",
 } as const;
 
+export const TEXTES_PLAN_B_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PLAN_B>> = { fr: TEXTES_PLAN_B, en: TEXTES_PLAN_B_ANGLAIS };
+
 export const TEXTES_REFUS_RESERVATION: Readonly<Partial<Record<ErreurService, string>>> = {
   "email-non-verifie": "Pour réserver, il faut un e-mail confirmé. Touche le lien qu'on t'a envoyé, ou redemande-le depuis ton compte.",
   "membre-du-lieu": "On ne réserve pas chez soi : ta table, tu la connais déjà ! Va plutôt goûter chez les voisins.",
   "hors-ligne": "Rien n'est parti. Vérifie ta connexion, puis renvoie : tes choix t'attendent ici.",
   introuvable: "Ce lieu n'est plus sur SOS Miam pour l'instant. Reviens à l'Explorer pour en dénicher un autre.",
+};
+
+export const TEXTES_REFUS_RESERVATION_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_REFUS_RESERVATION>> = {
+  fr: TEXTES_REFUS_RESERVATION,
+  en: TEXTES_REFUS_RESERVATION_ANGLAIS,
 };
 
 export const PETIT_MOT_REFUSE = {
@@ -128,12 +159,19 @@ export const PETIT_MOT_REFUSE = {
   sousLeChamp: "On reformule ? Ton petit mot contient un terme qu'on ne laisse pas passer.",
 } as const;
 
+export const PETIT_MOT_REFUSE_PAR_LANGUE: ParLangue<Traduction<typeof PETIT_MOT_REFUSE>> = { fr: PETIT_MOT_REFUSE, en: PETIT_MOT_REFUSE_ANGLAIS };
+
 export const ACTIONS_REFUS_RESERVATION = {
   retourFiche: "Retour à la fiche",
   voirExplorer: "Voir l'Explorer",
   voirReservations: "Voir mes réservations",
   confirmerEmail: "Confirmer mon e-mail",
 } as const;
+
+export const ACTIONS_REFUS_RESERVATION_PAR_LANGUE: ParLangue<Traduction<typeof ACTIONS_REFUS_RESERVATION>> = {
+  fr: ACTIONS_REFUS_RESERVATION,
+  en: ACTIONS_REFUS_RESERVATION_ANGLAIS,
+};
 
 export const TEXTES_DEMANDE_ENVOYEE = {
   titre: "Demande envoyée !",
@@ -162,9 +200,19 @@ export const TEXTES_DEMANDE_ENVOYEE = {
   annonceAcceptee: "C'est réservé ! Ton code d'arrivée t'attend dans Mes réservations.",
 } as const;
 
+export const TEXTES_DEMANDE_ENVOYEE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_DEMANDE_ENVOYEE>> = {
+  fr: TEXTES_DEMANDE_ENVOYEE,
+  en: TEXTES_DEMANDE_ENVOYEE_ANGLAIS,
+};
+
 export const TEXTES_HORAIRES_SECOURS = {
   ou: "ou {heures}",
   lu: "Horaires de secours : {heures}",
   planB: "🔁 Ton plan B : {retenu}, au lieu de {premier}",
   planBLu: "Ton plan B a servi : {retenu}, au lieu de {premier}",
 } as const;
+
+export const TEXTES_HORAIRES_SECOURS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_HORAIRES_SECOURS>> = {
+  fr: TEXTES_HORAIRES_SECOURS,
+  en: TEXTES_HORAIRES_SECOURS_ANGLAIS,
+};

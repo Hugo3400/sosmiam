@@ -1,4 +1,18 @@
 import type { DelaiReservation, ModeAcceptationReservation, RaisonReservationARevoir } from "@sos-miam/commun/types/reglages-reservations";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  AVERTISSEMENTS_REGLAGES_ANGLAIS,
+  CONFIRMATIONS_REGLAGES_RESERVATIONS_ANGLAIS,
+  DELAIS_RESERVATION_TEXTES_ANGLAIS,
+  ERREURS_SERVICE_ANGLAIS,
+  MODES_ACCEPTATION_ANGLAIS,
+  TEXTES_AVERTISSEMENTS_REGLAGES_ANGLAIS,
+  TEXTES_CARTE_SERVICE_ANGLAIS,
+  TEXTES_FEUILLE_JOURS_FERMES_ANGLAIS,
+  TEXTES_FEUILLE_SERVICE_ANGLAIS,
+  TEXTES_REGLAGES_RESERVATIONS_ANGLAIS,
+  TEXTES_RESUME_REGLAGES_ANGLAIS,
+} from "~/contenus/anglais/textes-reglages-reservations";
 
 export const TEXTES_REGLAGES_RESERVATIONS = {
   titre: "Réglages des réservations",
@@ -63,6 +77,11 @@ export const TEXTES_REGLAGES_RESERVATIONS = {
   aCorriger: "À revoir : {erreur}",
 } as const;
 
+export const TEXTES_REGLAGES_RESERVATIONS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_REGLAGES_RESERVATIONS>> = {
+  fr: TEXTES_REGLAGES_RESERVATIONS,
+  en: TEXTES_REGLAGES_RESERVATIONS_ANGLAIS,
+};
+
 export const MODES_ACCEPTATION: Readonly<
   Record<ModeAcceptationReservation, { emoji: string; titre: string; texte: string; court: string; etiquette: string; etiquetteLue: string }>
 > = {
@@ -84,11 +103,18 @@ export const MODES_ACCEPTATION: Readonly<
   },
 };
 
+export const MODES_ACCEPTATION_PAR_LANGUE: ParLangue<Traduction<typeof MODES_ACCEPTATION>> = { fr: MODES_ACCEPTATION, en: MODES_ACCEPTATION_ANGLAIS };
+
 export const DELAIS_RESERVATION_TEXTES: Readonly<Record<DelaiReservation, { libelle: string; court: string; phrase: string }>> = {
   "30-min": { libelle: "30 min", court: "30 min", phrase: "On peut réserver jusqu'à 30 min avant d'arriver." },
   "1-h": { libelle: "1 h", court: "1 h", phrase: "On peut réserver jusqu'à 1 h avant d'arriver." },
   "2-h": { libelle: "2 h", court: "2 h", phrase: "On peut réserver jusqu'à 2 h avant d'arriver." },
   veille: { libelle: "La veille", court: "la veille", phrase: "Pas de résa pour le jour même : on réserve au plus tard la veille, avant minuit." },
+};
+
+export const DELAIS_RESERVATION_TEXTES_PAR_LANGUE: ParLangue<Traduction<typeof DELAIS_RESERVATION_TEXTES>> = {
+  fr: DELAIS_RESERVATION_TEXTES,
+  en: DELAIS_RESERVATION_TEXTES_ANGLAIS,
 };
 
 export const TEXTES_FEUILLE_SERVICE = {
@@ -124,6 +150,11 @@ export const TEXTES_FEUILLE_SERVICE = {
   annuler: "Annuler",
 } as const;
 
+export const TEXTES_FEUILLE_SERVICE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_FEUILLE_SERVICE>> = {
+  fr: TEXTES_FEUILLE_SERVICE,
+  en: TEXTES_FEUILLE_SERVICE_ANGLAIS,
+};
+
 export const ERREURS_SERVICE = {
   jours: "Choisis au moins un jour, même un seul.",
   premier: "Une première arrivée au quart d'heure près, s'il te plaît.",
@@ -138,6 +169,8 @@ export const ERREURS_SERVICE = {
   autre: "Un réglage coince : jette un œil à tes services.",
 } as const;
 
+export const ERREURS_SERVICE_PAR_LANGUE: ParLangue<Traduction<typeof ERREURS_SERVICE>> = { fr: ERREURS_SERVICE, en: ERREURS_SERVICE_ANGLAIS };
+
 export const TEXTES_FEUILLE_JOURS_FERMES = {
   titre: "Quels jours sans résa ?",
   sousTitre: "Touche un jour pour le fermer aux résas, touche-le encore pour le rouvrir. Ça part tout de suite.",
@@ -147,10 +180,20 @@ export const TEXTES_FEUILLE_JOURS_FERMES = {
   joursMax: "120 jours sans résa au plus : il faut bien rouvrir un jour !",
 } as const;
 
+export const TEXTES_FEUILLE_JOURS_FERMES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_FEUILLE_JOURS_FERMES>> = {
+  fr: TEXTES_FEUILLE_JOURS_FERMES,
+  en: TEXTES_FEUILLE_JOURS_FERMES_ANGLAIS,
+};
+
 export const AVERTISSEMENTS_REGLAGES: Readonly<Record<RaisonReservationARevoir, { emoji: string; texte: string }>> = {
   "jour-ferme": { emoji: "🛑", texte: "{quand} : {quoi} ({personnes}) tombe un jour sans résa." },
   "hors-service": { emoji: "🕰️", texte: "{quand} : {quoi} ({personnes}) tombe en dehors de tes services." },
   capacite: { emoji: "🪑", texte: "{quand} : avec {quoi} ({personnes}), ça déborde de tes couverts." },
+};
+
+export const AVERTISSEMENTS_REGLAGES_PAR_LANGUE: ParLangue<Traduction<typeof AVERTISSEMENTS_REGLAGES>> = {
+  fr: AVERTISSEMENTS_REGLAGES,
+  en: AVERTISSEMENTS_REGLAGES_ANGLAIS,
 };
 
 export const TEXTES_AVERTISSEMENTS_REGLAGES = {
@@ -160,6 +203,11 @@ export const TEXTES_AVERTISSEMENTS_REGLAGES = {
   demandesPlusieurs: "{nombre} demandes t'attendent encore : réponds-y à la main, les nouvelles s'accepteront toutes seules.",
   note: "Rien n'est annulé tout seul : tes clients gardent leur table. Si tu ne peux pas les accueillir, annule-les depuis l'onglet Réservations : ils seront prévenus.",
 } as const;
+
+export const TEXTES_AVERTISSEMENTS_REGLAGES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_AVERTISSEMENTS_REGLAGES>> = {
+  fr: TEXTES_AVERTISSEMENTS_REGLAGES,
+  en: TEXTES_AVERTISSEMENTS_REGLAGES_ANGLAIS,
+};
 
 export const CONFIRMATIONS_REGLAGES_RESERVATIONS = {
   partir: {
@@ -182,6 +230,11 @@ export const CONFIRMATIONS_REGLAGES_RESERVATIONS = {
   },
 } as const;
 
+export const CONFIRMATIONS_REGLAGES_RESERVATIONS_PAR_LANGUE: ParLangue<Traduction<typeof CONFIRMATIONS_REGLAGES_RESERVATIONS>> = {
+  fr: CONFIRMATIONS_REGLAGES_RESERVATIONS,
+  en: CONFIRMATIONS_REGLAGES_RESERVATIONS_ANGLAIS,
+};
+
 export const TEXTES_RESUME_REGLAGES = {
   inconnu: "Tes services, tes couverts, ton délai et tes jours sans résa",
   nonReservable: "Coupées sur ta fiche pour l'instant : prépare tout ici",
@@ -189,6 +242,11 @@ export const TEXTES_RESUME_REGLAGES = {
   services: "{services} · {mode} · délai {delai}",
   joursFermes: { un: "1 jour sans résa", plusieurs: "{nombre} jours sans résa" },
 } as const;
+
+export const TEXTES_RESUME_REGLAGES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_RESUME_REGLAGES>> = {
+  fr: TEXTES_RESUME_REGLAGES,
+  en: TEXTES_RESUME_REGLAGES_ANGLAIS,
+};
 
 export const TEXTES_CARTE_SERVICE = {
   plage: "{premier} → {dernier}",
@@ -201,3 +259,8 @@ export const TEXTES_CARTE_SERVICE = {
   modifierIndice: "Ouvre ce service pour le modifier",
   voirIndice: "C'est le gérant qui modifie les services",
 } as const;
+
+export const TEXTES_CARTE_SERVICE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_CARTE_SERVICE>> = {
+  fr: TEXTES_CARTE_SERVICE,
+  en: TEXTES_CARTE_SERVICE_ANGLAIS,
+};
