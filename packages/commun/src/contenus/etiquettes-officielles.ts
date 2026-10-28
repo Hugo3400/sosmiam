@@ -1,4 +1,6 @@
-import type { FamilleEtiquettesOfficielles } from "../types/etiquette.ts";
+import type { FamilleEtiquette, FamilleEtiquettesOfficielles } from "../types/etiquette.ts";
+import type { ParLangue } from "../types/traduction.ts";
+import { NOMS_ETIQUETTES_OFFICIELLES_ANGLAIS, NOMS_FAMILLES_ETIQUETTES_ANGLAIS } from "./anglais/etiquettes-officielles.ts";
 
 export const FAMILLES_ETIQUETTES: readonly FamilleEtiquettesOfficielles[] = [
   {
@@ -24,3 +26,13 @@ export const FAMILLES_ETIQUETTES: readonly FamilleEtiquettesOfficielles[] = [
 ];
 
 export const ETIQUETTES_FILTRE_EXPLORER: readonly string[] = ["Vegan", "Végétarien", "Accessible en fauteuil", "LGBT+ friendly", "Petit budget", "Sans alcool", "Halal", "Calme"];
+
+export const NOMS_FAMILLES_ETIQUETTES_PAR_LANGUE: ParLangue<Readonly<Record<FamilleEtiquette, string>>> = {
+  fr: Object.fromEntries(FAMILLES_ETIQUETTES.map((famille) => [famille.id, famille.nom])) as Record<FamilleEtiquette, string>,
+  en: NOMS_FAMILLES_ETIQUETTES_ANGLAIS,
+};
+
+export const NOMS_ETIQUETTES_OFFICIELLES_PAR_LANGUE: ParLangue<Readonly<Record<string, string>>> = {
+  fr: Object.fromEntries(FAMILLES_ETIQUETTES.flatMap((famille) => famille.etiquettes).map((nom) => [nom, nom])),
+  en: NOMS_ETIQUETTES_OFFICIELLES_ANGLAIS,
+};

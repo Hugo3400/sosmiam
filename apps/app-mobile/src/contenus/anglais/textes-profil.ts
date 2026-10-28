@@ -1,5 +1,6 @@
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import type { Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_BADGES_ANGLAIS } from "~/contenus/anglais/textes-badges";
 import type {
   DETAILS_MODE_AMBASSADEUR,
   TEXTES_BADGES_PROFIL,
@@ -94,7 +95,7 @@ export const TEXTES_BADGES_PROFIL_ANGLAIS: Traduction<typeof TEXTES_BADGES_PROFI
   apercuLu: (noms: readonly string[]) =>
     noms.length > 1 ? `Your latest ${noms.length} badges: ${noms.slice(0, -1).join(", ")} and ${noms[noms.length - 1]}` : `Your very first badge: ${noms[0] ?? ""}`,
   encore: (nombre: number) => `${nombre} more to unlock – happy hunting!`,
-  complete: "Full collection – the Brigade's lost for words!",
+  complete: TEXTES_BADGES_ANGLAIS.collectionComplete,
   dernier: (emoji: string, nom: string) => `The latest: ${emoji} ${nom}`,
   aucun: "Your first badge is waiting – one rescue is all it takes!",
   voirTout: "See all your badges",

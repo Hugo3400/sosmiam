@@ -1,4 +1,6 @@
 import type { SourceLieu } from "../types/source-lieu.ts";
+import type { ParLangue } from "../types/traduction.ts";
+import { NOMS_SOURCES_LIEUX_ANGLAIS } from "./anglais/sources-lieux.ts";
 
 export type SourceConnue = SourceLieu & { hote: string };
 
@@ -11,3 +13,8 @@ export const SOURCES_LIEUX: readonly SourceConnue[] = [
   { hote: "lilletourism.com", nom: "l'office de tourisme de Lille", site: "lilletourism.com", adresse: "https://www.lilletourism.com", licence: null },
   { hote: "marseille-tourisme.com", nom: "l'office de tourisme de Marseille", site: "marseille-tourisme.com", adresse: "https://www.marseille-tourisme.com", licence: null },
 ];
+
+export const NOMS_SOURCES_LIEUX_PAR_LANGUE: ParLangue<Readonly<Record<string, string>>> = {
+  fr: Object.fromEntries([...SOURCES_LIEUX.map((source) => source.nom), LICENCE_OUVERTE.nom].map((nom) => [nom, nom])),
+  en: NOMS_SOURCES_LIEUX_ANGLAIS,
+};

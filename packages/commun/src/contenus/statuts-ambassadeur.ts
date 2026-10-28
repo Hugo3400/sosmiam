@@ -3,6 +3,8 @@
 // L'effacement à J+30 après un refus n'est pas cité : avec le compte unique, seul le rôle d'ambassadeur partira.
 
 import type { StatutAmbassadeur } from "../types/roles.ts";
+import type { ParLangue, Traduction } from "../types/traduction.ts";
+import { TEXTES_STATUT_AMBASSADEUR_ANGLAIS } from "./anglais/statuts-ambassadeur.ts";
 
 export const TEXTES_STATUT_AMBASSADEUR: Readonly<Record<StatutAmbassadeur, { titre: string; texte: string }>> = {
   "en-attente": {
@@ -24,3 +26,5 @@ export const TEXTES_STATUT_AMBASSADEUR: Readonly<Record<StatutAmbassadeur, { tit
     texte: "Il est suspendu pour le moment. Pour en parler, écris-nous à bonjour@sosmiam.fr : un humain te répondra.",
   },
 };
+
+export const TEXTES_STATUT_AMBASSADEUR_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_STATUT_AMBASSADEUR>> = { fr: TEXTES_STATUT_AMBASSADEUR, en: TEXTES_STATUT_AMBASSADEUR_ANGLAIS };

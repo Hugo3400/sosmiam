@@ -3,6 +3,8 @@
 
 import type { MotifRefusReservation } from "../types/reservation.ts";
 import type { MotifRefusVisite } from "../types/visite.ts";
+import type { ParLangue, Traduction } from "../types/traduction.ts";
+import { LIBELLES_MOTIF_REFUS_CLIENT_ANGLAIS, LIBELLES_MOTIF_REFUS_RESERVATION_ANGLAIS, LIBELLES_MOTIF_REFUS_VISITE_ANGLAIS } from "./anglais/motifs-refus.ts";
 
 /** Ce que choisit l'équipe du lieu quand elle refuse (ou annule) une addition */
 export const LIBELLES_MOTIF_REFUS_VISITE: Readonly<Record<MotifRefusVisite, string>> = {
@@ -26,4 +28,19 @@ export const LIBELLES_MOTIF_REFUS_RESERVATION: Readonly<Record<MotifRefusReserva
   ferme: "On est fermés à ce moment-là",
   "groupe-trop-grand": "Le groupe est trop grand pour nous",
   autre: "On ne peut pas cette fois",
+};
+
+export const LIBELLES_MOTIF_REFUS_VISITE_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_MOTIF_REFUS_VISITE>> = {
+  fr: LIBELLES_MOTIF_REFUS_VISITE,
+  en: LIBELLES_MOTIF_REFUS_VISITE_ANGLAIS,
+};
+
+export const LIBELLES_MOTIF_REFUS_CLIENT_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_MOTIF_REFUS_CLIENT>> = {
+  fr: LIBELLES_MOTIF_REFUS_CLIENT,
+  en: LIBELLES_MOTIF_REFUS_CLIENT_ANGLAIS,
+};
+
+export const LIBELLES_MOTIF_REFUS_RESERVATION_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_MOTIF_REFUS_RESERVATION>> = {
+  fr: LIBELLES_MOTIF_REFUS_RESERVATION,
+  en: LIBELLES_MOTIF_REFUS_RESERVATION_ANGLAIS,
 };

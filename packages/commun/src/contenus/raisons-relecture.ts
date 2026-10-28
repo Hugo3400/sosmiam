@@ -3,6 +3,8 @@
 // La relecture d'un ambassadeur est un avis consultatif : l'équipe tranche dans le logiciel de gestion.
 
 import type { MotifAvisLouche, RaisonRelecture } from "../types/avis.ts";
+import type { ParLangue, Traduction } from "../types/traduction.ts";
+import { LIBELLES_MOTIF_AVIS_LOUCHE_ANGLAIS, LIBELLES_RAISON_RELECTURE_ANGLAIS } from "./anglais/raisons-relecture.ts";
 
 export const LIBELLES_RAISON_RELECTURE: Readonly<Record<RaisonRelecture, string>> = {
   "rafale-notes": "Beaucoup d'avis très tranchés sur ce lieu en peu de temps",
@@ -19,3 +21,7 @@ export const LIBELLES_MOTIF_AVIS_LOUCHE: Readonly<Record<MotifAvisLouche, string
   "infos-perso": "Donne des infos personnelles",
   autre: "Autre chose",
 };
+
+export const LIBELLES_RAISON_RELECTURE_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_RAISON_RELECTURE>> = { fr: LIBELLES_RAISON_RELECTURE, en: LIBELLES_RAISON_RELECTURE_ANGLAIS };
+
+export const LIBELLES_MOTIF_AVIS_LOUCHE_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_MOTIF_AVIS_LOUCHE>> = { fr: LIBELLES_MOTIF_AVIS_LOUCHE, en: LIBELLES_MOTIF_AVIS_LOUCHE_ANGLAIS };
