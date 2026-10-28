@@ -6,6 +6,7 @@ import { dechiffrerApercu } from "~/fonctions/notifications/dechiffrer-apercu";
 import { estDejaSousTesYeux } from "~/fonctions/notifications/est-deja-sous-tes-yeux";
 import { estLienPermis } from "~/fonctions/notifications/est-lien-permis";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
+import { lireLangueActuelle } from "~/services/langue-actuelle";
 import { CATEGORIE_MESSAGE, preparerCategorieMessage, repondreDepuisNotification } from "~/services/reponse-notification";
 import { lireCleApercu } from "~/stockage/cle-apercu";
 
@@ -52,6 +53,6 @@ if (Platform.OS === "android") {
 }
 
 if (Platform.OS !== "web") {
-  preparerCategorieMessage();
+  preparerCategorieMessage(lireLangueActuelle());
   Notifications.addNotificationResponseReceivedListener((reponse) => void repondreDepuisNotification(reponse));
 }

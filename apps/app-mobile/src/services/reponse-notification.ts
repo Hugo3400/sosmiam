@@ -4,7 +4,9 @@ import { Platform } from "react-native";
 import { creerClientHttp } from "@sos-miam/commun/client-api/client-http";
 import { creerMessagerieApi } from "@sos-miam/commun/client-api/api/api-messagerie";
 import { LONGUEUR_MAX_MESSAGE } from "@sos-miam/commun/regles/potes";
-import { T_REPONSE_NOTIFICATION } from "~/contenus/textes-reponse-notification";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { T_REPONSE_NOTIFICATION_PAR_LANGUE } from "~/contenus/textes-reponse-notification";
 import { calculerIdClientReponse } from "~/fonctions/chat/calculer-id-client-reponse";
 import { lireConversationNotification } from "~/fonctions/notifications/lire-conversation-notification";
 import { ADRESSE_API } from "~/services/adresse-api";
@@ -18,13 +20,14 @@ export const ACTION_REPONDRE = "repondre";
 const messagerie = creerMessagerieApi(creerClientHttp({ adresse: ADRESSE_API, lireJeton: lireJetonSession, versionApp: VERSION_INSTALLEE ?? undefined, lireLangue: lireLangueActuelle }));
 const dejaEnvoyees = new Set<string>();
 
-export function preparerCategorieMessage(): void {
+export function preparerCategorieMessage(langue: Langue): void {
   if (Platform.OS === "web") return;
+  const T = choisirTextes(T_REPONSE_NOTIFICATION_PAR_LANGUE, langue);
   void Notifications.setNotificationCategoryAsync(CATEGORIE_MESSAGE, [
     {
       identifier: ACTION_REPONDRE,
-      buttonTitle: T_REPONSE_NOTIFICATION.bouton,
-      textInput: { submitButtonTitle: T_REPONSE_NOTIFICATION.envoyer, placeholder: T_REPONSE_NOTIFICATION.champ },
+      buttonTitle: T.bouton,
+      textInput: { submitButtonTitle: T.envoyer, placeholder: T.champ },
       options: { opensAppToForeground: false, isAuthenticationRequired: true },
     },
   ]).catch(() => null);
@@ -34,8 +37,9 @@ export const estReponseDepuisNotification = (reponse: Notifications.Notification
   reponse?.actionIdentifier === ACTION_REPONDRE;
 
 async function prevenirEchec(conversationId: number): Promise<void> {
+  const T = choisirTextes(T_REPONSE_NOTIFICATION_PAR_LANGUE, lireLangueActuelle());
   await Notifications.scheduleNotificationAsync({
-    content: { title: T_REPONSE_NOTIFICATION.rateTitre, body: T_REPONSE_NOTIFICATION.rateTexte, data: { lien: `/potes/discussion/${conversationId}` } },
+    content: { title: T.rateTitre, body: T.rateTexte, data: { lien: `/potes/discussion/${conversationId}` } },
     trigger: Platform.OS === "android" ? { channelId: "messages-discrets" } : null,
   }).catch(() => undefined);
 }

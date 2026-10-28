@@ -16,8 +16,9 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserRenvoiChoixOffres } from "~/hooks/utiliser-renvoi-choix-offres";
 import { utiliserSession } from "~/hooks/utiliser-session";
 import { lireEcranOuvert } from "~/services/ecran-ouvert";
+import { lireLangueActuelle } from "~/services/langue-actuelle";
 import { noterNotificationOuverte } from "~/services/notification-ouverte";
-import { estReponseDepuisNotification } from "~/services/reponse-notification";
+import { estReponseDepuisNotification, preparerCategorieMessage } from "~/services/reponse-notification";
 import { lireReglagesNotifications } from "~/stockage/reglages-notifications";
 
 /**
@@ -75,7 +76,7 @@ if (Platform.OS !== "web") {
     },
   });
   // Android : les canaux de l'app (Miam Safe, messages, messages à la suite, nouvelles), avant toute demande d'autorisation
-  void creerCanauxAndroid();
+  void creerCanauxAndroid(lireLangueActuelle());
 }
 
 /**
@@ -107,6 +108,12 @@ export function utiliserInscriptionTelephone(pileAffichee: boolean): void {
     modesActuels.current = modes;
   });
   utiliserRenvoiChoixOffres(pret);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    void creerCanauxAndroid(langue);
+    preparerCategorieMessage(langue);
+  }, [langue]);
 
   useEffect(() => {
     if (!pret || !avecProfil) return;

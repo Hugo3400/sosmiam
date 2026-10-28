@@ -1,9 +1,14 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { CANAUX_ANDROID_PAR_LANGUE } from "~/contenus/canaux-android";
+
 /**
- * Les canaux de notifications de l'app sur Android, créés à chaque lancement (sans risque : Android ne fait alors que
- * mettre à jour le nom et la description, et ne baisse jamais une importance que la personne a réglée). Le serveur nomme
+ * Les canaux de notifications de l'app sur Android, créés à chaque lancement et à chaque changement de langue (sans risque :
+ * Android ne fait alors que mettre à jour le nom et la description, et ne baisse jamais une importance que la personne a
+ * réglée). Le serveur nomme
  * toujours le canal (channel_id de expedier-push.ts) :
  * - « Miam Safe » (« miam-safe ») : les alertes urgentes (l'alerte du comptoir pour l'équipe du lieu, « Prévenir un pote »).
  *   Importance maximale, son et vibration.
@@ -23,34 +28,35 @@ import { Platform } from "react-native";
  * pas déranger » contourné : c'est un accès spécial que seule la personne accorde. Chaque canal reste réglable par la
  * personne dans les réglages d'Android. Ailleurs qu'Android, rien à faire.
  */
-export async function creerCanauxAndroid(): Promise<void> {
+export async function creerCanauxAndroid(langue: Langue): Promise<void> {
   if (Platform.OS !== "android") return;
+  const T = choisirTextes(CANAUX_ANDROID_PAR_LANGUE, langue);
   // Chacun le sien : un canal raté n'empêche pas les autres (module natif absent ou refus du système : la notification
   // arrive quand même, sur le canal « notifications » ou sur un canal de repli « Miscellaneous »)
   await Notifications.setNotificationChannelAsync("miam-safe", {
-    name: "Miam Safe",
-    description: "Quand quelqu'un a besoin d'aide : l'alerte du comptoir pour ton équipe, ou un pote qui te prévient.",
+    name: T.miamSafe.nom,
+    description: T.miamSafe.description,
     importance: Notifications.AndroidImportance.MAX,
     enableVibrate: true,
     vibrationPattern: [0, 500, 250, 500],
   }).catch(() => null);
   await Notifications.setNotificationChannelAsync("messages", {
-    name: "Messages et sorties",
-    description: "Tes potes t'écrivent, t'invitent à une sortie ou rejoignent ta bande : ça sonne, ça vibre, tu ne rates rien.",
+    name: T.messages.nom,
+    description: T.messages.description,
     importance: Notifications.AndroidImportance.HIGH,
     enableVibrate: true,
   }).catch(() => null);
   await Notifications.setNotificationChannelAsync("messages-discrets", {
-    name: "Messages à la suite",
-    description: "Quand un pote enchaîne les messages : le premier sonne, la suite arrive sans bruit.",
+    name: T.messagesDiscrets.nom,
+    description: T.messagesDiscrets.description,
     importance: Notifications.AndroidImportance.DEFAULT,
     // null : aucun son (sans la clé, Android mettrait son son par défaut)
     sound: null,
     enableVibrate: false,
   }).catch(() => null);
   await Notifications.setNotificationChannelAsync("notifications", {
-    name: "Nouvelles de SOS Miam",
-    description: "Les SOS et bons plans près de chez toi, tes visites validées et des nouvelles du Capitaine Bouiboui.",
+    name: T.notifications.nom,
+    description: T.notifications.description,
     importance: Notifications.AndroidImportance.HIGH,
     enableVibrate: true,
   }).catch(() => null);
