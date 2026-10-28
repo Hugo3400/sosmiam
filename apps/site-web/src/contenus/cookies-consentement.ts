@@ -147,7 +147,7 @@ export const TEXTES_CONSENTEMENT = {
     },
   },
   partenaires: {
-    "SOS Miam": { role: "Ta connexion, ton refus des statistiques, tes choix de cookies et ta position dans la page." },
+    "SOS Miam": { role: "Ta connexion, ton refus des statistiques, ta langue, tes choix de cookies et ta position dans la page." },
     Cloudflare: { role: "Protège le site contre les attaques et les robots." },
     "Exemple (aperçu)": {
       nom: "Exemple (aperçu)",
@@ -161,6 +161,7 @@ export const TEXTES_CONSENTEMENT = {
     "__Host-sosmiam-confirmation-externe": { finalite: "Relier Apple ou Google à un compte sans mot de passe.", duree: "10 minutes au plus" },
     "__Host-sosmiam-connexion-qr": { finalite: "Attendre que l'app valide « Me connecter avec l'app ».", duree: "2 minutes au plus" },
     "sosmiam-sans-statistiques": { finalite: "Retenir ton refus d'être compté.", duree: "13 mois" },
+    "sosmiam-langue": { finalite: "Retenir la langue que tu as choisie.", duree: "1 an" },
     [NOM_COOKIE_CONSENTEMENT]: { finalite: "Retenir tes choix de cookies.", duree: "6 mois" },
     "react-router-scroll-positions": { finalite: "Te ramener où tu étais sur une page (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },
     "react-router-manifest-version": { finalite: "Recharger une seule fois après une mise à jour (stockage de session).", duree: "Jusqu'à la fermeture de l'onglet" },
@@ -194,6 +195,7 @@ export const categoriesConsentement: CategorieConsentement[] = [
           traceur("__Host-sosmiam-confirmation-externe"),
           traceur("__Host-sosmiam-connexion-qr"),
           traceur("sosmiam-sans-statistiques"),
+          traceur("sosmiam-langue"),
           traceur(NOM_COOKIE_CONSENTEMENT),
           traceur("react-router-scroll-positions"),
           traceur("react-router-manifest-version"),

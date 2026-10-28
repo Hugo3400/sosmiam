@@ -66,7 +66,7 @@ export const TEXTES_CONSENTEMENT_ANGLAIS: Traduction<typeof TEXTES_CONSENTEMENT>
     },
   },
   partenaires: {
-    "SOS Miam": { role: "Your login, your opt-out from statistics, your cookie choices and where you are on the page." },
+    "SOS Miam": { role: "Your login, your opt-out from statistics, your language, your cookie choices and where you are on the page." },
     Cloudflare: { role: "Protects the site from attacks and bots." },
     "Exemple (aperçu)": {
       nom: "Example (preview)",
@@ -80,6 +80,7 @@ export const TEXTES_CONSENTEMENT_ANGLAIS: Traduction<typeof TEXTES_CONSENTEMENT>
     "__Host-sosmiam-confirmation-externe": { finalite: "Link Apple or Google to an account without a password.", duree: "10 minutes max" },
     "__Host-sosmiam-connexion-qr": { finalite: "Wait for the app to confirm “Log in with the app”.", duree: "2 minutes max" },
     "sosmiam-sans-statistiques": { finalite: "Remember that you'd rather not be counted.", duree: "13 months" },
+    "sosmiam-langue": { finalite: "Remember the language you chose.", duree: "1 year" },
     "sosmiam-consentement": { finalite: "Remember your cookie choices.", duree: "6 months" },
     "react-router-scroll-positions": { finalite: "Bring you back to where you were on a page (session storage).", duree: "Until you close the tab" },
     "react-router-manifest-version": { finalite: "Reload just once after an update (session storage).", duree: "Until you close the tab" },

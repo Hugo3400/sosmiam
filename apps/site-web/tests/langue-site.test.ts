@@ -196,7 +196,7 @@ test("langue courante : portée pendant toute la demande, jusqu'aux appels à l'
 test("ecrireAdresseLangue : /en seulement sur nos hôtes qui servent l'anglais, jamais vers un autre site", async () => {
   const { ecrireAdresseLangue } = await import("../src/fonctions/langue/ecrire-adresse-langue.ts");
   assert.equal(ecrireAdresseLangue("https://sosmiam.fr/#inscription", "fr"), "https://sosmiam.fr/#inscription");
-  assert.equal(ecrireAdresseLangue("https://sosmiam.fr/inscrire-mon-lieu", "en"), "https://sosmiam.fr/inscrire-mon-lieu");
+  assert.equal(ecrireAdresseLangue("https://sosmiam.fr/inscrire-mon-lieu", "en"), "https://sosmiam.fr/en/inscrire-mon-lieu");
   assert.equal(ecrireAdresseLangue("https://apercu.sosmiam.fr/inscrire-mon-lieu", "en"), "https://apercu.sosmiam.fr/en/inscrire-mon-lieu");
   assert.equal(ecrireAdresseLangue("https://apercu.sosmiam.fr/#inscription", "en"), "https://apercu.sosmiam.fr/en#inscription");
   assert.equal(ecrireAdresseLangue("https://www.instagram.com/official.sosmiam/", "en"), "https://www.instagram.com/official.sosmiam/");
