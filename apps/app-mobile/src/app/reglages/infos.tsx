@@ -10,7 +10,6 @@ import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { MESSAGES_INFOS } from "~/contenus/annonces-profil";
-import { potesExemples } from "~/contenus/potes-exemples";
 import { proposerPseudo } from "~/fonctions/communaute/proposer-pseudo";
 import { decrireRefusInfos } from "~/fonctions/compte/decrire-refus-infos";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
@@ -21,7 +20,6 @@ import { utiliserDisponibilitePseudo } from "~/hooks/utiliser-disponibilite-pseu
 import { montrerErreurCompte } from "~/hooks/utiliser-entree-compte";
 import { utiliserProfil, type ChangementsInfos, type ResultatInfos } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 // Mêmes limites qu'à l'inscription (et que estProfilValide pour le prénom)
 const LONGUEUR_MAX_PRENOM = 40;
@@ -35,10 +33,8 @@ const REGLES_PSEUDO =
 // Ce que dit le serveur pendant la saisie (mêmes phrases que ses refus à l'enregistrement)
 const PSEUDO_PRIS = decrireRefusInfos("pseudo-pris").texte;
 const PSEUDO_MIS_DE_COTE = decrireRefusInfos("pseudo-mis-de-cote").texte;
-// Sans compte (la démo, ou un profil d'avant les comptes), personne ne vérifie le pseudo : on dit où il l'est pour de vrai
-const PSEUDO_SANS_COMPTE = DEMO_VISITES_ACTIVE
-  ? "En démo, il reste sur ton téléphone : avec un vrai compte, on vérifie qu'il est libre pendant que tu tapes."
-  : "Sans compte, il reste sur ce téléphone : c'est avec un compte qu'on vérifie qu'il est libre.";
+// Sans compte (un profil d'avant les comptes), personne ne vérifie le pseudo : on dit où il l'est pour de vrai
+const PSEUDO_SANS_COMPTE = "Sans compte, il reste sur ce téléphone : c'est avec un compte qu'on vérifie qu'il est libre.";
 // Clavier sans accents ni emoji sur iPhone, sans suggestions sur Android
 const CLAVIER_PSEUDO = Platform.select({ ios: "ascii-capable", android: "visible-password", default: "default" } as const);
 // Avec un compte, la date est gardée chiffrée sur le serveur : seule l'équipe la corrige, sur demande (docs/decisions.md)
@@ -66,7 +62,7 @@ export default function ReglagesInfos() {
   const router = useRouter();
   const { profil, modifierInfos, pseudoMisDeCote } = utiliserProfil();
   const { connecte } = utiliserSession();
-  const avecCompte = connecte && !DEMO_VISITES_ACTIVE;
+  const avecCompte = connecte;
   const champPrenom = useRef<TextInput>(null);
   const champPseudo = useRef<TextInput>(null);
   const champNom = useRef<TextInput>(null);
@@ -127,11 +123,9 @@ export default function ReglagesInfos() {
         : null
       : !estPseudoValide(pseudoNettoye)
         ? REGLES_PSEUDO
-        : pseudoChange && DEMO_VISITES_ACTIVE && potesExemples.some((p) => p.pseudo === pseudoNettoye)
-          ? "Ce pseudo est déjà pris ! Ajoute-lui une touche perso, quelques chiffres par exemple."
-          : pseudoChange && nomPublicContientMotInterdit(pseudoNettoye)
-            ? "Ce pseudo-là ne passera pas : choisis-en un plus sympa."
-            : null;
+        : pseudoChange && nomPublicContientMotInterdit(pseudoNettoye)
+          ? "Ce pseudo-là ne passera pas : choisis-en un plus sympa."
+          : null;
   // Ce que le serveur a dit de ce pseudo-là (à l'enregistrement, ou pendant la saisie)
   const erreurPseudoServeur = refusPseudo?.bloquant
     ? refusPseudo.texte

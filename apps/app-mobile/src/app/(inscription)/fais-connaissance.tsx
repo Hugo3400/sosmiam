@@ -11,14 +11,12 @@ import { ChoixVille } from "~/composants/inscription/ChoixVille";
 import { EcranEtape } from "~/composants/inscription/EcranEtape";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { potesExemples } from "~/contenus/potes-exemples";
 import { proposerPseudo } from "~/fonctions/communaute/proposer-pseudo";
 import { calculerDateAnniversaire } from "~/fonctions/dates/calculer-date-anniversaire";
 import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 const LONGUEUR_MAX_PRENOM = 40;
 const LONGUEUR_MAX_NOM = 60;
@@ -66,11 +64,9 @@ export default function FaisConnaissance() {
       ? "Choisis-toi un pseudo\u00a0: c'est grâce à lui que tes potes te trouveront."
       : !estPseudoValide(pseudo)
         ? REGLES_PSEUDO
-        : DEMO_VISITES_ACTIVE && potesExemples.some((p) => p.pseudo === pseudo)
-          ? "Ce pseudo est déjà pris\u00a0! Ajoute-lui une touche perso, quelques chiffres par exemple."
-          : nomPublicContientMotInterdit(pseudo)
-            ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
-            : null;
+        : nomPublicContientMotInterdit(pseudo)
+          ? "Ce pseudo-là ne passera pas\u00a0: choisis-en un plus sympa."
+          : null;
   const pseudoValable = erreurPseudo === null;
   // Un caractère interdit se signale tout de suite ; le reste (longueur, vide) une fois le champ quitté
   const montrerErreurPseudo = pseudoQuitte || /[^a-z0-9._]/.test(pseudo);

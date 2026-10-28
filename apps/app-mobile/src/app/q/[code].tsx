@@ -7,7 +7,6 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 /**
  * Le QR d'un appareil à connecter, ouvert par l'appareil photo du téléphone (sosmiam.fr/q/<code>) : avec un compte connecté,
@@ -20,7 +19,7 @@ export default function OuvrirQrConnexion() {
   const { code = "" } = useLocalSearchParams<{ code: string }>();
   const { connecte } = utiliserSession();
   const { profil } = utiliserProfil();
-  const peutValider = (connecte || DEMO_VISITES_ACTIVE) && profil !== null;
+  const peutValider = connecte && profil !== null;
   const parti = useRef(false);
 
   useEffect(() => {

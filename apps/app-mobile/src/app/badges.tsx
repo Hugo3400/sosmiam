@@ -11,12 +11,9 @@ import { BADGES_VISIBLES } from "~/contenus/badges-visibles";
 import { FAMILLES_BADGES } from "~/contenus/familles-badges";
 import { TEXTES_BADGES } from "~/contenus/textes-badges";
 import { grouperBadgesParFamille } from "~/fonctions/ambassadeur/grouper-badges-par-famille";
-import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 const FAMILLES = grouperBadgesParFamille(BADGES_VISIBLES, FAMILLES_BADGES);
 const MARGE_EN_VUE = 16;
@@ -25,7 +22,6 @@ export default function Badges() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { connecte, compte } = utiliserSession();
-  const activite = utiliserActivite();
   const animationsReduites = useReducedMotion();
   const [choisi, setChoisi] = useState<IdBadge | null>(null);
   const defilement = useRef<ScrollView>(null);
@@ -33,9 +29,7 @@ export default function Badges() {
   const decalage = useRef(0);
   const hauteurVisible = useRef(0);
 
-  const obtenus: readonly string[] | null = DEMO_VISITES_ACTIVE
-    ? listerBadgesObtenus({ rescousses: activite.rescoussesDonnees, "premiers-sauvetages": activite.premiersSauvetages.length })
-    : (compte?.badges ?? null);
+  const obtenus: readonly string[] | null = compte?.badges ?? null;
   const nombreObtenus = obtenus ? BADGES_VISIBLES.filter((b) => obtenus.includes(b.id)).length : 0;
   const complete = nombreObtenus >= BADGES_VISIBLES.length;
   const sousTitre = obtenus ? (complete ? TEXTES_BADGES.collectionComplete : TEXTES_BADGES.sousTitre(nombreObtenus, BADGES_VISIBLES.length)) : null;
@@ -98,7 +92,6 @@ export default function Badges() {
                     badges={famille.badges}
                     obtenus={obtenus}
                     choisi={choisi}
-                    demo={DEMO_VISITES_ACTIVE}
                     repere={repere}
                     onChoisir={setChoisi}
                     onMontrer={montrer}

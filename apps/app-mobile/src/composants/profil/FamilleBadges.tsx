@@ -12,7 +12,6 @@ type Props = {
   badges: readonly BadgeCatalogue[];
   obtenus: readonly string[];
   choisi: IdBadge | null;
-  demo: boolean;
   repere: RefObject<View | null>;
   onChoisir: (id: IdBadge | null) => void;
   onMontrer: (haut: number, bas: number) => void;
@@ -20,7 +19,7 @@ type Props = {
 
 const PAR_RANGEE = 4;
 
-export function FamilleBadges({ titre, badges, obtenus, choisi, demo, repere, onChoisir, onMontrer }: Props) {
+export function FamilleBadges({ titre, badges, obtenus, choisi, repere, onChoisir, onMontrer }: Props) {
   const rangeeChoisie = useRef<View>(null);
   const cadreDetail = useRef<View>(null);
   const compte = TEXTES_BADGES.compteFamille(badges.filter((b) => obtenus.includes(b.id)).length, badges.length);
@@ -52,7 +51,7 @@ export function FamilleBadges({ titre, badges, obtenus, choisi, demo, repere, on
                 badge={badge}
                 obtenu={obtenu}
                 selectionne={selectionne}
-                commentObtenir={obtenu ? null : direCommentObtenirBadge(badge.id, demo)}
+                commentObtenir={obtenu ? null : direCommentObtenirBadge(badge.id)}
                 onToucher={() => onChoisir(selectionne ? null : badge.id)}
               />
             );
@@ -75,7 +74,7 @@ export function FamilleBadges({ titre, badges, obtenus, choisi, demo, repere, on
       {dessinerRangees(0, derniereAvantDetail)}
       {detail ? (
         <View ref={cadreDetail}>
-          <DetailBadge badge={detail} obtenu={obtenus.includes(detail.id)} commentObtenir={direCommentObtenirBadge(detail.id, demo)} />
+          <DetailBadge badge={detail} obtenu={obtenus.includes(detail.id)} commentObtenir={direCommentObtenirBadge(detail.id)} />
         </View>
       ) : null}
       {derniereAvantDetail < rangees.length - 1 ? dessinerRangees(derniereAvantDetail + 1, rangees.length - 1) : null}

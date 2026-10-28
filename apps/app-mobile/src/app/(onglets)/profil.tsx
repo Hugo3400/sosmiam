@@ -16,9 +16,6 @@ import { RaccourcisProfil } from "~/composants/profil/RaccourcisProfil";
 import { SectionPalier } from "~/composants/profil/SectionPalier";
 import { BADGES_VISIBLES } from "~/contenus/badges-visibles";
 import { TEXTES_PROFIL } from "~/contenus/textes-profil";
-import type { MesuresActivite } from "~/contenus/type-mesure-activite";
-import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
-import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { listerBadgesDuCompte } from "~/fonctions/profil/lister-badges-du-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -26,8 +23,6 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { utiliserVisites } from "~/hooks/utiliser-visites";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 
 const PAGES_LEGALES = [
   { titre: "Conditions d'utilisation", adresse: "https://sosmiam.fr/cgu" },
@@ -55,7 +50,6 @@ export default function Profil() {
   const router = useRouter();
   const { profil, avatar, invite } = utiliserProfil();
   const activite = utiliserActivite();
-  const { points: pointsVisites } = utiliserVisites();
   const { connecte, compte } = utiliserSession();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
   const hauteurBarreOnglets = useBottomTabBarHeight();
@@ -93,15 +87,10 @@ export default function Profil() {
   if (!profil) return null;
 
   const age = calculerAge(profil.dateNaissance);
-  const mesures: MesuresActivite = { rescousses: activite.rescoussesDonnees, "premiers-sauvetages": activite.premiersSauvetages.length };
   // null : le compte n'est pas encore relu (hors ligne), ou sa session a expiré : on ne montre pas de faux chiffres
-  const ambassadeur = DEMO_VISITES_ACTIVE
-    ? { points: calculerPointsLocaux(mesures) + pointsVisites, obtenus: listerBadgesObtenus(mesures) }
-    : compte
-      ? { points: compte.points, obtenus: listerBadgesDuCompte(compte.badges) }
-      : null;
+  const ambassadeur = compte ? { points: compte.points, obtenus: listerBadgesDuCompte(compte.badges) } : null;
   // Bouées et défis attendent l'activité : cachés tant qu'elle n'est pas connue (pas relue, ou session expirée)
-  const activiteConnue = DEMO_VISITES_ACTIVE || (connecte && activite.chargee);
+  const activiteConnue = connecte && activite.chargee;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>

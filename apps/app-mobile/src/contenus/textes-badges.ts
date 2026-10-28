@@ -9,5 +9,4 @@ export const TEXTES_BADGES = {
   compteFamille: (obtenus: number, total: number) => ({ texte: `${obtenus}/${total}`, lu: `${obtenus} sur ${total}` }),
   obtenu: "Obtenu",
   possible: "À débloquer, c'est possible dès maintenant !",
-  sousCleDemo: "Dans la démo, celui-ci reste sous clé : il se gagne pour de vrai avec un compte.",
 } as const;

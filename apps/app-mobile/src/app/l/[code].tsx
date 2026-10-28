@@ -7,8 +7,6 @@ import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
-import { validationLieuxExemples } from "~/contenus/validation-lieux-exemples";
 
 /**
  * Le QR de vitrine d'un lieu, ouvert dans l'app (sosmiam.fr/l/<code>) : on retrouve le lieu et on ouvre sa fiche. Sans
@@ -25,9 +23,7 @@ export default function OuvrirQrVitrine() {
   useEffect(() => {
     let actif = true;
     void (async () => {
-      const lieuId = DEMO_VISITES_ACTIVE
-        ? (Object.values(validationLieuxExemples).find((v) => v.codePublic === code)?.lieuId ?? null)
-        : await contenu.trouverParCode(code).then((r) => (r.ok ? r.lieuId : null));
+      const lieuId = await contenu.trouverParCode(code).then((r) => (r.ok ? r.lieuId : null));
       if (!actif) return;
       if (lieuId === null) return setIntrouvable(true);
       if (!profil && !invite) await entrerEnInvite();
