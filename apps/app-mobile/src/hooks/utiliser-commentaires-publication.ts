@@ -71,8 +71,7 @@ const lireRefus = (erreur: ErreurService, champ?: string): ResultatCommentaire =
 };
 
 /**
- * Les commentaires d'une publication (sortis de la communauté au lot A6). Démo : ceux du téléphone. Visite et compte : la
- * liste publique du serveur (lisible sans compte, en cache 30 s), corrigée de tes gestes des 60 dernières secondes
+ * Les commentaires d'une publication (sortis de la communauté au lot A6) : la liste publique du serveur (lisible sans compte, en cache 30 s), corrigée de tes gestes des 60 dernières secondes
  * (services/memoire-commentaires) ; avec un compte, en plus, tes J'aime, tes commentaires masqués par le lieu ou suspendus
  * (toi seul les vois), ceux que tu as signalés (cachés) et la réponse au nom du lieu pour un gérant. Les gestes s'affichent
  * tout de suite. publicationId null : rien.
@@ -82,7 +81,7 @@ export function utiliserCommentairesPublication(publicationId: string | null): C
   const communaute = utiliserCommunaute();
   const { sociaux } = utiliserSession();
   const monId = utiliserMonId();
-  const duServeur = source !== "demo" && source !== "attente" && !!publicationId;
+  const duServeur = source !== "attente" && !!publicationId;
   const avecCompte = source === "compte";
   const [page, setPage] = useState<Page | null>(null);
   const [moi, setMoi] = useState<MesCommentairesApi | null>(null);
@@ -154,20 +153,18 @@ export function utiliserCommentairesPublication(publicationId: string | null): C
   return useMemo((): CommentairesPublication => {
     const id = publicationId ?? "";
     if (!duServeur) {
-      const demo = source === "demo" && !!publicationId;
       return {
         source,
-        // Démo : la communauté du téléphone doit être lue
-        pret: demo ? communaute.pret : source !== "attente",
+        pret: source !== "attente",
         ratee: false,
-        fils: demo ? communaute.commentairesDe(id) : [],
-        nombre: demo ? communaute.nombreCommentaires(id) : 0,
+        fils: [],
+        nombre: 0,
         suite: false,
         chargerSuite: async () => true,
-        commenter: async (texte, reponseA) => (demo ? communaute.commenter(id, texte, reponseA) : "reseau"),
-        modifier: async (cid, texte) => (demo ? communaute.modifierCommentaire(cid, texte) : "reseau"),
-        supprimer: (cid) => demo && communaute.supprimerCommentaire(cid),
-        basculerJaime: (cid) => demo && communaute.basculerJaimeCommentaire(cid),
+        commenter: async () => "reseau",
+        modifier: async () => "reseau",
+        supprimer: () => false,
+        basculerJaime: () => false,
         masquerCommeLieu: async () => "session-app-requise",
         peutRepondreCommeLieu: false,
         relire: async () => true,

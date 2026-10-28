@@ -73,8 +73,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
   const { trouverPote } = communaute;
   const discussion = utiliserCommentairesPublication(publicationId);
   const { fils, nombre, peutRepondreCommeLieu: gerant } = discussion;
-  // En démo, la liste attend aussi que la communauté soit lue sur le téléphone (comme avant)
-  const pret = discussion.pret && (discussion.source !== "demo" || communaute.pret);
+  const pret = discussion.pret;
   const monId = utiliserMonId();
   const { profil } = utiliserProfil();
   const avecCompte = profil !== null;
@@ -376,7 +375,7 @@ export function FeuilleCommentaires({ visible, publicationId, lieu, onFermer }: 
         >
           <View style={{ flex: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
             <PoigneeFeuille geste={geste} ecart="petit" fond="leger">
-              {signale ? null : <EnTeteCommentaires nombre={nombre} demo={discussion.source === "demo"} onFermer={onFermer} refTitre={titreFeuille} />}
+              {signale ? null : <EnTeteCommentaires nombre={nombre} onFermer={onFermer} refTitre={titreFeuille} />}
             </PoigneeFeuille>
 
             {signale ? (

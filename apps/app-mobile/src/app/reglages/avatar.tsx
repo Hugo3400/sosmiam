@@ -19,7 +19,6 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
-import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 import { AVATAR_PAR_DEFAUT, garderPhotoAvatar, supprimerPhotoAvatar, type Avatar } from "~/stockage/avatar-local";
 import { enregistrerEncartPhotoLocaleVu, lireEncartPhotoLocaleVu } from "~/stockage/encart-photo-locale";
 
@@ -43,7 +42,6 @@ function decrireAvatar(avatar: Avatar): string {
 export default function ReglagesAvatar() {
   const couleurs = utiliserCouleurs();
   const { avatar, changerAvatar, retirerPhoto: retirerPhotoProfil, etatPhoto, profil } = utiliserProfil();
-  const sourceSociale = utiliserSourceSociale();
   const partage = profil !== null ? "compte" : "visite";
   const { width } = useWindowDimensions();
   // Une seule ouverture du sélecteur à la fois (deux appuis rapides n'ouvrent pas deux fois l'appareil photo)
