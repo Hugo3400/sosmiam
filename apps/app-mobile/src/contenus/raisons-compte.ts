@@ -1,3 +1,5 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { raisonsCompteAnglais } from "~/contenus/anglais/raisons-compte";
 import type { RaisonCompte } from "~/hooks/utiliser-compte-requis";
 
 /** Ce que la feuille « Crée ton compte » dit pour un geste réservé aux inscrits. */
@@ -98,3 +100,5 @@ const raisons: Record<RaisonCompte, Omit<ChoixRaisonCompte, "titre">> = {
 export const raisonsCompte = Object.fromEntries(
   Object.entries(raisons).map(([cle, raison]) => [cle, { ...raison, titre: `Crée ton compte pour ${raison.action}` }]),
 ) as Record<RaisonCompte, ChoixRaisonCompte>;
+
+export const raisonsCompteParLangue: ParLangue<Traduction<typeof raisonsCompte>> = { fr: raisonsCompte, en: raisonsCompteAnglais };

@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_MON_PROFIL_ANGLAIS, TEXTES_PARAMETRES_ANGLAIS } from "~/contenus/anglais/textes-parametres";
+
 export const TEXTES_PARAMETRES = {
   titre: "Paramètres",
   sousTitre: "Ton compte, tes alertes et tes données : ici, c'est toi qui décides.",
@@ -58,3 +61,6 @@ export const TEXTES_MON_PROFIL = {
   sectionProfil: "Ton profil",
   sectionPreferences: "Tes préférences",
 } as const;
+
+export const TEXTES_PARAMETRES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PARAMETRES>> = { fr: TEXTES_PARAMETRES, en: TEXTES_PARAMETRES_ANGLAIS };
+export const TEXTES_MON_PROFIL_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MON_PROFIL>> = { fr: TEXTES_MON_PROFIL, en: TEXTES_MON_PROFIL_ANGLAIS };

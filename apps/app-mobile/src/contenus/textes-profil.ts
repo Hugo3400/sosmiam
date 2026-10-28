@@ -1,5 +1,16 @@
 import { POINTS_AMBASSADEUR } from "@sos-miam/commun/regles/ambassadeurs";
 import type { StatutAmbassadeur } from "@sos-miam/commun/types/roles";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  DETAILS_MODE_AMBASSADEUR_ANGLAIS,
+  TEXTES_BADGES_PROFIL_ANGLAIS,
+  TEXTES_COLLECTION_ANGLAIS,
+  TEXTES_DEFIS_PROFIL_ANGLAIS,
+  TEXTES_ESPACES_ANGLAIS,
+  TEXTES_PALIER_ANGLAIS,
+  TEXTES_PROFIL_ANGLAIS,
+  TEXTES_RACCOURCIS_ANGLAIS,
+} from "~/contenus/anglais/textes-profil";
 import { TEXTES_BADGES } from "~/contenus/textes-badges";
 
 export const TEXTES_PROFIL = {
@@ -103,3 +114,12 @@ export const TEXTES_COLLECTION = {
   voirMoinsGardesLu: "Voir moins de lieux gardés",
   voirMoinsJaimesLu: "Voir moins de J'aime",
 } as const;
+
+export const TEXTES_PROFIL_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PROFIL>> = { fr: TEXTES_PROFIL, en: TEXTES_PROFIL_ANGLAIS };
+export const TEXTES_ESPACES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ESPACES>> = { fr: TEXTES_ESPACES, en: TEXTES_ESPACES_ANGLAIS };
+export const DETAILS_MODE_AMBASSADEUR_PAR_LANGUE: ParLangue<Traduction<typeof DETAILS_MODE_AMBASSADEUR>> = { fr: DETAILS_MODE_AMBASSADEUR, en: DETAILS_MODE_AMBASSADEUR_ANGLAIS };
+export const TEXTES_RACCOURCIS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_RACCOURCIS>> = { fr: TEXTES_RACCOURCIS, en: TEXTES_RACCOURCIS_ANGLAIS };
+export const TEXTES_PALIER_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_PALIER>> = { fr: TEXTES_PALIER, en: TEXTES_PALIER_ANGLAIS };
+export const TEXTES_DEFIS_PROFIL_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_DEFIS_PROFIL>> = { fr: TEXTES_DEFIS_PROFIL, en: TEXTES_DEFIS_PROFIL_ANGLAIS };
+export const TEXTES_BADGES_PROFIL_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_BADGES_PROFIL>> = { fr: TEXTES_BADGES_PROFIL, en: TEXTES_BADGES_PROFIL_ANGLAIS };
+export const TEXTES_COLLECTION_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_COLLECTION>> = { fr: TEXTES_COLLECTION, en: TEXTES_COLLECTION_ANGLAIS };

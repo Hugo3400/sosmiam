@@ -3,6 +3,9 @@
 // docs/decisions.md, « Modération des avis et limitation d'un compte »), et la contestation. Les mêmes mots que le site
 // (apps/site-web/src/contenus/limitation-compte.ts) : à garder en phase. Les « {…} » se remplissent avec remplirModele.
 
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { BULLE_EN_PAUSE_ANGLAIS, CARTE_REFUS_LIMITATION_ANGLAIS, REFUS_LIMITATION_ANGLAIS, TEXTES_LIMITATION_ANGLAIS } from "~/contenus/anglais/limitation-compte";
+
 export const TEXTES_LIMITATION = {
   titre: "Ton compte est limité",
   titreAVenir: "Ton compte va être limité",
@@ -100,3 +103,8 @@ export const CARTE_REFUS_LIMITATION = {
   /** Après un scan ou un lien collé pour rejoindre une bande : la phrase dessous dit déjà que le compte est limité */
   titreAjout: "Pas cette fois",
 } as const;
+
+export const TEXTES_LIMITATION_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_LIMITATION>> = { fr: TEXTES_LIMITATION, en: TEXTES_LIMITATION_ANGLAIS };
+export const REFUS_LIMITATION_PAR_LANGUE: ParLangue<Traduction<typeof REFUS_LIMITATION>> = { fr: REFUS_LIMITATION, en: REFUS_LIMITATION_ANGLAIS };
+export const BULLE_EN_PAUSE_PAR_LANGUE: ParLangue<Traduction<typeof BULLE_EN_PAUSE>> = { fr: BULLE_EN_PAUSE, en: BULLE_EN_PAUSE_ANGLAIS };
+export const CARTE_REFUS_LIMITATION_PAR_LANGUE: ParLangue<Traduction<typeof CARTE_REFUS_LIMITATION>> = { fr: CARTE_REFUS_LIMITATION, en: CARTE_REFUS_LIMITATION_ANGLAIS };

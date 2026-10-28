@@ -1,4 +1,6 @@
 import type { NoteAvis } from "@sos-miam/commun/types/avis";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { LIBELLES_NOTES_AVIS_ANGLAIS, TEXTES_DONNER_AVIS_ANGLAIS } from "~/contenus/anglais/textes-donner-avis";
 
 export const NOTES_AVIS: readonly NoteAvis[] = [1, 2, 3, 4, 5];
 
@@ -71,3 +73,6 @@ export const TEXTES_DONNER_AVIS = {
   aucunTitre: "Pas d'avis pour cette visite",
   aucunTexte: "Un avis s'ouvre une heure après une visite validée par le lieu. Ta prochaine visite t'en ouvrira un tout neuf !",
 } as const;
+
+export const LIBELLES_NOTES_AVIS_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_NOTES_AVIS>> = { fr: LIBELLES_NOTES_AVIS, en: LIBELLES_NOTES_AVIS_ANGLAIS };
+export const TEXTES_DONNER_AVIS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_DONNER_AVIS>> = { fr: TEXTES_DONNER_AVIS, en: TEXTES_DONNER_AVIS_ANGLAIS };
