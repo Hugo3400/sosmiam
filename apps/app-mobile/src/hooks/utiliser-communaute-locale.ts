@@ -16,14 +16,8 @@ import {
 } from "@sos-miam/commun/regles/potes";
 import type { Pote, PropositionSortie, Sortie } from "@sos-miam/commun/types/potes";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
-import { creerCommentairesExemples } from "~/contenus/commentaires-exemples";
-import { bandeExemple, creerDonneesExemplePotes, potesExemples, reponsesExemples, VERSION_EXEMPLES } from "~/contenus/potes-exemples";
-import { calculerPointsLocaux } from "~/fonctions/ambassadeur/calculer-points-locaux";
 import { ecrireAvatarPublic } from "~/fonctions/compte/ecrire-avatar-public";
-import { listerBadgesObtenus } from "~/fonctions/ambassadeur/lister-badges-obtenus";
-import { ajouterNouveauxExemples } from "~/fonctions/communaute/ajouter-nouveaux-exemples";
 import { basculerVote } from "~/fonctions/communaute/basculer-vote";
-import { chercherParPseudo } from "~/fonctions/communaute/chercher-par-pseudo";
 import { construireMoi } from "~/fonctions/communaute/construire-moi";
 import { creerIdentifiant } from "~/fonctions/communaute/creer-identifiant";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
@@ -31,23 +25,9 @@ import type { EtatCommunaute, ResultatAjoutBande, ResultatTexte } from "~/hooks/
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
-import { DEMO_VISITES_ACTIVE } from "~/services/demo/demo-visites-active";
 import { effacerCommunauteLocale, enregistrerCommunauteLocale, lireCommunauteLocale, type CommunauteLocale } from "~/stockage/communaute-locale";
 
-/** La démo de départ : ta bande d'exemple, ses sorties, listes, activité, recommandations et commentaires */
-const creerEtatDemo = (maintenant: Date): CommunauteLocale => ({
-  version: 1,
-  bande: bandeExemple,
-  bloques: [],
-  ...creerDonneesExemplePotes(maintenant),
-  commentaires: creerCommentairesExemples(maintenant),
-  signalements: [],
-  moyens: {},
-  masques: [],
-  exemples: VERSION_EXEMPLES,
-});
-
-/** Hors démo : personne pour l'instant (tes vrais potes arriveront avec l'API) ; « exemples: 0 » la distingue d'une démo */
+/** Personne pour l'instant : tes vrais potes viennent du serveur avec un compte ; « exemples: 0 » la distingue d'une ancienne démo */
 const creerEtatVide = (): CommunauteLocale => ({
   version: 1,
   bande: [],
@@ -62,9 +42,6 @@ const creerEtatVide = (): CommunauteLocale => ({
   masques: [],
   exemples: 0,
 });
-const creerEtatDepart = (maintenant: Date) => (DEMO_VISITES_ACTIVE ? creerEtatDemo(maintenant) : creerEtatVide());
-// Les potes qu'on peut trouver : ceux de la démo, ou personne
-const potesConnus = DEMO_VISITES_ACTIVE ? potesExemples : [];
 
 const verifierTexte = (texte: string, max: number): ResultatTexte => {
   const propre = texte.trim();
@@ -72,15 +49,13 @@ const verifierTexte = (texte: string, max: number): ResultatTexte => {
   if (propre.length > max) return "trop-long";
   return contientMotInterdit(propre) ? "mot-interdit" : "ok";
 };
-const auHasard = <T,>(liste: T[]): T => liste[Math.floor(Math.random() * liste.length)];
 /** Le lieu retenu d'après le nombre de votes de chaque proposition (à égalité, la première proposée) */
 const choisirGagnant = (propositions: PropositionSortie[]) => choisirLieuGagnant(propositions.map((p) => ({ lieuId: p.lieuId, votes: p.votes.length })));
-const entre = (min: number, max: number) => min + Math.random() * (max - min);
 
 /**
  * La communauté gardée sur le téléphone (le code de FournisseurCommunaute d'avant le lot A2) : potes, sorties, listes,
- * activité, lieux envoyés entre potes et commentaires. Mode démo : une bande d'exemple qui vote et répond toute seule. Sinon :
- * vide, et ce qu'une ancienne démo avait gardé sur le téléphone est oublié. Ces données te désignent par ID_MOI (« moi ») ;
+ * activité, lieux envoyés entre potes et commentaires : vide au départ, et ce qu'une ancienne démo avait gardé sur le
+ * téléphone est oublié. Ces données te désignent par ID_MOI (« moi ») ;
  * les écrans, eux, lisent ton identifiant par utiliserMonId. Avec un compte, FournisseurCommunaute remplace la bande par
  * celle du serveur (utiliserBandeCompte) et garde le reste d'ici jusqu'aux lots suivants (sorties, listes, commentaires).
  */
@@ -89,56 +64,43 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
   const activite = utiliserActivite();
   const { compte } = utiliserSession();
   const { trouverLieu } = utiliserLieux();
-  const [etat, setEtat] = useState<CommunauteLocale>(() => creerEtatDepart(new Date()));
+  const [etat, setEtat] = useState<CommunauteLocale>(creerEtatVide);
   const [pret, setPret] = useState(false);
   const charge = useRef(false);
-  const minuteries = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     lireCommunauteLocale().then((lue) => {
       charge.current = true;
-      // Démo : enregistrée avant les derniers exemples, elle les reçoit une fois (sans rien perdre de ce que tu y as changé) ;
-      // un état gardé hors démo (exemples: 0, bande vide) n'est pas une démo : elle repart de ses exemples, bande comprise.
-      // Hors démo : un état gardé par une démo (exemples reçus) repart à vide
-      if (lue && DEMO_VISITES_ACTIVE && lue.exemples !== 0) setEtat(ajouterNouveauxExemples(lue, new Date()));
-      else if (lue && !DEMO_VISITES_ACTIVE && lue.exemples === 0) setEtat(lue);
+      // Un état gardé par une ancienne démo (exemples reçus) repart à vide
+      if (lue && lue.exemples === 0) setEtat(lue);
       setPret(true);
     });
-    const enCours = minuteries.current;
-    return () => enCours.forEach(clearTimeout);
   }, []);
 
   useEffect(() => {
     if (charge.current) enregistrerCommunauteLocale(etat).catch(() => {});
   }, [etat]);
 
-  // Démo : une réaction d'un pote d'exemple un peu plus tard
-  const plusTard = useCallback((delai: number, changer: (e: CommunauteLocale) => CommunauteLocale) => {
-    minuteries.current.push(setTimeout(() => setEtat(changer), delai));
-  }, []);
-
-  const mesures = { rescousses: activite.rescoussesDonnees, "premiers-sauvetages": activite.premiersSauvetages.length };
   const moi = useMemo(
     () =>
       construireMoi({
-        // Les données du téléphone (démo comprise) te désignent par « moi » : les écrans le lisent par utiliserMonId
+        // Les données du téléphone te désignent par « moi » : les écrans le lisent par utiliserMonId
         id: ID_MOI,
         pseudo: profil?.pseudo ?? "",
         prenom: profil?.prenom ?? "Toi",
         avatar: ecrireAvatarPublic(avatar) ?? "📷",
         ville: profil?.ville ?? "",
-        // Avec un compte : points et badges du serveur ; en démo, comptés sur le téléphone
-        points: DEMO_VISITES_ACTIVE ? calculerPointsLocaux(mesures) : (compte?.points ?? 0),
+        points: compte?.points ?? 0,
         rescoussesDuMois: activite.rescoussesDuMois,
         lieuxSauves: activite.lieuxSauves,
         gardes: activite.gardes,
-        badges: DEMO_VISITES_ACTIVE ? listerBadgesObtenus(mesures) : (compte?.badges ?? []),
+        badges: compte?.badges ?? [],
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [profil, avatar, compte, activite.rescoussesDonnees, activite.premiersSauvetages, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
+    [profil, avatar, compte, activite.rescoussesDuMois, activite.lieuxSauves, activite.gardes],
   );
 
-  const parId = useMemo(() => new Map<string, Pote>([...potesConnus.map((p) => [p.id, p] as const), [ID_MOI, moi]]), [moi]);
+  const parId = useMemo(() => new Map<string, Pote>([[ID_MOI, moi]]), [moi]);
   const trouverPote = useCallback((id: string) => parId.get(id) ?? null, [parId]);
   // Un lieu disparu de l'app ne se propose plus (et sort des votes en cours)
   const lieuExiste = useCallback((lieuId: number) => !!trouverLieu(lieuId), [trouverLieu]);
@@ -165,26 +127,8 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
     setEtat((e) => ({ ...e, sorties: e.sorties.map((s) => (s.id === id ? changer(s) : s)) }));
   }, []);
 
-  // Démo : des potes d'exemple de la sortie votent pour un ou deux lieux, un peu plus tard (jamais une fois le vote fini)
-  const fairerVoterLesPotes = useCallback(
-    (sortieId: string, participants: string[], lieux: number[]) => {
-      participants.filter((id) => id !== ID_MOI).forEach((id) => {
-        plusTard(entre(3000, 9000), (e) => ({
-          ...e,
-          sorties: e.sorties.map((s) => {
-            if (s.id !== sortieId || e.bloques.includes(id) || estVoteTermine(s, new Date())) return s;
-            const choix = [...lieux].sort(() => Math.random() - 0.5).slice(0, Math.random() < 0.5 ? 1 : 2);
-            return choix.reduce((sortie, lieuId) => (sortie.propositions.find((p) => p.lieuId === lieuId)?.votes.includes(id) ? sortie : basculerVote(sortie, lieuId, id)), s);
-          }),
-        }));
-      });
-    },
-    [plusTard],
-  );
-
   const valeur = useMemo((): EtatCommunaute => {
     const visiblesDe = (publicationId: string) => etat.commentaires.filter((c) => c.publicationId === publicationId && !signales.has(c.id));
-    // Démo : un ajout se fait tout de suite, sans demande ni code vérifié (personne ne répond de l'autre côté)
     const ajouter = (id: string, moyen: "lien" | "qr" | "pseudo"): ResultatAjoutBande => {
       const pote = parId.get(id);
       if (!pote || id === ID_MOI) return { type: "introuvable", pseudo: pote?.pseudo ?? "" };
@@ -194,18 +138,13 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
       return { type: "ajoute", pote };
     };
     return {
-      source: DEMO_VISITES_ACTIVE ? "demo" : "visite",
+      source: "visite",
       pret,
-      demo: DEMO_VISITES_ACTIVE,
       moi,
       potes,
       trouverPote,
-      chercherParPseudo: (texte) => chercherParPseudo(potesConnus, texte, { bande: etat.bande, bloques: etat.bloques }),
-      rejoindreParInvitation: async (pseudo, _code, moyen) => {
-        if (pseudo === moi.pseudo) return { type: "toi" };
-        const pote = potesConnus.find((p) => p.pseudo === pseudo);
-        return pote ? ajouter(pote.id, moyen) : { type: "introuvable", pseudo };
-      },
+      chercherParPseudo: () => [],
+      rejoindreParInvitation: async (pseudo) => (pseudo === moi.pseudo ? { type: "toi" } : { type: "introuvable", pseudo }),
       demanderAjout: async (id) => ajouter(id, "pseudo"),
       demandesRecues: [],
       demandesEnvoyees: [],
@@ -215,15 +154,14 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
       pseudoRequis: false,
       noterPersonne: () => {},
       relireBande: () => {},
-      // Démo : le code secret d'un lien ou d'un QR code n'est vérifié nulle part, et les potes d'exemple n'ont pas de vrai QR code.
-      // Un ajout par lien ou QR code ne compte donc pas encore « en vrai » (estAjouteEnVrai) : un lien fabriqué avec un pseudo public
-      // n'ouvre pas en entier un compte privé.
+      // Sans compte, le code secret d'un lien ou d'un QR code n'est vérifié nulle part : un ajout par lien ou QR code ne compte
+      // pas « en vrai » (estAjouteEnVrai), un lien fabriqué avec un pseudo public n'ouvre pas en entier un compte privé.
       moyenAjout: (id) => {
         // Retiré de ta bande (ou bloqué) : plus aucun lien entre vous, il faudra vous ajouter de nouveau
         if (!etat.bande.includes(id)) return undefined;
         const moyen = etat.moyens[id];
         if (moyen === "lien" || moyen === "qr") return `${moyen}-non-verifie`;
-        return moyen ?? (bandeExemple.includes(id) ? "exemple" : undefined);
+        return moyen;
       },
       estSignale: (cibleId) => signales.has(cibleId),
       retirerPote: (id) => setEtat((e) => ({ ...e, bande: e.bande.filter((b) => b !== id) })),
@@ -246,7 +184,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
           propositions: permis.map((lieuId) => ({ lieuId, proposePar: ID_MOI, votes: [] })), lieuChoisi: null, messages: [],
         };
         setEtat((e) => ({ ...e, sorties: [...e.sorties, sortie] }));
-        fairerVoterLesPotes(id, participants, permis);
         return { id };
       },
       voter: (sortieId, lieuId) => changerSortie(sortieId, (s) => (estVoteTermine(s, new Date()) ? s : basculerVote(s, lieuId, ID_MOI))),
@@ -256,7 +193,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         if (sortie.propositions.some((p) => p.lieuId === lieuId)) return "deja";
         if (sortie.propositions.length >= MAX_PROPOSITIONS_SORTIE) return "max";
         changerSortie(sortieId, (s) => ({ ...s, propositions: [...s.propositions, { lieuId, proposePar: ID_MOI, votes: [ID_MOI] }] }));
-        fairerVoterLesPotes(sortieId, sortie.participants.filter(() => Math.random() < 0.5), [lieuId]);
         return "ok";
       },
       envoyerMessage: (sortieId, texte) => {
@@ -264,14 +200,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         const sortie = etat.sorties.find((s) => s.id === sortieId);
         if (verdict !== "ok" || !sortie) return verdict;
         changerSortie(sortieId, (s) => ({ ...s, messages: [...s.messages, { id: creerIdentifiant("message"), auteur: ID_MOI, texte: texte.trim(), date: new Date().toISOString() }] }));
-        // Démo : un pote de la sortie répond
-        const repondants = sortie.participants.filter((id) => id !== ID_MOI && !etat.bloques.includes(id) && parId.has(id));
-        if (repondants.length > 0) {
-          const auteur = auHasard(repondants);
-          plusTard(entre(2500, 5500), (e) => ({
-            ...e,
-            sorties: e.sorties.map((s) => (s.id !== sortieId || e.bloques.includes(auteur) ? s : { ...s, messages: [...s.messages, { id: creerIdentifiant("message"), auteur, texte: auHasard(reponsesExemples), date: new Date().toISOString() }] })),
-          }));
         }
         return "ok";
       },
@@ -279,7 +207,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         changerSortie(sortieId, (s) => (s.organisateur !== ID_MOI || estVoteTermine(s, new Date()) ? s : { ...s, finVote: new Date().toISOString(), lieuChoisi: choisirGagnant(s.propositions.filter((p) => lieuExiste(p.lieuId))) })),
       quitterSortie: (sortieId) => changerSortie(sortieId, (s) => ({ ...s, participants: s.participants.filter((id) => id !== ID_MOI) })),
       lireSortie: () => {},
-      // Démo : personne ne t'invite, et les potes d'exemple invités disent oui tout de suite
       invitationsSorties: [],
       repondreInvitationSortie: async () => false,
       inviterASortie: async (sortieId, invites) => {
@@ -321,7 +248,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
       },
       lireListe: () => {},
       noterListes: () => {},
-      // Démo : personne ne t'invite à remplir sa liste ; un pote d'exemple que tu invites accepte un peu plus tard
       invitationsListes: [],
       repondreCoAuteur: async () => false,
       inviterCoAuteur: async (listeId, poteId) => {
@@ -331,7 +257,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         });
         if (!etat.bande.includes(poteId) || etat.bloques.includes(poteId)) return "pas-dans-la-bande";
         setEtat((e) => changerCoAuteurs(e, "invite"));
-        plusTard(entre(2500, 5000), (e) => (e.listes.some((l) => l.id === listeId && l.coAuteurs?.some((c) => c.id === poteId)) ? changerCoAuteurs(e, "accepte") : e));
         return null;
       },
       retirerCoAuteur: async (listeId, poteId) => {
@@ -370,7 +295,7 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
       },
       remettreRecommandations: (recommandations) =>
         setEtat((e) => ({ ...e, recommandations: [...e.recommandations, ...recommandations.filter((r) => r.a === ID_MOI && !e.recommandations.some((x) => x.id === r.id))] })),
-      // Sur le téléphone, les masques restent rangés par identifiant (ceux de la démo ne se confondent pas)
+      // Sur le téléphone, les masques restent rangés par identifiant
       estMasque: (_cible, id) => masques.has(id),
       masquer: (_cible, id) => setEtat((e) => (e.masques.includes(id) ? e : { ...e, masques: [...e.masques, id] })),
       demasquer: (_cible, id) => setEtat((e) => ({ ...e, masques: e.masques.filter((m) => m !== id) })),
@@ -382,11 +307,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         if (verdict !== "ok") return verdict;
         const id = creerIdentifiant("commentaire");
         setEtat((e) => ({ ...e, commentaires: [...e.commentaires, { id, publicationId, auteur: ID_MOI, texte: texte.trim(), date: new Date().toISOString(), jaimes: [], reponseA, mentions: extraireMentions(texte) }] }));
-        // Démo : un pote aime ton commentaire un peu plus tard
-        if (potes.length > 0 && Math.random() < 0.6) {
-          const fan = auHasard(potes).id;
-          plusTard(entre(4000, 9000), (e) => ({ ...e, commentaires: e.commentaires.map((c) => (c.id === id && !c.jaimes.includes(fan) ? { ...c, jaimes: [...c.jaimes, fan] } : c)) }));
-        }
         return "ok";
       },
       modifierCommentaire: (id, texte) => {
@@ -401,13 +321,11 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
 
       signaler: (signalement) => setEtat((e) => ({ ...e, signalements: [...e.signalements, { ...signalement, date: new Date().toISOString() }] })),
       effacer: async () => {
-        minuteries.current.forEach(clearTimeout);
-        minuteries.current = [];
         await effacerCommunauteLocale();
-        setEtat(creerEtatDepart(new Date()));
+        setEtat(creerEtatVide());
       },
     };
-  }, [pret, moi, potes, trouverPote, etat, parId, bloques, sorties, lieuExiste, changerSortie, fairerVoterLesPotes, plusTard, signales, masques]);
+  }, [pret, moi, potes, trouverPote, etat, parId, bloques, sorties, lieuExiste, changerSortie, signales, masques]);
 
   return valeur;
 }
