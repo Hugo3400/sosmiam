@@ -14,8 +14,6 @@ type Props = {
   enRetrait: boolean;
 };
 
-const ETIQUETTE_DEMO = { texte: "🧪 Démo", lu: "Démo", ton: "doux" } as const;
-
 export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Props) {
   const { lieu } = reservation;
   const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs);
@@ -23,7 +21,7 @@ export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Prop
   const personnes = ecrireNombrePersonnes(reservation.personnes);
   const etiquette = decrireStatutReservation(reservation, maintenantMs);
   const ou = lieu.ville ? `${lieu.nom}, à ${lieu.ville}` : lieu.nom;
-  const libelle = [ou, `${creneau.lu}, ${personnes}`, ...(secours ? [secours.lu] : []), etiquette.lu, ...(reservation.demo ? [ETIQUETTE_DEMO.lu] : [])].join(". ");
+  const libelle = [ou, `${creneau.lu}, ${personnes}`, ...(secours ? [secours.lu] : []), etiquette.lu].join(". ");
 
   return (
     <View accessible accessibilityLabel={libelle} className="flex-row items-start gap-3">
@@ -44,7 +42,6 @@ export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Prop
         {secours ? <Text className="font-texte text-[13px] leading-[18px] text-gris">{secours.texte}</Text> : null}
         <View className="mt-1.5 flex-row flex-wrap gap-1.5">
           <EtiquetteStatutReservation etiquette={etiquette} />
-          {reservation.demo ? <EtiquetteStatutReservation etiquette={ETIQUETTE_DEMO} /> : null}
         </View>
       </View>
     </View>

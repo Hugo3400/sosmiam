@@ -32,15 +32,6 @@ type Props = {
 // Le temps que l'écran finisse d'arriver avant d'y placer le lecteur d'écran
 const DELAI_FOCUS_MS = 600;
 
-/** Petite étiquette « Démo », posée de travers sur la carte : une visite de démo reste sur ce téléphone */
-function etiquetteDemo(position: string) {
-  return (
-    <View className={`${position} rotate-6 rounded-full border-2 border-encre bg-nuit px-3 py-0.5`}>
-      <Text className="font-texte-gras text-xs text-jaune">Démo</Text>
-    </View>
-  );
-}
-
 /**
  * La petite fête d'une visite validée : mascotte, points qui défilent (+25 pendant un SOS), tampon qui se pose, palier
  * franchi, ouverture de l'avis, confettis. Déjà validée : « C'est déjà validé », sans compteur ni confettis.
@@ -100,7 +91,6 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
                 <EtiquettesReglement reglement={visite.reglement} pour="client" centre />
               </View>
             ) : null}
-            {visite.demo && !compteur && !tampon ? etiquetteDemo("mt-2") : null}
           </View>
 
           {fete && offert ? (
@@ -112,7 +102,6 @@ export function CelebrationVisite({ resultat, onFermer }: Props) {
 
           {compteur || tampon ? (
             <View className="w-full gap-4 rounded-carte border-2 border-encre bg-carte p-5">
-              {visite.demo ? etiquetteDemo("absolute -top-3 right-4") : null}
               {compteur ? <CompteurPoints points={visite.points} sos={visite.pendantSos} /> : null}
               {compteur && visite.pendantSos ? (
                 <Text className="text-center font-texte-semi text-[15px] leading-6 text-encre">

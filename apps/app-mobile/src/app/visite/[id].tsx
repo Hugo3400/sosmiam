@@ -154,16 +154,6 @@ export default function EcranVisite() {
           <Ionicons name="close" size={20} color={couleurs.encre} />
         </Pressable>
         <View className="flex-row items-center gap-3">
-          {/* La fête porte sa propre étiquette « Démo » */}
-          {visite?.demo && !enFete ? (
-            <View
-              accessible
-              accessibilityLabel="Visite de démo : elle reste sur ce téléphone"
-              className="rotate-3 rounded-full border-2 border-encre bg-nuit px-3 py-0.5"
-            >
-              <Text className="font-texte-gras text-xs text-jaune">Démo</Text>
-            </View>
-          ) : null}
           {visite && dansLeLieu && !enFete ? (
             <Pressable
               accessibilityRole="button"

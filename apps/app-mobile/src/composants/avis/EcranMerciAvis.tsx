@@ -44,7 +44,6 @@ export function EcranMerciAvis({ visite, envoye, photo, onTerminer, onMesVisites
         pointsGagnes={envoye.pointsGagnes}
         repasOffert={visite.reglement?.type === "offert"}
         alcool={lieuAlcool || parleDAlcool(envoye.avis?.texte)}
-        demo={visite.demo === true}
         refTitre={refTitre}
         onMesVisites={onMesVisites}
       />

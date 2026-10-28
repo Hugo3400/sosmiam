@@ -16,7 +16,7 @@ type Props = {
   onPress: () => void;
 };
 
-type Ton = "jaune" | "encre" | "blanc" | "rose" | "doux" | "demo";
+type Ton = "jaune" | "encre" | "blanc" | "rose" | "doux";
 /** Une petite étiquette sous le nom : ce qu'on voit, et ce que lit VoiceOver */
 type Puce = { texte: string; lu: string; ton: Ton };
 
@@ -26,7 +26,6 @@ const FONDS: Record<Ton, string> = {
   blanc: "border-encre bg-carte",
   rose: "border-rouge-texte bg-rose-alerte",
   doux: "border-ligne bg-creme",
-  demo: "border-dashed border-gris/50 bg-carte",
 };
 const TEXTES: Record<Ton, string> = {
   jaune: "text-nuit",
@@ -34,7 +33,6 @@ const TEXTES: Record<Ton, string> = {
   blanc: "text-encre",
   rose: "text-rouge-texte",
   doux: "text-gris",
-  demo: "text-gris",
 };
 
 /** Ce qui a été tenté quand la visite n'a pas (ou plus) été validée : on ne dit pas « Addition réglée » d'une addition refusée */
@@ -96,7 +94,6 @@ function listerPuces(visite: Visite): Puce[] {
       puces.push({ texte: "😴 Demande endormie", lu: "Demande endormie, sans réponse à temps", ton: "doux" });
       break;
   }
-  if (visite.demo) puces.push({ texte: "🧪 Démo", lu: "Démo", ton: "demo" });
   return puces;
 }
 

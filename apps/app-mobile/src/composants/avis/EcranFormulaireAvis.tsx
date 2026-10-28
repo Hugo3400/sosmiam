@@ -95,7 +95,6 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
       }
     >
       <View className="gap-7">
-        {visite.demo ? <EncadreAvis emoji="🧪" texte={TEXTES_DONNER_AVIS.demo} /> : null}
         <View className="gap-3">
           <CarteVisiteAvis visite={visite} />
           {lieuAlcool ? <MentionPrevention /> : null}

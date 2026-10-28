@@ -34,6 +34,5 @@ export function resumerCelebration(r: ResultatValidation, palier: PalierAmbassad
 
   const avis = decrireOuvertureAvis(visite.avis, maintenant);
   if (avis) morceaux.push(avis);
-  if (visite.demo) morceaux.push("Visite de démo : elle reste sur ce téléphone.");
   return retirerEmoji(morceaux.join(" "));
 }

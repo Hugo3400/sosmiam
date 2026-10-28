@@ -70,8 +70,6 @@ export type EtatCommunaute = {
   source: SourceSociale;
   /** Faux tant que la communauté n'est pas lue (sur le téléphone, ou sur le serveur avec un compte) */
   pret: boolean;
-  /** Mode démo : potes d'exemple qui votent et répondent tout seuls ; sinon, la communauté démarre vide */
-  demo: boolean;
   /** Ton profil communautaire : son id est le tien dans les données affichées (« moi » sur le téléphone ; lu par utiliserMonId) */
   moi: Pote;
   /** Ta bande (sans les personnes bloquées) */

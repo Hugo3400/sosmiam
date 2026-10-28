@@ -21,13 +21,12 @@ type Props = {
   pointsGagnes: number;
   repasOffert: boolean;
   alcool: boolean;
-  demo: boolean;
   refTitre?: Ref<Text>;
   onMesVisites: () => void;
 };
 
-export function MerciAvis({ prenom, nomLieu, avis, sourcePhoto, pointsGagnes, repasOffert, alcool, demo, refTitre, onMesVisites }: Props) {
-  const texte = demo ? TEXTES_DONNER_AVIS.merciTexteDemo : TEXTES_DONNER_AVIS.merciTexte;
+export function MerciAvis({ prenom, nomLieu, avis, sourcePhoto, pointsGagnes, repasOffert, alcool, refTitre, onMesVisites }: Props) {
+  const texte = TEXTES_DONNER_AVIS.merciTexte;
   return (
     <View className="items-center gap-5">
       <Mascotte expression="miam" taille={120} flotte />
