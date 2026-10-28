@@ -5,9 +5,10 @@ import { Pressable, Text, View } from "react-native";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { eliderDe } from "~/fonctions/texte/elider-de";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** En attente ; acceptée à l'instant (« … te suit maintenant », avec « Suivre » pour lui rendre la pareille) ; refusée à l'instant */
 export type IssueDemande = "attente" | "acceptee" | "refusee";
@@ -35,6 +36,7 @@ const DELAI_FOCUS = 250;
  */
 export function LigneDemandeSuivi({ pote, issue, derniere, onAccepter, onRefuser, onAnnoncer }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
   const etat = useRef<View>(null);
   // Un seul geste par demande : un double toucher n'accepte pas puis refuse
   const traitee = useRef(false);
@@ -74,12 +76,12 @@ export function LigneDemandeSuivi({ pote, issue, derniere, onAccepter, onRefuser
           <Pressable
             ref={etat}
             accessibilityRole="button"
-            accessibilityLabel={`${pote.prenom} te suit maintenant`}
-            accessibilityHint="Ouvre son profil"
+            accessibilityLabel={T.suitMaintenant(pote.prenom)}
+            accessibilityHint={T.indiceProfil}
             onPress={ouvrirProfil}
             className="flex-1 active:opacity-70"
           >
-            <Text className="font-texte-gras text-[15px] leading-5 text-encre">{pote.prenom} te suit maintenant</Text>
+            <Text className="font-texte-gras text-[15px] leading-5 text-encre">{T.suitMaintenant(pote.prenom)}</Text>
             <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
               @{pote.pseudo}
             </Text>
@@ -90,49 +92,49 @@ export function LigneDemandeSuivi({ pote, issue, derniere, onAccepter, onRefuser
         <Pressable
           ref={etat}
           accessibilityRole="button"
-          accessibilityLabel={`Demande ${eliderDe(pote.prenom)} refusée, en toute discrétion`}
-          accessibilityHint="Ouvre son profil"
+          accessibilityLabel={T.refuseeLu(pote.prenom)}
+          accessibilityHint={T.indiceProfil}
           onPress={ouvrirProfil}
           className="flex-1 active:opacity-70"
         >
           <Text className="font-texte-gras text-[15px] leading-5 text-encre">{pote.prenom}</Text>
-          <Text className="font-texte text-[13px] leading-5 text-gris">Demande refusée, en toute discrétion 🤫</Text>
+          <Text className="font-texte text-[13px] leading-5 text-gris">{T.refusee}</Text>
         </Pressable>
       ) : (
         <View className="flex-1 gap-2">
           <Pressable
             ref={etat}
             accessibilityRole="button"
-            accessibilityLabel={`${pote.prenom}, ${pote.pseudo}, veut te suivre`}
-            accessibilityHint="Ouvre son profil"
+            accessibilityLabel={T.veutSuivreLu(pote.prenom, pote.pseudo)}
+            accessibilityHint={T.indiceProfil}
             onPress={ouvrirProfil}
             className="active:opacity-70"
           >
             <Text className="font-texte-gras text-[15px] leading-5 text-encre">{pote.prenom}</Text>
             <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-              @{pote.pseudo} · veut te suivre
+              {T.veutSuivre(pote.pseudo)}
             </Text>
           </Pressable>
           <View className="flex-row flex-wrap gap-2">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Accepter la demande ${eliderDe(pote.prenom)}`}
-              accessibilityHint="Ça ne te fait pas suivre en retour : tu choisiras juste après"
+              accessibilityLabel={T.accepterLu(pote.prenom)}
+              accessibilityHint={T.accepterIndice}
               hitSlop={6}
               onPress={() => choisir(onAccepter)}
               className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-70"
             >
-              <Text className="font-texte-gras text-[13px] text-nuit">Accepter</Text>
+              <Text className="font-texte-gras text-[13px] text-nuit">{T.accepter}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`Refuser la demande ${eliderDe(pote.prenom)}`}
-              accessibilityHint="En toute discrétion : personne n'est prévenu"
+              accessibilityLabel={T.refuserLu(pote.prenom)}
+              accessibilityHint={T.refuserIndice}
               hitSlop={6}
               onPress={() => choisir(onRefuser)}
               className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-70"
             >
-              <Text className="font-texte-gras text-[13px] text-encre">Refuser</Text>
+              <Text className="font-texte-gras text-[13px] text-encre">{T.refuser}</Text>
             </Pressable>
           </View>
         </View>

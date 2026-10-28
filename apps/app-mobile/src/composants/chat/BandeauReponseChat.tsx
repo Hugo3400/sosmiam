@@ -1,7 +1,9 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
-import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { calculerMinutesPourModifier } from "~/fonctions/chat/calculer-minutes-pour-modifier";
 import { citerMessage } from "~/fonctions/chat/citer-message";
@@ -11,8 +13,10 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reponseA: MessageChatEnrichi | null;
@@ -27,21 +31,25 @@ export function BandeauReponseChat({ reponseA, edition, onAnnulerReponse, onAnnu
   const { trouverLieu } = utiliserLieux();
   const monId = utiliserMonId();
   const { maintenantMs } = utiliserHorlogeMinute();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T_BULLES = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
+  const T_APERCUS = utiliserTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE);
   if (!edition && !reponseA) return null;
 
   let bandeau: { icone: "arrow-undo" | "create-outline"; titre: string; detail: string; fermer: string; onFermer: () => void };
   if (edition) {
     const minutes = calculerMinutesPourModifier(edition.date, new Date(maintenantMs));
-    bandeau = { icone: "create-outline", titre: T.modification, detail: minutes > 0 ? T.modifierDetail(minutes) : "Plus que quelques secondes ⏳", fermer: T.annulerModification, onFermer: onAnnulerEdition };
+    bandeau = { icone: "create-outline", titre: T.modification, detail: minutes > 0 ? T.modifierDetail(minutes) : T_BULLES.quelquesSecondes, fermer: T.annulerModification, onFermer: onAnnulerEdition };
   } else {
     const cite = reponseA!;
-    const prenom = cite.auteur === monId ? null : (trouverPote(cite.auteur)?.prenom ?? "Quelqu'un");
-    const { vu } = decrireCitation(citerMessage(cite), cite.lieuId === undefined ? undefined : trouverLieu(cite.lieuId)?.nom);
+    const prenom = cite.auteur === monId ? null : (trouverPote(cite.auteur)?.prenom ?? T_APERCUS.quelquUn);
+    const { vu } = decrireCitation(citerMessage(cite), langue, cite.lieuId === undefined ? undefined : trouverLieu(cite.lieuId)?.nom);
     bandeau = {
       icone: "arrow-undo",
-      titre: prenom ? T.reponseA(prenom) : "Réponse à ton message",
+      titre: prenom ? T.reponseA(prenom) : T_BULLES.reponseATonMessage,
       detail: vu,
-      fermer: prenom ? T.nePlusRepondre(prenom) : "Ne plus répondre à ton message",
+      fermer: prenom ? T.nePlusRepondre(prenom) : T_BULLES.nePlusRepondreTonMessage,
       onFermer: onAnnulerReponse,
     };
   }

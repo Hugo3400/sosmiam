@@ -31,7 +31,7 @@ export const TEXTES_REGLAGES_ACCUEIL = {
   decisions: "Décisions de la modération",
   decisionsDetail: "Ce que l'équipe a décidé sur tes contenus et tes signalements",
   nousEcrire: "Nous écrire",
-  nousEcrireDetail: (adresse: string) => `Une question, une idée, un bug : ${adresse}`,
+  nousEcrireDetail: (adresse: string) => `Une question, une idée, un bug\u00a0: ${adresse}`,
   sante: "Santé et prévention",
   santeDetail: "L'alcool, la route, manger-bouger, et où trouver de l'aide",
   politiqueConfidentialite: "Politique de confidentialité",

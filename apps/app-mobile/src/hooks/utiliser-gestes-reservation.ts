@@ -5,10 +5,12 @@ import { AccessibilityInfo, Linking } from "react-native";
 import type { DetailsErreur, ReponseApi } from "@sos-miam/commun/client-api/reponse-api";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
-import { TEXTES_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
+import { TEXTES_MES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-mes-reservations";
 import { listerActionsEchecReservation } from "~/fonctions/reservations/lister-actions-echec-reservation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type EchecGesteReservation = { erreur: ErreurService; details?: DetailsErreur; reservation: Reservation; geste: "annuler" | "presence" };
 
@@ -21,6 +23,8 @@ export function utiliserGestesReservation(o: { remplacer: (reservation: Reservat
   const router = useRouter();
   const services = utiliserServices();
   const position = utiliserPositionExpliquee();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MES_RESERVATIONS_PAR_LANGUE);
   const [presence, setPresence] = useState<PresenceEnCours | null>(null);
   const [echec, setEchec] = useState<EchecGesteReservation | null>(null);
   const occupe = useRef(false);
@@ -53,31 +57,31 @@ export function utiliserGestesReservation(o: { remplacer: (reservation: Reservat
       if (occupe.current) return;
       occupe.current = true;
       try {
-        setPresence({ reservationId: reservation.id, texte: TEXTES_MES_RESERVATIONS.positionEnCours });
+        setPresence({ reservationId: reservation.id, texte: T.positionEnCours });
         const lecture = await lire(reservation.lieu.nom);
         if (!lecture.ok) {
           if (lecture.erreur !== "annulee") echouer({ erreur: lecture.erreur, reservation, geste: "presence" });
           return;
         }
-        setPresence({ reservationId: reservation.id, texte: TEXTES_MES_RESERVATIONS.envoiPresence });
+        setPresence({ reservationId: reservation.id, texte: T.envoiPresence });
         const reponse = await services.reservations.signalerPresence(reservation.id, lecture.position).catch(() => HORS_LIGNE);
         if (!reponse.ok) return echouer({ erreur: reponse.erreur, details: reponse.details, reservation, geste: "presence" });
         remplacer(reponse.reservation);
         if (reponse.validation) router.push({ pathname: "/visite/[id]", params: { id: String(reponse.validation.visite.id), celebrer: "1" } });
-        else AccessibilityInfo.announceForAccessibility(TEXTES_MES_RESERVATIONS.presenceNotee);
+        else AccessibilityInfo.announceForAccessibility(T.presenceNotee);
       } finally {
         occupe.current = false;
         setPresence(null);
       }
     },
-    [lire, services, remplacer, echouer, router],
+    [lire, services, remplacer, echouer, router, T],
   );
 
   const actionsEchec = echec
     ? listerActionsEchecReservation(echec.erreur, {
         reessayer: () => void (echec.geste === "annuler" ? annuler(echec.reservation) : signalerPresence(echec.reservation)),
         ouvrirReglages: () => void Linking.openSettings().catch(() => {}),
-      })
+      }, langue)
     : [];
 
   return { annuler, signalerPresence, presence, echec, actionsEchec, fermerEchec: () => setEchec(null), propsFeuillePosition: position.propsFeuille };

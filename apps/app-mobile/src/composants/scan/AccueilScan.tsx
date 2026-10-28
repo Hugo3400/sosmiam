@@ -12,8 +12,10 @@ import { EtapesCommentCaMarche } from "~/composants/scan/EtapesCommentCaMarche";
 import { SectionVideScan } from "~/composants/scan/SectionVideScan";
 import { TitreSectionScan } from "~/composants/scan/TitreSectionScan";
 import { TuileScan } from "~/composants/scan/TuileScan";
+import { TEXTES_SCAN_PAR_LANGUE } from "~/contenus/textes-scan";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 // Dans « Mes visites », seulement les dernières : la liste complète est à un toucher
@@ -26,6 +28,7 @@ const VISITES_AFFICHEES = 3;
  */
 export function AccueilScan() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_SCAN_PAR_LANGUE);
   const router = useRouter();
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const { pret, source, enCours, visites, cartes, reservations } = utiliserVisites();
@@ -40,10 +43,10 @@ export function AccueilScan() {
               🛠️
             </Text>
             <Text accessibilityRole="header" className="text-center font-titre-gras text-2xl text-encre">
-              Ça arrive avec les comptes
+              {T.indisponibleTitre}
             </Text>
             <Text className="text-center font-texte text-[15px] leading-[22px] text-gris">
-              {lierPonctuation("Le scan du comptoir et l'addition dans l'app ouvrent avec les vrais comptes. On peaufine les derniers boulons, promis.")}
+              {lierPonctuation(T.indisponibleTexte)}
             </Text>
           </View>
           <EtapesCommentCaMarche />
@@ -56,7 +59,7 @@ export function AccueilScan() {
         <>
           <EnTeteScan />
           <View className="items-center py-10">
-            <ActivityIndicator color={couleurs.encre} accessibilityLabel="On rassemble tes visites…" />
+            <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
           </View>
         </>
       );
@@ -75,16 +78,16 @@ export function AccueilScan() {
           <TuileScan
             variante="principale"
             icone="qr-code-outline"
-            titre="Scanner le QR du comptoir"
-            texte="Tu viens de payer ? Scanne le QR que te montre l'équipe."
-            indice="Ouvre l'appareil photo"
+            titre={T.scannerTitre}
+            texte={T.scannerTexte}
+            indice={T.scannerIndice}
             onPress={() => router.push("/scan/camera")}
           />
           <TuileScan
             variante="secondaire"
             icone="receipt-outline"
-            titre="Demander l'addition"
-            texte="Pas de QR en vue ? Demande-la ici : l'équipe la valide d'un geste."
+            titre={T.additionTitre}
+            texte={T.additionTexte}
             onPress={() => router.push("/scan/ou-es-tu")}
           />
         </View>
@@ -93,8 +96,8 @@ export function AccueilScan() {
 
         <View className="gap-3">
           <TitreSectionScan
-            titre="Mes cartes de fidélité"
-            libelleLu={`Mes cartes de fidélité, ${cartes.length}`}
+            titre={T.cartesTitre}
+            libelleLu={T.cartesLu(cartes.length)}
             onToutVoir={cartes.length > 0 ? () => router.push("/fidelite") : undefined}
           />
           {cartes.length > 0 ? (
@@ -104,23 +107,23 @@ export function AccueilScan() {
               ))}
             </ScrollView>
           ) : (
-            <SectionVideScan emoji="🎟️" texte="Ta première visite validée pose ton premier tampon. Les cartes se remplissent plus vite qu'un verre en terrasse." />
+            <SectionVideScan emoji="🎟️" texte={T.cartesVide} />
           )}
         </View>
 
         <View className="gap-3">
-          <TitreSectionScan titre="Mes visites" libelleLu={`Mes visites, ${validees} validée${validees > 1 ? "s" : ""}`} onToutVoir={visites.length > 0 ? () => router.push("/visites") : undefined} />
+          <TitreSectionScan titre={T.visitesTitre} libelleLu={T.visitesLu(validees)} onToutVoir={visites.length > 0 ? () => router.push("/visites") : undefined} />
           {dernieres.length > 0 ? (
             <View className="gap-2">
               {dernieres.map((visite) => (
                 <ApercuVisite key={visite.id} visite={visite} onPress={() => router.push({ pathname: "/visite/[id]", params: { id: String(visite.id) } })} />
               ))}
               <Text className="pt-1 font-texte-semi text-sm text-gris">
-                {validees} visite{validees > 1 ? "s" : ""} validée{validees > 1 ? "s" : ""} · {points} point{points > 1 ? "s" : ""} gagné{points > 1 ? "s" : ""}
+                {T.visitesResume(validees, points)}
               </Text>
             </View>
           ) : (
-            <SectionVideScan emoji="🍽️" texte="Pas encore de visite : ton prochain resto indépendant n'attend que toi (et ton scan)." />
+            <SectionVideScan emoji="🍽️" texte={T.visitesVide} />
           )}
         </View>
 

@@ -3,34 +3,35 @@ import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE, type MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
 import type { CharteMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { Interrupteur } from "~/composants/interface/Interrupteur";
 import { EngagementsCharteMiamSafe } from "~/composants/pro/EngagementsCharteMiamSafe";
 import { EtatCharteMiamSafe } from "~/composants/pro/EtatCharteMiamSafe";
+import { TEXTES_ECRAN_MIAM_SAFE_PRO_PAR_LANGUE } from "~/contenus/textes-ecran-pro-miam-safe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { oublierMiamSafeLieu } from "~/services/memoire-miam-safe-lieux";
 
 type Geste = "signer" | "quitter";
 
-const REUSSITES: Record<Geste, string> = {
-  signer: "C'est signé ! Le badge Miam Safe apparaît sur ta fiche. Merci à toute ton équipe.",
-  quitter: "Tu as quitté la charte. Le badge disparaît de ta fiche.",
-};
+type MessagesService = (typeof MESSAGES_SERVICE_PAR_LANGUE)["fr"];
 
-function ecrireErreur(erreur: keyof typeof MESSAGES_SERVICE | null): string {
-  const message = MESSAGES_SERVICE[erreur ?? "hors-ligne"];
+function ecrireErreur(erreur: keyof typeof MESSAGES_SERVICE | null, messages: MessagesService): string {
+  const message = messages[erreur ?? "hors-ligne"];
   return `${message.titre}. ${message.texte}`;
 }
 
 export default function EcranMiamSafePro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_MIAM_SAFE_PRO_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
   const { miamSafe } = utiliserServices();
@@ -53,12 +54,12 @@ export default function EcranMiamSafePro() {
       .then((r) => {
         if (!actif) return;
         setCharte(r?.ok ? r.charte : null);
-        setErreurLecture(r?.ok ? null : ecrireErreur(r ? r.erreur : null));
+        setErreurLecture(r?.ok ? null : ecrireErreur(r ? r.erreur : null, messages));
       });
     return () => {
       actif = false;
     };
-  }, [miamSafe, lieuId, lecture]);
+  }, [miamSafe, lieuId, lecture, messages]);
 
   const relire = () => {
     setCharte(undefined);
@@ -75,10 +76,10 @@ export default function EcranMiamSafePro() {
       setCharte(r.charte);
       setEngagement(false);
       oublierMiamSafeLieu(lieuId);
-      setResultat({ ok: true, texte: REUSSITES[geste] });
+      setResultat({ ok: true, texte: T.reussites[geste] });
       return;
     }
-    setResultat({ ok: false, texte: ecrireErreur(r ? r.erreur : null) });
+    setResultat({ ok: false, texte: ecrireErreur(r ? r.erreur : null, messages) });
     if (r?.erreur === "charte-retiree") relire();
   };
 
@@ -89,7 +90,7 @@ export default function EcranMiamSafePro() {
       <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={8}
           onPress={fermer}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -97,40 +98,40 @@ export default function EcranMiamSafePro() {
           <Ionicons name="arrow-back" size={20} color={couleurs.encre} />
         </Pressable>
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-          Miam Safe
+          {T.titre}
         </Text>
       </View>
 
       <ScrollView contentContainerClassName="gap-5 px-5 pb-10 pt-2">
         <Text className="font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Quand un client ne se sent pas en sécurité, il sait qu'il peut compter sur ton équipe. Le badge Miam Safe le dit sur ta fiche, gratuitement.")}
+          {lierPonctuation(T.intro)}
         </Text>
 
-        <EtatCharteMiamSafe charte={lieuId === null ? null : charte} erreur={lieuId === null ? "Ouvre le mode pro de ton lieu pour voir sa charte." : erreurLecture} onReessayer={relire} />
+        <EtatCharteMiamSafe charte={lieuId === null ? null : charte} erreur={lieuId === null ? T.sansLieu : erreurLecture} onReessayer={relire} />
 
         <EngagementsCharteMiamSafe />
 
         {!gerant ? (
           <View accessible className="rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
-            <Text className="font-texte-semi text-base leading-6 text-encre">Seul le gérant signe ou quitte la charte.</Text>
+            <Text className="font-texte-semi text-base leading-6 text-encre">{T.reserveGerant}</Text>
           </View>
         ) : signable ? (
           <View className="gap-4 rounded-2xl bg-carte px-4 pb-4">
-            <Interrupteur titre="J'ai lu la charte, et mon équipe s'engage à la respecter" valeur={engagement} onChanger={setEngagement} />
+            <Interrupteur titre={T.engagement} valeur={engagement} onChanger={setEngagement} />
             <Bouton
-              libelle={envoi ? "Signature…" : "Signer la charte"}
+              libelle={envoi ? T.signature : T.signer}
               variante="encre"
               desactive={!engagement || envoi}
-              indice={engagement ? "Le badge Miam Safe apparaît sur ta fiche" : "Allume d'abord l'engagement de ton équipe"}
+              indice={engagement ? T.signerIndice : T.signerIndiceSansEngagement}
               onPress={() => void agir("signer")}
             />
           </View>
         ) : charte?.signee ? (
           <View className="gap-3">
             <Text className="font-texte text-sm leading-5 text-gris">
-              {lierPonctuation("Le badge disparaîtra de ta fiche, et les alertes silencieuses ne pourront plus t'être envoyées.")}
+              {lierPonctuation(T.avertissementQuitter)}
             </Text>
-            <Bouton libelle={envoi ? "Un instant…" : "Quitter la charte"} variante="blanc" desactive={envoi} onPress={() => setConfirmation(true)} />
+            <Bouton libelle={envoi ? T.enCours : T.quitter} variante="blanc" desactive={envoi} onPress={() => setConfirmation(true)} />
           </View>
         ) : null}
 
@@ -144,11 +145,11 @@ export default function EcranMiamSafePro() {
       <FeuilleConfirmation
         visible={confirmation}
         emoji="🛡️"
-        titre="Quitter la charte Miam Safe ?"
-        detail="Le badge disparaîtra de ta fiche, et les alertes silencieuses ne pourront plus t'être envoyées."
-        libelleConfirmer="Quitter la charte"
-        libelleRester="Je reste"
-        indiceRester="Ton lieu garde la charte et son badge"
+        titre={T.quitterTitre}
+        detail={T.avertissementQuitter}
+        libelleConfirmer={T.quitter}
+        libelleRester={T.rester}
+        indiceRester={T.resterIndice}
         onConfirmer={() => void agir("quitter")}
         onFermer={() => setConfirmation(false)}
       />

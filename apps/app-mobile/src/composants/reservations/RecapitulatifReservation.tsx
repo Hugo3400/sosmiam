@@ -1,10 +1,13 @@
 import { Text, View } from "react-native";
 
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
-import { TEXTES_RESERVER_TABLE as T } from "~/contenus/textes-reserver-table";
+import { TEXTES_RESERVER_TABLE_PAR_LANGUE } from "~/contenus/textes-reserver-table";
+import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
 import { ecrireHeuresSecours } from "~/fonctions/reservations/ecrire-heures-secours";
-import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nomLieu: string;
@@ -18,14 +21,16 @@ type Props = {
 };
 
 export function RecapitulatifReservation({ nomLieu, emojiLieu, quand, secours, personnes, petitMot, automatique, minutesExpiration }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_RESERVER_TABLE_PAR_LANGUE);
   const titre = automatique ? T.recapTitreAuto : T.recapTitre;
   const note = automatique ? T.recapNoteAuto : remplirModele(secours.length > 0 ? T.recapNotePlanB : T.recapNote, { minutes: String(minutesExpiration) });
   const lignes = [
     { cle: "lieu", emoji: emojiLieu, texte: nomLieu, discret: false },
     { cle: "quand", emoji: "📅", texte: quand, discret: false },
-    ...(secours.length > 0 ? [{ cle: "secours", emoji: "🔁", texte: remplirModele(T.recapSecours, { heures: ecrireHeuresSecours(secours) }), discret: false }] : []),
-    { cle: "personnes", emoji: "👥", texte: ecrireNombrePersonnes(personnes), discret: false },
-    { cle: "petit-mot", emoji: "💬", texte: petitMot ? `« ${petitMot} »` : T.recapSansPetitMot, discret: !petitMot },
+    ...(secours.length > 0 ? [{ cle: "secours", emoji: "🔁", texte: remplirModele(T.recapSecours, { heures: ecrireHeuresSecours(secours, langue) }), discret: false }] : []),
+    { cle: "personnes", emoji: "👥", texte: ecrireNombrePersonnesLangue(personnes, langue), discret: false },
+    { cle: "petit-mot", emoji: "💬", texte: petitMot ? citer(petitMot, langue) : T.recapSansPetitMot, discret: !petitMot },
   ];
   const libelle = [titre, ...lignes.map((ligne) => ligne.texte), note].join(". ");
 

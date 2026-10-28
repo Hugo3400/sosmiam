@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Pressable, Text } from "react-native";
 
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nombre: number;
@@ -10,12 +12,8 @@ type Props = {
   onRefermee: () => void;
 };
 
-const decrire = (nombre: number) =>
-  nombre > 1
-    ? `Les ${nombre} notifications que tu as déjà lues s'envolent. Les nouvelles, elles, restent bien au chaud.`
-    : "La notification que tu as déjà lue s'envole. Les nouvelles, elles, restent bien au chaud.";
-
 export function BoutonEffacerLues({ nombre, onEffacer, onRefermee }: Props) {
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
   const [ouverte, setOuverte] = useState(false);
   const [nombreAffiche, setNombreAffiche] = useState(nombre);
 
@@ -24,8 +22,8 @@ export function BoutonEffacerLues({ nombre, onEffacer, onRefermee }: Props) {
       {nombre > 0 ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Effacer les lues, ${nombre} notification${nombre > 1 ? "s" : ""}`}
-          accessibilityHint="Un petit coup de balai sur ce que tu as déjà vu. On te demande avant."
+          accessibilityLabel={T.effacerLuesLu(nombre)}
+          accessibilityHint={T.effacerLuesIndice}
           hitSlop={6}
           onPress={() => {
             vibrerLegerement();
@@ -37,17 +35,17 @@ export function BoutonEffacerLues({ nombre, onEffacer, onRefermee }: Props) {
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-sm">
             🧹
           </Text>
-          <Text className="font-texte-gras text-[13px] text-encre">Effacer les lues</Text>
+          <Text className="font-texte-gras text-[13px] text-encre">{T.effacerLues}</Text>
         </Pressable>
       ) : null}
       <FeuilleConfirmation
         visible={ouverte}
         emoji="🧹"
-        titre="Un petit coup de balai ?"
-        detail={decrire(nombreAffiche)}
-        libelleConfirmer="Balayer"
-        libelleRester="Je garde tout"
-        indiceRester="Tes notifications restent là"
+        titre={T.balaiTitre}
+        detail={T.effacerLuesDetail(nombreAffiche)}
+        libelleConfirmer={T.balayer}
+        libelleRester={T.garderTout}
+        indiceRester={T.garderToutIndice}
         onConfirmer={onEffacer}
         onRefermee={onRefermee}
         onFermer={() => setOuverte(false)}

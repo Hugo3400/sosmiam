@@ -22,11 +22,14 @@ import { grouperParPeriode } from "~/fonctions/notifications/grouper-par-periode
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserNotifications, type NotificationApp, type ResultatEffacementCloche } from "~/hooks/utiliser-notifications";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Une ligne de l'écran : la notification, sa phrase, la personne dans le rond, et « Retirer » (arrivée par ton lien) */
 type LigneAffichee = { date: string; notification: NotificationApp; description: NotificationDecrite; pote: Pote | null; retirable: boolean };
@@ -43,6 +46,8 @@ export default function Notifications() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
   const { trouverPote, demandesRecues: demandesBande } = utiliserCommunaute();
   const notifications = utiliserNotifications();
   const suivis = utiliserSuivisPersonnes();
@@ -77,7 +82,7 @@ export default function Notifications() {
   const { publications: toutesLesPublications } = utiliserPublications();
   const groupes = useMemo(() => {
     const lignes = notifications.notifications.flatMap((notification): LigneAffichee[] => {
-      const description = decrireNotificationSuivi(notification, { trouverPote, publications: toutesLesPublications, lieux });
+      const description = decrireNotificationSuivi(notification, { trouverPote, publications: toutesLesPublications, lieux }, langue);
       if (!description) return [];
       if (notification.type === "cloche") {
         const { acteur } = notification;
@@ -90,8 +95,8 @@ export default function Notifications() {
       const pote = cible?.type === "personne" ? trouverPote(cible.id) : null;
       return [{ date: notification.date, notification, description, pote, retirable: false }];
     });
-    return grouperParPeriode(lignes);
-  }, [notifications.notifications, trouverPote, toutesLesPublications, lieux]);
+    return grouperParPeriode(lignes, langue);
+  }, [notifications.notifications, trouverPote, toutesLesPublications, lieux, langue]);
 
   const lues = useMemo(() => {
     const dates = typeof vuesAvant === "string" ? groupes.flatMap((groupe) => groupe.elements.flatMap((ligne) => (ligne.date <= vuesAvant ? [ligne.date] : []))) : [];
@@ -111,9 +116,9 @@ export default function Notifications() {
       const debut = Date.now();
       const resultat = await effacerNotification(ligne.notification.id);
       const attente = Math.max(0, DELAI_APRES_MENU - (Date.now() - debut));
-      setTimeout(() => conclure(decrireEffacementCloche(resultat, "une")), attente);
+      setTimeout(() => conclure(decrireEffacementCloche(resultat, "une", langue)), attente);
     },
-    [effacerNotification, conclure],
+    [effacerNotification, conclure, langue],
   );
 
   const lancerEffacementLues = () => {
@@ -125,13 +130,13 @@ export default function Notifications() {
     if (!enCours) return;
     void enCours.promesse.then((resultat) => {
       const vu = resultat.ok ? { ...resultat, effacees: Math.min(resultat.effacees, enCours.nombre) } : resultat;
-      conclure(decrireEffacementCloche(vu, "lues"));
+      conclure(decrireEffacementCloche(vu, "lues", langue));
     });
   };
 
   const optionsDe = (ligne: LigneAffichee | null): OptionMenu[] =>
     ligne
-      ? [{ cle: "effacer", emoji: "🧹", titre: "Effacer cette notification", detail: "Hop, un coup de chiffon et elle quitte ta cloche", agir: () => void effacerUne(ligne) }]
+      ? [{ cle: "effacer", emoji: "🧹", titre: T.effacerTitre, detail: T.effacerDetail, agir: () => void effacerUne(ligne) }]
       : [];
 
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
@@ -143,7 +148,7 @@ export default function Notifications() {
       <View className="min-h-14 flex-row items-center justify-between gap-3 px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={12}
           onPress={revenir}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -155,7 +160,7 @@ export default function Notifications() {
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
         <Text ref={titreEcran} accessibilityRole="header" className="font-titre text-3xl text-encre">
-          Notifications
+          {T.titre}
         </Text>
 
         {!pretAAfficher ? null : (
@@ -191,9 +196,9 @@ export default function Notifications() {
                 <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
                   🦗
                 </Text>
-                <Text className="text-center font-titre-gras text-lg text-encre">Calme plat par ici</Text>
+                <Text className="text-center font-titre-gras text-lg text-encre">{T.videTitre}</Text>
                 <Text className="text-center font-texte text-base leading-6 text-gris">
-                  {lierPonctuation("Quand quelqu'un te suivra, ou qu'un lieu ou un créateur que tu suis publiera, ça s'affichera ici.")}
+                  {lierPonctuation(T.videTexte)}
                 </Text>
               </View>
             ) : null}

@@ -1,32 +1,37 @@
 import { useRouter } from "expo-router";
 
 import { TuileRaccourci } from "~/composants/profil/TuileRaccourci";
-import { TEXTES_RACCOURCIS } from "~/contenus/textes-profil";
-import { ENTREE_MES_RESERVATIONS } from "~/contenus/textes-mes-reservations";
+import { ENTREE_MES_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-mes-reservations";
+import { TEXTES_RACCOURCIS_PAR_LANGUE } from "~/contenus/textes-profil";
 import { listerReservationsEnCours } from "~/fonctions/reservations/lister-reservations-en-cours";
 import { resumerMesReservations } from "~/fonctions/reservations/resumer-mes-reservations";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 export function EntreeReservations() {
   const router = useRouter();
   const { source, reservations, lecturesReservations } = utiliserVisites();
   const { maintenantMs } = utiliserHorlogeMinute();
+  const { langue } = utiliserLangue();
+  const entree = utiliserTextes(ENTREE_MES_RESERVATIONS_PAR_LANGUE);
+  const raccourcis = utiliserTextes(TEXTES_RACCOURCIS_PAR_LANGUE);
   const detail =
     lecturesReservations === 0 || source === "indisponible"
-      ? ENTREE_MES_RESERVATIONS.pasEncoreLues
+      ? entree.pasEncoreLues
       : reservations.length === 0
-        ? TEXTES_RACCOURCIS.pasDeTable
+        ? raccourcis.pasDeTable
         : listerReservationsEnCours(reservations, maintenantMs).length === 0
-          ? TEXTES_RACCOURCIS.rienDePrevu
-          : resumerMesReservations(reservations, maintenantMs);
+          ? raccourcis.rienDePrevu
+          : resumerMesReservations(reservations, maintenantMs, langue);
 
   return (
     <TuileRaccourci
       emoji="📅"
-      titre={ENTREE_MES_RESERVATIONS.titre}
+      titre={entree.titre}
       detail={detail}
-      indice={ENTREE_MES_RESERVATIONS.indice}
+      indice={entree.indice}
       onPress={() => router.push("/reservations")}
     />
   );

@@ -5,10 +5,12 @@ import { Pressable, Text, View } from "react-native";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
 import { SelecteurEspaceCommunaute, type EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
+import { TEXTES_BANDE_ACTIVITE_PAR_LANGUE } from "~/contenus/textes-bande-activite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Ton profil communautaire (utiliserCommunaute().moi) */
@@ -20,6 +22,7 @@ type Props = {
 /** Le haut de Communauté : « Messages / Ma bande / Les Miamis » (avec les non-lus), le bouton « Ajouter », et ton avatar avec ton @pseudo qui ouvrent ton profil de pote. */
 export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_BANDE_ACTIVITE_PAR_LANGUE).enTete;
   const router = useRouter();
   const { nonLus } = utiliserConversations();
   const monId = utiliserMonId();
@@ -32,8 +35,8 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Ajouter un pote"
-          accessibilityHint="Par son pseudo, ton lien ou ton QR code"
+          accessibilityLabel={T.ajouter}
+          accessibilityHint={T.indiceAjouter}
           onPress={() => {
             vibrerLegerement();
             router.push("/potes/ajouter");
@@ -48,8 +51,8 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
       {espace === "bande" ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={moi.pseudo ? `Ton profil de pote, @${moi.pseudo}` : "Ton profil de pote"}
-          accessibilityHint="Ce que tes potes voient de toi"
+          accessibilityLabel={moi.pseudo ? T.profilLu(moi.pseudo) : T.profil}
+          accessibilityHint={T.indiceProfil}
           onPress={() => {
             vibrerLegerement();
             router.push({ pathname: "/potes/profil/[id]", params: { id: monId } });
@@ -62,7 +65,7 @@ export function EnTetePotes({ moi, espace, onChoisirEspace }: Props) {
               {moi.pseudo ? `@${moi.pseudo}` : moi.prenom}
             </Text>
             <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-              Ton profil de pote
+              {T.profil}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={couleurs.gris} />

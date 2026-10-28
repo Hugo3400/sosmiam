@@ -19,8 +19,9 @@ import { CarteDemandeReservation } from "~/composants/reservations-pro/CarteDema
 import { CarteRemplissageJour } from "~/composants/reservations-pro/CarteRemplissageJour";
 import { EnTeteReservationsPro } from "~/composants/reservations-pro/EnTeteReservationsPro";
 import { InvitationReglagesReservations } from "~/composants/reservations-pro/InvitationReglagesReservations";
-import { CONFIRMATIONS_COMPTOIR_RESERVATIONS as C, TEXTES_COMPTOIR_RESERVATIONS } from "~/contenus/textes-comptoir-reservations";
-import { TEXTES_RESERVATIONS_PRO as T } from "~/contenus/textes-reservations-pro";
+import { CONFIRMATIONS_COMPTOIR_RESERVATIONS_PAR_LANGUE, TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE } from "~/contenus/textes-comptoir-reservations";
+import { TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-ecran-pro-reservations";
+import { TEXTES_RESERVATIONS_PRO_PAR_LANGUE } from "~/contenus/textes-reservations-pro";
 import { ecrireHeureParis } from "~/fonctions/dates/ecrire-heure-paris";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireDepassement } from "~/fonctions/reservations/decrire-depassement";
@@ -37,9 +38,14 @@ import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserReglagesReservations } from "~/hooks/utiliser-reglages-reservations";
 import { utiliserReponsesReservationsPro } from "~/hooks/utiliser-reponses-reservations-pro";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export default function EcranReservationsPro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_RESERVATIONS_PRO_PAR_LANGUE);
+  const C = utiliserTextes(CONFIRMATIONS_COMPTOIR_RESERVATIONS_PAR_LANGUE);
+  const TC = utiliserTextes(TEXTES_COMPTOIR_RESERVATIONS_PAR_LANGUE);
+  const TE = utiliserTextes(TEXTES_ECRAN_RESERVATIONS_PRO_PAR_LANGUE);
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const focus = useIsFocused();
@@ -133,7 +139,7 @@ export default function EcranReservationsPro() {
             ))}
           </SectionReservations>
         ) : auto ? (
-          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(TEXTES_COMPTOIR_RESERVATIONS.aRepondreVideAuto)}</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(TC.aRepondreVideAuto)}</Text>
         ) : null}
         {lus && avecServices ? <CarteRemplissageJour reglages={lus.reglages} reservations={lecture.reservations} maintenantMs={maintenantMs} /> : null}
         {lus && !avecServices && gerant ? <InvitationReglagesReservations onRegler={() => router.push("/pro/reglages-reservations")} /> : null}
@@ -153,8 +159,8 @@ export default function EcranReservationsPro() {
   };
 
   const cibleQuandMeme = reponses.quandMeme.cible;
-  const nomRefus = reponses.refus.cible ? nommerClientReservation(reponses.refus.cible) : "ce client";
-  const nomAnnulation = reponses.annulation.cible ? nommerClientReservation(reponses.annulation.cible) : "ce client";
+  const nomRefus = reponses.refus.cible ? nommerClientReservation(reponses.refus.cible) : TE.ceClient;
+  const nomAnnulation = reponses.annulation.cible ? nommerClientReservation(reponses.annulation.cible) : TE.ceClient;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>

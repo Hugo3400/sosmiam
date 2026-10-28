@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 import { Pressable, Switch, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import { DUREE_PARTAGE_POSITION_MINUTES } from "@sos-miam/commun/regles/miam-safe";
 import type { PartagePositionMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE } from "~/contenus/textes-miam-safe-partage";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { lirePositionMiamSafe } from "~/fonctions/miam-safe/lire-position-miam-safe";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserCouleursInterrupteur } from "~/hooks/utiliser-couleurs-interrupteur";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieuId: number;
@@ -33,6 +36,9 @@ const HEURES = DUREE_PARTAGE_POSITION_MINUTES / 60;
 export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props) {
   const couleurs = utiliserCouleurs();
   const interrupteur = utiliserCouleursInterrupteur();
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const { miamSafe } = utiliserServices();
   const { source, pret, potes } = utiliserCommunaute();
   const [choisi, setChoisi] = useState<string | null>(null);
@@ -52,12 +58,10 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
       <View className="gap-4">
         <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
           <Text className="font-texte-gras text-base text-encre">
-            {source === "attente" || !pret ? "Ta bande arrive…" : "Il te faut ton compte"}
+            {source === "attente" || !pret ? T.bandeArrive : T.ilTeFautTonCompte}
           </Text>
           <Text className="font-texte text-base leading-6 text-encre">
-            {source === "attente" || !pret
-              ? "Un instant. Si ça traîne, appelle plutôt un proche."
-              : `Prévenir un pote depuis SOS Miam, ça passe par ton compte et ta bande. Là, tout de suite, appelle plutôt un proche et dis-lui que tu es ${direChezLieu(nomLieu)}.`}
+            {source === "attente" || !pret ? T.attente : T.sansCompte(direChezLieuLangue(nomLieu, langue))}
           </Text>
         </View>
         <NumerosUrgence />
@@ -76,7 +80,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
     const r = await miamSafe.prevenirPote({ pote: pote.id, lieuId, partagerPosition: avecPosition, position }).catch(() => null);
     setEnvoi(false);
     if (r?.ok) return onOuvrirPartage(r.partage.id, r.telephones);
-    const message = MESSAGES_SERVICE[r ? r.erreur : "hors-ligne"];
+    const message = messages[r ? r.erreur : "hors-ligne"];
     setErreur(`${message.titre}. ${message.texte}`);
   };
 
@@ -84,25 +88,19 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
     <View className="gap-4">
       {enCours.map((p) => (
         <View key={p.id} className="gap-2 rounded-2xl bg-jaune-clair p-4">
-          <Text className="font-texte-gras text-base text-encre">
-            📍 Tu partages ta position avec {p.personne.prenom} jusqu'à {ecrireHeure(p.expireLe)}.
-          </Text>
-          <Bouton libelle="Voir le partage" variante="blanc" petit onPress={() => onOuvrirPartage(p.id, null)} />
+          <Text className="font-texte-gras text-base text-encre">{T.partageEnCours(p.personne.prenom, ecrireHeureLangue(p.expireLe, langue))}</Text>
+          <Bouton libelle={T.voirPartage} variante="blanc" petit onPress={() => onOuvrirPartage(p.id, null)} />
         </View>
       ))}
 
       {potes.length === 0 ? (
         <View accessible className="gap-2 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
-          <Text className="font-texte-gras text-base text-encre">Ta bande est vide</Text>
-          <Text className="font-texte text-base leading-6 text-encre">
-            On ne peut prévenir qu'un pote de ta bande. Ajoute tes potes depuis l'onglet Communauté ; là, appelle plutôt un proche.
-          </Text>
+          <Text className="font-texte-gras text-base text-encre">{T.bandeVide}</Text>
+          <Text className="font-texte text-base leading-6 text-encre">{T.bandeVideTexte}</Text>
         </View>
       ) : (
         <>
-          <Text className="font-texte text-base leading-6 text-gris">
-            Ton pote reçoit une notification : tu ne te sens pas en sécurité {direChezLieu(nomLieu)}. Qui préviens-tu ?
-          </Text>
+          <Text className="font-texte text-base leading-6 text-gris">{T.notification(direChezLieuLangue(nomLieu, langue))}</Text>
           <View accessibilityRole="radiogroup" className="gap-2">
             {potes.map((p) => {
               const selectionne = p.id === choisi;
@@ -128,11 +126,11 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
 
           <View className="flex-row items-center gap-3 rounded-2xl bg-carte p-4">
             <View className="shrink grow gap-1">
-              <Text className="font-texte-gras text-base text-encre">Partager ma position pendant {HEURES} h</Text>
-              <Text className="font-texte text-sm leading-5 text-gris">Ton pote la voit dans son app. Tu arrêtes quand tu veux.</Text>
+              <Text className="font-texte-gras text-base text-encre">{T.partagerPosition(HEURES)}</Text>
+              <Text className="font-texte text-sm leading-5 text-gris">{T.partagerPositionDetail}</Text>
             </View>
             <Switch
-              accessibilityLabel={`Partager ma position pendant ${HEURES} heure`}
+              accessibilityLabel={T.partagerPositionLu(HEURES)}
               value={avecPosition}
               onValueChange={setAvecPosition}
               trackColor={{ true: interrupteur.piste, false: couleurs.ligne }}
@@ -142,7 +140,7 @@ export function PrevenirPoteMiamSafe({ lieuId, nomLieu, onOuvrirPartage }: Props
 
           {erreur ? <Text accessibilityLiveRegion="polite" className="font-texte-semi text-base leading-6 text-encre">⚠️ {erreur}</Text> : null}
           <Bouton
-            libelle={envoi ? "Envoi…" : pote ? `Prévenir ${pote.prenom}` : "Choisis un pote"}
+            libelle={envoi ? T.envoi : pote ? T.prevenir(pote.prenom) : T.choisisUnPote}
             variante="encre"
             desactive={!pote || envoi}
             onPress={prevenir}

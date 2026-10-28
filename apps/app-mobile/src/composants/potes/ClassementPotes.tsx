@@ -1,19 +1,18 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { CALENDRIER_PAR_LANGUE } from "@sos-miam/commun/contenus/calendrier";
 import { calculerClassement } from "@sos-miam/commun/fonctions/potes/calculer-classement";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_BANDE_ACTIVITE_PAR_LANGUE } from "~/contenus/textes-bande-activite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const MEDAILLES = ["🥇", "🥈", "🥉"];
-
-/** « 1er », « 2e », « 3e » */
-const ordinal = (rang: number) => (rang === 1 ? "1er" : `${rang}e`);
 
 /**
  * Le classement du mois entre toi et ta bande (points du mois, puis rescousses) ; ta ligne est mise en avant. Seulement les potes
@@ -21,15 +20,16 @@ const ordinal = (rang: number) => (rang === 1 ? "1er" : `${rang}e`);
  */
 export function ClassementPotes() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_BANDE_ACTIVITE_PAR_LANGUE).classement;
+  const { mois: nomsMois } = utiliserTextes(CALENDRIER_PAR_LANGUE);
   const { potes, moi } = utiliserCommunaute();
   const voitEnEntier = utiliserVoitEnEntier();
   if (!voitEnEntier) return null;
   const classement = calculerClassement([...potes.filter((p) => voitEnEntier(p.id)), moi], moi.id);
-  const mois = MOIS[new Date().getMonth()];
-  // « d'octobre », « de mars »
-  const titre = `Classement ${/^[aeiouyéè]/.test(mois) ? "d'" : "de "}${mois}`;
+  const mois = nomsMois[new Date().getMonth()] ?? "";
+  const titre = T.titre(mois);
   const seul = classement.length <= 1;
-  const sousTitre = seul ? "Ajoute des potes : c'est plus drôle avec quelqu'un à dépasser 😏" : "Les points gagnés ce mois-ci, entre toi et ta bande.";
+  const sousTitre = seul ? T.seul : T.sousTitre;
 
   return (
     <View className="gap-3">
@@ -45,19 +45,14 @@ export function ClassementPotes() {
       <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
         {classement.map(({ personne: pote, rang, estMoi }, i) => {
           const exAequo = classement.some((autre) => autre.rang === rang && autre.personne.id !== pote.id);
-          const nom = estMoi ? "Toi" : pote.prenom;
-          const lu = [
-            `${ordinal(rang)}${exAequo ? " ex æquo" : ""}`,
-            nom,
-            `${pote.pointsDuMois} point${pote.pointsDuMois > 1 ? "s" : ""} ce mois-ci`,
-            `${pote.rescoussesDuMois} rescousse${pote.rescoussesDuMois > 1 ? "s" : ""}`,
-          ].join(", ");
+          const nom = estMoi ? T.toi : pote.prenom;
+          const lu = [exAequo ? T.rangExAequo(rang) : T.rang(rang), nom, T.points(pote.pointsDuMois), T.rescousses(pote.rescoussesDuMois)].join(", ");
           return (
             <Pressable
               key={pote.id}
               accessibilityRole="button"
               accessibilityLabel={lu}
-              accessibilityHint={estMoi ? "Ouvre ton profil de pote" : `Ouvre le profil de ${pote.prenom}`}
+              accessibilityHint={estMoi ? T.indiceMoi : T.indicePote(pote.prenom)}
               onPress={() => {
                 vibrerLegerement();
                 router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
@@ -79,12 +74,12 @@ export function ClassementPotes() {
                   {nom}
                 </Text>
                 <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-                  🛟 {pote.rescoussesDuMois} rescousse{pote.rescoussesDuMois > 1 ? "s" : ""}
+                  🛟 {T.rescousses(pote.rescoussesDuMois)}
                 </Text>
               </View>
               <Text className="font-titre-gras text-lg text-encre">
                 {pote.pointsDuMois}
-                <Text className="font-texte-semi text-sm text-gris">{"\u00a0pts"}</Text>
+                <Text className="font-texte-semi text-sm text-gris">{T.pts}</Text>
               </Text>
             </Pressable>
           );

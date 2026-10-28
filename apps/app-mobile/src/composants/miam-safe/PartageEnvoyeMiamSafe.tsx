@@ -3,9 +3,12 @@ import { Text, View } from "react-native";
 import type { PartagePositionMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE } from "~/contenus/textes-miam-safe-partage";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { decrireFraicheurPosition } from "~/fonctions/miam-safe/decrire-fraicheur-position";
 import { utiliserEnvoiPositionMiamSafe } from "~/hooks/utiliser-envoi-position-miam-safe";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   partage: PartagePositionMiamSafe;
@@ -25,53 +28,47 @@ export function PartageEnvoyeMiamSafe({ partage, telephones, arret, onArreter, o
   // Interrupteur coupé : aucune position ne part, jamais (le serveur les refuserait de toute façon)
   const { etat, derniere } = utiliserEnvoiPositionMiamSafe(partage.actif && partage.avecPosition ? partage.id : null, onTermine);
   const prenom = partage.personne.prenom;
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
+  const jusqua = ecrireHeureLangue(partage.expireLe, langue);
 
   return (
     <View className="gap-4">
       {telephones === 0 ? (
         <View accessible className="gap-2 rounded-2xl bg-tomate p-4">
-          <Text className="font-texte-gras text-base text-nuit">⚠️ {prenom} n'a rien reçu</Text>
-          <Text className="font-texte text-base leading-6 text-nuit">
-            Aucun téléphone de ton pote n'est connecté à SOS Miam : la notification n'est pas partie. Appelle ton pote, ou les
-            secours si tu es en danger.
-          </Text>
+          <Text className="font-texte-gras text-base text-nuit">{T.rienRecu(prenom)}</Text>
+          <Text className="font-texte text-base leading-6 text-nuit">{T.rienRecuTexte}</Text>
         </View>
       ) : telephones !== null ? (
         <View accessible className="rounded-2xl bg-jaune-clair p-4">
-          <Text className="font-texte-gras text-base text-encre">✅ La notification est partie sur le téléphone de {prenom}.</Text>
+          <Text className="font-texte-gras text-base text-encre">{T.notificationPartie(prenom)}</Text>
         </View>
       ) : null}
 
       {partage.actif && !partage.avecPosition ? (
         <View className="gap-3 rounded-2xl bg-carte p-4">
-          <Text className="font-texte-gras text-base text-encre">
-            Tu n'as pas partagé ta position : {prenom} voit seulement le lieu, jusqu'à {ecrireHeure(partage.expireLe)}.
-          </Text>
-          <Bouton libelle={arret ? "Arrêt…" : "Arrêter le partage"} variante="blanc" desactive={arret} onPress={onArreter} />
+          <Text className="font-texte-gras text-base text-encre">{T.sansPosition(prenom, jusqua)}</Text>
+          <Bouton libelle={arret ? T.arret : T.arreterPartage} variante="blanc" desactive={arret} onPress={onArreter} />
         </View>
       ) : partage.actif ? (
         <View className="gap-3 rounded-2xl bg-carte p-4">
-          <Text className="font-texte-gras text-base text-encre">
-            📍 {prenom} voit ta position jusqu'à {ecrireHeure(partage.expireLe)}.
-          </Text>
+          <Text className="font-texte-gras text-base text-encre">{T.voitPosition(prenom, jusqua)}</Text>
           <Text accessibilityLiveRegion="polite" className="font-texte text-base leading-6 text-encre">
             {etat === "refusee"
-              ? `Tu n'as pas donné accès à ta position : ${prenom} voit seulement le lieu. Tu peux l'autoriser dans les réglages du téléphone.`
+              ? T.positionRefusee(prenom)
               : etat === "erreur"
-                ? "Ta position n'est pas partie cette fois. On réessaie dès que tu bouges."
+                ? T.positionErreur
                 : derniere
-                  ? `Dernière position envoyée ${decrireFraicheurPosition(derniere.toISOString())}.`
-                  : "On envoie ta position…"}
+                  ? T.dernierePosition(decrireFraicheurPosition(derniere.toISOString(), langue))
+                  : T.envoiPosition}
           </Text>
-          <Text className="font-texte text-sm leading-5 text-gris">
-            Garde cet écran ouvert : téléphone verrouillé ou app fermée, ta position ne se met plus à jour.
-          </Text>
-          <Bouton libelle={arret ? "Arrêt…" : "Arrêter le partage"} variante="blanc" desactive={arret} onPress={onArreter} />
+          <Text className="font-texte text-sm leading-5 text-gris">{T.garderOuvert}</Text>
+          <Bouton libelle={arret ? T.arret : T.arreterPartage} variante="blanc" desactive={arret} onPress={onArreter} />
         </View>
       ) : (
         <View accessible className="gap-1 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
-          <Text className="font-texte-gras text-base text-encre">Partage terminé</Text>
-          <Text className="font-texte text-base leading-6 text-encre">{prenom} ne voit plus ta position : elle est effacée.</Text>
+          <Text className="font-texte-gras text-base text-encre">{T.partageTermine}</Text>
+          <Text className="font-texte text-base leading-6 text-encre">{T.plusVisible(prenom)}</Text>
         </View>
       )}
       <NumerosUrgence />

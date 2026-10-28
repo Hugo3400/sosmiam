@@ -5,6 +5,9 @@ import { useState } from "react";
 import { AccessibilityInfo, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import {
   DELAI_MIN_FIN_VOTE_MINUTES,
   DELAI_MIN_SORTIE_MINUTES,
@@ -15,6 +18,7 @@ import {
 } from "@sos-miam/commun/regles/potes";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { contientMotInterdit } from "@sos-miam/commun/validation/contient-mot-interdit";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
@@ -25,31 +29,27 @@ import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { ChoixQuandSortie } from "~/composants/potes/ChoixQuandSortie";
 import { LieuxProposesSortie } from "~/composants/potes/LieuxProposesSortie";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { formaterDateIso } from "~/fonctions/dates/formater-date-iso";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_NOUVELLE_SORTIE, TEXTES_ECRAN_NOUVELLE_SORTIE_PAR_LANGUE } from "~/contenus/textes-ecran-nouvelle-sortie";
+import { ecrireJourLongLangue } from "~/fonctions/langue/ecrire-jour-long-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Erreurs = { titre?: string; quand?: string; invites?: string; lieux?: string; envoi?: string };
 
-const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+type TextesNouvelleSortie = Traduction<typeof TEXTES_ECRAN_NOUVELLE_SORTIE>;
+
 const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-const capitaliser = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
-/** « vendredi 10 octobre » (avec l'année si ce n'est pas celle-ci) */
-const ecrireDate = (date: Date) => {
-  const longue = formaterDateLongue(formaterDateIso(date));
-  return `${JOURS[date.getDay()]} ${date.getFullYear() === new Date().getFullYear() ? longue.replace(/ \d+$/, "") : longue}`;
-};
-/** « aujourd'hui », « demain » ou « vendredi 10 octobre » */
-const decrireJour = (date: Date, maintenant: Date) => {
+/** « Aujourd'hui », « Demain » ou « Vendredi 10 octobre » (avec l'année si ce n'est pas celle-ci) */
+const decrireJour = (date: Date, maintenant: Date, langue: Langue, T: TextesNouvelleSortie) => {
   const ecart = Math.round((debutDuJour(date) - debutDuJour(maintenant)) / 86_400_000);
-  return ecart === 0 ? "aujourd'hui" : ecart === 1 ? "demain" : ecrireDate(date);
+  return ecart === 0 ? T.aujourdhui : ecart === 1 ? T.demain : ecrireJourLongLangue(date, langue);
 };
-const decrireHeure = (date: Date) => formaterHeure(`${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`);
+const decrireHeure = (date: Date, langue: Langue) => formaterHeureLangue(date.getHours(), date.getMinutes(), langue);
 
 /** Demain à 20h : le point de départ d'une nouvelle sortie */
 const demainSoir = () => {
@@ -63,7 +63,8 @@ const demainSoir = () => {
 const DELAI_MINIMUM = DELAI_MIN_SORTIE_MINUTES * 60_000;
 
 /** Les fins de vote possibles pour une sortie : toujours après maintenant (avec un peu de marge) et avant la sortie. */
-function calculerOptionsFinVote(quand: Date, maintenant: Date): (OptionFinVote & { date: Date })[] {
+function calculerOptionsFinVote(quand: Date, maintenant: Date, langue: Langue): (OptionFinVote & { date: Date })[] {
+  const T = choisirTextes(TEXTES_ECRAN_NOUVELLE_SORTIE_PAR_LANGUE, langue);
   const aDixHuitHeures = (jours: number) => {
     const date = new Date(maintenant);
     date.setDate(date.getDate() + jours);
@@ -71,14 +72,14 @@ function calculerOptionsFinVote(quand: Date, maintenant: Date): (OptionFinVote &
     return date;
   };
   const candidates = [
-    { cle: "1h", libelle: "Dans 1 h", date: new Date(maintenant.getTime() + 3_600_000) },
-    { cle: "ce-soir", libelle: "Ce soir, 18h", date: aDixHuitHeures(0) },
-    { cle: "demain", libelle: "Demain, 18h", date: aDixHuitHeures(1) },
-    { cle: "avant", libelle: "1 h avant la sortie", date: new Date(quand.getTime() - 3_600_000) },
+    { cle: "1h", libelle: T.dansUneHeure, date: new Date(maintenant.getTime() + 3_600_000) },
+    { cle: "ce-soir", libelle: T.ceSoir, date: aDixHuitHeures(0) },
+    { cle: "demain", libelle: T.demainSoir, date: aDixHuitHeures(1) },
+    { cle: "avant", libelle: T.avantSortie, date: new Date(quand.getTime() - 3_600_000) },
   ];
   const valables = candidates.filter((o) => o.date.getTime() >= maintenant.getTime() + DELAI_MIN_FIN_VOTE_MINUTES * 60_000 && o.date <= quand);
-  const options = valables.length > 0 ? valables : [{ cle: "avant", libelle: "Jusqu'à la sortie", date: quand }];
-  return options.map((o) => ({ ...o, detail: `${capitaliser(decrireJour(o.date, maintenant))} à ${decrireHeure(o.date)}` }));
+  const options = valables.length > 0 ? valables : [{ cle: "avant", libelle: T.jusquaSortie, date: quand }];
+  return options.map((o) => ({ ...o, detail: T.jourHeure(decrireJour(o.date, maintenant, langue, T), decrireHeure(o.date, langue)) }));
 }
 
 /** « lea,karim » (paramètre `invites`) → ces potes, s'ils sont dans ta bande (donc pas bloqués), sans doublon et dans la limite d'une sortie */
@@ -89,6 +90,9 @@ const lireInvites = (texte: string | undefined, potes: Pote[]) => {
 
 /** Organiser une sortie : un nom et un emoji, le jour et l'heure, les potes invités, les lieux proposés et la fin du vote. */
 export default function NouvelleSortie() {
+  const T = utiliserTextes(TEXTES_ECRAN_NOUVELLE_SORTIE_PAR_LANGUE);
+  const REFUS_LIMITATION = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { lieu: lieuDemande, invites: invitesDemandes } = useLocalSearchParams<{ lieu?: string; invites?: string }>();
@@ -112,11 +116,11 @@ export default function NouvelleSortie() {
   const [envoi, setEnvoi] = useState(false);
 
   const maintenant = new Date();
-  const options = calculerOptionsFinVote(quand, maintenant);
+  const options = calculerOptionsFinVote(quand, maintenant, langue);
   const option = options.find((o) => o.cle === cleFinVote) ?? options[options.length - 1];
   const lieuxChoisis = lieux.map(trouverLieu).filter((l): l is Lieu => l !== undefined);
   const quandPasse = quand.getTime() < maintenant.getTime() + DELAI_MINIMUM;
-  const erreurQuand = quandPasse ? "Ce moment est déjà passé ou presque : laisse à la bande au moins un quart d'heure pour voter." : null;
+  const erreurQuand = quandPasse ? T.erreurs.quand : null;
 
   function basculerInvite(id: string) {
     const nouveaux = invites.includes(id) ? invites.filter((i) => i !== id) : [...invites, id];
@@ -128,12 +132,12 @@ export default function NouvelleSortie() {
     if (envoi) return;
     const propre = titre.trim();
     const trouvees: Erreurs = {};
-    if (propre === "") trouvees.titre = "Donne un petit nom à ta sortie, même « Miam du vendredi » fait l'affaire.";
-    else if (propre.length > LONGUEUR_MAX_TITRE_SORTIE) trouvees.titre = `${LONGUEUR_MAX_TITRE_SORTIE} caractères au plus, fais court et gourmand.`;
-    else if (contientMotInterdit(propre)) trouvees.titre = "Un mot de ce titre ne passe pas chez nous. Tu reformules gentiment ?";
+    if (propre === "") trouvees.titre = T.erreurs.titreVide;
+    else if (propre.length > LONGUEUR_MAX_TITRE_SORTIE) trouvees.titre = T.erreurs.titreLong(LONGUEUR_MAX_TITRE_SORTIE);
+    else if (contientMotInterdit(propre)) trouvees.titre = T.erreurs.titreMot;
     if (quandPasse) trouvees.quand = erreurQuand ?? undefined;
-    if (invites.length === 0) trouvees.invites = "Invite au moins un pote : une sortie tout seul, c'est un dîner aux chandelles avec toi-même.";
-    if (lieuxChoisis.length === 0) trouvees.lieux = "Propose au moins un lieu pour lancer le vote.";
+    if (invites.length === 0) trouvees.invites = T.erreurs.invites;
+    if (lieuxChoisis.length === 0) trouvees.lieux = T.erreurs.lieux;
 
     if (Object.keys(trouvees).length === 0) {
       setEnvoi(true);
@@ -145,7 +149,7 @@ export default function NouvelleSortie() {
           quand: quand.toISOString(),
           invites,
           lieux,
-          finVote: (calculerOptionsFinVote(quand, new Date()).find((o) => o.cle === option.cle) ?? option).date.toISOString(),
+          finVote: (calculerOptionsFinVote(quand, new Date(), langue).find((o) => o.cle === option.cle) ?? option).date.toISOString(),
         },
         cle,
       );
@@ -154,14 +158,14 @@ export default function NouvelleSortie() {
         return;
       }
       setEnvoi(false);
-      if (resultat.erreur === "titre") trouvees.titre = `Ce titre ne passe pas : ${LONGUEUR_MAX_TITRE_SORTIE} caractères au plus, et des mots gentils.`;
-      if (resultat.erreur === "participants") trouvees.invites = `Invite entre 1 et ${MAX_PARTICIPANTS_SORTIE - 1} potes de ta bande.`;
-      if (resultat.erreur === "lieux") trouvees.lieux = "Les lieux choisis ne sont plus dans l'app : propose-en un autre.";
+      if (resultat.erreur === "titre") trouvees.titre = T.erreurs.titreRefuse(LONGUEUR_MAX_TITRE_SORTIE);
+      if (resultat.erreur === "participants") trouvees.invites = T.erreurs.participants(MAX_PARTICIPANTS_SORTIE - 1);
+      if (resultat.erreur === "lieux") trouvees.lieux = T.erreurs.lieuxDisparus;
       if (resultat.erreur === "quand")
-        trouvees.quand = `L'horloge coince : la sortie doit commencer au moins ${DELAI_MIN_SORTIE_MINUTES} min plus tard, et le vote finir au moins ${DELAI_MIN_FIN_VOTE_MINUTES} min plus tard, avant la sortie. Ajuste l'heure ou la fin du vote.`;
-      if (resultat.erreur === "trop") trouvees.envoi = `${MAX_SORTIES_A_VENIR} sorties à venir, c'est le maximum. Profite d'abord de celles-là, la prochaine t'attendra !`;
+        trouvees.quand = T.erreurs.horloge(DELAI_MIN_SORTIE_MINUTES, DELAI_MIN_FIN_VOTE_MINUTES);
+      if (resultat.erreur === "trop") trouvees.envoi = T.erreurs.trop(MAX_SORTIES_A_VENIR);
       if (resultat.erreur === "compte-limite") trouvees.envoi = REFUS_LIMITATION.sortie;
-      if (resultat.erreur === "reseau") trouvees.envoi = "Le réseau a fait des siennes : ta sortie n'est pas partie. Réessaie dans un instant.";
+      if (resultat.erreur === "reseau") trouvees.envoi = T.erreurs.reseau;
     }
 
     setErreurs(trouvees);
@@ -179,7 +183,7 @@ export default function NouvelleSortie() {
         <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={T.retour}
             hitSlop={8}
             onPress={() => (router.canGoBack() ? router.back() : router.replace("/potes"))}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -190,32 +194,32 @@ export default function NouvelleSortie() {
 
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8" keyboardShouldPersistTaps="handled">
           <Text accessibilityRole="header" className="font-titre text-[32px] leading-[36px] text-encre">
-            Nouvelle sortie
+            {T.titre}
           </Text>
           <Text className="mb-4 mt-2 font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Tu proposes des lieux, la bande vote, et tout le monde se retrouve au bon endroit. Simple, non ?")}
+            {lierPonctuation(T.intro)}
           </Text>
 
-          <SectionReglages titre="Le nom">
+          <SectionReglages titre={T.nom}>
             <View className="gap-4 pt-2">
               <ChampTexte
-                libelle="Le nom de la sortie"
+                libelle={T.nomLibelle}
                 valeur={titre}
                 onChangeTexte={(texte) => {
                   setTitre(texte);
                   if (erreurs.titre) setErreurs((e) => ({ ...e, titre: undefined }));
                 }}
-                placeholder="Resto de vendredi soir"
+                placeholder={T.nomPlaceholder}
                 maxLength={LONGUEUR_MAX_TITRE_SORTIE}
                 returnKeyType="done"
-                aide={`${titre.length}/${LONGUEUR_MAX_TITRE_SORTIE} caractères`}
+                aide={T.caracteres(titre.length, LONGUEUR_MAX_TITRE_SORTIE)}
                 erreur={erreurs.titre}
               />
               <ChoixEmojiSortie choisi={emoji} onChoisir={setEmoji} />
             </View>
           </SectionReglages>
 
-          <SectionReglages titre="Quand ?">
+          <SectionReglages titre={T.quand}>
             <View className="pt-2">
               <ChoixQuandSortie
                 quand={quand}
@@ -223,18 +227,18 @@ export default function NouvelleSortie() {
                   setQuand(date);
                   setErreurs((e) => ({ ...e, quand: undefined }));
                 }}
-                jour={capitaliser(ecrireDate(quand))}
-                heure={decrireHeure(quand)}
+                jour={ecrireJourLongLangue(quand, langue)}
+                heure={decrireHeure(quand, langue)}
                 erreur={erreurQuand ?? erreurs.quand ?? null}
               />
             </View>
           </SectionReglages>
 
-          <SectionReglages titre="Avec qui ?">
+          <SectionReglages titre={T.avecQui}>
             <ChoixParticipants potes={potes} choisis={invites} max={MAX_PARTICIPANTS_SORTIE - 1} onBasculer={basculerInvite} erreur={erreurs.invites} />
           </SectionReglages>
 
-          <SectionReglages titre="Où ?">
+          <SectionReglages titre={T.ou}>
             <View className="pt-2">
               <LieuxProposesSortie
                 lieux={lieuxChoisis}
@@ -246,8 +250,8 @@ export default function NouvelleSortie() {
             </View>
           </SectionReglages>
 
-          <SectionReglages titre="Fin du vote">
-            <Text className="mb-1 font-texte text-sm leading-5 text-gris">{lierPonctuation("Passé ce moment, le lieu qui a le plus de votes l'emporte.")}</Text>
+          <SectionReglages titre={T.finVote}>
+            <Text className="mb-1 font-texte text-sm leading-5 text-gris">{lierPonctuation(T.finVoteTexte)}</Text>
             <ChoixFinVote
               options={options}
               choisie={option.cle}
@@ -264,17 +268,17 @@ export default function NouvelleSortie() {
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreurBas)}</Text>
           ) : null}
           <Bouton
-            libelle={envoi ? "Un instant…" : "Créer la sortie"}
+            libelle={envoi ? T.unInstant : T.creer}
             desactive={envoi}
             onPress={() => void creer()}
-            indice="Tes potes invités pourront voter et discuter"
+            indice={T.creerIndice}
           />
         </View>
       </KeyboardAvoidingView>
 
       <ChoixLieu
         visible={choixLieuOuvert}
-        titre="Proposer un lieu"
+        titre={T.proposerLieu}
         dejaChoisis={lieux}
         onChoisir={(id) => {
           setLieux((l) => (l.includes(id) || l.length >= MAX_PROPOSITIONS_SORTIE ? l : [...l, id]));

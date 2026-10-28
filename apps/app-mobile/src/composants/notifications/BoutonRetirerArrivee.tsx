@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** La personne arrivée dans ta bande par ton lien ou ton QR code */
@@ -21,6 +23,7 @@ const DELAI_FOCUS = 250;
  * quand la personne n'est plus dans ta bande.
  */
 export function BoutonRetirerArrivee({ id, prenom, onAnnoncer }: Props) {
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
   const { potes, retirerPote } = utiliserCommunaute();
   const [retire, setRetire] = useState(false);
   const texteRetire = useRef<View>(null);
@@ -34,8 +37,8 @@ export function BoutonRetirerArrivee({ id, prenom, onAnnoncer }: Props) {
 
   if (retire) {
     return (
-      <View ref={texteRetire} accessible accessibilityLabel={`${prenom} n'est plus dans ta bande`} className="mb-3 h-9 min-w-24 items-center justify-center px-3">
-        <Text className="font-texte-semi text-[13px] text-gris">Retiré</Text>
+      <View ref={texteRetire} accessible accessibilityLabel={T.retireLu(prenom)} className="mb-3 h-9 min-w-24 items-center justify-center px-3">
+        <Text className="font-texte-semi text-[13px] text-gris">{T.retire}</Text>
       </View>
     );
   }
@@ -44,19 +47,19 @@ export function BoutonRetirerArrivee({ id, prenom, onAnnoncer }: Props) {
     <Pressable
       accessibilityRole="button"
       // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Retirer »)
-      accessibilityLabel={`Retirer ${prenom} de ta bande`}
-      accessibilityHint="Pas toi qui as partagé ton lien ? Un geste et c'est réglé. On ne prévient personne."
+      accessibilityLabel={T.retirerLu(prenom)}
+      accessibilityHint={T.retirerIndice}
       // 36 pt de haut à l'écran, 48 pt sous le doigt
       hitSlop={6}
       onPress={() => {
         vibrerLegerement();
         retirerPote(id);
         setRetire(true);
-        onAnnoncer(`${prenom} n'est plus dans ta bande. En toute discrétion 🤫`);
+        onAnnoncer(T.retireAnnonce(prenom));
       }}
       className="mb-3 h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
     >
-      <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
+      <Text className="font-texte-gras text-[13px] text-encre">{T.retirer}</Text>
     </Pressable>
   );
 }

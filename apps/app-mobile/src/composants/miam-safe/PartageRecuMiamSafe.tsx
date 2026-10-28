@@ -4,16 +4,21 @@ import { Text, View } from "react-native";
 import type { PartagePositionMiamSafe } from "@sos-miam/commun/types/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE } from "~/contenus/textes-miam-safe-partage";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { decrireFraicheurPosition } from "~/fonctions/miam-safe/decrire-fraicheur-position";
 import { ouvrirPositionPlans } from "~/fonctions/miam-safe/ouvrir-position-plans";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { partage: PartagePositionMiamSafe };
 
 export function PartageRecuMiamSafe({ partage }: Props) {
   const router = useRouter();
   const { ouvrirPrive } = utiliserConversations();
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const { prenom } = partage.personne;
   const position = partage.position;
 
@@ -27,9 +32,9 @@ export function PartageRecuMiamSafe({ partage }: Props) {
     <View className="gap-4">
       <View className="gap-2 rounded-2xl bg-carte p-4">
         <Text accessibilityRole="header" className="font-titre-gras text-2xl text-encre">
-          {prenom} ne se sent pas en sécurité
+          {T.pasEnSecurite(prenom)}
         </Text>
-        {partage.lieu ? <Text className="font-texte text-base leading-6 text-encre">Le lieu : « {partage.lieu.nom} ».</Text> : null}
+        {partage.lieu ? <Text className="font-texte text-base leading-6 text-encre">{T.leLieu(partage.lieu.nom)}</Text> : null}
       </View>
 
       {partage.actif ? (
@@ -37,27 +42,24 @@ export function PartageRecuMiamSafe({ partage }: Props) {
           {position ? (
             <>
               <Text accessibilityLiveRegion="polite" className="font-texte-gras text-base text-encre">
-                📍 Position {decrireFraicheurPosition(position.le)}
-                {position.precisionM !== null ? `, à ${position.precisionM} m près` : ""}.
+                {T.position(decrireFraicheurPosition(position.le, langue), position.precisionM)}
               </Text>
-              <Bouton libelle="Ouvrir dans Plans" variante="encre" onPress={() => ouvrirPositionPlans(position, prenom)} />
+              <Bouton libelle={T.ouvrirPlans} variante="encre" onPress={() => ouvrirPositionPlans(position, prenom)} />
             </>
           ) : (
-            <Text className="font-texte-gras text-base text-encre">📍 Pas de position partagée : tu as le lieu ci-dessus.</Text>
+            <Text className="font-texte-gras text-base text-encre">{T.pasDePosition}</Text>
           )}
-          <Text className="font-texte text-sm leading-5 text-gris">Visible jusqu'à {ecrireHeure(partage.expireLe)}, si le partage n'est pas arrêté avant.</Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{T.visibleJusqua(ecrireHeureLangue(partage.expireLe, langue))}</Text>
         </View>
       ) : (
         <View accessible className="gap-1 rounded-2xl border-2 border-dashed border-encre bg-carte p-4">
-          <Text className="font-texte-gras text-base text-encre">Partage terminé</Text>
-          <Text className="font-texte text-base leading-6 text-encre">{prenom} l'a arrêté, ou l'heure est passée : la position est effacée.</Text>
+          <Text className="font-texte-gras text-base text-encre">{T.partageTermine}</Text>
+          <Text className="font-texte text-base leading-6 text-encre">{T.arreteParPote(prenom)}</Text>
         </View>
       )}
 
-      <Bouton libelle={`Écrire à ${prenom}`} variante="blanc" onPress={() => void ecrire()} />
-      <Text className="font-texte text-base leading-6 text-encre">
-        Appelle ton pote. Si tu penses qu'il y a un danger, appelle les secours et donne-leur le lieu.
-      </Text>
+      <Bouton libelle={T.ecrireA(prenom)} variante="blanc" onPress={() => void ecrire()} />
+      <Text className="font-texte text-base leading-6 text-encre">{T.appelleTonPote}</Text>
       <NumerosUrgence />
     </View>
   );

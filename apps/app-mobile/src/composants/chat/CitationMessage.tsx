@@ -4,6 +4,7 @@ import type { CitationChat } from "~/contenus/type-discussion-chat";
 import { decrireCitation } from "~/fonctions/chat/decrire-citation";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 
 type Props = {
   citation: CitationChat;
@@ -13,7 +14,8 @@ type Props = {
 };
 
 export function CitationMessage({ citation, auteur, deMoi, onPress }: Props) {
-  const { vu } = decrireCitation(citation);
+  const { langue } = utiliserLangue();
+  const { vu } = decrireCitation(citation, langue);
   const indisponible = citation.etat !== "visible";
   return (
     <Pressable

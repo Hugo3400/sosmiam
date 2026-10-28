@@ -2,18 +2,21 @@ import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
-import { BADGES } from "@sos-miam/commun/contenus/badges";
+import { BADGES_PAR_LANGUE } from "@sos-miam/commun/contenus/badges";
+import { NOMS_PALIERS_PAR_LANGUE } from "@sos-miam/commun/contenus/noms-paliers";
 import { calculerPalier } from "@sos-miam/commun/regles/calculer-palier";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { VisibiliteProfil } from "@sos-miam/commun/types/suivis";
 import { RondPote } from "~/composants/potes/RondPote";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
+import { TEXTES_PROFIL_COMMUNAUTAIRE_PAR_LANGUE } from "~/contenus/textes-profil-communautaire";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   pote: Pote;
@@ -39,10 +42,14 @@ type Props = {
  */
 export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", compteurs, teSuit = false, actions }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_PROFIL_COMMUNAUTAIRE_PAR_LANGUE);
+  const BADGES = utiliserTextes(BADGES_PAR_LANGUE);
+  const NOMS_PALIERS = utiliserTextes(NOMS_PALIERS_PAR_LANGUE);
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   const { lieux } = utiliserLieux();
   const { actuel } = calculerPalier(pote.points);
+  const nomPalier = NOMS_PALIERS[actuel.cle];
   const complet = estMoi || visibilite === "complet";
 
   const enTete = (
@@ -53,22 +60,22 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
       <Text
         accessibilityRole="header"
         // La pastille « Te suit » n'est pas lue à part : VoiceOver l'entend avec le prénom (« Sofia, te suit »)
-        accessibilityLabel={teSuit && !estMoi ? `${pote.prenom}, te suit` : undefined}
+        accessibilityLabel={teSuit && !estMoi ? T.teSuitLu(pote.prenom) : undefined}
         className="text-center font-titre text-3xl text-encre"
       >
-        {estMoi ? `${pote.prenom} (toi)` : pote.prenom}
+        {estMoi ? T.moi(pote.prenom) : pote.prenom}
       </Text>
       {pote.pseudo ? (
         <View className="flex-row flex-wrap items-center justify-center gap-2">
           <Text className="text-center font-texte-semi text-base text-encre">@{pote.pseudo}</Text>
           {teSuit && !estMoi ? (
             <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="rounded-full border-2 border-encre bg-jaune-clair px-2.5 py-0.5">
-              <Text className="font-texte-gras text-xs text-encre">Te suit</Text>
+              <Text className="font-texte-gras text-xs text-encre">{T.teSuit}</Text>
             </View>
           ) : null}
         </View>
       ) : estMoi ? (
-        <Text className="text-center font-texte text-base text-gris">Pas encore de pseudo</Text>
+        <Text className="text-center font-texte text-base text-gris">{T.pasDePseudo}</Text>
       ) : null}
       {pote.ville && complet ? (
         <Text accessibilityLabel={pote.ville} className="text-center font-texte text-base text-gris">
@@ -97,16 +104,16 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
     {
       cle: "sauves",
       emoji: "🛟",
-      titre: "Lieux sauvés",
+      titre: T.sauvesTitre,
       lieux: sauves,
-      vide: estMoi ? "Pas encore de lieu sauvé : donne une rescousse dans le fil, il t'attendra ici." : `${pote.prenom} n'a pas encore sauvé de lieu. Ça viendra !`,
+      vide: estMoi ? T.sauvesVideMoi : T.sauvesVideAutre(pote.prenom),
     },
     {
       cle: "gardes",
       emoji: "🔖",
-      titre: "Adresses gardées",
+      titre: T.gardesTitre,
       lieux: gardes,
-      vide: estMoi ? "Garde une adresse dans le fil : ton futur toi affamé te dira merci." : `Pas encore d'adresse gardée pour ${pote.prenom}.`,
+      vide: estMoi ? T.gardesVideMoi : T.gardesVideAutre(pote.prenom),
     },
   ];
 
@@ -117,27 +124,27 @@ export function ProfilCommunautaire({ pote, estMoi, visibilite = "complet", comp
 
       <View
         accessible
-        accessibilityLabel={`${estMoi ? "Ton" : "Son"} palier Ambassadeur : ${actuel.nom}, ${pote.points} point${pote.points > 1 ? "s" : ""}, dont ${pote.pointsDuMois} ce mois-ci`}
+        accessibilityLabel={T.palierLu(estMoi, nomPalier, pote.points, pote.pointsDuMois)}
         className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-4"
       >
         <Text className="text-4xl">{actuel.emoji}</Text>
         <View className="flex-1">
-          <Text className="font-texte-semi text-sm text-gris">Palier Ambassadeur</Text>
-          <Text className="font-titre text-xl text-encre">{actuel.nom}</Text>
-          <Text className="font-texte text-sm text-gris">+{pote.pointsDuMois} ce mois-ci</Text>
+          <Text className="font-texte-semi text-sm text-gris">{T.palierTitre}</Text>
+          <Text className="font-titre text-xl text-encre">{nomPalier}</Text>
+          <Text className="font-texte text-sm text-gris">{T.pointsDuMois(pote.pointsDuMois)}</Text>
         </View>
         <View className="rounded-full border-2 border-encre bg-jaune px-3 py-1">
-          <Text className="font-texte-gras text-sm text-nuit">{pote.points} pts</Text>
+          <Text className="font-texte-gras text-sm text-nuit">{T.points(pote.points)}</Text>
         </View>
       </View>
 
       <View className="gap-3">
-        <Text accessibilityRole="header" accessibilityLabel={`Badges obtenus, ${obtenus.length}`} className="font-titre-gras text-xl text-encre">
-          Badges ({obtenus.length})
+        <Text accessibilityRole="header" accessibilityLabel={T.badgesLu(obtenus.length)} className="font-titre-gras text-xl text-encre">
+          {T.badgesTitre(obtenus.length)}
         </Text>
         {obtenus.length === 0 ? (
           <Text className="font-texte text-sm leading-5 text-gris">
-            {lierPonctuation(estMoi ? "Pas encore de badge : ta première rescousse t'en offre un !" : `Pas encore de badge pour ${pote.prenom}.`)}
+            {lierPonctuation(estMoi ? T.badgesVideMoi : T.badgesVideAutre(pote.prenom))}
           </Text>
         ) : (
           <View className="flex-row flex-wrap gap-2">

@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 import { LigneDemandeSuivi, type IssueDemande } from "~/composants/notifications/LigneDemandeSuivi";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   onAnnoncer: (texte: string) => void;
@@ -35,6 +37,7 @@ const mettreAJour = (lignes: Ligne[], enAttente: readonly string[]): Ligne[] => 
  * ne perde pas sa place : il se pose sur la réponse. Ne rend rien sans demande ni ligne traitée pendant la visite.
  */
 export function SectionDemandesSuivi({ onAnnoncer, onAffichee }: Props) {
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
   const suivis = utiliserSuivisPersonnes();
   const { trouverPote, bloques } = utiliserCommunaute();
   const exiger = utiliserCompteRequis();
@@ -50,7 +53,7 @@ export function SectionDemandesSuivi({ onAnnoncer, onAffichee }: Props) {
   function accepter(id: string) {
     if (!exiger("suivre")) return;
     if (suivis.accepterDemande(id)) setLignes((actuelles) => actuelles.map((l): Ligne => (l.id === id ? { ...l, issue: "acceptee" } : l)));
-    else onAnnoncer("Cette demande n'est plus valable.");
+    else onAnnoncer(T.demandePlusValable);
   }
 
   // La ligne reste et dit « Demande refusée » (LigneDemandeSuivi y pose VoiceOver) : rien n'est envoyé à l'autre
@@ -75,10 +78,10 @@ export function SectionDemandesSuivi({ onAnnoncer, onAffichee }: Props) {
     <View className="gap-3">
       <Text
         accessibilityRole="header"
-        accessibilityLabel={`Demandes d'abonnement, ${enAttente.length > 0 ? `${enAttente.length} en attente` : "toutes traitées"}`}
+        accessibilityLabel={T.demandesLu(enAttente.length)}
         className="font-titre-gras text-xl text-encre"
       >
-        📨 Demandes d'abonnement{enAttente.length > 0 ? ` (${enAttente.length})` : ""}
+        {T.demandes(enAttente.length)}
       </Text>
       <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
         {affichees.map((ligne, i) => (

@@ -3,10 +3,13 @@ import { useState } from "react";
 import { AccessibilityInfo, Pressable, Text, View } from "react-native";
 
 import type { InvitationGroupeChat } from "@sos-miam/commun/types/conversations";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 
 type Props = { invitation: InvitationGroupeChat };
@@ -17,15 +20,17 @@ type Props = { invitation: InvitationGroupeChat };
  */
 export function CarteInvitationGroupe({ invitation }: Props) {
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const { repondreInvitation } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
   const [enCours, setEnCours] = useState(false);
   const [souci, setSouci] = useState(false);
-  const qui = invitation.invitePar ? (trouverPote(invitation.invitePar)?.prenom ?? "Un pote") : "Quelqu'un qui a quitté SOS Miam";
+  const qui = invitation.invitePar ? (trouverPote(invitation.invitePar)?.prenom ?? T.unPote) : T.quelquUnParti;
   // Sans titre (effacé par la modération) : « un groupe », sans guillemets
   const vraiTitre = invitation.titre?.trim() || null;
-  const titre = nommerGroupe(vraiTitre);
-  const deja = invitation.membres > 1 ? `${invitation.membres} membres y sont déjà.` : "Tu serais parmi les premiers.";
+  const titre = nommerGroupe(vraiTitre, langue);
+  const deja = invitation.membres > 1 ? T.dejaMembres(invitation.membres) : T.premiers;
 
   async function repondre(rejoint: boolean) {
     vibrerLegerement();
@@ -33,9 +38,9 @@ export function CarteInvitationGroupe({ invitation }: Props) {
     const fait = await repondreInvitation(invitation.id, rejoint);
     setEnCours(false);
     setSouci(!fait);
-    if (!fait) return AccessibilityInfo.announceForAccessibility("Ça n'a pas marché cette fois. Réessaie dans un instant.");
+    if (!fait) return AccessibilityInfo.announceForAccessibility(T.invitationRatee);
     if (rejoint) router.push({ pathname: "/potes/discussion/[id]", params: { id: invitation.id } });
-    else AccessibilityInfo.announceForAccessibility("C'est noté, en toute discrétion.");
+    else AccessibilityInfo.announceForAccessibility(T.invitationDeclinee);
   }
 
   return (
@@ -45,34 +50,34 @@ export function CarteInvitationGroupe({ invitation }: Props) {
           {invitation.emoji ?? "💬"}
         </Text>
         <View className="flex-1">
-          <Text className="font-texte-gras text-base text-encre">{lierPonctuation(vraiTitre ? `${qui} t'invite dans « ${vraiTitre} »` : `${qui} t'invite dans un groupe`)}</Text>
-          <Text className="font-texte text-sm text-gris">{lierPonctuation(`Rejoindre le groupe ? ${deja}`)}</Text>
+          <Text className="font-texte-gras text-base text-encre">{lierPonctuation(vraiTitre ? T.inviteDans(qui, vraiTitre) : T.inviteDansGroupe(qui))}</Text>
+          <Text className="font-texte text-sm text-gris">{lierPonctuation(T.rejoindreQuestion(deja))}</Text>
         </View>
       </View>
       <View className="flex-row gap-3">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Rejoindre ${titre}`}
+          accessibilityLabel={T.rejoindreLu(titre)}
           accessibilityState={{ disabled: enCours }}
           disabled={enCours}
           onPress={() => void repondre(true)}
           className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
         >
-          <Text className="font-texte-gras text-sm text-nuit">{enCours ? "Un instant…" : "Je rejoins"}</Text>
+          <Text className="font-texte-gras text-sm text-nuit">{enCours ? T.unInstant : T.jeRejoins}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Pas pour moi, ${titre}`}
-          accessibilityHint="Personne n'est prévenu"
+          accessibilityLabel={T.pasPourMoiLu(titre)}
+          accessibilityHint={T.personnePrevenu}
           accessibilityState={{ disabled: enCours }}
           disabled={enCours}
           onPress={() => void repondre(false)}
           className="min-h-11 flex-1 items-center justify-center rounded-full border-2 border-encre bg-carte px-4 active:opacity-80"
         >
-          <Text className="font-texte-gras text-sm text-encre">Pas pour moi</Text>
+          <Text className="font-texte-gras text-sm text-encre">{T.pasPourMoi}</Text>
         </Pressable>
       </View>
-      {souci ? <Text className="font-texte text-sm text-rouge-texte">{lierPonctuation("Ça n'a pas marché cette fois. Réessaie dans un instant.")}</Text> : null}
+      {souci ? <Text className="font-texte text-sm text-rouge-texte">{lierPonctuation(T.invitationRatee)}</Text> : null}
     </View>
   );
 }

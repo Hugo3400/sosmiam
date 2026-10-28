@@ -2,11 +2,13 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
-import { TEXTES_SONDAGE as T } from "~/contenus/textes-sondage";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_SONDAGE_PAR_LANGUE } from "~/contenus/textes-sondage";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -17,6 +19,8 @@ type Props = {
 
 export function LigneLieuSondage({ lieu, choisi, desactive, onBasculer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_SONDAGE_PAR_LANGUE);
+  const T_BULLES = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const sos = estSosEnCours(lieu);
   const infos = [lieu.info, ecrireQuartierVille(lieu)].filter(Boolean).join(" · ");
   const ios = Platform.OS === "ios";
@@ -24,7 +28,7 @@ export function LigneLieuSondage({ lieu, choisi, desactive, onBasculer }: Props)
     <Pressable
       accessibilityRole={ios ? "button" : "checkbox"}
       accessibilityState={ios ? { selected: choisi, disabled: desactive } : { checked: choisi, disabled: desactive }}
-      accessibilityLabel={`${lieu.nom}${sos ? ", SOS ce soir" : ""}, ${infos}`}
+      accessibilityLabel={T_BULLES.lieuSondageLu(lieu.nom, sos, infos)}
       accessibilityHint={desactive ? T.plein : undefined}
       onPress={() => {
         vibrerLegerement();

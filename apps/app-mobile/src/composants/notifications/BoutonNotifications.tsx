@@ -2,7 +2,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
-import { INDICE_COMPTE } from "~/contenus/indice-compte";
+import { INDICE_COMPTE_PAR_LANGUE } from "~/contenus/indice-compte";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
@@ -10,6 +11,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserNotifications } from "~/hooks/utiliser-notifications";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** « sombre » : posé sur le fil (fond noir transparent, cloche blanche) ; « claire » : rond blanc à bord noir, comme la roue des réglages du Profil et le bouton Messages de Potes */
@@ -28,6 +30,8 @@ const MAX_AFFICHE = 9;
 export function BoutonNotifications({ variante }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE);
+  const indiceCompte = utiliserTextes(INDICE_COMPTE_PAR_LANGUE);
   const exiger = utiliserCompteRequis();
   const avecCompte = utiliserProfil().profil !== null;
   const notifications = utiliserNotifications();
@@ -46,8 +50,8 @@ export function BoutonNotifications({ variante }: Props) {
     <Pressable
       accessibilityRole="button"
       // Commence par le mot que Commande vocale attend (« Toucher Notifications »)
-      accessibilityLabel={nombre > 0 ? `Notifications, ${nombre} nouveauté${nombre > 1 ? "s" : ""}` : "Notifications"}
-      accessibilityHint={avecCompte ? "Tes abonnés, tes demandes et les nouveautés des comptes que tu suis" : INDICE_COMPTE}
+      accessibilityLabel={T.clocheLu(nombre)}
+      accessibilityHint={avecCompte ? T.clocheIndice : indiceCompte}
       hitSlop={4}
       onPress={toucher}
       className={`h-11 w-11 items-center justify-center rounded-full active:opacity-70 ${sombre ? "bg-black/30" : "border-2 border-encre bg-carte"}`}

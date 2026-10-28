@@ -1,7 +1,9 @@
 import { useRouter, type Href } from "expo-router";
 import { Pressable, Text } from "react-native";
 
+import { TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE } from "~/contenus/textes-miam-safe-partage";
 import { utiliserPartagesRecusMiamSafe } from "~/hooks/utiliser-partages-recus-miam-safe";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = { className?: string };
 
@@ -13,14 +15,15 @@ type Props = { className?: string };
 export function BandeauPartagesRecusMiamSafe({ className = "" }: Props) {
   const router = useRouter();
   const recus = utiliserPartagesRecusMiamSafe();
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_PARTAGE_PAR_LANGUE);
   const premier = recus[0];
   if (!premier) return null;
   const autres = recus.length - 1;
-  const texte = `${premier.personne.prenom} ne se sent pas en sécurité et partage ${premier.avecPosition ? "sa position" : "le lieu"} avec toi`;
+  const texte = T.bandeau(premier.personne.prenom, premier.avecPosition);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${texte}${autres > 0 ? `, et ${autres} autre${autres > 1 ? "s" : ""}` : ""}. Voir`}
+      accessibilityLabel={T.bandeauLu(texte, autres)}
       onPress={() => router.push(`/miam-safe/partage/${premier.id}` as Href)}
       className={`min-h-12 flex-row items-center gap-2 rounded-2xl border-2 border-jaune bg-nuit px-4 py-2 active:opacity-80 ${className}`}
     >
@@ -29,7 +32,7 @@ export function BandeauPartagesRecusMiamSafe({ className = "" }: Props) {
         {texte}
         {autres > 0 ? ` (+${autres})` : ""}
       </Text>
-      <Text className="font-texte-gras text-sm text-jaune">Voir</Text>
+      <Text className="font-texte-gras text-sm text-jaune">{T.voir}</Text>
     </Pressable>
   );
 }
