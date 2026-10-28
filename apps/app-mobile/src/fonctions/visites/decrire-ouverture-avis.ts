@@ -1,21 +1,26 @@
+import { CALENDRIER_PAR_LANGUE } from "@sos-miam/commun/contenus/calendrier";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
 import { decrireEtatAvis } from "@sos-miam/commun/fonctions/visites/decrire-etat-avis";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Visite } from "@sos-miam/commun/types/visite";
 
-import { ecrireAttente } from "~/fonctions/dates/ecrire-attente";
-import { ecrireHeureEspacee } from "~/fonctions/dates/ecrire-heure-espacee";
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
+import { ecrireAttenteLangue } from "~/fonctions/langue/ecrire-attente-langue";
 
-const NOMS_DES_MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-const INSECABLE = " ";
+const INSECABLE = "\u00a0";
 
-function ecrireJourDuMois(date: Date): string {
+function ecrireJourDuMois(date: Date, langue: Langue): string {
   const jour = date.getDate();
-  return `${jour === 1 ? "1er" : jour}${INSECABLE}${NOMS_DES_MOIS[date.getMonth()]}`;
+  return `${jour === 1 && langue === "fr" ? "1er" : jour}${INSECABLE}${CALENDRIER_PAR_LANGUE[langue].mois[date.getMonth()]}`;
 }
 
-export function decrireOuvertureAvis(avis: Visite["avis"], maintenant: Date = new Date()): string | null {
+export function decrireOuvertureAvis(avis: Visite["avis"], langue: Langue, maintenant: Date = new Date()): string | null {
+  const T = choisirTextes(TEXTES_VISITE_PAR_LANGUE, langue);
   const etat = decrireEtatAvis(avis, maintenant.getTime());
   if (!avis || etat === "aucun" || etat === "donne" || etat === "ferme") return null;
-  if (etat === "ouvert") return `Ton avis t'attend : tu as jusqu'au ${ecrireJourDuMois(new Date(avis.fermeLe))} pour le donner, à tête reposée.`;
+  if (etat === "ouvert") return T.avisOuvert(ecrireJourDuMois(new Date(avis.fermeLe), langue));
   const ouvertLe = new Date(avis.ouvertLe);
-  return `Ton avis s'ouvre à ${ecrireHeureEspacee(ouvertLe)}, dans ${ecrireAttente(ouvertLe.getTime() - maintenant.getTime())}. Pas devant le patron.`;
+  const heure = formaterHeureLangue(ouvertLe.getHours(), ouvertLe.getMinutes(), langue, { espacee: true });
+  return T.avisAVenir(heure, ecrireAttenteLangue(ouvertLe.getTime() - maintenant.getTime(), langue));
 }

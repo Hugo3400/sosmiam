@@ -11,7 +11,8 @@ import { EnvoiPhotosChat } from "~/composants/chat/EnvoiPhotosChat";
 import { FeuilleGifChat } from "~/composants/chat/FeuilleGifChat";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
-import { TEXTES_MEDIAS_CHAT as T } from "~/contenus/textes-medias-chat";
+import { TEXTES_CHAT_CHAMP_PAR_LANGUE } from "~/contenus/textes-chat-champ";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import { nommerGroupe } from "~/fonctions/chat/nommer-groupe";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -21,7 +22,9 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -41,12 +44,6 @@ const ICONES: Record<Option, keyof typeof Ionicons.glyphMap> = { galerie: "image
 // Le temps que la liste des lieux redescende avant de fermer la feuille (deux fenêtres qui se ferment ensemble, l'iPhone n'aime pas)
 const APRES_CHOIX_LIEU = 350;
 
-const CAMERA_REFUSEE: Message = {
-  texte: "L'appareil photo est fermé pour SOS Miam. Pour prendre une photo ici, ouvre-le dans les réglages de ton téléphone 📸",
-  reglages: true,
-};
-const PHOTO_PAS_PARTIE: Message = { texte: "Ta photo n'a pas pu partir. Réessaie, ou choisis-en une autre !" };
-const LIEU_PAS_PARTI: Message = { texte: "Ce lieu n'a pas pu partir. Réessaie dans un instant, ou choisis-en un autre !" };
 const surLeWeb = Platform.OS === "web";
 
 /**
@@ -55,6 +52,9 @@ const surLeWeb = Platform.OS === "web";
  */
 export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const T_CHAMP = utiliserTextes(TEXTES_CHAT_CHAMP_PAR_LANGUE);
   const router = useRouter();
   const monId = utiliserMonId();
   const { trouverPote } = utiliserCommunaute();
@@ -107,7 +107,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
 
   function choisirLieu(lieuId: number) {
     setChoixLieu(false);
-    if (conversations.envoyerLieu(conversationId, lieuId) !== "ok") return montrer(LIEU_PAS_PARTI);
+    if (conversations.envoyerLieu(conversationId, lieuId) !== "ok") return montrer({ texte: T_CHAMP.lieuPasParti });
     reussir();
     fermeture.current = setTimeout(onFermer, APRES_CHOIX_LIEU);
   }
@@ -121,7 +121,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
       let resultat: ImagePicker.ImagePickerResult;
       if (source === "camera") {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permission.granted) return montrer(CAMERA_REFUSEE);
+        if (!permission.granted) return montrer({ texte: T_CHAMP.cameraRefusee, reglages: true });
         resultat = await ImagePicker.launchCameraAsync(OPTIONS_PHOTO);
       } else {
         // Le sélecteur de photos du système ne demande pas d'autorisation : tu ne partages que les photos choisies
@@ -132,14 +132,14 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
       // Galerie : avant d'envoyer, un coup d'œil et un petit mot (EnvoiPhotosChat)
       if (source === "galerie") return setPhotos(resultat.assets.map((a) => a.uri));
       const envoi = await dernieres.current.envoyerPhotos(conversationId, [resultat.assets[0].uri]);
-      if (envoi !== "ok") return montrer(PHOTO_PAS_PARTIE);
+      if (envoi !== "ok") return montrer({ texte: T_CHAMP.photoPasPartie });
       reussir();
       onFermer();
     } catch {
       montrer(
         source === "camera"
-          ? { texte: "Impossible d'ouvrir l'appareil photo. Réessaie, ou pioche dans ta galerie !" }
-          : { texte: "Ta galerie n'a pas voulu s'ouvrir. Vérifie dans les réglages de ton téléphone que SOS Miam peut voir tes photos.", reglages: true },
+          ? { texte: T_CHAMP.cameraImpossible }
+          : { texte: T_CHAMP.galerieFermee, reglages: true },
       );
     } finally {
       occupe.current = false;
@@ -148,13 +148,13 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
   }
 
   function ouvrirReglages() {
-    Linking.openSettings().catch(() => montrer({ texte: "Les réglages n'ont pas voulu s'ouvrir. Tu les trouveras dans l'appli Réglages de ton téléphone." }));
+    Linking.openSettings().catch(() => montrer({ texte: T_CHAMP.reglagesFermes }));
   }
 
   const conversation = conversations.trouverConversation(conversationId);
   const groupe = conversation?.type === "groupe";
   const pote = groupe ? null : trouverPote(conversation?.participants.find((p) => p !== monId) ?? "");
-  const nom = groupe ? nommerGroupe(conversation?.titre) : (pote?.prenom ?? "ton pote");
+  const nom = groupe ? nommerGroupe(conversation?.titre, langue) : (pote?.prenom ?? T_CHAMP.tonPote);
   const options: { cle: Option; titre: string; detail: string; nouveau?: boolean }[] = [
     { cle: "galerie", titre: T.photos, detail: T.photosDetail },
     // Sur le web (aperçu), il n'y a pas toujours d'appareil photo
@@ -178,7 +178,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+      <Pressable accessibilityRole="button" accessibilityLabel={T_CHAMP.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
       <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}
@@ -188,7 +188,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
         <View style={{ paddingBottom: marges.bottom + 12, flexShrink: 1 }} className="rounded-t-3xl border-t-2 border-encre bg-creme">
           <PoigneeFeuille geste={geste} className="px-5">
             <Text accessibilityRole="header" numberOfLines={2} className="mb-2 font-titre text-2xl text-encre">
-              {T.titreFeuille(groupe ? `dans ${nom}` : `à ${nom}`)}
+              {T.titreFeuille(groupe ? T_CHAMP.dansGroupe(nom) : T_CHAMP.aPote(nom))}
             </Text>
           </PoigneeFeuille>
           <ScrollView contentContainerClassName="px-5">
@@ -198,7 +198,7 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
                 <Text className="font-texte-semi text-[15px] leading-[21px] text-rouge-texte">{lierPonctuation(message.texte)}</Text>
                 {message.reglages && !surLeWeb ? (
                   <Pressable accessibilityRole="link" onPress={ouvrirReglages} hitSlop={8} className="min-h-8 justify-center self-start active:opacity-70">
-                    <Text className="font-texte-gras text-[15px] text-encre underline">Ouvrir les réglages</Text>
+                    <Text className="font-texte-gras text-[15px] text-encre underline">{T_CHAMP.ouvrirReglages}</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -238,14 +238,14 @@ export function FeuilleAjoutChat({ visible, conversationId, onFermer, onEnvoye }
             })}
 
             <Pressable accessibilityRole="button" onPress={onFermer} className="mt-4 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-              <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+              <Text className="font-texte-gras text-base text-encre">{T_CHAMP.annuler}</Text>
             </Pressable>
           </ScrollView>
         </View>
       </Animated.View>
 
       {/* Dans la feuille : la liste des lieux, les GIF et l'aperçu des photos s'ouvrent par-dessus (deux fenêtres côte à côte se gênent sur iPhone) */}
-      <ChoixLieu visible={visible && choixLieu} titre="Quel lieu partager ?" onChoisir={choisirLieu} onFermer={() => setChoixLieu(false)} />
+      <ChoixLieu visible={visible && choixLieu} titre={T_CHAMP.quelLieu} onChoisir={choisirLieu} onFermer={() => setChoixLieu(false)} />
       <FeuilleGifChat
         visible={visible && choixGif}
         conversationId={conversationId}

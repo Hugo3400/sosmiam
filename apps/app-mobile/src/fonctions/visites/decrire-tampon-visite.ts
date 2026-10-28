@@ -1,4 +1,8 @@
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { ResultatValidation } from "@sos-miam/commun/types/visite";
+
+import { TEXTES_VISITE_PAR_LANGUE } from "~/contenus/textes-visite";
 
 export type TamponVisite = {
   /** Tampons à montrer (la carte pleine quand elle vient de se remplir, même si elle est déjà repartie à zéro) */
@@ -19,17 +23,18 @@ function mettreMinusculeInitiale(texte: string): string {
  * Le tampon posé par une visite validée, pour la célébration (affiché et lu) : où en est la carte et ce qu'il reste à faire.
  * null si la visite n'a pas posé de tampon (pas de carte de fidélité chez ce lieu, programme en pause).
  */
-export function decrireTamponVisite(r: ResultatValidation): TamponVisite | null {
+export function decrireTamponVisite(r: ResultatValidation, langue: Langue): TamponVisite | null {
+  const T = choisirTextes(TEXTES_VISITE_PAR_LANGUE, langue);
   const { carte, visite } = r;
   if (!carte || !visite.tampon || carte.sur <= 0) return null;
   if (r.recompenseGagnee) {
     // La récompense figée par cette visite (gagnée à l'instant de la validation), sinon la dernière prête, sinon celle d'aujourd'hui
     const gagnee = carte.pretes.find((p) => p.gagneeLe === visite.valideLe) ?? carte.pretes[carte.pretes.length - 1];
-    return { tampons: carte.sur, sur: carte.sur, pleine: true, texte: `Carte pleine : ${mettreMinusculeInitiale(gagnee?.libelle ?? carte.recompense)} t'attend !` };
+    return { tampons: carte.sur, sur: carte.sur, pleine: true, texte: T.tamponCartePleine(mettreMinusculeInitiale(gagnee?.libelle ?? carte.recompense)) };
   }
   const tampons = Math.min(carte.sur, Math.max(0, carte.tampons));
   const reste = carte.sur - tampons;
   const recompense = mettreMinusculeInitiale(carte.recompense);
-  const texte = reste <= 1 ? `Plus qu'une visite pour ${recompense} !` : `Encore ${reste} visites pour ${recompense}.`;
+  const texte = reste <= 1 ? T.tamponPlusQuUne(recompense) : T.tamponEncore(reste, recompense);
   return { tampons, sur: carte.sur, pleine: false, texte };
 }

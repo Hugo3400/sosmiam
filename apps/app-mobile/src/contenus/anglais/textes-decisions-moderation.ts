@@ -1,0 +1,80 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_DECISIONS_MODERATION } from "~/contenus/textes-decisions-moderation";
+
+const choisirArticle = (nom: string) => (/^[aeiou]/i.test(nom) ? "an" : "a");
+
+export const TEXTES_DECISIONS_MODERATION_ANGLAIS: Traduction<typeof TEXTES_DECISIONS_MODERATION> = {
+  cibles: {
+    commentaire: { nom: "comment", feminin: false },
+    message: { nom: "message", feminin: false },
+    liste: { nom: "list", feminin: false },
+    profil: { nom: "profile", feminin: false },
+    sortie: { nom: "get-together", feminin: false },
+    groupe: { nom: "group", feminin: false },
+    avis: { nom: "review", feminin: false, dansUnePhrase: "your review of a place" },
+    "reponse-avis": { nom: "reply to a review", feminin: false },
+    idee: { nom: "idea", feminin: false, dansUnePhrase: "your idea in the suggestion box" },
+    "comment-idee": { nom: "comment", feminin: false, dansUnePhrase: "your comment on an idea" },
+    miamis: { nom: "open meetup", feminin: false },
+    "image-lieu": { nom: "banner or logo", feminin: false, dansUnePhrase: "your venue's banner or logo" },
+    "article-actu": { nom: "story", feminin: false, dansUnePhrase: "your story in News" },
+    "reponse-actu": { nom: "reply to a story", feminin: false, dansUnePhrase: "your venue's reply under a News story" },
+    "comment-actu": { nom: "comment", feminin: false, dansUnePhrase: "your comment under a News story" },
+  },
+  cibleInconnue: { nom: "post", feminin: false },
+  remisParDefaut: {
+    profil: {
+      auteur:
+        "The SOS Miam team has replaced your username with a neutral one and removed your avatar: they didn't follow one of the community rules. You can choose a new username in Profile › Edit my profile › My details.",
+      signale: "The SOS Miam team agreed with you: their username and avatar have been reset to default. Thanks for keeping an eye out!",
+    },
+    sortie: {
+      auteur: "The SOS Miam team has reset your get-together's title to default: it didn't follow one of the community rules.",
+      signale: "The SOS Miam team agreed with you: the get-together's title has been reset to default. Thanks for keeping an eye out!",
+    },
+    groupe: {
+      auteur: "The SOS Miam team has cleared your group's title: it didn't follow one of the community rules.",
+      signale: "The SOS Miam team agreed with you: the group's title has been cleared. Thanks for keeping an eye out!",
+    },
+  },
+  quoiAuteur: (nom: string) => `Your ${nom}`,
+  quoiSignale: (nom: string) => `Your report about ${choisirArticle(nom)} ${nom}`,
+  leContenu: (nom: string) => `the ${nom}`,
+  statutRemis: "Reset to default",
+  statutMasque: () => "Hidden pending moderation",
+  phraseMasque: () => "It's hidden from everyone while someone on the SOS Miam team takes a close look.",
+  statutRetire: () => "Removed",
+  phraseRetireAuteur: () => "The SOS Miam team has removed it: it didn't follow one of the community rules.",
+  statutDeRetour: "Visible again",
+  phraseDeRetour: () => "Good news: the SOS Miam team has read everything again, and it follows the community rules. It's visible to everyone again.",
+  statutRienARedire: () => "All good – it stays up",
+  phraseRienARedireAuteur: () => "The SOS Miam team took a close look: it follows the community rules.",
+  phraseRetireSignale: (leContenu: string) => `The SOS Miam team agreed with you: ${leContenu} has been removed. Thanks for keeping an eye out!`,
+  phraseRienARedireSignale: (leContenu: string) =>
+    `The SOS Miam team took a close look: ${leContenu} follows the community rules. Thanks for letting us know all the same!`,
+  statutEnAttente: "Waiting for moderation",
+  phraseEnAttente: (leContenu: string) => `Someone on the SOS Miam team will take a close look at ${leContenu}.`,
+  regle: (libelle: string, regle: string) => `${libelle}: “${regle}”`,
+  regleInconnue: "one of the community rules (our Terms of Use)",
+  masqueLe: (date: string) => `Hidden on ${date}`,
+  decideLe: (date: string) => `Decided on ${date}`,
+  mentionEnvoyee: "Appeal sent: someone else on the SOS Miam team is reviewing it.",
+  mentionReexaminee: "Reviewed: someone else on the SOS Miam team has read your appeal, and the decision above is theirs.",
+  mentionDelaiPasse: "The time to appeal (6 months) has passed.",
+  luRegle: (regle: string) => `The rule in question: ${regle}.`,
+  luExplication: (motivation: string) => `What the SOS Miam team says: ${motivation}`,
+  regleTitre: "The rule in question",
+  explicationTitre: "What the SOS Miam team says",
+  contesterJusquau: (date: string) => `You can appeal until ${date}.`,
+  contester: "Appeal",
+  contesterDecisionLu: (quoi: string) => `Appeal the decision on ${quoi}`,
+  contesterIndice: "Tell the SOS Miam team why you disagree",
+  limitation: {
+    bientot: "a later date",
+    aPartirDu: (debut: string) => `From ${debut}`,
+    bientotPastille: "Soon",
+    fini: "It's over",
+    bloc: (titre: string, texte: string) => `${titre}: ${texte}`,
+    contesterLu: "Appeal your account restriction",
+  },
+};

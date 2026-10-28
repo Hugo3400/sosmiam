@@ -6,11 +6,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalementPublication, type ChoixSignalement, type EtapeSignalement } from "~/composants/signalement/SignalementPublication";
+import { INDICE_COMPTE_PAR_LANGUE } from "~/contenus/indice-compte";
+import { TEXTES_PUBLICATION_FIL_PAR_LANGUE } from "~/contenus/textes-publication-fil";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** « signaler » n'arrive au fil qu'en visite sans compte (avec un compte, le signalement se fait dans le menu) */
 export type ChoixMenu = "rescousse" | "inviter" | "adresse" | "envoyer" | "pas-interesse" | "signaler";
@@ -48,6 +51,8 @@ const SECOURS_IOS = 1000;
  */
 export const MenuPublication = memo(function MenuPublication({ visible, nomLieu, sauve, verifie, restantes, avecCompte, onChoisir, onSignaler, onFermer, onRefermee }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_PUBLICATION_FIL_PAR_LANGUE).menu;
+  const indiceCompte = utiliserTextes(INDICE_COMPTE_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -116,17 +121,15 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
       ? {
           choix: "rescousse",
           emoji: "🛟",
-          titre: avecCompte && sauve ? "Reprendre ma rescousse" : "Donner une rescousse",
-          detail: !avecCompte
-            ? "Avec ton compte, tu en as à offrir chaque semaine"
-            : sauve ? "Elle te sera rendue pour un autre lieu" : epuisees ? "Plus de rescousse cette semaine, reviens lundi !" : `Il t'en reste ${restantes} cette semaine`,
+          titre: avecCompte && sauve ? T.reprendre : T.donner,
+          detail: !avecCompte ? T.detailInvite : sauve ? T.detailRendue : epuisees ? T.epuisees : T.restantes(restantes),
           desactive: epuisees,
         }
-      : { choix: "inviter", emoji: "📣", titre: "Inviter ce lieu", detail: "Il n'a pas encore de compte SOS Miam : envoie-lui le lien d'inscription" },
-    { choix: "adresse", emoji: "📍", titre: "Voir l'adresse", detail: "Horaires, plat signature, itinéraire" },
-    { choix: "envoyer", emoji: "💌", titre: "Envoyer à un pote", detail: "Fais-le découvrir à ta bande" },
-    { choix: "pas-interesse", emoji: "🙈", titre: "Pas intéressé", detail: "On t'en montrera moins comme ça" },
-    { choix: "signaler", emoji: "🚩", titre: "Signaler", detail: "Faux lieu, pub cachée, contenu choquant…" },
+      : { choix: "inviter", emoji: "📣", titre: T.inviter, detail: T.detailInviter },
+    { choix: "adresse", emoji: "📍", titre: T.adresse, detail: T.detailAdresse },
+    { choix: "envoyer", emoji: "💌", titre: T.envoyer, detail: T.detailEnvoyer },
+    { choix: "pas-interesse", emoji: "🙈", titre: T.pasInteresse, detail: T.detailPasInteresse },
+    { choix: "signaler", emoji: "🚩", titre: T.signaler, detail: T.detailSignaler },
   ];
 
   return (
@@ -134,7 +137,7 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
       {/* La feuille remonte au-dessus du clavier quand on écrit le pourquoi d'un signalement (« padding » sur les deux systèmes : en bord à bord, Android ne redimensionne plus la fenêtre) */}
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
@@ -169,7 +172,7 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
                         accessibilityRole="button"
                         accessibilityLabel={o.titre}
                         accessibilityState={{ disabled: o.desactive }}
-                        accessibilityHint={verrouille ? `${o.detail}. Il te faut un compte, une minute suffit` : o.detail}
+                        accessibilityHint={verrouille ? `${o.detail}. ${indiceCompte}` : o.detail}
                         disabled={o.desactive}
                         onPress={() => {
                           vibrerLegerement();
@@ -192,7 +195,7 @@ export const MenuPublication = memo(function MenuPublication({ visible, nomLieu,
                     );
                   })}
                   <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                    <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                    <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
                   </Pressable>
                 </>
               )}
