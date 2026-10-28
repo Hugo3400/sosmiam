@@ -11,7 +11,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
 /**
  * Le QR d'un appareil à connecter, ouvert par l'appareil photo du téléphone (sosmiam.fr/q/<code>) : avec un compte connecté,
  * on file à « Connecter un appareil » (qui demande d'abord d'où vient le lien, puis montre qui demande, et demande Face ID) ;
- * sans compte, on explique. En démo (pas de vraie session), on y file aussi : la demande montrée est un exemple.
+ * sans compte, on explique.
  */
 export default function OuvrirQrConnexion() {
   const couleurs = utiliserCouleurs();
