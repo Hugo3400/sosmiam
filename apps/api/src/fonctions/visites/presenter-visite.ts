@@ -6,8 +6,7 @@ const iso = (date: Date | null) => (date ? date.toISOString() : null);
 
 /**
  * Une visite telle que la personne la voit (packages/commun, types/visite.ts) : le code à 4 chiffres seulement tant que
- * l'addition attend, le motif seulement d'un refus ou d'un retrait, jamais le mot de sa contestation ni qui l'a décidée. Jamais
- * « demo » : c'est une vraie visite.
+ * l'addition attend, le motif seulement d'un refus ou d'un retrait, jamais le mot de sa contestation ni qui l'a décidée.
  */
 export function presenterVisite(v: LigneVisite, lieu: LieuResume): Visite {
   return {

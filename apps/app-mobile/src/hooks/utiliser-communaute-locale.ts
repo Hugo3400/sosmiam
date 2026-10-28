@@ -200,7 +200,6 @@ export function utiliserCommunauteLocale(): EtatCommunaute {
         const sortie = etat.sorties.find((s) => s.id === sortieId);
         if (verdict !== "ok" || !sortie) return verdict;
         changerSortie(sortieId, (s) => ({ ...s, messages: [...s.messages, { id: creerIdentifiant("message"), auteur: ID_MOI, texte: texte.trim(), date: new Date().toISOString() }] }));
-        }
         return "ok";
       },
       terminerVote: (sortieId) =>

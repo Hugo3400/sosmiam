@@ -8,7 +8,7 @@ const iso = (date: Date | null) => (date ? date.toISOString() : null);
 /**
  * Une réservation telle que la personne la voit (packages/commun, types/reservation.ts) : le code d'arrivée seulement une
  * fois acceptée, le motif seulement d'un refus ou d'une annulation par le lieu (liste fermée), jamais qui a répondu.
- * `visiteId` : la visite validée née de cette réservation. Jamais « demo » : c'est une vraie réservation.
+ * `visiteId` : la visite validée née de cette réservation.
  */
 export function presenterReservation(r: LigneReservation, lieu: LieuResume, visiteId: number | null): Reservation {
   return {
