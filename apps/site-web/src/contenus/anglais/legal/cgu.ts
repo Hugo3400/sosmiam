@@ -17,7 +17,7 @@ export const documentCguAnglais: DocumentLegal | null = {
   titre: "Terms of Use",
   description:
     "The rules of the SOS Miam site and app: both free, accounts 18+, your crew and messaging, the Miamis and their open meetups, what you can post, how we moderate and how to reach us.",
-  miseAJour: "27 October 2026",
+  miseAJour: "28 October 2026",
   introduction: [
     "Welcome to SOS Miam! These Terms of Use are the ground rules for the site and the app: what you can do there, what we do on our side and how we sort things out if a problem comes up. We have written them as simply as possible.",
   ],

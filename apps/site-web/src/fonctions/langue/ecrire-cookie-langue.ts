@@ -13,6 +13,7 @@ export function ecrireCookieLangue(langue: Langue, hote: string): string {
     `Max-Age=${UN_AN_SECONDES}`,
     "Path=/",
     ...(partage ? [`Domain=${DOMAINE}`] : []),
+    "HttpOnly",
     "SameSite=Lax",
     ...(securise ? ["Secure"] : []),
   ].join("; ");

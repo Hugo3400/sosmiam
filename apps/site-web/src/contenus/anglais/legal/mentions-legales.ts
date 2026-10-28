@@ -8,7 +8,7 @@ export const documentMentionsLegalesAnglais: DocumentLegal = {
   titre: "Legal notice",
   description:
     "Who publishes SOS Miam, who hosts it, and how to contact us or report illegal content: the full legal notice for the sosmiam.fr website.",
-  miseAJour: "27 October 2026",
+  miseAJour: "28 October 2026",
   introduction: [
     "Who's behind SOS Miam, who hosts the site and how to reach us. It's the most serious page on the site, but we've made sure it's still easy to digest.",
     `This legal notice applies to the **${site.adresse}** website and its subdomains.`,
@@ -135,7 +135,7 @@ export const documentMentionsLegalesAnglais: DocumentLegal = {
       titre: "Personal data and cookies",
       blocs: [
         "SOS Miam never sells or rents out your data. What is processed today, why, for how long and how to exercise your rights: it's all explained in the [privacy policy](/confidentialite).",
-        `The site sets no tracking cookies and shows no advertising. Its visitor statistics are counted by our server, without cookies, and you can choose not to be counted on the [statistics](/statistiques) page. The only cookies set, all strictly necessary, are: a security cookie that our provider ${prestataires.reseau.nom} sets to protect the site, the cookie that remembers your choice not to be counted if you ask for it, the one that keeps you logged in (to “My account”, your ambassador area or your pro area), two 10-minute cookies for the duration of a login with Apple or Google, and a 2-minute one when you log in with the app. The full list, with their durations, is on the [cookies](/cookies) page.`,
+        `The site sets no tracking cookies and shows no advertising. Its visitor statistics are counted by our server, without cookies, and you can choose not to be counted on the [statistics](/statistiques) page. The only cookies set, all strictly necessary, are: a security cookie that our provider ${prestataires.reseau.nom} sets to protect the site, the cookie that remembers your choice not to be counted if you ask for it, the one that keeps you logged in (to “My account”, your ambassador area or your pro area), two 10-minute cookies for the duration of a login with Apple or Google, a 2-minute one when you log in with the app, and the one that remembers the language you choose. The full list, with their durations, is on the [cookies](/cookies) page.`,
       ],
     },
     {

@@ -24,7 +24,7 @@ export const documentConfidentialiteAnglais: DocumentLegal = {
   titre: "Privacy policy",
   description:
     "What SOS Miam does with your data: server logs, cookie-free visitor statistics, Cloudflare, emails, newsletter, applications, security flaw reports, ambassador and pro accounts, the mobile app, your crew, your messages, the Miamis and Miam Safe. No tracking cookies, zero reselling, and your rights spelled out.",
-  miseAJour: "27 October 2026",
+  miseAJour: "28 October 2026",
   introduction: [
     "Your data is like the secret recipe of a neighbourhood restaurant: we look after it and we never sell it to anyone. Here, we explain without jargon what SOS Miam collects today (spoiler: not much), why, for how long, and how you stay in control of it.",
     `This policy applies to the ${site.adresse} site and its subdomains, to the SOS Miam app (iPhone and Android), and to the emails you send to ${lienEmail}. It is written in accordance with the General Data Protection Regulation (GDPR, Regulation (EU) 2016/679) and the French Data Protection Act ({fr:loi Informatique et Libertés}, Law No. 78-17 of 6 January 1978).`,
@@ -33,7 +33,7 @@ export const documentConfidentialiteAnglais: DocumentLegal = {
   enBref: [
     {
       liste: [
-        "**No tracking cookies, no tracking, no ads.** The only possible exceptions, all strictly necessary: Cloudflare's security cookies, the cookie that keeps you logged in (to “My account”, your ambassador area or your pro area), two 10-minute cookies during a login with Apple or Google, a 2-minute cookie during a login with a QR code, the one that remembers that you've refused to be counted in the statistics, if you ask for it, and, on the site, where you were on the page, kept in your browser for the length of your visit (details below).",
+        "**No tracking cookies, no tracking, no ads.** The only possible exceptions, all strictly necessary: Cloudflare's security cookies, the cookie that keeps you logged in (to “My account”, your ambassador area or your pro area), two 10-minute cookies during a login with Apple or Google, a 2-minute cookie during a login with a QR code, the one that remembers that you've refused to be counted in the statistics, if you ask for it, the one that remembers the language you choose, and, on the site, where you were on the page, kept in your browser for the length of your visit (details below).",
         "**Server logs** keep a technical record of your visits (IP address, page requested…) for **15 days at most**, for security, then delete themselves automatically.",
         "**Visitor statistics, without cookies**: our server counts page views and visitors, without ever keeping your IP address or anything that would allow you to be recognised. You can refuse to be counted in one click, on the [Your visits and our statistics](/statistiques) page.",
         "**Cloudflare**, an American company, protects the site: all traffic passes through its servers, and data may be processed outside the European Union, notably in the United States, with the safeguards provided for by the GDPR.",
@@ -231,7 +231,7 @@ export const documentConfidentialiteAnglais: DocumentLegal = {
         {
           liste: [
             "**We never sell your data**, we don't rent it out, and we only entrust it to the technical providers listed below, on our behalf (unless the law requires otherwise).",
-            "**No tracking cookies**: to date, our pages don't set any. The only possible exceptions: Cloudflare's security cookies described above, the cookie that remembers your refusal to be counted in the statistics, if you ask for it, the one that keeps you logged in (to “My account”, your ambassador area or your pro area) and, for the length of a login with Apple or Google, two 10-minute cookies (or, for a login with a QR code, a 2-minute cookie). The full list is on the [Cookies](/cookies#liste-des-cookies) page.",
+            "**No tracking cookies**: to date, our pages don't set any. The only possible exceptions: Cloudflare's security cookies described above, the cookie that remembers your refusal to be counted in the statistics, if you ask for it, the one that keeps you logged in (to “My account”, your ambassador area or your pro area) and, for the length of a login with Apple or Google, two 10-minute cookies (or, for a login with a QR code, a 2-minute cookie), and the one that remembers the language you choose, if you choose one. The full list is on the [Cookies](/cookies#liste-des-cookies) page.",
             "**Almost nothing in your browser**: the site only keeps, in your browser's session storage, where you were on each page, to take you back there when you go back, and sometimes the site's version number after an update. No identifier, no personal data, and it's all cleared when you close the tab: it's strictly necessary for browsing, so no consent is asked for.",
             "**No outside audience measurement tool** (no Google Analytics, no social media pixel): our visitor statistics are counted by our server, without cookies (see “Visitor statistics”). And **no advertising** for now.",
             "**No embedded third-party content**: no video, map or social media button that would tell another service about your visit. Even our fonts are hosted with the site, on our server at our hosting provider.",

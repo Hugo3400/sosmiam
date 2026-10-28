@@ -96,10 +96,10 @@ test("cookie sosmiam-langue : lu sans se tromper de nom, posé pour les trois h�
   assert.equal(lireCookieLangue("autre-sosmiam-langue=en"), null);
   assert.equal(lireCookieLangue("sosmiam-langue=de"), null);
   assert.equal(lireCookieLangue(null), null);
-  assert.equal(ecrireCookieLangue("en", "sosmiam.fr"), "sosmiam-langue=en; Max-Age=31536000; Path=/; Domain=sosmiam.fr; SameSite=Lax; Secure");
-  assert.equal(ecrireCookieLangue("fr", "pro.sosmiam.fr"), "sosmiam-langue=fr; Max-Age=31536000; Path=/; Domain=sosmiam.fr; SameSite=Lax; Secure");
-  assert.equal(ecrireCookieLangue("en", "apercu.sosmiam.fr"), "sosmiam-langue=en; Max-Age=31536000; Path=/; SameSite=Lax; Secure");
-  assert.equal(ecrireCookieLangue("en", "localhost:5190"), "sosmiam-langue=en; Max-Age=31536000; Path=/; SameSite=Lax");
+  assert.equal(ecrireCookieLangue("en", "sosmiam.fr"), "sosmiam-langue=en; Max-Age=31536000; Path=/; Domain=sosmiam.fr; HttpOnly; SameSite=Lax; Secure");
+  assert.equal(ecrireCookieLangue("fr", "pro.sosmiam.fr"), "sosmiam-langue=fr; Max-Age=31536000; Path=/; Domain=sosmiam.fr; HttpOnly; SameSite=Lax; Secure");
+  assert.equal(ecrireCookieLangue("en", "apercu.sosmiam.fr"), "sosmiam-langue=en; Max-Age=31536000; Path=/; HttpOnly; SameSite=Lax; Secure");
+  assert.equal(ecrireCookieLangue("en", "localhost:5190"), "sosmiam-langue=en; Max-Age=31536000; Path=/; HttpOnly; SameSite=Lax");
 });
 
 test("choisirRedirectionHote : /en suit sa page vers le bon hôte, et l'accueil des espaces garde sa langue", () => {

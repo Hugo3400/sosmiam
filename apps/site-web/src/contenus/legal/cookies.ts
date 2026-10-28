@@ -11,6 +11,8 @@
 //   (services/cookies-connexion-externe.server.ts) ; __Host-sosmiam-connexion-qr (Lax), 2 minutes, chiffré, posé par
 //   « Me connecter avec l'app » (connexion par QR code, même fichier).
 // - sosmiam-sans-statistiques (services/mesure.server.ts) : 13 mois, posé seulement par la page /statistiques.
+// - sosmiam-langue (fonctions/langue/ecrire-cookie-langue.ts) : 1 an, Domain=sosmiam.fr, HttpOnly, posé seulement quand on
+//   choisit une langue (pied de page ou bandeau qui propose l'autre langue).
 // - Stockage de session : react-router-scroll-positions (toutes les pages), react-router-manifest-version (après une mise
 //   à jour du site). Aucun localStorage. Aucune requête vers un autre domaine (polices, images, scripts : tout vient de sosmiam.fr).
 // - Pas des cookies : scripts ajoutés par Cloudflare (détection des robots, décodage des adresses e-mail
@@ -37,7 +39,7 @@ export const documentCookies: DocumentLegal = {
   titre: "Cookies et autres traceurs",
   description:
     "Cookies sur SOS Miam : ni pub ni pistage, des statistiques sans cookie, et la liste exacte des quelques cookies strictement nécessaires (sécurité, connexion, tes choix), avec leur durée. Comment marchera le bandeau avec la pub, et comment gérer tes cookies.",
-  miseAJour: "14 octobre 2026",
+  miseAJour: "28 octobre 2026",
   introduction: [
     "Chez SOS Miam, les seuls cookies qu'on aime, ce sont ceux de la pâtisserie du coin. **Notre site ne dépose aucun cookie de suivi dans ton navigateur.** Pas de pub, pas de pistage, et des statistiques de visite comptées par notre serveur, sans cookie.",
     `Cette page t'explique ce qu'est un cookie, ce qui se passe vraiment aujourd'hui quand tu visites ${site.adresse} (y compris les espaces ambassadeur et pro, et la version du site en préparation), avec la liste exacte des cookies, et comment ça marchera le jour où la pub arrivera : rien de facultatif sans ton accord.`,
@@ -46,7 +48,7 @@ export const documentCookies: DocumentLegal = {
     {
       liste: [
         "**Aucun cookie de suivi**, aucune pub, aucun pistage, aucun contenu d'un autre site dans nos pages.",
-        `**Quelques cookies strictement nécessaires** : un cookie de sécurité de ${cloudflare}, celui qui te garde connecté si tu te connectes, deux cookies de 10 minutes pendant une connexion avec Apple ou Google, un de 2 minutes quand tu te connectes avec l'app, et celui qui retient ton refus des statistiques si tu le demandes. Ils sont tous dans [la liste](#liste-des-cookies).`,
+        `**Quelques cookies strictement nécessaires** : un cookie de sécurité de ${cloudflare}, celui qui te garde connecté si tu te connectes, deux cookies de 10 minutes pendant une connexion avec Apple ou Google, un de 2 minutes quand tu te connectes avec l'app, celui qui retient ton refus des statistiques si tu le demandes, et celui qui retient la langue que tu choisis. Ils sont tous dans [la liste](#liste-des-cookies).`,
         "**Pas de bandeau aujourd'hui** : la loi dispense ces cookies d'accord, donc il n'y a [rien à accepter ni à refuser](#mes-choix). Le bandeau est prêt, mais il ne s'affiche que s'il y a un vrai choix à faire.",
         "**Le jour où la pub ou les vidéos arriveront**, rien de facultatif ne sera déposé sans ton accord : « Tout accepter », « Tout refuser » ou « Choisir », trois boutons de la même taille, et ton choix gardé 6 mois.",
       ],
@@ -72,6 +74,7 @@ export const documentCookies: DocumentLegal = {
           liste: [
             "des statistiques de visite comptées par notre serveur, **sans cookie ni script** dans ta page : on ne garde que des totaux, jamais ton adresse IP (détails dans la [politique de confidentialité](/confidentialite#statistiques)) ;",
             "un cookie de notre part, seulement si tu le demandes : **sosmiam-sans-statistiques**, posé quand tu refuses d'être compté sur la page [Tes visites et nos statistiques](/statistiques). Il retient ton refus pendant 13 mois et ne sert qu'à ça : la loi le dispense d'accord ;",
+            "un autre, seulement si tu choisis une langue (en bas de chaque page, ou dans le bandeau qui te propose la page dans une autre langue) : **sosmiam-langue**, qui retient « fr » ou « en » pendant **1 an**, pour sosmiam.fr et ses espaces ambassadeur et pro. Il ne contient rien d'autre et ne sert qu'à t'afficher le site dans la langue que tu as choisie : la loi le dispense d'accord ;",
             `un autre, seulement si tu te connectes, à « [Mon compte](/mon-compte) », à ton [espace ambassadeur](${adresseEspaceAmbassadeur}) ou à ton [espace pro](https://pro.sosmiam.fr) : **__Host-sosmiam-session**, qui te garde connecté d'une page à l'autre. Il contient seulement une clé tirée au hasard et n'est envoyé qu'au site où tu t'es connecté (${site.adresse}, ${hoteAmbassadeur} ou pro.sosmiam.fr, chacun le sien, ou la version du site en préparation), jamais à un autre. Il dure **90 jours au plus** et s'efface quand tu te déconnectes. Il est strictement nécessaire pour rester connecté : la loi le dispense d'accord, et il ne sert à rien d'autre ;`,
             "un autre, seulement quand tu touches « Me connecter avec l'app » (connexion par QR code) : **__Host-sosmiam-connexion-qr**, qui garde pendant **2 minutes au plus** le code secret du QR affiché, pour vérifier que c'est bien ton app qui valide la connexion. Chiffré, illisible par les scripts de la page et effacé dès qu'il a servi, il est strictement nécessaire à la connexion que tu demandes : la loi le dispense d'accord ;",
             "trois autres au plus, seulement quand tu touches « Continuer avec Apple » ou « Continuer avec Google » : **__Host-sosmiam-connexion-externe**, qui retient pendant **10 minutes au plus** un code tiré au hasard pour vérifier que la réponse d'Apple ou de Google correspond bien à ta demande (il doit pouvoir être lu quand Apple ou Google te renvoie chez nous, d'où son réglage « SameSite=None »), et, si tu crées ton compte, confirmes sa suppression, ou relies ou délies Apple ou Google, **__Host-sosmiam-inscription-externe**, qui garde l'attestation d'Apple ou de Google le temps de finir (**10 minutes au plus**). Si ton compte n'a pas de mot de passe, relier Apple ou Google demande aussi l'attestation de ta clé actuelle : **__Host-sosmiam-confirmation-externe** la garde de la même façon (**10 minutes au plus**). Tous sont chiffrés, illisibles par les scripts de la page, effacés dès qu'ils ont servi, et strictement nécessaires à la connexion que tu demandes : la loi les dispense d'accord ;",
@@ -89,7 +92,7 @@ export const documentCookies: DocumentLegal = {
       id: "liste-des-cookies",
       titre: "La liste complète",
       blocs: [
-        "Voici tout ce qui peut être enregistré dans ton navigateur quand tu utilises le site, relevé le 14 octobre 2026. Tout est **strictement nécessaire**, et posé **sur nos propres adresses** (sosmiam.fr et ses sous-domaines) : aucun cookie d'un autre site.",
+        "Voici tout ce qui peut être enregistré dans ton navigateur quand tu utilises le site, relevé le 14 octobre 2026 et complété le 28 octobre 2026. Tout est **strictement nécessaire**, et posé **sur nos propres adresses** (sosmiam.fr et ses sous-domaines) : aucun cookie d'un autre site.",
         {
           tableau: {
             legende: "Les cookies et le stockage du navigateur utilisés par SOS Miam : nom, usage, durée et qui les dépose.",
@@ -103,6 +106,7 @@ export const documentCookies: DocumentLegal = {
               ["__Host-sosmiam-confirmation-externe", "Garder l'attestation de ta clé actuelle (Apple ou Google) quand tu relies l'autre à un compte sans mot de passe. Chiffré.", "10 minutes au plus", "SOS Miam, seulement dans ce cas."],
               ["__Host-sosmiam-connexion-qr", "Vérifier que c'est bien ton app qui valide « Me connecter avec l'app » (le code secret du QR affiché). Chiffré.", "2 minutes au plus, effacé dès qu'il a servi", "SOS Miam, quand tu touches « Me connecter avec l'app » (connexion par QR code)."],
               ["sosmiam-sans-statistiques", "Retenir ton refus d'être compté dans les statistiques de visite.", "13 mois", "SOS Miam, seulement si tu le demandes sur la page [Statistiques](/statistiques)."],
+              ["sosmiam-langue", "Retenir la langue que tu as choisie pour le site (« fr » ou « en »). Aucun identifiant.", "1 an", "SOS Miam, seulement quand tu choisis une langue (en bas de page, ou dans le bandeau qui te propose l'autre langue), pour sosmiam.fr et ses espaces ambassadeur et pro."],
               ["sosmiam-consentement", "Retenir tes choix sur les cookies facultatifs : ce que tu acceptes ou refuses, la date du choix et la version de la liste des partenaires. Aucun identifiant.", "6 mois", "SOS Miam, seulement quand tu fais un choix dans le bandeau ou dans « Gérer mes cookies », pour sosmiam.fr et ses espaces ambassadeur et pro. Pas encore posé : il n'y a aucun choix à faire aujourd'hui."],
               ["react-router-scroll-positions (stockage de session)", "Te ramener où tu étais sur une page quand tu reviens en arrière.", "Jusqu'à la fermeture de l'onglet", "Le site, dans ton navigateur : rien n'est envoyé à notre serveur."],
               ["react-router-manifest-version (stockage de session)", "Après une mise à jour du site, recharger la page une seule fois, sans tourner en rond.", "Jusqu'à la fermeture de l'onglet", "Le site, dans ton navigateur, seulement après une mise à jour."],
@@ -133,7 +137,7 @@ export const documentCookies: DocumentLegal = {
       id: "mes-choix",
       titre: "Gérer mes cookies : rien à accepter ni à refuser pour l'instant",
       blocs: [
-        "Tu cherches le bouton « Tout refuser » ? Bonne nouvelle : **il n'y a rien à refuser**. Tous les cookies de [la liste](#liste-des-cookies) sont strictement nécessaires : à la sécurité du site, à la connexion que tu demandes, ou au respect de ton refus des statistiques. La loi les dispense de ton accord, et aucun ne sert à la pub ni à te suivre.",
+        "Tu cherches le bouton « Tout refuser » ? Bonne nouvelle : **il n'y a rien à refuser**. Tous les cookies de [la liste](#liste-des-cookies) sont strictement nécessaires : à la sécurité du site, à la connexion que tu demandes, au respect de ton refus des statistiques, ou à ton choix de langue. La loi les dispense de ton accord, et aucun ne sert à la pub ni à te suivre.",
         "C'est aussi pour ça qu'aucun bandeau ne s'affiche : on ne va pas te demander d'accepter quelque chose qu'on ne fait pas. Le bandeau et le formulaire de choix sont prêts : ils n'apparaîtront qu'avec le premier cookie facultatif.",
         "Ce que tu peux faire quand même :",
         {

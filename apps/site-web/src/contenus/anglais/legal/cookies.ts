@@ -11,7 +11,7 @@ export const documentCookiesAnglais: DocumentLegal = {
   titre: "Cookies and other trackers",
   description:
     "Cookies on SOS Miam: no ads and no tracking, statistics without cookies, and the exact list of the few strictly necessary cookies (security, login, your choices), with how long they last. How the banner will work once ads arrive, and how to manage your cookies.",
-  miseAJour: "14 October 2026",
+  miseAJour: "28 October 2026",
   introduction: [
     "At SOS Miam, the only cookies we like are the ones from the patisserie round the corner. **Our site doesn't set any tracking cookies in your browser.** No ads, no tracking, and visitor statistics counted by our server, without cookies.",
     `This page explains what a cookie is, what really happens today when you visit ${site.adresse} (including the ambassador and pro areas, and the version of the site being prepared), with the exact list of cookies, and how things will work the day ads arrive: nothing optional without your consent.`,
@@ -20,7 +20,7 @@ export const documentCookiesAnglais: DocumentLegal = {
     {
       liste: [
         "**No tracking cookies**, no ads, no tracking and no content from other sites in our pages.",
-        `**A few strictly necessary cookies**: a security cookie from ${cloudflare}, the one that keeps you logged in if you log in, two 10-minute cookies during a login with Apple or Google, a 2-minute one when you log in with the app, and the one that remembers your choice not to be counted in the statistics if you ask for it. They're all in [the list](#liste-des-cookies).`,
+        `**A few strictly necessary cookies**: a security cookie from ${cloudflare}, the one that keeps you logged in if you log in, two 10-minute cookies during a login with Apple or Google, a 2-minute one when you log in with the app, the one that remembers your choice not to be counted in the statistics if you ask for it, and the one that remembers the language you choose. They're all in [the list](#liste-des-cookies).`,
         "**No banner today**: the law exempts these cookies from consent, so there's [nothing to accept or reject](#mes-choix). The banner is ready, but it only appears if there's a real choice to make.",
         "**The day ads or videos arrive**, nothing optional will be set without your consent: “Accept all”, “Reject all” or “Choose”, three buttons of the same size, and your choice kept for 6 months.",
       ],
@@ -46,6 +46,7 @@ export const documentCookiesAnglais: DocumentLegal = {
           liste: [
             "visitor statistics counted by our server, **with no cookie or script** in your page: we only keep totals, never your IP address (details in the [privacy policy](/confidentialite#statistiques));",
             "one cookie of our own, only if you ask for it: **sosmiam-sans-statistiques**, set when you choose not to be counted on the [Your visits and our statistics](/statistiques) page. It remembers your choice for 13 months and does nothing else, so the law exempts it from consent;",
+            "another, only if you choose a language (at the bottom of every page, or in the banner that offers you the page in another language): **sosmiam-langue**, which remembers “fr” or “en” for **1 year**, for sosmiam.fr and its ambassador and pro areas. It contains nothing else and is only used to show you the site in the language you chose, so the law exempts it from consent;",
             `another, only if you log in to “[My account](/mon-compte)”, your [ambassador area](${adresseEspaceAmbassadeur}) or your [pro area](https://pro.sosmiam.fr): **__Host-sosmiam-session**, which keeps you logged in from one page to the next. It only contains a randomly generated key and is only sent to the site where you logged in (${site.adresse}, ${hoteAmbassadeur} or pro.sosmiam.fr, each with its own, or the version of the site being prepared), never to any other. It lasts **90 days at most** and is deleted when you log out. It's strictly necessary for staying logged in, so the law exempts it from consent, and it's used for nothing else;`,
             "another, only when you select “Log in with the app” (login by QR code): **__Host-sosmiam-connexion-qr**, which keeps the secret code of the displayed QR code for **2 minutes at most**, to check that it really is your app approving the login. Encrypted, unreadable by the page's scripts and deleted as soon as it's been used, it's strictly necessary for the login you've asked for, so the law exempts it from consent;",
             "up to three more, only when you select “Continue with Apple” or “Continue with Google”: **__Host-sosmiam-connexion-externe**, which holds a randomly generated code for **10 minutes at most** to check that Apple's or Google's response really matches your request (it has to be readable when Apple or Google sends you back to us, hence its “SameSite=None” setting), and, if you create your account, confirm its deletion, or link or unlink Apple or Google, **__Host-sosmiam-inscription-externe**, which keeps Apple's or Google's attestation until you've finished (**10 minutes at most**). If your account has no password, linking Apple or Google also requires the attestation from your current login method: **__Host-sosmiam-confirmation-externe** keeps it in the same way (**10 minutes at most**). All of them are encrypted, unreadable by the page's scripts, deleted as soon as they've been used, and strictly necessary for the login you've asked for, so the law exempts them from consent;",
@@ -63,7 +64,7 @@ export const documentCookiesAnglais: DocumentLegal = {
       id: "liste-des-cookies",
       titre: "The full list",
       blocs: [
-        "Here's everything that may be stored in your browser when you use the site, as recorded on 14 October 2026. Everything is **strictly necessary**, and set **on our own addresses** (sosmiam.fr and its subdomains): no cookies from any other site.",
+        "Here's everything that may be stored in your browser when you use the site, as recorded on 14 October 2026 and updated on 28 October 2026. Everything is **strictly necessary**, and set **on our own addresses** (sosmiam.fr and its subdomains): no cookies from any other site.",
         {
           tableau: {
             legende: "The cookies and browser storage used by SOS Miam: name, purpose, duration and who sets them.",
@@ -77,6 +78,7 @@ export const documentCookiesAnglais: DocumentLegal = {
               ["__Host-sosmiam-confirmation-externe", "Keeps the attestation from your current login method (Apple or Google) when you link the other one to an account without a password. Encrypted.", "10 minutes at most", "SOS Miam, only in that case."],
               ["__Host-sosmiam-connexion-qr", "Checks that it really is your app approving “Log in with the app” (the secret code of the displayed QR code). Encrypted.", "2 minutes at most, deleted as soon as it's been used", "SOS Miam, when you select “Log in with the app” (login by QR code)."],
               ["sosmiam-sans-statistiques", "Remembers your choice not to be counted in the visitor statistics.", "13 months", "SOS Miam, only if you ask for it on the [Statistics](/statistiques) page."],
+              ["sosmiam-langue", "Remembers the language you chose for the site (“fr” or “en”). No identifiers.", "1 year", "SOS Miam, only when you choose a language (at the bottom of the page, or in the banner that offers you the other language), for sosmiam.fr and its ambassador and pro areas."],
               ["sosmiam-consentement", "Remembers your choices about optional cookies: what you accept or reject, the date of your choice and the version of the partner list. No identifiers.", "6 months", "SOS Miam, only when you make a choice in the banner or in “Cookie settings”, for sosmiam.fr and its ambassador and pro areas. Not set yet: there's no choice to make today."],
               ["react-router-scroll-positions (session storage)", "Takes you back to where you were on a page when you go back.", "Until you close the tab", "The site, in your browser: nothing is sent to our server."],
               ["react-router-manifest-version (session storage)", "After a site update, reloads the page just once, without going round in circles.", "Until you close the tab", "The site, in your browser, only after an update."],
@@ -107,7 +109,7 @@ export const documentCookiesAnglais: DocumentLegal = {
       id: "mes-choix",
       titre: "Cookie settings: nothing to accept or reject for now",
       blocs: [
-        "Looking for the “Reject all” button? Good news: **there's nothing to reject**. All the cookies in [the list](#liste-des-cookies) are strictly necessary: for the site's security, for the login you ask for or to respect your choice not to be counted in the statistics. The law exempts them from your consent, and none of them is used for ads or to track you.",
+        "Looking for the “Reject all” button? Good news: **there's nothing to reject**. All the cookies in [the list](#liste-des-cookies) are strictly necessary: for the site's security, for the login you ask for, to respect your choice not to be counted in the statistics, or for your choice of language. The law exempts them from your consent, and none of them is used for ads or to track you.",
         "That's also why no banner appears: we're not going to ask you to accept something we don't do. The banner and the choice form are ready, and they'll only appear with the first optional cookie.",
         "What you can still do:",
         {
