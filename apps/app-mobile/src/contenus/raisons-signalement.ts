@@ -1,4 +1,6 @@
 import type { RaisonSignalement } from "@sos-miam/commun/types/signalement";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { raisonsSignalementAnglais } from "~/contenus/anglais/raisons-signalement";
 
 /** Une raison de signaler, telle qu'on la montre dans l'app. */
 export type ChoixRaisonSignalement = {
@@ -82,3 +84,5 @@ export const raisonsSignalement: ChoixRaisonSignalement[] = [
     precisions: [],
   },
 ];
+
+export const raisonsSignalementParLangue: ParLangue<Traduction<typeof raisonsSignalement>> = { fr: raisonsSignalement, en: raisonsSignalementAnglais };

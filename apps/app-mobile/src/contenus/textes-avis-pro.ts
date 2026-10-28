@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_AVIS_PRO_ANGLAIS } from "~/contenus/anglais/textes-avis-pro";
+
 export const TEXTES_AVIS_PRO = {
   titre: "Les avis",
   sousTitre: "ce que disent les Miamis",
@@ -26,3 +29,5 @@ export const TEXTES_AVIS_PRO = {
   annoncePubliee: "C'est en ligne : {signature} peut lire ta réponse, juste sous son avis.",
   relecture: "Comme chaque réponse, la tienne peut être relue par l'équipe SOS Miam.",
 } as const;
+
+export const TEXTES_AVIS_PRO_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_AVIS_PRO>> = { fr: TEXTES_AVIS_PRO, en: TEXTES_AVIS_PRO_ANGLAIS };

@@ -1,0 +1,31 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_AVIS_PRO } from "~/contenus/textes-avis-pro";
+
+export const TEXTES_AVIS_PRO_ANGLAIS: Traduction<typeof TEXTES_AVIS_PRO> = {
+  titre: "Reviews",
+  sousTitre: "what the Miamis say",
+  chargement: "Fetching your reviews…",
+  sansLieuTitre: "No venue in sight",
+  sansLieuTexte: "Choose your venue in Pro mode first – its reviews are waiting for you here.",
+  videTitre: "No reviews yet",
+  videTexte: "The first one arrives an hour after a confirmed visit. You'll be able to reply to it here, publicly.",
+  reessayer: "Try again",
+  indiceReessayer: "Reloads your venue's reviews",
+  aRepondre: "No reply yet",
+  dejaRepondu: "Replied",
+  repondre: "Reply publicly",
+  repondreIndice: "Your reply shows under the review, one per review",
+  reserveAuGerant: "Public replies are handled by the manager.",
+  feuilleTitre: "Reply to {signature}",
+  feuilleSousTitre: "Your reply is public and shows straight away under the review. Only one per review, so read it over!",
+  champLibelle: "Your reply",
+  champPlaceholder: "A thank-you, an explanation, an invitation to come back…",
+  champAide: "{longueur}/{max} · Take criticism with a smile, and never by private message.",
+  champRefuse: "A word doesn't go down well here. Rephrase it – your reply will keep all its flavour!",
+  publier: "Post my reply",
+  publierEnCours: "Posting…",
+  publierIndiceVide: "Write your reply first",
+  pasMaintenant: "Not now",
+  annoncePubliee: "It's live – {signature} can read your reply, right under their review.",
+  relecture: "Like every reply, yours may be checked by the SOS Miam team.",
+};
