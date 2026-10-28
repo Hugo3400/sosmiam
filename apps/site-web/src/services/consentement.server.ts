@@ -3,6 +3,7 @@
 // servi sur les trois hôtes). Catégories : src/contenus/cookies-consentement.ts.
 import { redirect } from "react-router";
 
+import { GESTE_INFORMATION_COOKIES } from "~/contenus/cookies-consentement";
 import { calculerVersionConsentement } from "~/fonctions/consentement/calculer-version-consentement";
 import { choisirCategoriesConsentement } from "~/fonctions/consentement/choisir-categories-consentement";
 import { choisirReglagesCookieConsentement } from "~/fonctions/consentement/choisir-reglages-cookie-consentement";
@@ -26,7 +27,8 @@ export function lireEtatConsentement(requete: Request): EtatConsentementServeur 
 /**
  * POST /cookies/choix : enregistre le choix (cookie « sosmiam-consentement », 6 mois), efface les cookies connus des
  * catégories retirées, puis revient à la page d'où il est parti (champ « retour »). L'aperçu suit l'adresse du
- * formulaire (« /cookies/choix?apercu-cookies »). S'il n'y a rien à choisir, aucun cookie n'est posé.
+ * formulaire (« /cookies/choix?apercu-cookies »). S'il n'y a rien à choisir, seul « OK, compris » du bandeau d'information
+ * pose le cookie (sans aucune réponse), pour ne plus le montrer.
  */
 export async function enregistrerChoixConsentement(requete: Request): Promise<Response> {
   const url = new URL(requete.url);
@@ -36,7 +38,7 @@ export async function enregistrerChoixConsentement(requete: Request): Promise<Re
   const formulaire = await requete.formData();
   const retour = lireRetourConsentement(formulaire.get("retour")) ?? "/";
   const entetes = new Headers({ "Cache-Control": "private, no-store" });
-  if (aChoisir.length === 0) return redirect(retour, { status: 303, headers: entetes });
+  if (aChoisir.length === 0 && formulaire.get("geste") !== GESTE_INFORMATION_COOKIES) return redirect(retour, { status: 303, headers: entetes });
 
   const maintenant = Date.now();
   const enTeteCookie = requete.headers.get("cookie");

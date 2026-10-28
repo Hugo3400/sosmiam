@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } 
 import { useLocation } from "react-router";
 
 import { BandeauCookies } from "~/composants/cookies/BandeauCookies";
+import { BandeauInformationCookies } from "~/composants/cookies/BandeauInformationCookies";
 import {
   ADRESSE_CHOIX_COOKIES,
   ADRESSE_REGLAGES_COOKIES,
@@ -15,6 +16,7 @@ import { choisirCategoriesConsentement } from "~/fonctions/consentement/choisir-
 import { choisirReglagesCookieConsentement } from "~/fonctions/consentement/choisir-reglages-cookie-consentement";
 import { creerEffacementsTraceurs } from "~/fonctions/consentement/creer-effacements-traceurs";
 import { doitAfficherBandeau } from "~/fonctions/consentement/doit-afficher-bandeau";
+import { doitAfficherInformation } from "~/fonctions/consentement/doit-afficher-information";
 import { ecrireCookieConsentement } from "~/fonctions/consentement/ecrire-cookie-consentement";
 import { ecrireRetourConsentement } from "~/fonctions/consentement/ecrire-retour-consentement";
 import { lireChoixConsentement } from "~/fonctions/consentement/lire-choix-consentement";
@@ -77,7 +79,8 @@ export function GestionnaireConsentement({ etat, children }: Props) {
   }, [aChoisir]);
 
   const bandeau = doitAfficherBandeau(aChoisir, choix);
-  const visible = bandeau || panneauOuvert;
+  const information = doitAfficherInformation(aChoisir, choix);
+  const visible = bandeau || panneauOuvert || information;
 
   // Le panneau s'ouvre : le focus va à son titre (annoncé par les lecteurs d'écran)
   useEffect(() => {
@@ -155,7 +158,15 @@ export function GestionnaireConsentement({ etat, children }: Props) {
 
   return (
     <ContexteConsentement value={valeur}>
-      {visible && (
+      {information && (
+        <BandeauInformationCookies
+          retour={ecrireRetourConsentement(location.pathname, location.search)}
+          adressePage={lien(`/cookies${suffixeApercu}`)}
+          onEchap={() => enregistrer({})}
+          refDialogue={refDialogue}
+        />
+      )}
+      {visible && !information && (
         <BandeauCookies
           panneauOuvert={panneauOuvert}
           gestion={!bandeau}

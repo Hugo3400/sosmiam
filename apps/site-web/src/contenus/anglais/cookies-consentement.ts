@@ -31,6 +31,12 @@ export const TEXTES_CONSENTEMENT_ANGLAIS: Traduction<typeof TEXTES_CONSENTEMENT>
   choixEnregistre: "Noted – your choice has been saved.",
   choixValable: (debut, fin) => `Your choice of ${debut} is valid until ${fin}. After that, we'll ask you again.`,
   sansChoix: "You haven't chosen anything yet. Until you say otherwise, the answer's no.",
+  information: {
+    titre: "Zero tracking cookies here 🍪",
+    texte:
+      "The only cookies we love are the ones from the patisserie round the corner. The site only uses the ones it needs to work (security, your login, your language): no ads, no tracking, so there's nothing to accept or reject.",
+    compris: "OK, got it",
+  },
   contenuExterne: {
     video: { vientDe: (fournisseur) => `This video comes from ${fournisseur}, which sets cookies.`, toujours: "Always show videos" },
     carte: { vientDe: (fournisseur) => `This map comes from ${fournisseur}, which sets cookies.`, toujours: "Always show maps" },

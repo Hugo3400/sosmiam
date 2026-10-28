@@ -38,6 +38,8 @@ export const ADRESSE_CHOIX_COOKIES = "/cookies/choix";
 /** Page des réglages sans JavaScript : la partie « Gérer mes cookies » de /cookies (ancre publique, ne pas la renommer) */
 export const ADRESSE_REGLAGES_COOKIES = "/cookies#mes-choix";
 
+export const GESTE_INFORMATION_COOKIES = "vu";
+
 /** Les catégories qu'on peut accepter ou refuser (« necessaires » n'en fait pas partie : toujours actifs) */
 export const IDS_CATEGORIES_FACULTATIVES = ["contenus-externes", "publicite", "mesure-audience"] as const;
 
@@ -108,6 +110,12 @@ export const TEXTES_CONSENTEMENT = {
   choixEnregistre: "C'est noté, ton choix est enregistré.",
   choixValable: (debut: string, fin: string) => `Ton choix du ${debut} vaut jusqu'au ${fin} : ensuite, on te reposera la question.`,
   sansChoix: "Tu n'as encore rien choisi : tant que tu ne dis rien, c'est non.",
+  information: {
+    titre: "Ici, zéro cookie de pistage 🍪",
+    texte:
+      "Les seuls cookies qu'on aime, ce sont ceux de la pâtisserie du coin. Le site n'utilise que ceux qui le font marcher (la sécurité, ta connexion, ta langue) : pas de pub, pas de pistage, donc rien à accepter ni à refuser.",
+    compris: "OK, compris",
+  },
   contenuExterne: {
     video: { vientDe: (fournisseur: string) => `Cette vidéo vient de ${fournisseur}, qui pose des cookies.`, toujours: "Toujours afficher les vidéos" },
     carte: { vientDe: (fournisseur: string) => `Cette carte vient de ${fournisseur}, qui pose des cookies.`, toujours: "Toujours afficher les cartes" },
