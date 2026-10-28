@@ -1,4 +1,4 @@
-// Rendu serveur du consentement aux cookies (src/composants/cookies/) : pas de bandeau sans catégorie active, le bandeau
+// Rendu serveur du consentement aux cookies (src/composants/cookies/) : le bandeau d'information sans catégorie active, le bandeau
 // d'aperçu (formulaire qui marche sans JavaScript, trois boutons, croix), le formulaire de /cookies#mes-choix, et
 // ContenuExterne qui ne rend jamais d'iframe sans accord (ni dans le HTML du serveur).
 // Les composants sont des .tsx, que Node ne lance pas : ce test les fait traduire par TypeScript (déjà dans le dépôt).
@@ -61,12 +61,16 @@ function rendre(adresse: string, etat: Etat, ...contenu: ReturnType<typeof h>[])
   return renderToStaticMarkup(h(MemoryRouter, { initialEntries: [adresse] }, h(GestionnaireConsentement, { etat, children: h("main", { id: "contenu" }, ...contenu) })));
 }
 
-test("production : sans catégorie active, ni bandeau, ni formulaire, même sans aucun choix", () => {
-  const html = rendre("/cookies", { apercu: false, choix: null }, h(ReglagesCookies));
-  assert.doesNotMatch(html, /role="dialog"/);
-  assert.doesNotMatch(html, /<form/);
-  assert.doesNotMatch(html, /role="status"/);
-  assert.equal(html, '<main id="contenu"></main>');
+test("production : sans catégorie active, le bandeau d'information seul (un « OK » qui marche sans JavaScript), puis plus rien", () => {
+  const html = rendre("/en/faq", { apercu: false, choix: null }, h(ReglagesCookies));
+  assert.match(html, /^<div role="region" aria-labelledby="bandeau-information-cookies-titre"/, "premier dans la page");
+  assert.match(html, /<form [^>]*action="\/cookies\/choix" method="post"/);
+  assert.match(html, /<input type="hidden" name="retour" value="\/en\/faq"\/>/);
+  assert.match(boutonGeste(html, "vu"), /class=/);
+  assert.equal([...html.matchAll(/<button/g)].length, 1, "un seul bouton : rien à accepter ni à refuser");
+  assert.doesNotMatch(html, /role="dialog"|Tout accepter|Tout refuser|role="status"/);
+  const vu = { version: calculerVersionConsentement(choisirCategoriesConsentement(false)), date: Date.now(), reponses: {} };
+  assert.equal(rendre("/cookies", { apercu: false, choix: vu }, h(ReglagesCookies)), '<main id="contenu"></main>');
 });
 
 test("aperçu : le bandeau, non modal, est un vrai formulaire (POST /cookies/choix) avec trois boutons de même poids et une croix", () => {
