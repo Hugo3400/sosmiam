@@ -21,7 +21,7 @@ export const documentCookiesAnglais: DocumentLegal = {
       liste: [
         "**No tracking cookies**, no ads, no tracking and no content from other sites in our pages.",
         `**A few strictly necessary cookies**: a security cookie from ${cloudflare}, the one that keeps you logged in if you log in, two 10-minute cookies during a login with Apple or Google, a 2-minute one when you log in with the app, the one that remembers your choice not to be counted in the statistics if you ask for it, and the one that remembers the language you choose. They're all in [the list](#liste-des-cookies).`,
-        "**No banner today**: the law exempts these cookies from consent, so there's [nothing to accept or reject](#mes-choix). The banner is ready, but it only appears if there's a real choice to make.",
+        "**Nothing to accept today**: the law exempts these cookies from consent, so there's [nothing to accept or reject](#mes-choix). On your first visit, a small banner tells you so, with a single “OK, got it” button. The choice banner is ready, but it only appears if there's a real choice to make.",
         "**The day ads or videos arrive**, nothing optional will be set without your consent: “Accept all”, “Reject all” or “Choose”, three buttons of the same size, and your choice kept for 6 months.",
       ],
     },
@@ -56,7 +56,7 @@ export const documentCookiesAnglais: DocumentLegal = {
             "nothing is stored in your browser's local storage (“localStorage”). The only exception, strictly necessary for browsing: in session storage (“sessionStorage”), the site keeps the position you were at on each page so it can take you back there when you go back, and sometimes the site's version number after an update. No identifiers, nothing leaves your browser, and it's all deleted when you close the tab.",
           ],
         },
-        `That's why you don't see a cookie banner: there's nothing to accept. The banner is ready for the day an optional cookie arrives (see [Your choice, and how it will be respected](#ton-choix)). Until then, it stays hidden, so you're not asked to choose for nothing. The security cookies of ${cloudflare}, our provider, are explained a little further down.`,
+        `That's why our cookie banner doesn't ask you anything: there's nothing to accept. On your first visit, it just lets you know, with an “OK, got it” button that's remembered for 6 months (see **sosmiam-consentement** in [the list](#liste-des-cookies)). The choice banner is ready for the day an optional cookie arrives (see [Your choice, and how it will be respected](#ton-choix)). Until then, it stays hidden, so you're not asked to choose for nothing. The security cookies of ${cloudflare}, our provider, are explained a little further down.`,
         "Like almost every website, our server records each visit in a technical log (IP address, page requested, date and time…), kept for 15 days at most for security and troubleshooting. This isn't a cookie: nothing is stored on your device. It's all explained in the [privacy policy](/confidentialite).",
       ],
     },
@@ -79,7 +79,7 @@ export const documentCookiesAnglais: DocumentLegal = {
               ["__Host-sosmiam-connexion-qr", "Checks that it really is your app approving “Log in with the app” (the secret code of the displayed QR code). Encrypted.", "2 minutes at most, deleted as soon as it's been used", "SOS Miam, when you select “Log in with the app” (login by QR code)."],
               ["sosmiam-sans-statistiques", "Remembers your choice not to be counted in the visitor statistics.", "13 months", "SOS Miam, only if you ask for it on the [Statistics](/statistiques) page."],
               ["sosmiam-langue", "Remembers the language you chose for the site (“fr” or “en”). No identifiers.", "1 year", "SOS Miam, only when you choose a language (at the bottom of the page, or in the banner that offers you the other language), for sosmiam.fr and its ambassador and pro areas."],
-              ["sosmiam-consentement", "Remembers your choices about optional cookies: what you accept or reject, the date of your choice and the version of the partner list. No identifiers.", "6 months", "SOS Miam, only when you make a choice in the banner or in “Cookie settings”, for sosmiam.fr and its ambassador and pro areas. Not set yet: there's no choice to make today."],
+              ["sosmiam-consentement", "Remembers your choices about optional cookies: what you accept or reject, the date of your choice and the version of the partner list. Today, it only remembers that you've seen the information banner. No identifiers.", "6 months", "SOS Miam, when you select “OK, got it” in the information banner, and later when you make a choice in the banner or in “Cookie settings”, for sosmiam.fr and its ambassador and pro areas."],
               ["react-router-scroll-positions (session storage)", "Takes you back to where you were on a page when you go back.", "Until you close the tab", "The site, in your browser: nothing is sent to our server."],
               ["react-router-manifest-version (session storage)", "After a site update, reloads the page just once, without going round in circles.", "Until you close the tab", "The site, in your browser, only after an update."],
             ],
@@ -110,7 +110,7 @@ export const documentCookiesAnglais: DocumentLegal = {
       titre: "Cookie settings: nothing to accept or reject for now",
       blocs: [
         "Looking for the “Reject all” button? Good news: **there's nothing to reject**. All the cookies in [the list](#liste-des-cookies) are strictly necessary: for the site's security, for the login you ask for, to respect your choice not to be counted in the statistics, or for your choice of language. The law exempts them from your consent, and none of them is used for ads or to track you.",
-        "That's also why no banner appears: we're not going to ask you to accept something we don't do. The banner and the choice form are ready, and they'll only appear with the first optional cookie.",
+        "That's also why the banner offers neither “Accept all” nor “Reject all”: we're not going to ask you to accept something we don't do. The choice banner and its form are ready, and they'll only appear with the first optional cookie.",
         "What you can still do:",
         {
           liste: [
@@ -169,7 +169,7 @@ export const documentCookiesAnglais: DocumentLegal = {
       id: "ton-choix",
       titre: "Your choice, and how it will be respected",
       blocs: [
-        "Those cookies will be **optional**: none will be set or read without your consent. The banner that will ask for your consent is already built. It stays hidden as long as the site has no optional cookies. Here's how it will work:",
+        "Those cookies will be **optional**: none will be set or read without your consent. The banner that will ask for your consent is already built. As long as the site has no optional cookies, it stays hidden and only the information banner appears. Here's how it will work:",
         {
           liste: [
             "it will appear at the bottom of the screen on your first visit, before any optional cookie is set, without stopping you from reading the page;",

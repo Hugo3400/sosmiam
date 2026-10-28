@@ -25,6 +25,7 @@ const { ecrireCookieConsentement } = await import("../src/fonctions/consentement
 const { lireChoixConsentement } = await import("../src/fonctions/consentement/lire-choix-consentement.ts");
 const { choisirReglagesCookieConsentement } = await import("../src/fonctions/consentement/choisir-reglages-cookie-consentement.ts");
 const { doitAfficherBandeau } = await import("../src/fonctions/consentement/doit-afficher-bandeau.ts");
+const { doitAfficherInformation } = await import("../src/fonctions/consentement/doit-afficher-information.ts");
 const { aConsenti } = await import("../src/fonctions/consentement/a-consenti.ts");
 const { lireFormulaireConsentement } = await import("../src/fonctions/consentement/lire-formulaire-consentement.ts");
 const { creerEffacementsTraceurs } = await import("../src/fonctions/consentement/creer-effacements-traceurs.ts");
@@ -135,6 +136,14 @@ test("bandeau caché sans catégorie active, même sans aucun choix ; affiché e
   assert.equal(doitAfficherBandeau(aChoisir, { version: versionApercu, date: LE_14_OCTOBRE, reponses: { publicite: true } }), false);
 });
 
+test("bandeau d'information : sans catégorie active et sans « OK » valable seulement, jamais à la place du bandeau des choix", () => {
+  const sansChoix = listerCategoriesAChoisir(reelles);
+  const versionReelle = calculerVersionConsentement(reelles);
+  assert.equal(doitAfficherInformation(sansChoix, null), true);
+  assert.equal(doitAfficherInformation(sansChoix, { version: versionReelle, date: LE_14_OCTOBRE, reponses: {} }), false);
+  assert.equal(doitAfficherInformation(listerCategoriesAChoisir(apercu), null), false);
+});
+
 test("aConsenti : les nécessaires toujours ; le reste seulement accepté, jamais par défaut", () => {
   const choix = (reponses: Choix["reponses"]): Choix => ({ version: versionApercu, date: LE_14_OCTOBRE, reponses });
   assert.equal(aConsenti("necessaires", null), true);
@@ -216,6 +225,14 @@ test("formulaire sans JavaScript : POST /cookies/choix enregistre le choix (303)
   const piege = await poster("https://sosmiam.fr/cookies/choix", { geste: "tout-accepter", retour: "//exemple.fr" });
   assert.equal(piege.headers.get("Location"), "/");
   assert.deepEqual(piege.headers.getSetCookie(), []);
+
+  // « OK, compris » du bandeau d'information : un choix sans réponse, 6 mois, pour les trois hôtes
+  const vu = await poster("https://sosmiam.fr/cookies/choix", { geste: contenus.GESTE_INFORMATION_COOKIES, retour: "/en/faq" });
+  assert.equal(vu.headers.get("Location"), "/en/faq");
+  const [cookieVu] = vu.headers.getSetCookie();
+  assert.match(cookieVu, /Domain=sosmiam\.fr/);
+  assert.deepEqual(lireChoixConsentement(valeurDe(cookieVu), calculerVersionConsentement(reelles), Date.now())?.reponses, {});
+  assert.deepEqual(lireEtatConsentement(new Request("https://sosmiam.fr/", { headers: { Cookie: valeurDe(cookieVu) } })).choix?.reponses, {});
 
   // Le loader de root.tsx relit le choix de la requête
   assert.deepEqual(lireEtatConsentement(new Request("https://sosmiam.fr/?apercu-cookies", { headers: { Cookie: valeurDe(cookie) } })).choix?.reponses, { publicite: true });

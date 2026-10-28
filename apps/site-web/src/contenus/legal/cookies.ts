@@ -20,7 +20,8 @@
 //   14 octobre 2026 (« Journalisation des erreurs réseau » sur Off, vérifié : plus d'en-tête NEL ni Report-To).
 // - sosmiam-consentement (fonctions/consentement/ecrire-cookie-consentement.ts) : le choix du bandeau, 6 mois,
 //   Domain=sosmiam.fr (un choix pour les trois hôtes), lisible par la page. Pas encore posé en ligne : aucune catégorie
-//   facultative n'est active (contenus/cookies-consentement.ts), donc ni bandeau ni choix ; seulement en aperçu.
+//   facultative n'est active (contenus/cookies-consentement.ts), donc pas de bandeau de choix (seulement en aperçu) ; depuis
+//   le 28 octobre 2026, posé sans réponse par « OK, compris » du bandeau d'information (BandeauInformationCookies).
 // Tous strictement nécessaires (délibération CNIL n° 2020-091) : le bandeau reste caché. La partie « mes-choix » est la
 // cible du lien « Gérer mes cookies » du pied de page, et reçoit le formulaire des choix (composants/cookies/ReglagesCookies)
 // dès qu'une catégorie est active. À mettre à jour AVANT d'activer une catégorie (pub, vidéos intégrées) : la liste, les
@@ -49,7 +50,7 @@ export const documentCookies: DocumentLegal = {
       liste: [
         "**Aucun cookie de suivi**, aucune pub, aucun pistage, aucun contenu d'un autre site dans nos pages.",
         `**Quelques cookies strictement nécessaires** : un cookie de sécurité de ${cloudflare}, celui qui te garde connecté si tu te connectes, deux cookies de 10 minutes pendant une connexion avec Apple ou Google, un de 2 minutes quand tu te connectes avec l'app, celui qui retient ton refus des statistiques si tu le demandes, et celui qui retient la langue que tu choisis. Ils sont tous dans [la liste](#liste-des-cookies).`,
-        "**Pas de bandeau aujourd'hui** : la loi dispense ces cookies d'accord, donc il n'y a [rien à accepter ni à refuser](#mes-choix). Le bandeau est prêt, mais il ne s'affiche que s'il y a un vrai choix à faire.",
+        "**Rien à accepter aujourd'hui** : la loi dispense ces cookies d'accord, donc il n'y a [rien à accepter ni à refuser](#mes-choix). À ta première visite, un petit bandeau te le dit, avec un seul bouton « OK, compris ». Le bandeau des choix est prêt, mais il ne s'affiche que s'il y a un vrai choix à faire.",
         "**Le jour où la pub ou les vidéos arriveront**, rien de facultatif ne sera déposé sans ton accord : « Tout accepter », « Tout refuser » ou « Choisir », trois boutons de la même taille, et ton choix gardé 6 mois.",
       ],
     },
@@ -84,7 +85,7 @@ export const documentCookies: DocumentLegal = {
             "rien n'est enregistré dans le stockage local de ton navigateur (« localStorage »). Seule exception, strictement nécessaire à la navigation : le site garde, dans le stockage de session (« sessionStorage »), la position où tu étais sur chaque page pour t'y ramener quand tu reviens en arrière, et parfois le numéro de version du site après une mise à jour. Aucun identifiant, rien ne quitte ton navigateur, et tout s'efface quand tu fermes l'onglet.",
           ],
         },
-        `C'est pour ça que tu ne vois pas de bandeau cookies : il n'y a rien à accepter. Le bandeau est prêt pour le jour où un cookie facultatif arrivera (voir [Ton choix, et comment il sera respecté](#ton-choix)) ; d'ici là, il reste caché, pour ne pas te faire choisir pour rien. Les cookies de sécurité de ${cloudflare}, notre prestataire, sont expliqués un peu plus bas.`,
+        `C'est pour ça que notre bandeau cookies ne te demande rien : il n'y a rien à accepter. À ta première visite, il te prévient seulement, avec un bouton « OK, compris », retenu 6 mois (voir **sosmiam-consentement** dans [la liste](#liste-des-cookies)). Le bandeau des choix est prêt pour le jour où un cookie facultatif arrivera (voir [Ton choix, et comment il sera respecté](#ton-choix)) ; d'ici là, il reste caché, pour ne pas te faire choisir pour rien. Les cookies de sécurité de ${cloudflare}, notre prestataire, sont expliqués un peu plus bas.`,
         "Comme presque tous les sites, notre serveur note chaque visite dans un journal technique (adresse IP, page demandée, date et heure…), gardé 15 jours au plus pour la sécurité et le dépannage. Ce n'est pas un cookie : rien n'est déposé dans ton appareil. Tout est expliqué dans la [politique de confidentialité](/confidentialite).",
       ],
     },
@@ -107,7 +108,7 @@ export const documentCookies: DocumentLegal = {
               ["__Host-sosmiam-connexion-qr", "Vérifier que c'est bien ton app qui valide « Me connecter avec l'app » (le code secret du QR affiché). Chiffré.", "2 minutes au plus, effacé dès qu'il a servi", "SOS Miam, quand tu touches « Me connecter avec l'app » (connexion par QR code)."],
               ["sosmiam-sans-statistiques", "Retenir ton refus d'être compté dans les statistiques de visite.", "13 mois", "SOS Miam, seulement si tu le demandes sur la page [Statistiques](/statistiques)."],
               ["sosmiam-langue", "Retenir la langue que tu as choisie pour le site (« fr » ou « en »). Aucun identifiant.", "1 an", "SOS Miam, seulement quand tu choisis une langue (en bas de page, ou dans le bandeau qui te propose l'autre langue), pour sosmiam.fr et ses espaces ambassadeur et pro."],
-              ["sosmiam-consentement", "Retenir tes choix sur les cookies facultatifs : ce que tu acceptes ou refuses, la date du choix et la version de la liste des partenaires. Aucun identifiant.", "6 mois", "SOS Miam, seulement quand tu fais un choix dans le bandeau ou dans « Gérer mes cookies », pour sosmiam.fr et ses espaces ambassadeur et pro. Pas encore posé : il n'y a aucun choix à faire aujourd'hui."],
+              ["sosmiam-consentement", "Retenir tes choix sur les cookies facultatifs : ce que tu acceptes ou refuses, la date du choix et la version de la liste des partenaires. Aujourd'hui, retenir seulement que tu as vu le bandeau d'information. Aucun identifiant.", "6 mois", "SOS Miam, quand tu touches « OK, compris » dans le bandeau d'information, et plus tard quand tu feras un choix dans le bandeau ou dans « Gérer mes cookies », pour sosmiam.fr et ses espaces ambassadeur et pro."],
               ["react-router-scroll-positions (stockage de session)", "Te ramener où tu étais sur une page quand tu reviens en arrière.", "Jusqu'à la fermeture de l'onglet", "Le site, dans ton navigateur : rien n'est envoyé à notre serveur."],
               ["react-router-manifest-version (stockage de session)", "Après une mise à jour du site, recharger la page une seule fois, sans tourner en rond.", "Jusqu'à la fermeture de l'onglet", "Le site, dans ton navigateur, seulement après une mise à jour."],
             ],
@@ -138,7 +139,7 @@ export const documentCookies: DocumentLegal = {
       titre: "Gérer mes cookies : rien à accepter ni à refuser pour l'instant",
       blocs: [
         "Tu cherches le bouton « Tout refuser » ? Bonne nouvelle : **il n'y a rien à refuser**. Tous les cookies de [la liste](#liste-des-cookies) sont strictement nécessaires : à la sécurité du site, à la connexion que tu demandes, au respect de ton refus des statistiques, ou à ton choix de langue. La loi les dispense de ton accord, et aucun ne sert à la pub ni à te suivre.",
-        "C'est aussi pour ça qu'aucun bandeau ne s'affiche : on ne va pas te demander d'accepter quelque chose qu'on ne fait pas. Le bandeau et le formulaire de choix sont prêts : ils n'apparaîtront qu'avec le premier cookie facultatif.",
+        "C'est aussi pour ça que le bandeau ne te propose ni « Tout accepter » ni « Tout refuser » : on ne va pas te demander d'accepter quelque chose qu'on ne fait pas. Le bandeau des choix et son formulaire sont prêts : ils n'apparaîtront qu'avec le premier cookie facultatif.",
         "Ce que tu peux faire quand même :",
         {
           liste: [
@@ -197,7 +198,7 @@ export const documentCookies: DocumentLegal = {
       id: "ton-choix",
       titre: "Ton choix, et comment il sera respecté",
       blocs: [
-        "Ces cookies-là seront **facultatifs** : aucun ne sera déposé ni lu sans ton accord. Le bandeau qui te demandera ton avis est déjà prêt ; il reste caché tant qu'aucun cookie facultatif n'existe sur le site. Voici comment il marchera :",
+        "Ces cookies-là seront **facultatifs** : aucun ne sera déposé ni lu sans ton accord. Le bandeau qui te demandera ton avis est déjà prêt ; tant qu'aucun cookie facultatif n'existe sur le site, il reste caché, et seul le bandeau d'information s'affiche. Voici comment il marchera :",
         {
           liste: [
             "il s'affichera en bas de l'écran à ta première visite, avant le dépôt de tout cookie facultatif, sans t'empêcher de lire la page ;",
