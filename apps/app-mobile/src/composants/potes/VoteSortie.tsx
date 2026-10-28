@@ -9,7 +9,8 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChoixLieu } from "~/composants/potes/ChoixLieu";
 import { LieuChoisiSortie } from "~/composants/potes/LieuChoisiSortie";
 import { PropositionVote } from "~/composants/potes/PropositionVote";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_VOTE_SORTIE_PAR_LANGUE } from "~/contenus/textes-vote-sortie";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -19,6 +20,7 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   sortie: Sortie;
@@ -50,6 +52,8 @@ function ouvrirItineraire(lieu: Lieu) {
 /** La partie « Le vote » d'une sortie : les lieux proposés et leurs votes, proposer un lieu, terminer le vote, puis le lieu retenu. */
 export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, onTerminer }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_VOTE_SORTIE_PAR_LANGUE).vote;
+  const REFUS = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { trouverPote, voter, proposerLieu, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { estMasquee } = utiliserActivite();
@@ -73,21 +77,21 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
 
   function basculerVote(lieu: Lieu, aVote: boolean) {
     voter(sortie.id, lieu.id);
-    AccessibilityInfo.announceForAccessibility(aVote ? `Vote retiré pour ${lieu.nom}` : `Tu votes pour ${lieu.nom}`);
+    AccessibilityInfo.announceForAccessibility(aVote ? T.voteRetire(lieu.nom) : T.voteFait(lieu.nom));
   }
 
   function proposer(lieuId: number) {
     const lieu = trouverLieu(lieuId);
     // Affiché tout de suite ; si le serveur refuse, la proposition repart et on dit pourquoi
     const resultat = proposerLieu(sortie.id, lieuId, (erreur) =>
-      onAnnoncer(erreur === "compte-limite" ? REFUS_LIMITATION.sortie : `${lieu?.nom ?? "Ce lieu"} n'a pas pu entrer dans la course. Réessaie dans un instant ?`),
+      onAnnoncer(erreur === "compte-limite" ? REFUS.sortie : T.echec(lieu?.nom ?? T.ceLieu)),
     );
     if (resultat === "ok") {
       setChoixOuvert(false);
-      onAnnoncer(`📍 ${lieu?.nom ?? "Lieu"} proposé, et ton vote est déjà dedans !`);
-    } else if (resultat === "deja") onAnnoncer("Ce lieu est déjà dans la course 😉");
-    else if (resultat === "max") onAnnoncer(`Déjà ${MAX_PROPOSITIONS_SORTIE} lieux en lice : départagez-les d'abord !`);
-    else onAnnoncer("Ce lieu n'est pas possible pour cette sortie, essaie-en un autre.");
+      onAnnoncer(T.propose(lieu?.nom ?? T.lieu));
+    } else if (resultat === "deja") onAnnoncer(T.deja);
+    else if (resultat === "max") onAnnoncer(T.max(MAX_PROPOSITIONS_SORTIE));
+    else onAnnoncer(T.impossible);
   }
 
   return (
@@ -105,17 +109,17 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
 
       <View className="gap-1">
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-          {voteFini ? "Les résultats" : "Les lieux en lice"}
+          {voteFini ? T.resultats : T.enLice}
         </Text>
         <Text className="font-texte text-[15px] leading-[22px] text-gris">
-          {lierPonctuation(voteFini ? "Le vote est terminé, voilà ce que la bande a choisi." : `Vote pour autant de lieux que tu veux. Fin du vote ${finVote}.`)}
+          {lierPonctuation(voteFini ? T.termine : T.consigne(finVote))}
         </Text>
       </View>
 
       {propositions.length === 0 ? (
         <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
           <Text className="text-center font-texte text-base leading-6 text-gris">
-            {lierPonctuation(voteFini ? "Aucun lieu n'a été proposé : il faudra improviser !" : "Aucun lieu pour l'instant : lance la course en proposant le premier.")}
+            {lierPonctuation(voteFini ? T.aucunTermine : T.aucun)}
           </Text>
         </View>
       ) : (
@@ -148,19 +152,19 @@ export function VoteSortie({ sortie, voteFini, lieuChoisi, finVote, onAnnoncer, 
       {voteFini ? null : (
         <View className="gap-3">
           <Bouton
-            libelle={complet ? `${MAX_PROPOSITIONS_SORTIE} lieux en lice, c'est complet` : "Proposer un lieu"}
+            libelle={complet ? T.complet(MAX_PROPOSITIONS_SORTIE) : T.proposer}
             variante="blanc"
             desactive={complet}
-            indice={complet ? undefined : "Choisis un lieu à ajouter au vote"}
+            indice={complet ? undefined : T.proposerIndice}
             onPress={() => setChoixOuvert(true)}
           />
-          {organisateur ? <Bouton libelle="Terminer le vote" variante="encre" indice="Le lieu qui a le plus de votes l'emporte" onPress={onTerminer} /> : null}
+          {organisateur ? <Bouton libelle={T.terminer} variante="encre" indice={T.terminerIndice} onPress={onTerminer} /> : null}
         </View>
       )}
 
       <ChoixLieu
         visible={choixOuvert}
-        titre="Proposer un lieu"
+        titre={T.proposer}
         dejaChoisis={sortie.propositions.map((p) => p.lieuId)}
         onChoisir={proposer}
         onFermer={() => setChoixOuvert(false)}

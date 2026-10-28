@@ -1,5 +1,7 @@
 // Carrousel de bienvenue (première ouverture de l'app) : le concept de SOS Miam, raconté par la mascotte.
+import type { ParLangue } from "@sos-miam/commun/types/traduction";
 import type { ExpressionMascotte } from "~/composants/marque/Mascotte";
+import { DIAPOS_BIENVENUE_ANGLAIS } from "~/contenus/anglais/inscription/diapos-bienvenue";
 
 export type DiapoBienvenue = {
   id: string;
@@ -47,3 +49,5 @@ export const diaposBienvenue: DiapoBienvenue[] = [
     fond: "jaune",
   },
 ];
+
+export const DIAPOS_BIENVENUE_PAR_LANGUE: ParLangue<readonly DiapoBienvenue[]> = { fr: diaposBienvenue, en: DIAPOS_BIENVENUE_ANGLAIS };

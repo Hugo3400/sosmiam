@@ -1,6 +1,8 @@
 // Les envies demandées à l'inscription, une étape par catégorie (voir docs/decisions.md).
 // Seuls les comptes (18 ans ou plus) passent par les envies : tout est proposé, bars et boissons compris. « sensible » : peut révéler une religion ou la santé (RGPD, article 9).
 import type { CategorieEnvie } from "@sos-miam/commun/types/profil";
+import type { ParLangue } from "@sos-miam/commun/types/traduction";
+import { ETAPES_ENVIES_ANGLAIS } from "~/contenus/anglais/inscription/envies";
 
 export type ChoixEnvie = {
   id: string;
@@ -283,3 +285,5 @@ export const etapesEnvies: EtapeEnvies[] = [
     ],
   },
 ];
+
+export const ETAPES_ENVIES_PAR_LANGUE: ParLangue<readonly EtapeEnvies[]> = { fr: etapesEnvies, en: ETAPES_ENVIES_ANGLAIS };

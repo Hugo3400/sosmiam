@@ -10,12 +10,14 @@ import { BandeauValidationsQr } from "~/composants/pro/BandeauValidationsQr";
 import { ChoixPersonnesQr } from "~/composants/pro/ChoixPersonnesQr";
 import { QrTournant } from "~/composants/pro/QrTournant";
 import { EtiquettesReglement } from "~/composants/visites/EtiquettesReglement";
+import { TEXTES_ECRAN_QR_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-ecran-pro-comptoir";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserQrTournant } from "~/hooks/utiliser-qr-tournant";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Le QR du comptoir en grand, à tourner vers le client après le paiement : il change toutes les 30 s (l'anneau le
@@ -23,6 +25,7 @@ import { utiliserQrTournant } from "~/hooks/utiliser-qr-tournant";
  */
 export default function EcranQrComptoir() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_QR_COMPTOIR_PAR_LANGUE);
   const { width } = useWindowDimensions();
   const fermer = utiliserFermerPile();
   const { lieuPro } = utiliserModes();
@@ -45,7 +48,7 @@ export default function EcranQrComptoir() {
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Revenir au comptoir"
+          accessibilityLabel={T.revenir}
           hitSlop={8}
           onPress={() => {
             vibrerLegerement();
@@ -66,17 +69,17 @@ export default function EcranQrComptoir() {
           <>
             <View className="items-center gap-1.5">
               <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
-                Scanne-moi
+                {T.titre}
               </Text>
-              <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation("Une fois l'addition payée : onglet Scan → « Scanner le QR du comptoir ».")}</Text>
+              <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(T.consigne)}</Text>
             </View>
-            <View accessible accessibilityLabel={`QR du comptoir de ${lieuPro?.nom ?? "ton lieu"}. Il change toutes les 30 secondes.`}>
+            <View accessible accessibilityLabel={T.qrLu(lieuPro?.nom ?? T.tonLieu)}>
               <QrTournant texte={qr.texte} fenetre={qr.fenetre} changeDansMs={qr.changeDansMs} dureeMs={DUREE_FENETRE_QR_MS} taille={taille} />
             </View>
             <EtiquettesReglement reglement={qr.reglement} pour="lieu" centre />
             <BandeauValidationsQr qr={qr} validees={etat?.validees ?? []} maintenant={maintenant} />
             <Bouton
-              libelle="Éteindre le QR"
+              libelle={T.eteindre}
               variante="blanc"
               className="self-stretch"
               onPress={async () => {
@@ -91,13 +94,13 @@ export default function EcranQrComptoir() {
               ✅
             </Text>
             <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
-              QR éteint
+              {T.eteintTitre}
             </Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation(etat ? "Tout le monde a scanné, ou les 2 minutes sont passées. Une autre table ? Montre un nouveau QR." : "On allume le comptoir…")}
+              {lierPonctuation(etat ? T.eteintTexte : T.chargement)}
             </Text>
-            {etat ? <Bouton libelle="Montrer un nouveau QR" onPress={() => setChoixQr(true)} className="self-stretch" /> : null}
-            <Bouton libelle="Revenir au comptoir" variante="blanc" onPress={fermer} className="self-stretch" />
+            {etat ? <Bouton libelle={T.nouveau} onPress={() => setChoixQr(true)} className="self-stretch" /> : null}
+            <Bouton libelle={T.revenir} variante="blanc" onPress={fermer} className="self-stretch" />
           </View>
         )}
       </ScrollView>

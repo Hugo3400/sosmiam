@@ -22,6 +22,10 @@ import { ecrireAttenteLangue } from "~/fonctions/langue/ecrire-attente-langue";
 import { ecrireMoisAnneeLangue } from "~/fonctions/langue/ecrire-mois-annee-langue";
 import { formaterIlYALangue } from "~/fonctions/langue/formater-il-y-a-langue";
 import { formaterPrixLuLangue } from "~/fonctions/langue/formater-prix-lu-langue";
+import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { formaterHeureTexteLangue } from "~/fonctions/langue/formater-heure-texte-langue";
+import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
+import { decrireReglementLangue } from "~/fonctions/langue/decrire-reglement-langue";
 import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { formaterPrixLu } from "~/fonctions/prix/formater-prix-lu";
 import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
@@ -102,4 +106,31 @@ test("il y a, attente, prénoms, prix lu et mois : le français ne bouge pas, l'
   assert.equal(formaterPrixLuLangue(0.8, "en"), "80 cents");
   assert.equal(ecrireMoisAnneeLangue("2026-10", "en"), "October 2026");
   assert.equal(ecrireMoisAnneeLangue("abc", "en"), "abc");
+});
+
+test("heure écrite « 21:30 » : le français ne bouge pas, l'anglais en 24 h", () => {
+  for (const heure of ["21:30", "20:00", "09:05", "12:00", "00:15"]) assert.equal(formaterHeureTexteLangue(heure, "fr"), formaterHeure(heure));
+  assert.equal(formaterHeureTexteLangue("21:30", "en"), "21:30");
+  assert.equal(formaterHeureTexteLangue("20:00", "en"), "20:00");
+  assert.equal(formaterHeureTexteLangue("9:05", "en"), "09:05");
+});
+
+test("règlement d'une visite : le français ne bouge pas, l'anglais garde « Collaboration commerciale » en premier", () => {
+  const reglements = [
+    null,
+    { type: "paye", reductionPourcent: null, avantages: [] },
+    { type: "reduction", reductionPourcent: 20, avantages: ["happy-hour", "partenariat"] },
+    { type: "reduction", reductionPourcent: null, avantages: [] },
+    { type: "offert", reductionPourcent: null, avantages: ["autre", "autre"] },
+  ];
+  for (const r of reglements) {
+    for (const pour of ["client", "lieu"]) assert.deepEqual(decrireReglementLangue(r, pour, "fr"), decrireReglement(r, pour));
+  }
+  assert.deepEqual(decrireReglementLangue(reglements[2], "lieu", "en"), {
+    titre: "Paid with a discount (−20%)",
+    etiquettes: ["Collaboration commerciale", "Happy hour or set menu"],
+    offert: false,
+  });
+  assert.equal(decrireReglementLangue(reglements[4], "client", "en").titre, "Gifted by the venue");
+  assert.equal(decrireReglementLangue(null, "lieu", "en").titre, "Paid");
 });

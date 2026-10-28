@@ -1,0 +1,63 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_VOTE_SORTIE } from "~/contenus/textes-vote-sortie";
+
+const PROPOSER = "Suggest a place";
+
+export const TEXTES_VOTE_SORTIE_ANGLAIS: Traduction<typeof TEXTES_VOTE_SORTIE> = {
+  vote: {
+    voteRetire: (nom: string) => `Vote removed for ${nom}`,
+    voteFait: (nom: string) => `You're voting for ${nom}`,
+    ceLieu: "This place",
+    lieu: "Place",
+    echec: (nom: string) => `${nom} couldn't make it into the running. Try again in a moment?`,
+    propose: (nom: string) => `📍 ${nom} suggested, and your vote's already in!`,
+    deja: "This place is already in the running 😉",
+    max: (max: number) => `Already ${max} places in the running – settle it between those first!`,
+    impossible: "This place can't be used for this get-together. Try another one.",
+    resultats: "The results",
+    enLice: "Places in the running",
+    termine: "The vote's over – here's what the crew chose.",
+    consigne: (finVote: string) => `Vote for as many places as you like. Voting ends ${finVote}.`,
+    aucunTermine: "No places were suggested – time to improvise!",
+    aucun: "No places yet – get things going by suggesting the first one.",
+    complet: (max: number) => `Full with ${max} places`,
+    proposer: PROPOSER,
+    proposerIndice: "Pick a place to add to the vote",
+    terminer: "End the vote",
+    terminerIndice: "The place with the most votes wins",
+  },
+  proposition: {
+    toi: "you",
+    pasDeVote: "No votes yet",
+    votes: (n: number) => `${n} vote${n === 1 ? "" : "s"}`,
+    retenu: "Chosen place",
+    aDistance: (distance: string) => `${distance} away`,
+    proposePar: (prenom: string) => `Suggested by ${prenom}`,
+    proposeParDebut: "Suggested by ",
+    votantsLu: (nombre: string, prenoms: string) => `${nombre}: ${prenoms}`,
+    ficheIndice: "Opens the place's page",
+    retirerVote: (nom: string) => `Remove your vote for ${nom}`,
+    voterPour: (nom: string) => `Vote for ${nom}`,
+    vote: "Voted",
+    voter: "Vote",
+  },
+  lieuChoisi: {
+    detailAucunVote: "Nobody voted, so we went with the first one suggested.",
+    detailVotes: (votes: number) => `${votes} vote${votes === 1 ? "" : "s"} – the crew has spoken.`,
+    titreLu: (nom: string) => `Let's go! Chosen place: ${nom}`,
+    titre: "Let's go! 🎉",
+    fiche: "The place's page",
+    ficheIndice: "Opening hours, signature dish and address",
+    itineraire: "Directions",
+    itineraireIndice: "Opens directions in your maps app",
+  },
+  lieuxProposes: {
+    aDistance: (distance: string) => `${distance} away`,
+    retirer: (nom: string) => `Remove ${nom}`,
+    vide: "Suggest at least one place to get the vote going. Your friends can add more.",
+    maximum: (max: number) => `${max} places is the max`,
+    choisir: "Choose a place",
+    ajouter: "Add a place",
+    ajouterIndice: "Opens the list of places, with a search",
+  },
+};

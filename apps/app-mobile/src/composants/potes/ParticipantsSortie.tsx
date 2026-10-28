@@ -2,8 +2,11 @@ import { Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
-import { listerPrenoms } from "~/fonctions/texte/lister-prenoms";
+import { TEXTES_MEMBRES_SORTIE_PAR_LANGUE } from "~/contenus/textes-membres-sortie";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Participants à montrer (toi compris), l'organisateur en premier de préférence */
@@ -21,12 +24,14 @@ const TAILLE = 30;
 /** Les têtes de la sortie, en rangée qui se chevauche, avec qui organise et combien vous êtes. Lu en une phrase. */
 export function ParticipantsSortie({ participants, organisateur, max = 6, enAttente = 0 }: Props) {
   const monId = utiliserMonId();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MEMBRES_SORTIE_PAR_LANGUE).participants;
   const montres = participants.slice(0, max);
   const reste = participants.length - montres.length;
-  const qui = organisateur ? (organisateur.id === monId ? "toi" : organisateur.prenom) : null;
-  const nombre = `${participants.length} participant${participants.length > 1 ? "s" : ""}`;
-  const attente = enAttente > 0 ? `${enAttente} en attente` : null;
-  const lu = `${nombre} : ${listerPrenoms(participants.map((p) => (p.id === monId ? "toi" : p.prenom)))}.${attente ? ` ${attente} de réponse.` : ""}${qui ? ` Organisée par ${qui}.` : ""}`;
+  const qui = organisateur ? (organisateur.id === monId ? T.toi : organisateur.prenom) : null;
+  const nombre = T.nombre(participants.length);
+  const attente = enAttente > 0 ? T.enAttente(enAttente) : null;
+  const lu = T.lu(nombre, listerPrenomsLangue(participants.map((p) => (p.id === monId ? T.toi : p.prenom)), langue), enAttente, qui);
 
   return (
     <View accessible accessibilityLabel={lu} className="flex-row items-center gap-3">
@@ -52,7 +57,7 @@ export function ParticipantsSortie({ participants, organisateur, max = 6, enAtte
         {attente ? ` · ${attente}` : ""}
         {qui ? (
           <>
-            {" · organisée par "}
+            {T.organiseePar}
             <Text className="font-texte-semi text-encre">{qui}</Text>
           </>
         ) : null}

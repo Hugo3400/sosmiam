@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import { MAX_PARTICIPANTS_SORTIE } from "@sos-miam/commun/regles/potes";
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { FeuilleInviterSortie } from "~/composants/potes/FeuilleInviterSortie";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_MEMBRES_SORTIE_PAR_LANGUE } from "~/contenus/textes-membres-sortie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   sortie: Sortie;
@@ -28,6 +30,8 @@ type Membre = { pote: Pote; enAttente: boolean };
  * Les personnes bloquées n'apparaissent pas.
  */
 export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
+  const T = utiliserTextes(TEXTES_MEMBRES_SORTIE_PAR_LANGUE).membres;
+  const MESSAGES = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const { trouverPote, bloques, retirerParticipant } = utiliserCommunaute();
   const monId = utiliserMonId();
   const [aRetirer, setARetirer] = useState<Membre | null>(null);
@@ -51,29 +55,29 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
 
   async function retirer(membre: Membre) {
     const erreur = await retirerParticipant(sortie.id, membre.pote.id);
-    if (erreur) onAnnoncer(MESSAGES_SERVICE[erreur].texte);
-    else onAnnoncer(membre.enAttente ? `L'invitation de ${membre.pote.prenom} est retirée. En toute discrétion 🤫` : `${membre.pote.prenom} ne fait plus partie de la sortie. En toute discrétion 🤫`);
+    if (erreur) onAnnoncer(MESSAGES[erreur].texte);
+    else onAnnoncer(membre.enAttente ? T.invitationRetiree(membre.pote.prenom) : T.membreRetire(membre.pote.prenom));
   }
 
   return (
     <View className="gap-3">
       <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-        Qui vient ?
+        {T.titre}
       </Text>
       <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
         {membres.map((m, i) => {
           const estMoi = m.pote.id === monId;
           const estOrganisateur = m.pote.id === sortie.organisateur && !m.enAttente;
-          const etiquette = m.enAttente ? "En attente" : estOrganisateur ? "Organise" : null;
+          const etiquette = m.enAttente ? T.enAttente : estOrganisateur ? T.organise : null;
           return (
             <View key={m.pote.id} className={`min-h-14 flex-row items-center gap-3 px-3.5 py-2.5 ${i < membres.length - 1 ? "border-b border-ligne" : ""}`}>
-              <View accessible accessibilityLabel={`${estMoi ? "Toi" : m.pote.prenom}${etiquette ? `, ${etiquette.toLowerCase()}` : ""}`} className="flex-1 flex-row items-center gap-3">
+              <View accessible accessibilityLabel={`${estMoi ? T.toi : m.pote.prenom}${etiquette ? `, ${etiquette.toLowerCase()}` : ""}`} className="flex-1 flex-row items-center gap-3">
                 <View className={m.enAttente ? "opacity-50" : ""}>
                   <RondPote pote={m.pote} taille={36} />
                 </View>
                 <View className="flex-1">
                   <Text numberOfLines={1} className="font-texte-gras text-base text-encre">
-                    {estMoi ? "Toi" : m.pote.prenom}
+                    {estMoi ? T.toi : m.pote.prenom}
                   </Text>
                   {m.pote.pseudo && !estMoi ? (
                     <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
@@ -90,8 +94,8 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
               {organisateur && !estMoi ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`Retirer ${m.pote.prenom}`}
-                  accessibilityHint={m.enAttente ? "Son invitation disparaît, sans qu'on le prévienne" : "Sans le prévenir, après confirmation"}
+                  accessibilityLabel={T.retirerLu(m.pote.prenom)}
+                  accessibilityHint={m.enAttente ? T.retirerIndiceAttente : T.retirerIndice}
                   hitSlop={6}
                   onPress={() => {
                     vibrerLegerement();
@@ -100,7 +104,7 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
                   }}
                   className="h-9 min-w-20 items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
                 >
-                  <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
+                  <Text className="font-texte-gras text-[13px] text-encre">{T.retirer}</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -110,10 +114,10 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
 
       {organisateur && !passee ? (
         <Bouton
-          libelle={complet ? `Complet : ${MAX_PARTICIPANTS_SORTIE} personnes` : "Inviter d'autres potes"}
+          libelle={complet ? T.complet(MAX_PARTICIPANTS_SORTIE) : T.inviter}
           variante="blanc"
           desactive={complet}
-          indice={complet ? undefined : "Choisis des potes de ta bande à inviter"}
+          indice={complet ? undefined : T.inviterIndice}
           onPress={() => setInvitationOuverte(true)}
         />
       ) : null}
@@ -121,14 +125,10 @@ export function MembresSortie({ sortie, passee, onAnnoncer }: Props) {
       <FeuilleConfirmation
         visible={confirmationOuverte}
         emoji="👋"
-        titre={aRetirer ? (aRetirer.enAttente ? `Retirer l'invitation de ${aRetirer.pote.prenom} ?` : `Retirer ${aRetirer.pote.prenom} de la sortie ?`) : ""}
-        detail={
-          aRetirer?.enAttente
-            ? "Son « Tu viens ? » disparaît. On ne prévient personne."
-            : "Plus de vote ni de discussion pour cette sortie. On ne prévient personne, et tu pourras toujours l'inviter de nouveau."
-        }
-        libelleConfirmer="Retirer"
-        libelleRester="Finalement non"
+        titre={aRetirer ? (aRetirer.enAttente ? T.confirmerTitreAttente(aRetirer.pote.prenom) : T.confirmerTitre(aRetirer.pote.prenom)) : ""}
+        detail={aRetirer?.enAttente ? T.confirmerDetailAttente : T.confirmerDetail}
+        libelleConfirmer={T.retirer}
+        libelleRester={T.rester}
         onConfirmer={() => {
           if (aRetirer) void retirer(aRetirer);
         }}

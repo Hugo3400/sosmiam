@@ -4,7 +4,6 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { ReponseComptoir } from "@sos-miam/commun/client-api/contrat-comptoir";
-import { decrireReglement } from "@sos-miam/commun/fonctions/visites/decrire-reglement";
 import { DEMANDES_AVANT_SAISIE_CODE } from "@sos-miam/commun/regles/visites";
 import type { DemandeComptoir, ValidationRecente } from "@sos-miam/commun/types/comptoir";
 import { Annonce } from "~/composants/interface/Annonce";
@@ -19,11 +18,15 @@ import { ComptoirVide } from "~/composants/pro/ComptoirVide";
 import { FeuilleReglement } from "~/composants/pro/FeuilleReglement";
 import { FeuilleRefusVisite } from "~/composants/pro/FeuilleRefusVisite";
 import { ListeValideesInstant } from "~/composants/pro/ListeValideesInstant";
+import { TEXTES_ECRAN_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-ecran-pro-comptoir";
+import { decrireReglementLangue } from "~/fonctions/langue/decrire-reglement-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserComptoir } from "~/hooks/utiliser-comptoir";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const nomDe = (d: { prenom: string; initialeNom: string | null }) => (d.initialeNom ? `${d.prenom} ${d.initialeNom}.` : d.prenom);
 
@@ -33,6 +36,8 @@ const nomDe = (d: { prenom: string; initialeNom: string | null }) => (d.initiale
  */
 export default function EcranComptoir() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_COMPTOIR_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { lieuPro } = utiliserModes();
@@ -68,7 +73,7 @@ export default function EcranComptoir() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
         <View className="gap-6 px-5 pt-3">
-          <EnTeteMode mode="pro" titre="Comptoir" sousTitre="Aucun lieu à gérer pour l'instant." />
+          <EnTeteMode mode="pro" titre={T.titre} sousTitre={T.sansLieu} />
         </View>
       </SafeAreaView>
     );
@@ -80,7 +85,7 @@ export default function EcranComptoir() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
       <ScrollView contentContainerClassName="gap-6 px-5 pb-10 pt-3">
-        <EnTeteMode mode="pro" titre="Comptoir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
+        <EnTeteMode mode="pro" titre={T.titre} sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`} />
         <AlertesMiamSafeComptoir lieuId={lieuPro.id} onRepondre={annoncer} />
         {/* Ce soir : SOS du soir et message du moment, pour toute l'équipe (« Mon lieu » n'est qu'au gérant) */}
         <CarteCeSoir lieuId={lieuPro.id} />
@@ -89,7 +94,7 @@ export default function EcranComptoir() {
           comptoir.erreur ? (
             <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(decrireEchecVisite(comptoir.erreur, undefined, lieuPro.nom).texte)}</Text>
           ) : (
-            <ActivityIndicator color={couleurs.encre} accessibilityLabel="On ouvre le comptoir…" />
+            <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
           )
         ) : (
           <>
@@ -101,7 +106,7 @@ export default function EcranComptoir() {
                 onVoir={() => router.push("/pro/qr")}
                 onCacher={async () => {
                   const r = await comptoir.cacherQr();
-                  if (r.ok) annoncer("QR éteint");
+                  if (r.ok) annoncer(T.qrEteint);
                   else direEchec(r);
                 }}
               />
@@ -111,10 +116,11 @@ export default function EcranComptoir() {
 
             <View className="gap-3">
               <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-                En attente{demandes.length > 0 ? ` (${demandes.length})` : ""}
+                {T.enAttente}
+                {demandes.length > 0 ? ` (${demandes.length})` : ""}
               </Text>
               {additions >= DEMANDES_AVANT_SAISIE_CODE ? (
-                <Text className="font-texte text-sm leading-5 text-gris">Plusieurs additions en même temps : tu taperas le code que te montre le client, pour ne pas te tromper de table.</Text>
+                <Text className="font-texte text-sm leading-5 text-gris">{T.plusieursAdditions}</Text>
               ) : null}
               {demandes.length === 0 ? (
                 <ComptoirVide />
@@ -135,7 +141,7 @@ export default function EcranComptoir() {
                     }}
                     onOffrir={async () => {
                       const r = await comptoir.offrirRecompense(d.id);
-                      if (r.ok) annoncer(`🎁 Récompense offerte à ${nomDe(d)}`);
+                      if (r.ok) annoncer(T.recompenseOfferte(nomDe(d)));
                       else direEchec(r);
                     }}
                   />
@@ -174,37 +180,37 @@ export default function EcranComptoir() {
         onValider={async (reglement, code) => {
           if (!aRegler) return;
           const r = await comptoir.marquerReglee(aRegler.id, code, reglement);
-          if (!r.ok && r.erreur === "code-faux") return setErreurCode("Ce n'est pas le bon code : vérifie celui que te montre le client.");
+          if (!r.ok && r.erreur === "code-faux") return setErreurCode(T.codeFaux);
           setReglementOuvert(false);
-          if (r.ok) annoncer(`✓ Visite de ${nomDe(aRegler)} validée · ${decrireReglement(reglement, "lieu").titre}`);
+          if (r.ok) annoncer(T.visiteValidee(nomDe(aRegler), decrireReglementLangue(reglement, "lieu", langue).titre));
           else direEchec(r);
         }}
         onFermer={() => setReglementOuvert(false)}
       />
       <FeuilleRefusVisite
         visible={refusOuvert}
-        titre={aRefuser ? `Refuser l'addition de ${nomDe(aRefuser)} ?` : "Refuser l'addition ?"}
-        detail="Le client lira un motif neutre, sans reproche. Trop de refus sont relus par l'équipe SOS Miam."
-        libelleConfirmer="Refuser l'addition"
+        titre={aRefuser ? T.refusTitre(nomDe(aRefuser)) : T.refusTitreSansNom}
+        detail={T.refusDetail}
+        libelleConfirmer={T.refusConfirmer}
         onConfirmer={async (motif) => {
           setRefusOuvert(false);
           if (!aRefuser) return;
           const r = await comptoir.refuser(aRefuser.id, motif);
-          if (r.ok) annoncer(`Addition de ${nomDe(aRefuser)} refusée`);
+          if (r.ok) annoncer(T.additionRefusee(nomDe(aRefuser)));
           else direEchec(r);
         }}
         onFermer={() => setRefusOuvert(false)}
       />
       <FeuilleRefusVisite
         visible={annulationOuverte}
-        titre={aAnnuler ? `Annuler la validation de ${nomDe(aAnnuler)} ?` : "Annuler la validation ?"}
-        detail="Une erreur ? Les points et le tampon repartent. Possible pendant 15 minutes après la validation."
-        libelleConfirmer="Annuler la validation"
+        titre={aAnnuler ? T.annulationTitre(nomDe(aAnnuler)) : T.annulationTitreSansNom}
+        detail={T.annulationDetail}
+        libelleConfirmer={T.annulationConfirmer}
         onConfirmer={async (motif) => {
           setAnnulationOuverte(false);
           if (!aAnnuler) return;
           const r = await comptoir.annulerValidation(aAnnuler.visiteId, motif);
-          if (r.ok) annoncer(`Validation de ${nomDe(aAnnuler)} annulée`);
+          if (r.ok) annoncer(T.validationAnnulee(nomDe(aAnnuler)));
           else direEchec(r);
         }}
         onFermer={() => setAnnulationOuverte(false)}

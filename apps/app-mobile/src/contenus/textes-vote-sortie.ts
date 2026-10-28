@@ -1,0 +1,63 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_VOTE_SORTIE_ANGLAIS } from "~/contenus/anglais/textes-vote-sortie";
+
+export const TEXTES_VOTE_SORTIE = {
+  vote: {
+    voteRetire: (nom: string) => `Vote retiré pour ${nom}`,
+    voteFait: (nom: string) => `Tu votes pour ${nom}`,
+    ceLieu: "Ce lieu",
+    lieu: "Lieu",
+    echec: (nom: string) => `${nom} n'a pas pu entrer dans la course. Réessaie dans un instant ?`,
+    propose: (nom: string) => `📍 ${nom} proposé, et ton vote est déjà dedans !`,
+    deja: "Ce lieu est déjà dans la course 😉",
+    max: (max: number) => `Déjà ${max} lieux en lice : départagez-les d'abord !`,
+    impossible: "Ce lieu n'est pas possible pour cette sortie, essaie-en un autre.",
+    resultats: "Les résultats",
+    enLice: "Les lieux en lice",
+    termine: "Le vote est terminé, voilà ce que la bande a choisi.",
+    consigne: (finVote: string) => `Vote pour autant de lieux que tu veux. Fin du vote ${finVote}.`,
+    aucunTermine: "Aucun lieu n'a été proposé : il faudra improviser !",
+    aucun: "Aucun lieu pour l'instant : lance la course en proposant le premier.",
+    complet: (max: number) => `${max} lieux en lice, c'est complet`,
+    proposer: "Proposer un lieu",
+    proposerIndice: "Choisis un lieu à ajouter au vote",
+    terminer: "Terminer le vote",
+    terminerIndice: "Le lieu qui a le plus de votes l'emporte",
+  },
+  proposition: {
+    toi: "toi",
+    pasDeVote: "Pas encore de vote",
+    votes: (n: number) => `${n} vote${n > 1 ? "s" : ""}`,
+    retenu: "Lieu retenu",
+    aDistance: (distance: string) => `à ${distance}`,
+    proposePar: (prenom: string) => `Proposé par ${prenom}`,
+    proposeParDebut: "Proposé par ",
+    votantsLu: (nombre: string, prenoms: string) => `${nombre} : ${prenoms}`,
+    ficheIndice: "Ouvre la fiche du lieu",
+    retirerVote: (nom: string) => `Retirer ton vote pour ${nom}`,
+    voterPour: (nom: string) => `Voter pour ${nom}`,
+    vote: "Voté",
+    voter: "Voter",
+  },
+  lieuChoisi: {
+    detailAucunVote: "Personne n'a voté, alors on a pris le premier proposé.",
+    detailVotes: (votes: number) => `${votes} vote${votes > 1 ? "s" : ""}, la bande a parlé.`,
+    titreLu: (nom: string) => `On y va ! Le lieu retenu : ${nom}`,
+    titre: "On y va ! 🎉",
+    fiche: "La fiche du lieu",
+    ficheIndice: "Horaires, plat signature et adresse",
+    itineraire: "Itinéraire",
+    itineraireIndice: "Ouvre l'itinéraire dans ton appli de cartes",
+  },
+  lieuxProposes: {
+    aDistance: (distance: string) => `à ${distance}`,
+    retirer: (nom: string) => `Retirer ${nom}`,
+    vide: "Propose au moins un lieu pour lancer le vote. Tes potes pourront en ajouter d'autres.",
+    maximum: (max: number) => `${max} lieux, c'est le maximum`,
+    choisir: "Choisir un lieu",
+    ajouter: "Ajouter un lieu",
+    ajouterIndice: "Ouvre la liste des lieux, avec une recherche",
+  },
+};
+
+export const TEXTES_VOTE_SORTIE_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_VOTE_SORTIE>> = { fr: TEXTES_VOTE_SORTIE, en: TEXTES_VOTE_SORTIE_ANGLAIS };
