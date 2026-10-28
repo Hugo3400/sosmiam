@@ -13,7 +13,6 @@ import { BlocVisiteLieu } from "~/composants/lieux/BlocVisiteLieu";
 import { EnTeteFicheLieu } from "~/composants/lieux/EnTeteFicheLieu";
 import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
-import { BlocEtiquettesLieu } from "~/composants/etiquettes/BlocEtiquettesLieu";
 import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { SuiteFicheLieu } from "~/composants/lieux/SuiteFicheLieu";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
@@ -123,7 +122,6 @@ export default function FicheLieu() {
         {/* « Tu passes chez eux ? » : demander l'addition, scanner, fidélité, réserver (mémorisé, relu avec tes visites) */}
         {/* Sans compte SOS Miam, pas de visite validée : la fiche dit pourquoi (CarteLieuNonVerifie, dans le haut) */}
         {verifie ? <BlocVisiteLieu lieu={lieu} /> : null}
-        <BlocEtiquettesLieu lieu={lieu} />
         <SuiteFicheLieu lieu={lieu} age={age} />
       </ScrollView>
 

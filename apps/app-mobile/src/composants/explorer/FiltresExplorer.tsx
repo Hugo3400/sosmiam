@@ -3,9 +3,7 @@ import { useRef, useState } from "react";
 import { Keyboard, Platform, Pressable, ScrollView, Text, View } from "react-native";
 
 import type { Lieu, TypeLieu } from "@sos-miam/commun/types/lieu";
-import { FeuilleFiltreEtiquette } from "~/composants/etiquettes/FeuilleFiltreEtiquette";
 import { FeuilleZoneExplorer, type ChoixZone } from "~/composants/explorer/FeuilleZoneExplorer";
-import { TEXTES_ETIQUETTES } from "~/contenus/textes-etiquettes";
 import { FILTRES_EXPLORER_PAR_DEFAUT, type FiltresExplorer as ChoixFiltres, type PeriodeEvenements } from "~/contenus/type-filtres-explorer";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -26,7 +24,6 @@ type Props = {
   /** « de toi » avec « Autour de moi », sinon « de Montpellier » */
   autourDe: string;
   onChangerZone: (zone: ChoixZone) => void;
-  etiquettesPossibles: boolean;
 };
 
 const tousLesTypes: { cle: TypeLieu | "tous"; libelle: string; emoji?: string }[] = [
@@ -67,17 +64,15 @@ function decrireZone(zone: ChoixZone, region: string | null, autourDe: string): 
  * week-end) et budgets (plusieurs).
  * « Effacer » apparaît dès qu'un filtre est actif ; il garde la recherche tapée (la barre a sa propre croix) et la zone.
  */
-export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, region, autourDe, onChangerZone, etiquettesPossibles }: Props) {
+export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, region, autourDe, onChangerZone }: Props) {
   const couleurs = utiliserCouleurs();
   const [choixZoneOuvert, setChoixZoneOuvert] = useState(false);
-  const [choixEtiquetteOuvert, setChoixEtiquetteOuvert] = useState(false);
-  const pastilleEtiquette = useRef<View>(null);
   const pastilleTous = useRef<View>(null);
   const pastilleZone = useRef<View>(null);
   const zoneDecrite = decrireZone(zone, region, autourDe);
 
   const types = tousLesTypes.filter((t) => t.cle !== "bar" || barsPermis);
-  const nombreActifs = (filtres.type !== "tous" ? 1 : 0) + (filtres.ville ? 1 : 0) + filtres.budgets.length + (filtres.ouvertMaintenant ? 1 : 0) + (filtres.evenement ? 1 : 0) + (filtres.etiquette ? 1 : 0);
+  const nombreActifs = (filtres.type !== "tous" ? 1 : 0) + (filtres.ville ? 1 : 0) + filtres.budgets.length + (filtres.ouvertMaintenant ? 1 : 0) + (filtres.evenement ? 1 : 0);
 
   function changer(modif: Partial<ChoixFiltres>) {
     vibrerLegerement();
@@ -100,16 +95,6 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
     setChoixZoneOuvert(false);
     // Le lecteur d'écran revient sur la pastille de la zone une fois la feuille descendue
     setTimeout(() => deplacerFocusLecteurEcran(pastilleZone.current), 450);
-  }
-
-  function fermerChoixEtiquette() {
-    setChoixEtiquetteOuvert(false);
-    setTimeout(() => deplacerFocusLecteurEcran(pastilleEtiquette.current), 450);
-  }
-
-  function choisirEtiquette(nom: string | null) {
-    changer({ etiquette: nom });
-    fermerChoixEtiquette();
   }
 
   function choisirZone(choix: ChoixZone) {
@@ -197,23 +182,6 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
           <Text className={classeTexte(filtres.ouvertMaintenant)}>Ouvert maintenant</Text>
         </Pressable>
 
-        {etiquettesPossibles ? (
-          <Pressable
-            ref={pastilleEtiquette}
-            accessibilityRole="button"
-            accessibilityLabel={filtres.etiquette ? TEXTES_ETIQUETTES.filtreLu(filtres.etiquette) : TEXTES_ETIQUETTES.filtre}
-            accessibilityHint={TEXTES_ETIQUETTES.filtreIndice}
-            onPress={() => {
-              vibrerLegerement();
-              setChoixEtiquetteOuvert(true);
-            }}
-            className={classePastille(filtres.etiquette !== null)}
-          >
-            <Text className="text-[14px]">🏷️</Text>
-            <Text className={classeTexte(filtres.etiquette !== null)}>{filtres.etiquette ?? TEXTES_ETIQUETTES.filtre}</Text>
-            <Ionicons name="chevron-down" size={14} color={filtres.etiquette ? couleurs["sur-choix"] : couleurs.encre} />
-          </Pressable>
-        ) : null}
 
         {/* Événements : un seul choix, qu'on retouche pour l'enlever */}
         {PERIODES.map((p) => {
@@ -254,9 +222,6 @@ export function FiltresExplorer({ filtres, onChange, villes, barsPermis, zone, r
 
       </ScrollView>
 
-      {etiquettesPossibles ? (
-        <FeuilleFiltreEtiquette visible={choixEtiquetteOuvert} choisie={filtres.etiquette} onChoisir={choisirEtiquette} onFermer={fermerChoixEtiquette} />
-      ) : null}
       <FeuilleZoneExplorer visible={choixZoneOuvert} choix={zone} region={region} autourDe={autourDe} villes={villes} onValider={choisirZone} onFermer={fermerChoixZone} />
     </>
   );

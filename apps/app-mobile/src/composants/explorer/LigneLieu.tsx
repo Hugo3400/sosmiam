@@ -3,7 +3,6 @@ import { memo } from "react";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import { TYPES_EVENEMENT_ECRITS } from "@sos-miam/commun/contenus/types-evenement";
-import type { EtiquetteLieu } from "@sos-miam/commun/types/etiquette";
 import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { estLieuVerifie } from "@sos-miam/commun/fonctions/lieux/est-lieu-verifie";
@@ -11,7 +10,6 @@ import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-a
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { BadgeVerification } from "~/composants/lieux/BadgeVerification";
-import { TEXTES_ETIQUETTES } from "~/contenus/textes-etiquettes";
 import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
 import { ecrireJourLong } from "~/fonctions/dates/ecrire-jour-long";
 import { formaterHeure } from "~/fonctions/dates/formater-heure";
@@ -36,16 +34,13 @@ type Props = {
   /** Filtre « Événements » : l'événement de ce lieu sur la période */
   evenement?: EvenementLieuPublic | null;
   maintenant: Date;
-  etiquettes?: readonly EtiquetteLieu[];
 };
 
 // « €€ » lu tel quel donnerait « euro euro » : on le dit en mots, avec les mêmes noms que les pastilles de budget (FiltresExplorer)
-const AUCUNE_ETIQUETTE: readonly EtiquetteLieu[] = [];
-
 const BUDGET_LU: Record<Lieu["prix"], string> = { "€": "petit budget", "€€": "budget moyen", "€€€": "budget plaisir" };
 
 /** Une ligne de la liste d'Explorer : vignette, nom, ce que c'est et où, distance, prix, ouvert ou pas, et son SOS ou son bon plan du moment. */
-export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null, maintenant, etiquettes = AUCUNE_ETIQUETTE }: Props) {
+export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, selectionne, onOuvrir, evenement = null, maintenant }: Props) {
   const couleurs = utiliserCouleurs();
   const ouvert = estOuvertMaintenant(lieu, maintenant);
   const distance = km === null ? null : formaterDistance(km);
@@ -68,7 +63,6 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
     lieu.alerte && !sos ? lieu.alerte : null,
     evenement ? `Événement : ${evenement.titre}, ${ecrireJourLong(evenement.debut, maintenant)} à ${ecrireHeure(evenement.debut)}` : null,
     offreAlcool ? MESSAGE_SANITAIRE_ALCOOL : null,
-    etiquettes.length > 0 ? TEXTES_ETIQUETTES.ligneLu(etiquettes.map((e) => e.nom)) : null,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
   ]
     .filter(Boolean)
@@ -115,15 +109,6 @@ export const LigneLieu = memo(function LigneLieu({ lieu, km, depuis, image, sele
         {offreAlcool ? (
           <View className="mt-1">
             <MentionPrevention variante="courte" />
-          </View>
-        ) : null}
-        {etiquettes.length > 0 ? (
-          <View className="mt-1 flex-row flex-wrap gap-1">
-            {etiquettes.map((etiquette) => (
-              <Text key={etiquette.nom} numberOfLines={1} className="overflow-hidden rounded-full bg-jaune-clair px-2 py-0.5 font-texte-semi text-xs text-encre">
-                {etiquette.nom}
-              </Text>
-            ))}
           </View>
         ) : null}
         {verifie ? null : (

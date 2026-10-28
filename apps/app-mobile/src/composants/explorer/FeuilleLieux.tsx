@@ -14,7 +14,6 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { calculerFenetreListeLieux } from "~/fonctions/lieux/calculer-fenetre-liste-lieux";
 import { estOuvertMaintenant } from "~/fonctions/lieux/est-ouvert-maintenant";
 import { lireAlcoolLieu } from "~/fonctions/lieux/lire-alcool-lieu";
-import type { EtiquetteLieu } from "@sos-miam/commun/types/etiquette";
 import type { EvenementLieuPublic } from "@sos-miam/commun/types/evenement";
 import type { LieuExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { indexerVignettesLieux } from "~/fonctions/publications/indexer-vignettes-lieux";
@@ -46,7 +45,6 @@ type Props = {
   evenements?: Map<number, EvenementLieuPublic> | null;
   depuis: string | null;
   maintenant: Date;
-  etiquettesLigne?: (lieuId: number) => readonly EtiquetteLieu[];
 };
 
 type Cran = "carte" | "repliee" | "moitie" | "depliee";
@@ -78,7 +76,7 @@ const lireCleLieu = (element: LieuExplorer) => String(element.lieu.id);
  * À poser par l'écran en bas (position absolue, au-dessus de la barre d'onglets) : elle gère elle-même sa hauteur.
  */
 export function FeuilleLieux(props: Props) {
-  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis, maintenant, etiquettesLigne } = props;
+  const { lieux, sos, selection, onSelection, onOuvrir, hauteurDisponible, pleinEcran, enTete, vide, onChangerHauteur, evenements, depuis, maintenant } = props;
   const couleurs = utiliserCouleurs();
   const animationsReduites = useReducedMotion();
   const { estMasquee } = utiliserActivite();
@@ -238,10 +236,9 @@ export function FeuilleLieux(props: Props) {
         onOuvrir={onOuvrir}
         evenement={evenements?.get(item.lieu.id) ?? null}
         maintenant={maintenant}
-        etiquettes={etiquettesLigne?.(item.lieu.id)}
       />
     ),
-    [vignettes, selection, onOuvrir, evenements, depuis, maintenant, etiquettesLigne],
+    [vignettes, selection, onOuvrir, evenements, depuis, maintenant],
   );
   const enTeteListe = useMemo(
     () =>
