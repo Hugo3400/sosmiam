@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { AccessibilityInfo, Platform, ScrollView, Text, View } from "react-native";
 
 import { CarteSuggestion } from "~/composants/suivi/CarteSuggestion";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -10,6 +11,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserSuggestionsSuivi } from "~/hooks/utiliser-suggestions-suivi";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   titre: string;
@@ -33,6 +35,7 @@ const DELAI_FOCUS_APRES_MASQUE = 250;
  */
 export function SuggestionsSuivre({ titre, sousTitre, types, max = 10, onAnnoncer }: Props) {
   const calculees = utiliserSuggestionsSuivi(types, max);
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
   const { suggestionsMasquees, masquerSuggestion, relationAvec } = utiliserSuivisPersonnes();
   const { estSignale } = utiliserCommunaute();
   const exiger = utiliserCompteRequis();
@@ -66,7 +69,7 @@ export function SuggestionsSuivre({ titre, sousTitre, types, max = 10, onAnnonce
     const index = affichees.findIndex((s) => s.cle === suggestion.cle);
     const voisine = affichees[index + 1] ?? affichees[index - 1];
     masquerSuggestion(suggestion.cle);
-    annoncer(`C'est noté : on ne te proposera plus ${suggestion.nom} 👋`);
+    annoncer(T.suggestionMasquee(suggestion.nom));
     setTimeout(() => deplacerFocusLecteurEcran((voisine && cartes.current.get(voisine.cle)) || titreRef.current), DELAI_FOCUS_APRES_MASQUE);
   }
 

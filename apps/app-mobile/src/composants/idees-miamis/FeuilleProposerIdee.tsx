@@ -12,9 +12,11 @@ import { CarteDoublonIdee } from "~/composants/idees-miamis/CarteDoublonIdee";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 import { expliquerRefusIdee } from "~/fonctions/idees-miamis/expliquer-refus-idee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -27,6 +29,8 @@ type Props = {
 };
 
 export function FeuilleProposerIdee({ visible, idees, envoi, onFermer, onProposer, onVoterDoublon, onVoirDoublon }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
   const [titre, setTitre] = useState("");
   const [detail, setDetail] = useState("");
   const [tente, setTente] = useState(false);
@@ -47,8 +51,8 @@ export function FeuilleProposerIdee({ visible, idees, envoi, onFermer, onPropose
   }
 
   const verdict = validerNouvelleIdee({ titre, detail });
-  const erreurTitre = tente && !verdict.ok && verdict.champ === "titre" ? TEXTES_IDEES.erreurs[verdict.raison] : null;
-  const erreurDetail = tente && !verdict.ok && verdict.champ === "detail" ? TEXTES_IDEES.erreursDetail[verdict.raison] : null;
+  const erreurTitre = tente && !verdict.ok && verdict.champ === "titre" ? T.erreurs[verdict.raison] : null;
+  const erreurDetail = tente && !verdict.ok && verdict.champ === "detail" ? T.erreursDetail[verdict.raison] : null;
 
   const candidates = useMemo(() => idees.filter((i) => i.statut !== "en-relecture" && i.statut !== "faite"), [idees]);
   const doublon = useMemo(() => {
@@ -71,13 +75,13 @@ export function FeuilleProposerIdee({ visible, idees, envoi, onFermer, onPropose
     if (!verdict.ok || envoi) return;
     setRefus(null);
     const erreur = await onProposer(verdict.idee, cle);
-    if (erreur) setRefus(expliquerRefusIdee(erreur));
+    if (erreur) setRefus(expliquerRefusIdee(erreur, langue));
   }
 
   return (
     <FeuilleBas
       visible={visible}
-      titre={TEXTES_IDEES.feuilleTitre}
+      titre={T.feuilleTitre}
       onFermer={onFermer}
       pied={
         <>
@@ -87,16 +91,16 @@ export function FeuilleProposerIdee({ visible, idees, envoi, onFermer, onPropose
               {lierPonctuation(refus.texte)}
             </Text>
           ) : null}
-          <Bouton libelle={envoi ? TEXTES_IDEES.envoiEnCours : TEXTES_IDEES.envoyer} variante="encre" desactive={envoi} onPress={() => void envoyer()} />
-          <Bouton libelle={TEXTES_IDEES.annuler} variante="blanc" onPress={onFermer} />
+          <Bouton libelle={envoi ? T.envoiEnCours : T.envoyer} variante="encre" desactive={envoi} onPress={() => void envoyer()} />
+          <Bouton libelle={T.annuler} variante="blanc" onPress={onFermer} />
         </>
       }
     >
       <ChampTexte
-        libelle={TEXTES_IDEES.enUnePhrase}
+        libelle={T.enUnePhrase}
         valeur={titre}
         onChangeTexte={changerTitre}
-        placeholder={TEXTES_IDEES.titrePlaceholder}
+        placeholder={T.titrePlaceholder}
         maxLength={LONGUEUR_MAX_TITRE_IDEE}
         autoCapitalize="sentences"
         returnKeyType="next"
@@ -111,18 +115,18 @@ export function FeuilleProposerIdee({ visible, idees, envoi, onFermer, onPropose
         />
       ) : null}
       <ChampTexte
-        libelle={TEXTES_IDEES.detail}
-        mention={TEXTES_IDEES.detailMention}
+        libelle={T.detail}
+        mention={T.detailMention}
         valeur={detail}
         onChangeTexte={changerDetail}
-        placeholder={TEXTES_IDEES.detailPlaceholder}
+        placeholder={T.detailPlaceholder}
         maxLength={LONGUEUR_MAX_DETAIL_IDEE}
         multiline
         textAlignVertical="top"
         autoCapitalize="sentences"
         erreur={erreurDetail}
       />
-      <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(TEXTES_IDEES.note)}</Text>
+      <Text className="font-texte text-[13px] leading-5 text-gris">{lierPonctuation(T.note)}</Text>
     </FeuilleBas>
   );
 }

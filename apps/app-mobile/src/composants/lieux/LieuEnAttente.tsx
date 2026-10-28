@@ -7,8 +7,10 @@ import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { BoutonSecoursMiamSafe } from "~/composants/miam-safe/BoutonSecoursMiamSafe";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Le serveur n'a pas répondu : « Réessayer » ; sinon, on cherche encore */
@@ -22,6 +24,8 @@ type Props = {
  */
 export function LieuEnAttente({ horsLigne, onReessayer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const A = T.attente;
   const router = useRouter();
   // Ouvert par un lien, sans écran derrière : le retour mène au fil
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/"));
@@ -32,7 +36,7 @@ export function LieuEnAttente({ horsLigne, onReessayer }: Props) {
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={8}
           onPress={revenir}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -47,20 +51,20 @@ export function LieuEnAttente({ horsLigne, onReessayer }: Props) {
           <>
             <Mascotte expression="clin" taille={120} />
             <Text accessibilityRole="header" className="text-center font-titre text-[28px] leading-[32px] text-encre">
-              Pas de réseau
+              {A.pasDeReseau}
             </Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation("Impossible d'ouvrir ce lieu pour l'instant. Vérifie ta connexion, puis réessaie : il t'attend.")}
+              {lierPonctuation(A.pasDeReseauTexte)}
             </Text>
             <View className="mt-2 w-full gap-3">
-              <Bouton libelle="Réessayer" variante="jaune" onPress={onReessayer} />
-              <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
+              <Bouton libelle={A.reessayer} variante="jaune" onPress={onReessayer} />
+              <Bouton libelle={T.retour} variante="blanc" onPress={revenir} />
             </View>
           </>
         ) : (
-          <View accessible accessibilityLabel="On ouvre ce lieu" className="items-center gap-4 pt-16">
+          <View accessible accessibilityLabel={A.ouvertureLu} className="items-center gap-4 pt-16">
             <ActivityIndicator size="large" color={couleurs.encre} />
-            <Text className="text-center font-texte text-base text-gris">On ouvre la porte…</Text>
+            <Text className="text-center font-texte text-base text-gris">{A.ouverture}</Text>
           </View>
         )}
       </ScrollView>

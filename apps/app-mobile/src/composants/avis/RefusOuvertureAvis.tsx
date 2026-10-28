@@ -4,8 +4,9 @@ import type { Text } from "react-native";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { MessageEchecVisite, type ActionEchecVisite } from "~/composants/visites/MessageEchecVisite";
 import type { RefusOuvertureAvis as Refus } from "~/fonctions/avis/choisir-refus-ouverture-avis";
-import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   refus: Refus;
@@ -17,6 +18,7 @@ type Props = {
 const DELAI_FOCUS_MS = 450;
 
 export function RefusOuvertureAvis({ refus, nomLieu, onRetour, onReessayer }: Props) {
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
   const refTitre = useRef<Text>(null);
   const [reessai, setReessai] = useState(false);
   const cle = `${refus.erreur}|${refus.titre ?? ""}`;
@@ -36,9 +38,9 @@ export function RefusOuvertureAvis({ refus, nomLieu, onRetour, onReessayer }: Pr
     }
   }
 
-  const retour: ActionEchecVisite = { libelle: TEXTES_DONNER_AVIS.retourVisite, onPress: onRetour };
+  const retour: ActionEchecVisite = { libelle: T.retourVisite, onPress: onRetour };
   const actions: ActionEchecVisite[] = onReessayer
-    ? [{ libelle: reessai ? TEXTES_DONNER_AVIS.reessaiEnCours : TEXTES_DONNER_AVIS.reessayer, onPress: () => void reessayer() }, { ...retour, variante: "blanc" }]
+    ? [{ libelle: reessai ? T.reessaiEnCours : T.reessayer, onPress: () => void reessayer() }, { ...retour, variante: "blanc" }]
     : [retour];
 
   return (

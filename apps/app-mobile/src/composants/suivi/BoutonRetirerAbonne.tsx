@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCompteRequis } from "~/hooks/utiliser-compte-requis";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Identifiant de l'abonné à retirer */
@@ -34,6 +36,7 @@ type EtatFeuille = "jamais" | "ouverte" | "fermee";
  */
 export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props) {
   const { retirerAbonne, comptePrive } = utiliserSuivisPersonnes();
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE).retirerAbonne;
   const exiger = utiliserCompteRequis();
   const [feuille, setFeuille] = useState<EtatFeuille>("jamais");
   const [retire, setRetire] = useState(false);
@@ -59,29 +62,29 @@ export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props)
   function finir() {
     setRetire(true);
     onRetire?.();
-    onAnnoncer(`${prenom} ne te suit plus. En toute discrétion 🤫`);
+    onAnnoncer(T.neSuitPlus(prenom));
   }
 
-  const suite = comptePrive ? `${prenom} devra te refaire une demande pour te suivre.` : `${prenom} pourra te suivre à nouveau.`;
+  const suite = comptePrive ? T.suitePrive(prenom) : T.suitePublic(prenom);
 
   return (
     <>
       {retire ? (
-        <View ref={texteRetire} accessible accessibilityLabel="Retiré de tes abonnés" className="h-9 min-w-24 items-center justify-center px-3">
-          <Text className="font-texte-semi text-[13px] text-gris">Retiré</Text>
+        <View ref={texteRetire} accessible accessibilityLabel={T.retireLu} className="h-9 min-w-24 items-center justify-center px-3">
+          <Text className="font-texte-semi text-[13px] text-gris">{T.retire}</Text>
         </View>
       ) : (
         <Pressable
           accessibilityRole="button"
           // Commence par le mot affiché : Commande vocale trouve le bouton (« Toucher Retirer »)
-          accessibilityLabel={`Retirer ${prenom} de tes abonnés`}
-          accessibilityHint="Ouvre une confirmation. On ne prévient personne."
+          accessibilityLabel={T.retirerLu(prenom)}
+          accessibilityHint={T.indiceRetirer}
           // 36 pt de haut à l'écran, 48 pt sous le doigt
           hitSlop={6}
           onPress={toucher}
           className="h-9 min-w-24 flex-row items-center justify-center rounded-full border-2 border-encre bg-carte px-3 active:opacity-70"
         >
-          <Text className="font-texte-gras text-[13px] text-encre">Retirer</Text>
+          <Text className="font-texte-gras text-[13px] text-encre">{T.retirer}</Text>
         </Pressable>
       )}
       {/* Préparée seulement au premier toucher : rien de plus à dessiner pour chaque ligne de la liste */}
@@ -89,11 +92,11 @@ export function BoutonRetirerAbonne({ id, prenom, onRetire, onAnnoncer }: Props)
         <FeuilleConfirmation
           visible={feuille === "ouverte"}
           emoji="🤫"
-          titre={`Retirer ${prenom} de tes abonnés ?`}
-          detail={`On ne prévient pas ${prenom} (promis, on ne cafte pas). ${suite}`}
-          libelleConfirmer="Retirer"
-          libelleRester="Finalement non"
-          indiceRester={`${prenom} reste dans tes abonnés`}
+          titre={T.titre(prenom)}
+          detail={T.detail(prenom, suite)}
+          libelleConfirmer={T.retirer}
+          libelleRester={T.rester}
+          indiceRester={T.indiceRester(prenom)}
           onConfirmer={() => retirerAbonne(id)}
           onRefermee={finir}
           onFermer={() => setFeuille("fermee")}

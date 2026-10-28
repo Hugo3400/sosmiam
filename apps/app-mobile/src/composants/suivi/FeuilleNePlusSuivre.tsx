@@ -1,4 +1,6 @@
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -20,23 +22,22 @@ type Props = {
   onFermer: () => void;
 };
 
-const DETAIL_PAR_DEFAUT = "Ses publications ne passeront plus en tête de ton fil. Pas de drame, pas de porte qui claque : tu pourras revenir quand tu veux.";
-
 /**
  * Petite feuille qui monte du bas avant d'arrêter de suivre un lieu, un créateur ou une personne (comme Instagram ou TikTok) :
  * on ne désabonne jamais sur un seul toucher. « Ne plus suivre » ou « Je reste » (la feuille générique FeuilleConfirmation).
  */
-export function FeuilleNePlusSuivre({ visible, nom, emoji, personneId, detail = DETAIL_PAR_DEFAUT, onConfirmer, onRefermee, onFermer }: Props) {
+export function FeuilleNePlusSuivre({ visible, nom, emoji, personneId, detail, onConfirmer, onRefermee, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE).nePlusSuivre;
   return (
     <FeuilleConfirmation
       visible={visible}
       emoji={emoji}
       personneId={personneId}
-      titre={`Ne plus suivre ${nom} ?`}
-      detail={detail}
-      libelleConfirmer="Ne plus suivre"
-      libelleRester="Je reste"
-      indiceRester={`Tu continues de suivre ${nom}`}
+      titre={T.titre(nom)}
+      detail={detail ?? T.detail}
+      libelleConfirmer={T.confirmer}
+      libelleRester={T.rester}
+      indiceRester={T.indiceRester(nom)}
       onConfirmer={onConfirmer}
       onRefermee={onRefermee}
       onFermer={onFermer}

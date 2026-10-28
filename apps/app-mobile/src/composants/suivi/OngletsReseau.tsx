@@ -1,6 +1,8 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type OngletReseau = "abonnes" | "abonnements";
 
@@ -12,17 +14,12 @@ type Props = {
   abonnements: number | null;
 };
 
-/** « 12 abonnés », « 1 abonné », ou « Abonnés » sans chiffre */
-function nommer(nombre: number | null, singulier: string, sansChiffre: string): string {
-  if (nombre === null) return sansChiffre;
-  return `${nombre} ${singulier}${nombre > 1 ? "s" : ""}`;
-}
-
 /** Les deux onglets du réseau d'une personne (abonnés, abonnements), comme ceux de Potes. */
 export function OngletsReseau({ onglet, onChoisir, abonnes, abonnements }: Props) {
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE).reseau;
   const onglets: { cle: OngletReseau; nom: string }[] = [
-    { cle: "abonnes", nom: nommer(abonnes, "abonné", "Abonnés") },
-    { cle: "abonnements", nom: nommer(abonnements, "abonnement", "Abonnements") },
+    { cle: "abonnes", nom: T.abonnes(abonnes) },
+    { cle: "abonnements", nom: T.abonnements(abonnements) },
   ];
 
   return (
@@ -35,7 +32,7 @@ export function OngletsReseau({ onglet, onChoisir, abonnes, abonnements }: Props
             <Pressable
               key={o.cle}
               accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-              accessibilityLabel={Platform.OS === "ios" ? `${o.nom}, onglet ${i + 1} sur ${onglets.length}` : o.nom}
+              accessibilityLabel={Platform.OS === "ios" ? T.ongletLu(o.nom, i + 1, onglets.length) : o.nom}
               accessibilityState={{ selected: actif }}
               onPress={() => {
                 vibrerLegerement();

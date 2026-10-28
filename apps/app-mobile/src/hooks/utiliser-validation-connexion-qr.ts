@@ -6,6 +6,7 @@ import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { DELAI_ACCEPTATION_QR_S, DUREE_QR_CONNEXION_S, textesConnexionQr } from "~/contenus/connexion-qr";
 import { confirmerAvecBiometrie } from "~/fonctions/compte/confirmer-avec-biometrie";
 import type { ServiceConnexionQr } from "~/hooks/utiliser-service-connexion-qr";
+import { lireLangueActuelle } from "~/services/langue-actuelle";
 
 export type EtapeValidationQr =
   | { type: "lien"; code: string }
@@ -113,7 +114,7 @@ export function utiliserValidationConnexionQr(service: ServiceConnexionQr, codeD
       const { code, demande } = etape;
       try {
         if (accepte) {
-          const verrou = await confirmerAvecBiometrie(textesConnexionQr.raisonBiometrie);
+          const verrou = await confirmerAvecBiometrie(textesConnexionQr.raisonBiometrie, lireLangueActuelle());
           if (verrou === "annule") return setEtape((e) => (e.type === "confirmer" ? { ...e, souci: textesConnexionQr.biometrieAnnulee } : e));
           // Face ID a pu prendre du temps : le délai compte toujours
           if (Date.now() >= etape.jusqua) return setEtape({ type: "expire" });

@@ -3,9 +3,10 @@ import { Text, View } from "react-native";
 
 import type { IdeeMiamis } from "@sos-miam/commun/types/idees";
 import { Bouton } from "~/composants/interface/Bouton";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   idee: IdeeMiamis;
@@ -15,7 +16,8 @@ type Props = {
 };
 
 export function CarteDoublonIdee({ idee, onVoter, onVoir, onPasPareil }: Props) {
-  const texte = idee.aVote ? TEXTES_IDEES.doublonDejaVote(idee.titre) : TEXTES_IDEES.doublon(idee.titre, idee.votes);
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
+  const texte = idee.aVote ? T.doublonDejaVote(idee.titre) : T.doublon(idee.titre, idee.votes);
 
   useEffect(() => {
     annoncerLecteurEcran(texte);
@@ -26,11 +28,11 @@ export function CarteDoublonIdee({ idee, onVoter, onVoir, onPasPareil }: Props) 
       <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(texte)}</Text>
       <View className="flex-row flex-wrap gap-3">
         {idee.aVote ? (
-          <Bouton libelle={TEXTES_IDEES.voirDoublon} variante="encre" petit onPress={onVoir} />
+          <Bouton libelle={T.voirDoublon} variante="encre" petit onPress={onVoir} />
         ) : (
-          <Bouton libelle={TEXTES_IDEES.voterDoublon} variante="encre" petit onPress={onVoter} />
+          <Bouton libelle={T.voterDoublon} variante="encre" petit onPress={onVoter} />
         )}
-        <Bouton libelle={TEXTES_IDEES.pasPareil} variante="blanc" petit onPress={onPasPareil} />
+        <Bouton libelle={T.pasPareil} variante="blanc" petit onPress={onPasPareil} />
       </View>
     </View>
   );

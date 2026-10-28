@@ -35,6 +35,8 @@ import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
 import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { ecrireNombreCouverts } from "~/fonctions/reservations/ecrire-nombre-couverts";
 import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
+import { ecrireMomentLong } from "~/fonctions/dates/ecrire-moment-long";
+import { ecrireMomentLongLangue } from "~/fonctions/langue/ecrire-moment-long-langue";
 
 const LIEUX = ["Chez Nonna Lia", "Restaurant du Capitaine Bouiboui", "Aux Pâtés de Lucette", "Le Chou Rieur", "Émile", "Sucre & Garrigue"];
 const MAINTENANT = new Date(2026, 9, 28, 15, 0);
@@ -147,4 +149,14 @@ test("heure de Paris : le français rend ecrireHeureParis, l'anglais écrit 24 h
   assert.equal(ecrireHeureParisLangue("2026-10-28T08:05:00.000Z", "en"), "09:05");
   assert.equal(ecrireHeureParisLangue("2026-07-01T22:00:00.000Z", "en"), "00:00");
   assert.equal(ecrireHeureParisLangue("pas une date", "en"), "");
+});
+
+test("moment long : le français rend ecrireMomentLong, l'anglais écrit la date britannique, « at » et 24 h", () => {
+  for (const iso of [...INSTANTS.map((i) => i.toISOString()), null, undefined, "", "pas une date"]) assert.equal(ecrireMomentLongLangue(iso, "fr"), ecrireMomentLong(iso));
+  assert.equal(ecrireMomentLongLangue(new Date(2026, 9, 22, 21, 30).toISOString(), "en"), "22 October 2026 at 21:30");
+  assert.equal(ecrireMomentLongLangue(new Date(2026, 10, 1, 9, 5).toISOString(), "en"), "1 November 2026 at 09:05");
+  assert.equal(ecrireMomentLongLangue(new Date(2026, 9, 23, 0, 0).toISOString(), "en"), "23 October 2026 at midnight");
+  assert.equal(ecrireMomentLongLangue(new Date(2026, 9, 23, 12, 0).toISOString(), "en"), "23 October 2026 at midday");
+  assert.equal(ecrireMomentLongLangue(null, "en"), null);
+  assert.equal(ecrireMomentLongLangue("pas une date", "en"), null);
 });

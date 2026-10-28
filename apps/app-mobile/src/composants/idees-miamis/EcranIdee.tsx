@@ -18,14 +18,16 @@ import { Annonce } from "~/composants/interface/Annonce";
 import { BarreEcranMiamis } from "~/composants/miamis/BarreEcranMiamis";
 import { ErreurMiamis } from "~/composants/miamis/ErreurMiamis";
 import { EtatMiamis } from "~/composants/miamis/EtatMiamis";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 import { expliquerGesteRateIdee } from "~/fonctions/idees-miamis/expliquer-geste-rate-idee";
 import { rangerCommentairesIdee } from "~/fonctions/idees-miamis/ranger-commentaires-idee";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserIdeeMiamis } from "~/hooks/utiliser-idee-miamis";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   id: string;
@@ -34,6 +36,8 @@ type Props = {
 type MenuOuvert = { contenu: ContenuIdeeAuMenu; commentaireId: string | null };
 
 export function EcranIdee({ id }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
@@ -56,12 +60,12 @@ export function EcranIdee({ id }: Props) {
 
   async function voter(oui: boolean) {
     const rate = await etat.voter(oui);
-    if (rate) annoncer(expliquerGesteRateIdee(rate, "vote"));
+    if (rate) annoncer(expliquerGesteRateIdee(rate, "vote", langue));
   }
 
   async function aimer(commentaire: CommentaireIdee, oui: boolean) {
     const rate = await etat.aimer(commentaire.id, oui);
-    if (rate) annoncer(expliquerGesteRateIdee(rate, "jaime"));
+    if (rate) annoncer(expliquerGesteRateIdee(rate, "jaime", langue));
   }
 
   function repondre(commentaire: CommentaireIdee) {
@@ -79,11 +83,11 @@ export function EcranIdee({ id }: Props) {
     if (ouvert.commentaireId) {
       const rate = await etat.supprimerCommentaire(ouvert.commentaireId);
       if (!rate && reponseA?.id === ouvert.commentaireId) setReponseA(null);
-      return annoncer(rate ? expliquerGesteRateIdee(rate, "suppression") : TEXTES_IDEES.commentaireSupprime);
+      return annoncer(rate ? expliquerGesteRateIdee(rate, "suppression", langue) : T.commentaireSupprime);
     }
     const rate = await etat.retirer();
-    if (rate) return annoncer(expliquerGesteRateIdee(rate, "retrait"));
-    annoncerLecteurEcran(TEXTES_IDEES.ideeRetiree);
+    if (rate) return annoncer(expliquerGesteRateIdee(rate, "retrait", langue));
+    annoncerLecteurEcran(T.ideeRetiree);
     revenir();
   }
 
@@ -94,7 +98,7 @@ export function EcranIdee({ id }: Props) {
     idee && idee.auteur ? (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={TEXTES_IDEES.optionsIdee}
+        accessibilityLabel={T.optionsIdee}
         hitSlop={8}
         onPress={ouvrirMenuIdee}
         className="h-11 w-11 items-center justify-center rounded-full active:opacity-60"
@@ -103,7 +107,7 @@ export function EcranIdee({ id }: Props) {
       </Pressable>
     ) : undefined;
 
-  const barre = <BarreEcranMiamis titre={TEXTES_IDEES.barre} libelleRetour={TEXTES_IDEES.retourBoite} onRetour={revenir} droite={boutonMenu} />;
+  const barre = <BarreEcranMiamis titre={T.barre} libelleRetour={T.retourBoite} onRetour={revenir} droite={boutonMenu} />;
 
   if (!idee) {
     return (
@@ -111,14 +115,14 @@ export function EcranIdee({ id }: Props) {
         {barre}
         {erreur === "idee-inconnue" ? (
           <View className="px-5 pt-6">
-            <EtatMiamis emoji="💭" titre={TEXTES_IDEES.introuvableTitre} texte={TEXTES_IDEES.introuvableTexte} action={{ libelle: TEXTES_IDEES.retourBoite, onPress: revenir }} />
+            <EtatMiamis emoji="💭" titre={T.introuvableTitre} texte={T.introuvableTexte} action={{ libelle: T.retourBoite, onPress: revenir }} />
           </View>
         ) : erreur ? (
           <View className="px-5 pt-6">
             <ErreurMiamis erreur={erreur} onReessayer={() => void relire()} />
           </View>
         ) : (
-          <ChargementIdees texte={TEXTES_IDEES.chargementIdee} />
+          <ChargementIdees texte={T.chargementIdee} />
         )}
       </SafeAreaView>
     );
@@ -134,9 +138,9 @@ export function EcranIdee({ id }: Props) {
       {enRelecture ? null : (
         <View className="flex-row items-baseline justify-between pt-1">
           <Text accessibilityRole="header" className="font-titre text-xl text-encre">
-            {TEXTES_IDEES.commentaires(nombre)}
+            {T.commentaires(nombre)}
           </Text>
-          {nombre > 1 ? <Text className="font-texte text-[13px] text-gris">{TEXTES_IDEES.plusAimes}</Text> : null}
+          {nombre > 1 ? <Text className="font-texte text-[13px] text-gris">{T.plusAimes}</Text> : null}
         </View>
       )}
     </View>
@@ -169,7 +173,7 @@ export function EcranIdee({ id }: Props) {
             )}
             ItemSeparatorComponent={() => <View className="h-4" />}
             ListHeaderComponent={enTete}
-            ListEmptyComponent={enRelecture ? null : <Text className="font-texte text-sm leading-5 text-gris">{TEXTES_IDEES.pasDeCommentaire}</Text>}
+            ListEmptyComponent={enRelecture ? null : <Text className="font-texte text-sm leading-5 text-gris">{T.pasDeCommentaire}</Text>}
             contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 }}
             keyboardShouldPersistTaps="handled"
           />

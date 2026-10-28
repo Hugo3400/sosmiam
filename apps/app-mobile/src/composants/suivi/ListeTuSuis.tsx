@@ -6,6 +6,7 @@ import { Text, View } from "react-native";
 import { RondPote } from "~/composants/potes/RondPote";
 import { LigneSuivi } from "~/composants/suivi/LigneSuivi";
 import { SuggestionsSuivre } from "~/composants/suivi/SuggestionsSuivre";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { ecrireCleSuivi } from "~/fonctions/suivi/ecrire-cle-suivi";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
@@ -15,6 +16,7 @@ import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import type { PersonneLiee } from "~/hooks/utiliser-suivis-personnes";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Affiche le petit message de l'écran (« 🔔 Tu suis maintenant … ! », « Tu ne suis plus … ») */
@@ -49,6 +51,8 @@ function rangerPersonnes(abonnements: PersonneLiee[], demandes: PersonneLiee[]):
  */
 export function ListeTuSuis({ onAnnoncer }: Props) {
   const router = useRouter();
+  const TS = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
+  const T = TS.tuSuis;
   const activite = utiliserActivite();
   const suivis = utiliserSuivisPersonnes();
   const { lieux: tousLesLieux } = utiliserLieux();
@@ -81,9 +85,9 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
         cle: ecrireCleSuivi({ type: "personne", id: pote.id }),
         emoji: pote.avatar,
         nom: pote.prenom,
-        sousTitre: `@${pote.pseudo}${relation.meSuit ? " · Te suit" : ""}`,
+        sousTitre: `@${pote.pseudo}${relation.meSuit ? T.teSuit : ""}`,
         rond: <RondPote pote={pote} taille={TAILLE_ROND} />,
-        indice: "Ouvre son profil",
+        indice: TS.ouvrir.personne,
         suivi: relation.jeSuis === "suivi",
         ouvrir: () => router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } }),
       },
@@ -100,7 +104,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
         nom: lieu.nom,
         sousTitre: `${lieu.info} · ${ecrireQuartierVille(lieu)}`,
         degrade: lieu.couleurs,
-        indice: "Ouvre la fiche du lieu",
+        indice: TS.ouvrir.lieu,
         suivi: activite.estSuivi(cle),
         ouvrir: () => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } }),
       },
@@ -117,8 +121,8 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
         cle,
         emoji: "🎬",
         nom: `@${pseudo}`,
-        sousTitre: `Créateur · ${visibles} publication${visibles > 1 ? "s" : ""}`,
-        indice: "Ouvre sa page",
+        sousTitre: T.createur(visibles),
+        indice: TS.ouvrir.createur,
         suivi: activite.estSuivi(cle),
         ouvrir: () => router.push({ pathname: "/createur/[pseudo]", params: { pseudo } }),
       },
@@ -126,9 +130,9 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
   });
 
   const sections = [
-    { cle: "personnes", emoji: "🙋", titre: "Personnes", lignes: lignesPersonnes },
-    { cle: "lieux", emoji: "🍽️", titre: "Lieux", lignes: lignesLieux },
-    { cle: "createurs", emoji: "🎬", titre: "Créateurs", lignes: lignesCreateurs },
+    { cle: "personnes", emoji: "🙋", titre: T.personnes, lignes: lignesPersonnes },
+    { cle: "lieux", emoji: "🍽️", titre: T.lieux, lignes: lignesLieux },
+    { cle: "createurs", emoji: "🎬", titre: T.createurs, lignes: lignesCreateurs },
   ].filter((s) => s.lignes.length > 0);
 
   return (
@@ -138,9 +142,9 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
             🔔
           </Text>
-          <Text className="text-center font-titre-gras text-lg text-encre">Tu ne suis personne… pour l'instant.</Text>
+          <Text className="text-center font-titre-gras text-lg text-encre">{T.videTitre}</Text>
           <Text className="text-center font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Touche « Suivre » sur une fiche, une vidéo ou le profil de quelqu'un qui te plaît : ses nouveautés arriveront jusqu'à toi.")}
+            {lierPonctuation(T.videTexte)}
           </Text>
         </View>
       ) : (
@@ -173,7 +177,7 @@ export function ListeTuSuis({ onAnnoncer }: Props) {
         })
       )}
 
-      <SuggestionsSuivre titre="Tu pourrais suivre" types={["personne", "createur", "lieu"]} onAnnoncer={onAnnoncer} />
+      <SuggestionsSuivre titre={TS.tuPourraisSuivre} types={["personne", "createur", "lieu"]} onAnnoncer={onAnnoncer} />
     </View>
   );
 }

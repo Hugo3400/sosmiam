@@ -2,10 +2,13 @@ import { memo } from "react";
 import { Text, View } from "react-native";
 
 import type { ElementCarte as DonneesElement } from "@sos-miam/commun/types/carte";
-import { etiquettesCarte } from "~/contenus/etiquettes-carte";
-import { formaterPrix } from "~/fonctions/prix/formater-prix";
-import { formaterPrixLu } from "~/fonctions/prix/formater-prix-lu";
+import { formaterPrixLangue } from "@sos-miam/commun/fonctions/langue/formater-prix-langue";
+import { ETIQUETTES_CARTE_PAR_LANGUE } from "~/contenus/etiquettes-carte";
+import { TEXTES_CARTE_LIEU_PAR_LANGUE } from "~/contenus/textes-carte-lieu";
+import { formaterPrixLuLangue } from "~/fonctions/langue/formater-prix-lu-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   element: DonneesElement;
@@ -24,13 +27,16 @@ function sansPointFinal(texte: string): string {
  * Mémorisée : tant que l'élément ne change pas, elle n'est pas redessinée (ni son libellé recalculé).
  */
 export const ElementCarte = memo(function ElementCarte({ element, separe = false }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CARTE_LIEU_PAR_LANGUE).element;
+  const etiquettesCarte = utiliserTextes(ETIQUETTES_CARTE_PAR_LANGUE);
   const etiquettes = element.etiquettes ?? [];
   const gratuit = element.prix === 0;
-  const prixLu = `${gratuit ? "gratuit" : formaterPrixLu(element.prix)}${element.unite ? ` ${element.unite}` : ""}`;
+  const prixLu = `${gratuit ? T.gratuitLu : formaterPrixLuLangue(element.prix, langue)}${element.unite ? ` ${element.unite}` : ""}`;
   const reperesLus = etiquettes.map((etiquette) => etiquettesCarte[etiquette].lu).join(", ");
 
   // « Cacio e pepe, spécialité de la maison, 12 euros. Tonnarelli, pecorino… Végétarien, fait maison. »
-  const phrases = [[element.nom, ...(element.signature ? ["spécialité de la maison"] : []), prixLu].join(", ")];
+  const phrases = [[element.nom, ...(element.signature ? [T.specialite] : []), prixLu].join(", ")];
   if (element.description) phrases.push(element.description);
   if (reperesLus) phrases.push(reperesLus.charAt(0).toUpperCase() + reperesLus.slice(1));
   const libelle = `${phrases.map(sansPointFinal).join(". ")}.`;
@@ -43,7 +49,7 @@ export const ElementCarte = memo(function ElementCarte({ element, separe = false
           {element.description ? <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(element.description)}</Text> : null}
         </View>
         <View className="max-w-[40%] items-end">
-          <Text className="font-texte-gras text-base leading-[22px] text-encre">{gratuit ? "Gratuit" : formaterPrix(element.prix)}</Text>
+          <Text className="font-texte-gras text-base leading-[22px] text-encre">{gratuit ? T.gratuit : formaterPrixLangue(element.prix, langue)}</Text>
           {element.unite ? <Text className="text-right font-texte text-xs leading-4 text-gris">{element.unite}</Text> : null}
         </View>
       </View>
@@ -51,7 +57,7 @@ export const ElementCarte = memo(function ElementCarte({ element, separe = false
       {element.signature || etiquettes.length > 0 ? (
         <View className="flex-row flex-wrap gap-1.5">
           {element.signature ? (
-            <Text className="overflow-hidden rounded-full border-2 border-encre bg-nuit px-2 py-0.5 font-texte-semi text-xs text-jaune">⭐ Signature</Text>
+            <Text className="overflow-hidden rounded-full border-2 border-encre bg-nuit px-2 py-0.5 font-texte-semi text-xs text-jaune">{T.signature}</Text>
           ) : null}
           {etiquettes.map((etiquette) => (
             <Text key={etiquette} className="overflow-hidden rounded-full bg-jaune-clair px-2.5 py-1 font-texte-moyen text-xs text-encre">

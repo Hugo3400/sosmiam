@@ -8,13 +8,15 @@ import type { CommentaireIdee } from "@sos-miam/commun/types/idees";
 import { nettoyerTexteSocial } from "@sos-miam/commun/validation/nettoyer-texte-social";
 import { verifierTexteSocial } from "@sos-miam/commun/validation/verifier-texte-social";
 import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { expliquerRefusCommentaireIdee } from "~/fonctions/idees-miamis/expliquer-refus-commentaire-idee";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reponseA: CommentaireIdee | null;
@@ -26,6 +28,8 @@ type Props = {
 };
 
 export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, occupe, margeBas, ref }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const [valeur, setValeur] = useState("");
   const [refus, setRefus] = useState<{ limite: boolean; texte: string } | null>(null);
@@ -44,15 +48,15 @@ export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, oc
   async function envoyer() {
     if (occupe) return;
     const verdict = verifierTexteSocial(valeur, LONGUEUR_MAX_COMMENTAIRE_IDEE);
-    if (verdict !== "ok") return montrer({ limite: false, texte: TEXTES_IDEES.erreursCommentaire[verdict] });
+    if (verdict !== "ok") return montrer({ limite: false, texte: T.erreursCommentaire[verdict] });
     vibrerLegerement();
     const erreur = await onEnvoyer(nettoyerTexteSocial(valeur), reponseA?.id ?? null);
-    if (erreur) return montrer(expliquerRefusCommentaireIdee(erreur));
+    if (erreur) return montrer(expliquerRefusCommentaireIdee(erreur, langue));
     setValeur("");
     setRefus(null);
   }
 
-  const libelle = reponseA ? TEXTES_IDEES.reponseA(reponseA.auteur.pseudo) : TEXTES_IDEES.commentaireLibelle;
+  const libelle = reponseA ? T.reponseA(reponseA.auteur.pseudo) : T.commentaireLibelle;
 
   return (
     <View style={{ paddingBottom: margeBas }} className="gap-2 border-t border-ligne bg-creme px-4 pt-2.5">
@@ -60,11 +64,11 @@ export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, oc
       {reponseA ? (
         <View className="flex-row items-center justify-between">
           <Text numberOfLines={1} className="shrink font-texte text-[13px] text-gris">
-            {TEXTES_IDEES.reponseA(reponseA.auteur.pseudo)}
+            {T.reponseA(reponseA.auteur.pseudo)}
           </Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={TEXTES_IDEES.annulerReponse}
+            accessibilityLabel={T.annulerReponse}
             onPress={() => {
               setRefus(null);
               onAnnulerReponse();
@@ -81,7 +85,7 @@ export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, oc
           accessibilityLabel={refus && !refus.limite ? `${libelle}. ${retirerEmoji(refus.texte)}` : libelle}
           value={valeur}
           onChangeText={changer}
-          placeholder={TEXTES_IDEES.commentairePlaceholder}
+          placeholder={T.commentairePlaceholder}
           placeholderTextColor={couleurs.gris}
           selectionColor={couleurs.encre}
           cursorColor={couleurs.encre}
@@ -92,7 +96,7 @@ export function ChampCommentaireIdee({ reponseA, onAnnulerReponse, onEnvoyer, oc
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={occupe ? TEXTES_IDEES.envoiEnCours : TEXTES_IDEES.publierCommentaire}
+          accessibilityLabel={occupe ? T.envoiEnCours : T.publierCommentaire}
           accessibilityState={{ disabled: vide || occupe, busy: occupe }}
           disabled={vide || occupe}
           onPress={() => void envoyer()}

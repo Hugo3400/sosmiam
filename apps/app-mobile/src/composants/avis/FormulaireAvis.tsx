@@ -9,7 +9,8 @@ import { ChoixNoteAvis } from "~/composants/avis/ChoixNoteAvis";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import type { PhotoAvis } from "~/contenus/type-donner-avis";
-import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   note: NoteAvis | null;
@@ -29,11 +30,11 @@ type Props = {
   onRetirerPhoto: () => void;
 };
 
-function decrireLongueur(texte: string): string {
+function decrireLongueur(texte: string, T: typeof TEXTES_DONNER_AVIS_PAR_LANGUE.fr): string {
   const manque = TEXTE_AVIS_MIN - texte.trim().length;
   const compteur = `${texte.length}/${TEXTE_AVIS_MAX}`;
-  if (manque <= 0) return `${compteur} · ${TEXTES_DONNER_AVIS.texteAideCritique}`;
-  const reste = manque === 1 ? TEXTES_DONNER_AVIS.texteManqueUn : remplirModele(TEXTES_DONNER_AVIS.texteManque, { manque: String(manque) });
+  if (manque <= 0) return `${compteur} · ${T.texteAideCritique}`;
+  const reste = manque === 1 ? T.texteManqueUn : remplirModele(T.texteManque, { manque: String(manque) });
   return `${compteur} · ${reste}`;
 }
 
@@ -54,17 +55,18 @@ export function FormulaireAvis({
   onAjouterPhoto,
   onRetirerPhoto,
 }: Props) {
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
   return (
     <View className="gap-7">
       <ChoixNoteAvis note={note} onChoisir={onChoisirNote} />
       <View className="gap-3">
         <ChampTexte
           ref={refTexte}
-          libelle={TEXTES_DONNER_AVIS.texteTitre}
+          libelle={T.texteTitre}
           valeur={texte}
           onChangeTexte={onChangerTexte}
-          placeholder={TEXTES_DONNER_AVIS.textePlaceholder}
-          aide={decrireLongueur(texte)}
+          placeholder={T.textePlaceholder}
+          aide={decrireLongueur(texte, T)}
           erreur={erreurTexte}
           multiline
           numberOfLines={5}

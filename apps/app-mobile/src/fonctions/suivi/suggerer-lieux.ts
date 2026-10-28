@@ -1,6 +1,9 @@
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Lieu, PositionLieu } from "@sos-miam/commun/types/lieu";
 
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 
 type Entree = {
@@ -17,13 +20,14 @@ type Entree = {
 const RAYON_PROCHE_KM = 50;
 
 /** Les lieux les plus proches à suivre, du plus près au plus loin, avec leur distance comme raison (« À 350 m »). Seulement les lieux placés sur la carte. */
-export function suggererLieux({ lieux, depart, exclus, max }: Entree): { lieu: Lieu; raison: string }[] {
+export function suggererLieux({ lieux, depart, exclus, max }: Entree, langue: Langue): { lieu: Lieu; raison: string }[] {
   if (!depart) return [];
+  const T = choisirTextes(TEXTES_SUIVI_PAR_LANGUE, langue).raisons;
   return lieux
     .filter((lieu) => lieu.position && !exclus.has(lieu.id))
     .map((lieu) => ({ lieu, km: calculerKmLieu(lieu, depart) }))
     .filter((l): l is { lieu: Lieu; km: number } => l.km !== null && l.km <= RAYON_PROCHE_KM)
     .sort((a, b) => a.km - b.km)
     .slice(0, max)
-    .map(({ lieu, km }) => ({ lieu, raison: `À ${formaterDistance(km)}` }));
+    .map(({ lieu, km }) => ({ lieu, raison: T.aDistance(formaterDistanceLangue(km, langue)) }));
 }

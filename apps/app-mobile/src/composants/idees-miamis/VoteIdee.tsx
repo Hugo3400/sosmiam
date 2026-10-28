@@ -4,6 +4,7 @@ import type { IdeeMiamis } from "@sos-miam/commun/types/idees";
 import { BoutonMiamIdee } from "~/composants/idees-miamis/BoutonMiamIdee";
 import { RondMiami } from "~/composants/miamis/RondMiami";
 import { decrireVotantsIdee } from "~/fonctions/idees-miamis/decrire-votants-idee";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 
 type Props = {
   idee: IdeeMiamis;
@@ -14,7 +15,8 @@ type Props = {
 };
 
 export function VoteIdee({ idee, monId, idsBloques, occupe, onVoter }: Props) {
-  const { visages, texte } = decrireVotantsIdee(idee, monId, idsBloques);
+  const { langue } = utiliserLangue();
+  const { visages, texte } = decrireVotantsIdee(idee, monId, idsBloques, langue);
   return (
     <View className="flex-row items-center gap-3.5 rounded-carte border border-ligne bg-carte p-3">
       <BoutonMiamIdee idee={idee} grand occupe={occupe} onVoter={onVoter} />

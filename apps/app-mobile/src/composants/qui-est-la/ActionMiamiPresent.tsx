@@ -39,7 +39,8 @@ function choisirRendu({ present, coucouPossible, demande, onCoucou, onAjouter }:
 
 export function ActionMiamiPresent(props: Props) {
   const couleurs = utiliserCouleurs();
-  const rendu = choisirRendu(props, utiliserTextes(TEXTES_QUI_EST_LA_PAR_LANGUE));
+  const T = utiliserTextes(TEXTES_QUI_EST_LA_PAR_LANGUE);
+  const rendu = choisirRendu(props, T);
   const touchable = rendu.action !== undefined && !props.enCours;
   const bouton = rendu.action !== undefined || rendu.indice !== undefined;
   return (

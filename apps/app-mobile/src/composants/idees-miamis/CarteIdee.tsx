@@ -4,7 +4,8 @@ import type { IdeeMiamis } from "@sos-miam/commun/types/idees";
 import { AuteurIdee } from "~/composants/idees-miamis/AuteurIdee";
 import { BoutonMiamIdee } from "~/composants/idees-miamis/BoutonMiamIdee";
 import { PastilleStatutIdee } from "~/composants/idees-miamis/PastilleStatutIdee";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   idee: IdeeMiamis;
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function CarteIdee({ idee, monId, occupe, onVoter, onOuvrir }: Props) {
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
   const enRelecture = idee.statut === "en-relecture";
   return (
     <View className="flex-row items-start gap-3 rounded-carte border border-ligne bg-carte p-3">
@@ -31,16 +33,16 @@ export function CarteIdee({ idee, monId, occupe, onVoter, onOuvrir }: Props) {
       )}
       <Pressable
         accessibilityRole="button"
-        accessibilityHint={TEXTES_IDEES.ouvrirIdee(idee.titre)}
+        accessibilityHint={T.ouvrirIdee(idee.titre)}
         onPress={onOuvrir}
         className="min-w-0 flex-1 gap-1.5 active:opacity-70"
       >
         <PastilleStatutIdee statut={idee.statut} />
         <Text className="font-texte-gras text-[15px] leading-5 text-encre">{idee.titre}</Text>
-        <AuteurIdee auteur={idee.auteur} monId={monId} taille={20} suite={TEXTES_IDEES.commentaires(idee.commentaires)} />
+        <AuteurIdee auteur={idee.auteur} monId={monId} taille={20} suite={T.commentaires(idee.commentaires)} />
         {idee.reponseBrigade ? (
           <View className="self-start rounded-lg bg-nuit px-2 py-0.5">
-            <Text className="font-texte-gras text-xs text-jaune">{TEXTES_IDEES.brigadeARepondu}</Text>
+            <Text className="font-texte-gras text-xs text-jaune">{T.brigadeARepondu}</Text>
           </View>
         ) : null}
       </Pressable>

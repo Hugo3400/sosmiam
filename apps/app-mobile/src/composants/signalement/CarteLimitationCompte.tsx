@@ -6,7 +6,7 @@ import type { LimitationCompteApi } from "@sos-miam/commun/types/limitation-comp
 import { Bouton } from "~/composants/interface/Bouton";
 import { TEXTES_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
 import { TEXTES_DECISIONS_MODERATION_PAR_LANGUE } from "~/contenus/textes-decisions-moderation";
-import { decrireFinLimitationLangue } from "~/fonctions/langue/decrire-fin-limitation-langue";
+import { decrireFinLimitation } from "~/fonctions/compte/decrire-fin-limitation";
 import { ecrireMomentLongLangue } from "~/fonctions/langue/ecrire-moment-long-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
@@ -49,7 +49,7 @@ export function CarteLimitationCompte({ limitation, maintenant, onContester }: P
   const motifs = utiliserTextes(DETAILS_MOTIFS_MODERATION_PAR_LANGUE);
   const { langue } = utiliserLangue();
   const etat = lireEtat(limitation, maintenant);
-  const fin = decrireFinLimitationLangue(limitation.fin, langue);
+  const fin = decrireFinLimitation(limitation.fin, langue);
   const debut = ecrireMomentLongLangue(limitation.debut, langue);
   const titre = etat === "active" ? t.titre : etat === "a-venir" ? t.titreAVenir : t.titreFinie;
   const intro =

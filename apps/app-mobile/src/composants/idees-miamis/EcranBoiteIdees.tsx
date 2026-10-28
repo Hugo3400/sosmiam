@@ -15,25 +15,28 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { BarreEcranMiamis } from "~/composants/miamis/BarreEcranMiamis";
 import { ErreurMiamis } from "~/composants/miamis/ErreurMiamis";
 import { EtatMiamis } from "~/composants/miamis/EtatMiamis";
-import { TEXTES_IDEES, type FiltreIdees } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE, type FiltreIdees } from "~/contenus/textes-idees";
 import { expliquerGesteRateIdee } from "~/fonctions/idees-miamis/expliquer-geste-rate-idee";
 import { trierIdees } from "~/fonctions/idees-miamis/trier-idees";
 import { trouverIdeeDuMois } from "~/fonctions/idees-miamis/trouver-idee-du-mois";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserIdeesMiamis } from "~/hooks/utiliser-idees-miamis";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const AUCUNE_IDEE: IdeeMiamis[] = [];
 
-const VIDE_PAR_FILTRE: Readonly<Record<FiltreIdees, string>> = {
-  top: TEXTES_IDEES.aucune,
-  nouvelles: TEXTES_IDEES.aucune,
-  prevues: TEXTES_IDEES.aucunePrevue,
-  faites: TEXTES_IDEES.aucuneFaite,
-};
-
 export function EcranBoiteIdees() {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
+  const videParFiltre: Readonly<Record<FiltreIdees, string>> = {
+    top: T.aucune,
+    nouvelles: T.aucune,
+    prevues: T.aucunePrevue,
+    faites: T.aucuneFaite,
+  };
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
@@ -55,9 +58,9 @@ export function EcranBoiteIdees() {
   const voterIdee = useCallback(
     async (id: string, oui: boolean) => {
       const rate = await voter(id, oui);
-      if (rate) annoncer(expliquerGesteRateIdee(rate, "vote"));
+      if (rate) annoncer(expliquerGesteRateIdee(rate, "vote", langue));
     },
-    [voter, annoncer],
+    [voter, annoncer, langue],
   );
 
   async function rafraichir() {
@@ -71,14 +74,14 @@ export function EcranBoiteIdees() {
     if (rate) return rate;
     setFeuille(false);
     setFiltre("nouvelles");
-    annoncer(TEXTES_IDEES.merci);
+    annoncer(T.merci);
     return null;
   }
 
   async function voterDoublon(idee: IdeeMiamis) {
     setFeuille(false);
     const rate = await voter(idee.id, true);
-    annoncer(rate ? expliquerGesteRateIdee(rate, "vote") : TEXTES_IDEES.voteDoublon);
+    annoncer(rate ? expliquerGesteRateIdee(rate, "vote", langue) : T.voteDoublon);
   }
 
   function voirDoublon(idee: IdeeMiamis) {
@@ -88,29 +91,29 @@ export function EcranBoiteIdees() {
 
   const enTete = (
     <View className="gap-3.5 pb-3.5">
-      <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(TEXTES_IDEES.intro)}</Text>
+      <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.intro)}</Text>
       {ideeDuMois ? <CarteIdeeDuMois idee={ideeDuMois} onOuvrir={() => ouvrir(ideeDuMois.id)} /> : null}
-      <Bouton libelle={TEXTES_IDEES.proposer} onPress={() => setFeuille(true)} />
+      <Bouton libelle={T.proposer} onPress={() => setFeuille(true)} />
       <FiltresIdees filtre={filtre} onChoisir={setFiltre} />
     </View>
   );
 
   const vide =
     idees && idees.length === 0 ? (
-      <EtatMiamis emoji="💡" titre={TEXTES_IDEES.aucuneTitre} texte={TEXTES_IDEES.aucune} action={{ libelle: TEXTES_IDEES.proposer, onPress: () => setFeuille(true) }} />
+      <EtatMiamis emoji="💡" titre={T.aucuneTitre} texte={T.aucune} action={{ libelle: T.proposer, onPress: () => setFeuille(true) }} />
     ) : (
-      <EtatMiamis emoji="🗂️" titre={TEXTES_IDEES.aucuneFiltreTitre} texte={VIDE_PAR_FILTRE[filtre]} />
+      <EtatMiamis emoji="🗂️" titre={T.aucuneFiltreTitre} texte={videParFiltre[filtre]} />
     );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top"]}>
-      <BarreEcranMiamis titre={TEXTES_IDEES.titre} grand libelleRetour={TEXTES_IDEES.retour} onRetour={revenir} />
+      <BarreEcranMiamis titre={T.titre} grand libelleRetour={T.retour} onRetour={revenir} />
       {idees === null && erreur ? (
         <View className="px-5 pt-6">
           <ErreurMiamis erreur={erreur} onReessayer={() => void relire()} />
         </View>
       ) : idees === null ? (
-        chargement ? <ChargementIdees texte={TEXTES_IDEES.chargement} /> : null
+        chargement ? <ChargementIdees texte={T.chargement} /> : null
       ) : (
         <FlatList
           data={triees}

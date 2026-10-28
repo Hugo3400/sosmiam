@@ -1,8 +1,10 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
-import { TEXTES_GENRE } from "~/contenus/textes-genre";
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
+import { TEXTES_GENRE_PAR_LANGUE } from "~/contenus/textes-genre";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nom: string;
@@ -15,14 +17,16 @@ type Props = {
 };
 
 export function OptionGenre({ nom, effet, choisi, desactive, position, total, onPress }: Props) {
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
+  const T = utiliserTextes(TEXTES_GENRE_PAR_LANGUE);
   const ios = Platform.OS === "ios";
-  const place = ios ? `, ${position} sur ${total}` : "";
+  const place = ios ? `, ${TE.surTotal(position, total)}` : "";
   return (
     <Pressable
       accessibilityRole={ios ? "button" : "radio"}
       accessibilityState={ios ? { selected: choisi, disabled: desactive } : { checked: choisi, disabled: desactive }}
       accessibilityLabel={`${nom}, ${effet}${place}`}
-      accessibilityHint={desactive ? TEXTES_GENRE.indisponible : undefined}
+      accessibilityHint={desactive ? T.indisponible : undefined}
       disabled={desactive}
       onPress={() => {
         vibrerLegerement();

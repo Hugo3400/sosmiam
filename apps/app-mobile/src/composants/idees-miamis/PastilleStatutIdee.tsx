@@ -1,7 +1,9 @@
 import { Text, View } from "react-native";
 
 import type { StatutIdee } from "@sos-miam/commun/types/idees";
-import { NOMS_STATUTS_IDEE } from "~/contenus/textes-idees";
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
+import { NOMS_STATUTS_IDEE_PAR_LANGUE } from "~/contenus/textes-idees";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   statut: StatutIdee;
@@ -24,9 +26,11 @@ const TEXTES: Readonly<Record<StatutIdee, string>> = {
 };
 
 export function PastilleStatutIdee({ statut }: Props) {
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
+  const nomsStatuts = utiliserTextes(NOMS_STATUTS_IDEE_PAR_LANGUE);
   return (
-    <View accessible accessibilityLabel={`Statut : ${NOMS_STATUTS_IDEE[statut]}`} className={`self-start rounded-full px-2 py-0.5 ${FONDS[statut]}`}>
-      <Text className={`font-texte-gras text-[11px] uppercase tracking-wider ${TEXTES[statut]}`}>{NOMS_STATUTS_IDEE[statut]}</Text>
+    <View accessible accessibilityLabel={TE.statutLu(nomsStatuts[statut])} className={`self-start rounded-full px-2 py-0.5 ${FONDS[statut]}`}>
+      <Text className={`font-texte-gras text-[11px] uppercase tracking-wider ${TEXTES[statut]}`}>{nomsStatuts[statut]}</Text>
     </View>
   );
 }

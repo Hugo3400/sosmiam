@@ -1,14 +1,14 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
-import { TEXTES_PARAMETRES } from "~/contenus/textes-parametres";
+import { TEXTES_PARAMETRES_PAR_LANGUE } from "~/contenus/textes-parametres";
 import { REGLAGES_APPARENCE } from "~/contenus/type-apparence";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
-const T = TEXTES_PARAMETRES.apparence;
-
 export function ChoixApparence() {
+  const T = utiliserTextes(TEXTES_PARAMETRES_PAR_LANGUE).apparence;
   const { reglage, changerReglage, couleurs } = utiliserTheme();
   return (
     <View accessibilityRole="radiogroup" accessibilityLabel={T.titre}>

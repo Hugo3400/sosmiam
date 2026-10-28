@@ -3,11 +3,13 @@ import { Pressable, Text, View } from "react-native";
 
 import type { CommentaireIdee } from "@sos-miam/commun/types/idees";
 import { RondMiami } from "~/composants/miamis/RondMiami";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 import { vibrerJaime } from "~/fonctions/interaction/vibrer-jaime";
 import { ecrireIlYa } from "~/fonctions/miamis/ecrire-il-y-a";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   commentaire: CommentaireIdee;
@@ -20,10 +22,12 @@ type Props = {
 };
 
 export function LigneCommentaireIdee({ commentaire, reponse, monId, peutRepondre, onAimer, onRepondre, onOptions }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_IDEES_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const { auteur } = commentaire;
-  const nom = auteur.id === monId ? TEXTES_IDEES.parToi : `@${auteur.pseudo}`;
-  const quand = ecrireIlYa(commentaire.date);
+  const nom = auteur.id === monId ? T.parToi : `@${auteur.pseudo}`;
+  const quand = ecrireIlYa(commentaire.date, langue);
   return (
     <View className={`flex-row items-start gap-2.5 ${reponse ? "ml-11 border-l-2 border-ligne pl-3" : ""}`}>
       <RondMiami personne={auteur} taille={reponse ? 28 : 34} />
@@ -35,7 +39,7 @@ export function LigneCommentaireIdee({ commentaire, reponse, monId, peutRepondre
           </Text>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={TEXTES_IDEES.optionsCommentaire(auteur.pseudo)}
+            accessibilityLabel={T.optionsCommentaire(auteur.pseudo)}
             hitSlop={6}
             onPress={onOptions}
             className="h-8 w-8 items-center justify-center rounded-full active:opacity-60"
@@ -47,7 +51,7 @@ export function LigneCommentaireIdee({ commentaire, reponse, monId, peutRepondre
         <View className="flex-row items-center gap-4">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={TEXTES_IDEES.aimer(commentaire.jaime)}
+            accessibilityLabel={T.aimer(commentaire.jaime)}
             accessibilityState={{ selected: commentaire.aime }}
             hitSlop={6}
             onPress={() => {
@@ -64,12 +68,12 @@ export function LigneCommentaireIdee({ commentaire, reponse, monId, peutRepondre
           {peutRepondre ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={TEXTES_IDEES.repondreA(auteur.pseudo)}
+              accessibilityLabel={T.repondreA(auteur.pseudo)}
               hitSlop={6}
               onPress={onRepondre}
               className="min-h-8 justify-center active:opacity-60"
             >
-              <Text className="font-texte-semi text-[13px] text-gris">{TEXTES_IDEES.repondre}</Text>
+              <Text className="font-texte-semi text-[13px] text-gris">{T.repondre}</Text>
             </Pressable>
           ) : null}
         </View>

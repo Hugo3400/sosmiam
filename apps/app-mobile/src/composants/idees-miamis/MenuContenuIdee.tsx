@@ -6,16 +6,19 @@ import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { PersonneResume } from "@sos-miam/commun/types/social";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { SignalerContenu } from "~/composants/signalement/SignalerContenu";
-import { TEXTES_IDEES } from "~/contenus/textes-idees";
+import { TEXTES_ECRANS_MIAMIS_PAR_LANGUE } from "~/contenus/textes-ecrans-miamis";
+import { type TEXTES_IDEES, TEXTES_IDEES_PAR_LANGUE } from "~/contenus/textes-idees";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type ContenuIdeeAuMenu = { type: "idee" | "commentaire"; id: string; auteur: PersonneResume | null; mien: boolean };
 
@@ -28,14 +31,14 @@ type Props = {
 type Vue = "options" | "signaler" | "confirmer";
 type Choix = { cle: "profil" | "signaler" | "confirmer"; emoji: string; titre: string; detail: string };
 
-const MENU = TEXTES_IDEES.menu;
+type TextesMenu = Traduction<typeof TEXTES_IDEES.menu>;
 
-function lireTitre({ type, auteur, mien }: ContenuIdeeAuMenu): string {
+function lireTitre({ type, auteur, mien }: ContenuIdeeAuMenu, MENU: TextesMenu): string {
   if (mien) return type === "idee" ? MENU.titreMonIdee : MENU.titreMonCommentaire;
   return type === "commentaire" && auteur ? MENU.titreCommentaire(auteur.pseudo) : MENU.titreIdee;
 }
 
-function lireChoix({ type, auteur, mien }: ContenuIdeeAuMenu): Choix[] {
+function lireChoix({ type, auteur, mien }: ContenuIdeeAuMenu, MENU: TextesMenu): Choix[] {
   if (mien) {
     return type === "idee"
       ? [{ cle: "confirmer", emoji: "🧹", titre: MENU.retirerIdee, detail: MENU.retirerIdeeDetail }]
@@ -49,6 +52,8 @@ function lireChoix({ type, auteur, mien }: ContenuIdeeAuMenu): Choix[] {
 }
 
 export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
+  const MENU = utiliserTextes(TEXTES_IDEES_PAR_LANGUE).menu;
+  const TE = utiliserTextes(TEXTES_ECRANS_MIAMIS_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
@@ -86,7 +91,7 @@ export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
   return (
     <Modal visible={contenu !== null} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={TE.fermerMenu} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           onAccessibilityEscape={reculer}
@@ -123,9 +128,9 @@ export function MenuContenuIdee({ contenu, onSupprimer, onFermer }: Props) {
               ) : (
                 <>
                   <Text ref={titreVue} accessibilityRole="header" numberOfLines={1} className="mb-2 font-titre text-2xl text-encre">
-                    {lireTitre(affiche)}
+                    {lireTitre(affiche, MENU)}
                   </Text>
-                  {lireChoix(affiche).map((choix) => (
+                  {lireChoix(affiche, MENU).map((choix) => (
                     <Pressable
                       key={choix.cle}
                       accessibilityRole="button"

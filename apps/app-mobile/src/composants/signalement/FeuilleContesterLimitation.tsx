@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE, type MessageService } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE, type MessageService } from "@sos-miam/commun/contenus/messages-services";
 import { LONGUEUR_MAX_CONTESTATION, LONGUEUR_MIN_CONTESTATION } from "@sos-miam/commun/regles/signalement";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
+import { TEXTES_CONTESTATION_PAR_LANGUE } from "~/contenus/textes-contestation";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { ResultatContestationLimitation } from "~/hooks/utiliser-limitation-compte";
 
 type Props = {
@@ -22,15 +24,6 @@ type Props = {
 
 type Etape = "ecrire" | "envoi" | "envoyee";
 
-/** « 1 000 » : la limite écrite avec son espace fine (sans dépendre d'Intl) */
-const MAX_ECRIT = String(LONGUEUR_MAX_CONTESTATION).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-/** Les deux refus de l'app elle-même (rien n'est parti) ; le reste vient du serveur */
-const REFUS_LOCAUX: Readonly<Record<"trop-court" | "trop-long", MessageService>> = {
-  "trop-court": { emoji: "✍️", titre: "Encore un petit effort", texte: `Au moins ${LONGUEUR_MIN_CONTESTATION} caractères, pour qu'on comprenne ce qui cloche.` },
-  "trop-long": { emoji: "✂️", titre: "Un peu long", texte: `${MAX_ECRIT} caractères au plus : resserre un peu, on lit tout.` },
-};
-
 /**
  * « Contester » la limitation de ton compte, sur le modèle de FeuilleContesterDecision : « Tu n'es pas d'accord ? », un
  * champ de 10 à 1 000 caractères avec son compteur, puis « Contestation envoyée ». Une seule contestation par limitation :
@@ -39,6 +32,15 @@ const REFUS_LOCAUX: Readonly<Record<"trop-court" | "trop-long", MessageService>>
  */
 export function FeuilleContesterLimitation({ visible, onContester, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CONTESTATION_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  /** « 1 000 » : la limite écrite avec son espace fine (sans dépendre d'Intl) */
+  const maxEcrit = T.nombre(LONGUEUR_MAX_CONTESTATION);
+  /** Les deux refus de l'app elle-même (rien n'est parti) ; le reste vient du serveur */
+  const refusLocaux: Readonly<Record<"trop-court" | "trop-long", MessageService>> = {
+    "trop-court": { emoji: "✍️", titre: T.tropCourtTitre, texte: T.tropCourt(LONGUEUR_MIN_CONTESTATION) },
+    "trop-long": { emoji: "✂️", titre: T.tropLongTitre, texte: T.tropLong(maxEcrit) },
+  };
   const [texte, setTexte] = useState("");
   const [etape, setEtape] = useState<Etape>("ecrire");
   const [refus, setRefus] = useState<MessageService | null>(null);
@@ -82,31 +84,31 @@ export function FeuilleContesterLimitation({ visible, onContester, onFermer }: P
     if (!monte.current) return;
     if (r === null) return setEtape("envoyee");
     setEtape("ecrire");
-    setRefus(r === "trop-court" || r === "trop-long" ? REFUS_LOCAUX[r] : MESSAGES_SERVICE[r]);
+    setRefus(r === "trop-court" || r === "trop-long" ? refusLocaux[r] : messages[r]);
   }
 
   const pied = envoyee ? (
-    <Bouton libelle="Fermer" variante="encre" onPress={onFermer} />
+    <Bouton libelle={T.fermer} variante="encre" onPress={onFermer} />
   ) : (
     <>
       {enCours ? (
         // Pas d'état « occupé » (lu en anglais par VoiceOver) : le libellé dit ce qui se passe
-        <View accessible accessibilityLabel="Envoi en cours" className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-nuit">
+        <View accessible accessibilityLabel={T.envoiEnCours} className="min-h-14 flex-row items-center justify-center gap-3 rounded-full border-2 border-encre bg-nuit">
           <ActivityIndicator color={couleurs.jaune} />
-          <Text className="font-texte-gras text-base text-jaune">On envoie…</Text>
+          <Text className="font-texte-gras text-base text-jaune">{T.onEnvoie}</Text>
         </View>
       ) : (
         <Bouton
-          libelle={refus ? "Réessayer" : "Envoyer ma contestation"}
+          libelle={refus ? T.reessayer : T.envoyer}
           variante="encre"
           desactive={tropCourt}
-          indice={tropCourt ? `Écris d'abord au moins ${LONGUEUR_MIN_CONTESTATION} caractères` : "Une autre personne de l'équipe relit la limitation"}
+          indice={tropCourt ? T.indiceTropCourt(LONGUEUR_MIN_CONTESTATION) : T.indiceLimitation}
           onPress={() => void envoyer()}
         />
       )}
       <Pressable
         accessibilityRole="button"
-        accessibilityHint="Rien n'est envoyé"
+        accessibilityHint={T.rienEnvoye}
         disabled={enCours}
         onPress={() => {
           vibrerLegerement();
@@ -114,7 +116,7 @@ export function FeuilleContesterLimitation({ visible, onContester, onFermer }: P
         }}
         className="min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
       >
-        <Text className="font-texte-gras text-base text-encre">Finalement non</Text>
+        <Text className="font-texte-gras text-base text-encre">{T.finalementNon}</Text>
       </Pressable>
     </>
   );
@@ -122,27 +124,27 @@ export function FeuilleContesterLimitation({ visible, onContester, onFermer }: P
   return (
     <FeuilleBas
       visible={visible}
-      titre={envoyee ? "C'est envoyé 📮" : "Tu n'es pas d'accord ?"}
-      sousTitre={envoyee ? undefined : "Explique-nous pourquoi : une autre personne de l'équipe relit tout. Une seule contestation par limitation."}
+      titre={envoyee ? T.titreEnvoye : T.titre}
+      sousTitre={envoyee ? undefined : T.sousTitreLimitation}
       onFermer={onFermer}
       pied={pied}
     >
       {envoyee ? (
         <View ref={refMessage} accessible className="gap-1 rounded-2xl border-2 border-encre bg-jaune-clair p-4">
           <Text className="font-texte-semi text-base leading-6 text-encre">
-            {lierPonctuation("Contestation envoyée : une autre personne de l'équipe la relit.")}
+            {lierPonctuation(T.envoyeeLimitation)}
           </Text>
-          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation("Tu retrouveras sa réponse ici. Merci d'avoir pris le temps de nous écrire.")}</Text>
+          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(T.suiteLimitation)}</Text>
         </View>
       ) : (
         <View className="gap-4">
           <ChampTexte
-            libelle="Pourquoi ?"
-            mention={`${LONGUEUR_MIN_CONTESTATION} à ${MAX_ECRIT} caractères`}
+            libelle={T.pourquoi}
+            mention={T.mention(LONGUEUR_MIN_CONTESTATION, maxEcrit)}
             valeur={texte}
             onChangeTexte={setTexte}
-            placeholder="Ce qui s'est passé, le contexte, ce qui nous a peut-être échappé…"
-            aide={`${texte.length}/${MAX_ECRIT} · Seule l'équipe SOS Miam lit ta contestation.`}
+            placeholder={T.placeholderLimitation}
+            aide={T.aide(texte.length, maxEcrit)}
             multiline
             textAlignVertical="top"
             maxLength={LONGUEUR_MAX_CONTESTATION}

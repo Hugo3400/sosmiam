@@ -2,7 +2,9 @@ import { useEffect, useRef } from "react";
 import { Pressable, ScrollView, Text } from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 
+import { TEXTES_CARTE_LIEU_PAR_LANGUE } from "~/contenus/textes-carte-lieu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Titres des sections, dans l'ordre de la carte */
@@ -18,6 +20,7 @@ type Props = {
  */
 export function PastillesSectionsCarte({ titres, active, onChoisir }: Props) {
   const animationsReduites = useReducedMotion();
+  const T = utiliserTextes(TEXTES_CARTE_LIEU_PAR_LANGUE);
   const rangee = useRef<ScrollView>(null);
   const positions = useRef<number[]>([]);
 
@@ -42,8 +45,8 @@ export function PastillesSectionsCarte({ titres, active, onChoisir }: Props) {
           <Pressable
             key={`${index}-${titre}`}
             accessibilityRole="button"
-            accessibilityLabel={`${titre}, section ${index + 1} sur ${titres.length}`}
-            accessibilityHint="Fait défiler la carte jusqu'à cette section"
+            accessibilityLabel={T.sectionLu(titre, index + 1, titres.length)}
+            accessibilityHint={T.sectionIndice}
             onLayout={(evenement) => {
               positions.current[index] = evenement.nativeEvent.layout.x;
             }}

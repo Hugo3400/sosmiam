@@ -6,13 +6,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { CoucheAuDessus } from "~/composants/interface/CoucheAuDessus";
-import { TEXTES_LIMITATION } from "~/contenus/limitation-compte";
-import { decrireFinLimitation } from "~/fonctions/compte/decrire-fin-limitation";
+import { TEXTES_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_COMPTE_LIMITE_PAR_LANGUE } from "~/contenus/textes-compte-limite";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { decrireFinLimitationLangue } from "~/fonctions/langue/decrire-fin-limitation-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserFeuilleOuverte } from "~/hooks/utiliser-feuille-ouverte";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { trouverFeuilleOuverte } from "~/services/feuilles-ouvertes";
 import { ecouterCompteLimite } from "~/services/refus-compte-limite";
 
@@ -38,6 +41,9 @@ const ANDROID = Platform.OS === "android";
  */
 export function AnnonceCompteLimite() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_COMPTE_LIMITE_PAR_LANGUE);
+  const textesLimitation = utiliserTextes(TEXTES_LIMITATION_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const chemin = usePathname();
   const marges = useSafeAreaInsets();
   const lecteurEcran = utiliserLecteurEcran();
@@ -59,18 +65,18 @@ export function AnnonceCompteLimite() {
         const maintenant = Date.now();
         if (maintenant - derniere.current < ECART_MIN_MS) return;
         derniere.current = maintenant;
-        const texte = remplirModele(TEXTES_LIMITATION.annonce, { fin: decrireFinLimitation(jusqua) });
+        const texte = remplirModele(textesLimitation.annonce, { fin: decrireFinLimitationLangue(jusqua, langue) });
         setAnnonce((avant) => ({ texte, numero: (avant?.numero ?? 0) + 1 }));
         // Le toast passe au-dessus de la feuille ouverte (et TalkBack le lit) ; l'annonce, elle, attend sa fermeture
         if (ANDROID && trouverFeuilleOuverte()) ToastAndroid.show(lierPonctuation(texte), ToastAndroid.LONG);
       }),
-    [],
+    [textesLimitation, langue],
   );
 
   useEffect(() => {
     if (!annonce || enAttente) return;
     const lecture = setTimeout(
-      () => annoncerLecteurEcran(surDecisionsActuel.current ? annonce.texte : `${annonce.texte} Le pourquoi est dans Paramètres, Décisions de la modération.`),
+      () => annoncerLecteurEcran(surDecisionsActuel.current ? annonce.texte : `${annonce.texte} ${T.lePourquoi}`),
       DELAI_LECTURE,
     );
     const minuterie = setTimeout(() => setAnnonce(null), lecteurEcran ? DUREE_LECTEUR_ECRAN : DUREE);
@@ -78,7 +84,7 @@ export function AnnonceCompteLimite() {
       clearTimeout(lecture);
       clearTimeout(minuterie);
     };
-  }, [annonce, lecteurEcran, enAttente]);
+  }, [annonce, lecteurEcran, enAttente, T]);
 
   if (!annonce) return null;
   return (
@@ -99,7 +105,7 @@ export function AnnonceCompteLimite() {
             {surDecisions ? null : (
               <Pressable
                 accessibilityRole="button"
-                accessibilityHint="Ouvre les décisions de la modération"
+                accessibilityHint={T.voirPourquoiIndice}
                 hitSlop={8}
                 onPress={() => {
                   vibrerLegerement();
@@ -111,13 +117,13 @@ export function AnnonceCompteLimite() {
                 }}
                 className="min-h-9 justify-center active:opacity-60"
               >
-                <Text className="font-texte-gras text-[15px] text-encre underline">Voir pourquoi</Text>
+                <Text className="font-texte-gras text-[15px] text-encre underline">{T.voirPourquoi}</Text>
               </Pressable>
             )}
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Fermer l'annonce"
+            accessibilityLabel={T.fermer}
             onPress={() => setAnnonce(null)}
             className="min-h-11 min-w-11 items-center justify-center rounded-full active:opacity-60"
           >

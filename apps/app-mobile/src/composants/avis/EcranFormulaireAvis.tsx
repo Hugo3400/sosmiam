@@ -16,15 +16,17 @@ import { FormulaireAvis } from "~/composants/avis/FormulaireAvis";
 import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
 import { decrireRefusEnvoiAvis } from "~/fonctions/avis/decrire-refus-envoi-avis";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { EtatEnvoiAvis } from "~/hooks/utiliser-envoi-avis";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import type { EtatPhotoAvis } from "~/hooks/utiliser-photo-avis";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visite: Visite;
@@ -33,18 +35,20 @@ type Props = {
   onRetour: () => void;
 };
 
-const MENTIONS_REGLEMENT = {
-  offert: { emoji: "🎁", texte: TEXTES_DONNER_AVIS.repasOffert },
-  reduction: { emoji: "🏷️", texte: TEXTES_DONNER_AVIS.avecReduction },
-} as const;
+type Textes = typeof TEXTES_DONNER_AVIS_PAR_LANGUE.fr;
 
-function choisirLibelleBouton(enCours: EtatEnvoiAvis["enCours"]): string {
-  if (enCours === "photo") return TEXTES_DONNER_AVIS.envoiPhoto;
-  if (enCours === "avis") return TEXTES_DONNER_AVIS.envoiAvis;
-  return TEXTES_DONNER_AVIS.publier;
+const EMOJIS_REGLEMENT = { offert: "🎁", reduction: "🏷️" } as const;
+
+function choisirLibelleBouton(enCours: EtatEnvoiAvis["enCours"], T: Textes): string {
+  if (enCours === "photo") return T.envoiPhoto;
+  if (enCours === "avis") return T.envoiAvis;
+  return T.publier;
 }
 
 export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { profil } = utiliserProfil();
   const { lieu } = utiliserLieuParId(visite.lieu.id);
   const { limitation } = utiliserLimitationCompte();
@@ -56,12 +60,15 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
 
   const repasOffert = visite.reglement?.type === "offert";
   const typeReglement = visite.reglement?.type;
-  const mentionReglement = typeReglement === "offert" || typeReglement === "reduction" ? MENTIONS_REGLEMENT[typeReglement] : null;
+  const mentionReglement =
+    typeReglement === "offert" || typeReglement === "reduction"
+      ? { emoji: EMOJIS_REGLEMENT[typeReglement], texte: typeReglement === "offert" ? T.repasOffert : T.avecReduction }
+      : null;
   const lieuAlcool = lieu ? lieuEvoqueAlcool(lieu) : visite.lieu.type === "bar";
   const limite = limitation?.active === true || refus?.ou === "limite";
   const complet = note !== null && texte.trim().length >= TEXTE_AVIS_MIN;
   const signature = profil ? signerAvis(profil.prenom, profil.nom?.trim().charAt(0) || null) : null;
-  const message = decrireRefusEnvoiAvis(refus);
+  const message = decrireRefusEnvoiAvis(refus, langue);
 
   useEffect(() => {
     if (motRefuse) refTexte.current?.focus();
@@ -77,18 +84,18 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
 
   return (
     <EcranReglage
-      titre={TEXTES_DONNER_AVIS.titre}
-      sousTitre={TEXTES_DONNER_AVIS.sousTitre}
+      titre={T.titre}
+      sousTitre={T.sousTitre}
       onRetour={onRetour}
       boutonPrincipal={{
-        libelle: choisirLibelleBouton(enCours),
+        libelle: choisirLibelleBouton(enCours, T),
         onPress: publier,
         desactive: !complet || limite || enCours !== null || photo.preparation,
-        indice: complet ? undefined : remplirModele(TEXTES_DONNER_AVIS.publierIndiceIncomplet, { min: String(TEXTE_AVIS_MIN) }),
+        indice: complet ? undefined : remplirModele(T.publierIndiceIncomplet, { min: String(TEXTE_AVIS_MIN) }),
       }}
       auDessusDuBouton={
         limite ? (
-          <RefusLimitationEnPlace texte={REFUS_LIMITATION.avis} />
+          <RefusLimitationEnPlace texte={refusLimitation.avis} />
         ) : message ? (
           <EncadreRefusEnvoiAvis emoji={message.emoji} titre={message.titre} texte={message.texte} />
         ) : null
@@ -108,7 +115,7 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
           repasOffert={repasOffert}
           preparationPhoto={photo.preparation}
           refTexte={refTexte}
-          erreurTexte={motRefuse ? TEXTES_DONNER_AVIS.texteRetouche : null}
+          erreurTexte={motRefuse ? T.texteRetouche : null}
           erreurPhoto={photo.erreur}
           mentionAlcool={!lieuAlcool && parleDAlcool(texte)}
           desactive={enCours !== null}
@@ -130,7 +137,7 @@ export function EcranFormulaireAvis({ visite, envoi, photo, onRetour }: Props) {
           }}
         />
         {signature ? (
-          <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(remplirModele(TEXTES_DONNER_AVIS.signature, { signature }))}</Text>
+          <Text className="font-texte text-[13px] leading-[18px] text-gris">{lierPonctuation(remplirModele(T.signature, { signature }))}</Text>
         ) : null}
       </View>
     </EcranReglage>

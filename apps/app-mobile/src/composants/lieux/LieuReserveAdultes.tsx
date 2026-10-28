@@ -7,8 +7,10 @@ import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { BoutonSecoursMiamSafe } from "~/composants/miam-safe/BoutonSecoursMiamSafe";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * À la place de la fiche (ou de la carte) d'un bar, ouverte par un lien en visite sans compte : on ne connaît pas encore ton âge,
@@ -17,6 +19,8 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
  */
 export function LieuReserveAdultes() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const R = T.reserveAdultes;
   const router = useRouter();
   // Ouvert par un lien, sans écran derrière : le retour mène au fil
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/"));
@@ -27,7 +31,7 @@ export function LieuReserveAdultes() {
       <View className="min-h-14 flex-row items-center justify-between px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={8}
           onPress={revenir}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -40,28 +44,28 @@ export function LieuReserveAdultes() {
       <ScrollView className="flex-1" contentContainerClassName="items-center gap-4 px-8 pb-10 pt-4">
         <Mascotte expression="clin" taille={120} />
         <Text accessibilityRole="header" className="text-center font-titre text-[28px] leading-[32px] text-encre">
-          Réservé aux 18 ans et plus
+          {R.titre}
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Ici, on vient surtout trinquer. Sans compte, on ne connaît pas encore ton âge : en attendant, on reste tout public.")}
+          {lierPonctuation(R.texte)}
         </Text>
         <Text className="text-center font-texte-semi text-base leading-6 text-encre">
-          {lierPonctuation("Tu as 18 ans ou plus ? Crée ton compte, et ce lieu t'ouvre ses portes.")}
+          {lierPonctuation(R.question)}
         </Text>
         <View className="mt-2 w-full gap-3">
           <Bouton
-            libelle="Je m'inscris (1 min)"
+            libelle={R.inscrire}
             variante="encre"
-            indice="Ouvre l'inscription : Apple, Google ou ton e-mail"
+            indice={R.inscrireIndice}
             onPress={() => router.push("/compte")}
           />
           <Bouton
-            libelle="Voir d'autres adresses"
+            libelle={R.autresAdresses}
             variante="blanc"
-            indice="Ouvre Explorer, la carte et la liste des lieux"
+            indice={R.autresAdressesIndice}
             onPress={() => router.navigate("/explorer")}
           />
-          <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
+          <Bouton libelle={T.retour} variante="blanc" onPress={revenir} />
         </View>
       </ScrollView>
     </SafeAreaView>

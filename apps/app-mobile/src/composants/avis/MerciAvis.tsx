@@ -8,10 +8,12 @@ import { EncadreAvis } from "~/composants/avis/EncadreAvis";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { CompteurPoints } from "~/composants/visites/CompteurPoints";
-import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
 import type { SourcePhotoAvis } from "~/contenus/type-donner-avis";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   prenom: string;
@@ -26,40 +28,42 @@ type Props = {
 };
 
 export function MerciAvis({ prenom, nomLieu, avis, sourcePhoto, pointsGagnes, repasOffert, alcool, refTitre, onMesVisites }: Props) {
-  const texte = TEXTES_DONNER_AVIS.merciTexte;
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
+  const texte = T.merciTexte;
   return (
     <View className="items-center gap-5">
       <Mascotte expression="miam" taille={120} flotte />
       <View className="items-center gap-2">
         <Text ref={refTitre} accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
-          {lierPonctuation(remplirModele(TEXTES_DONNER_AVIS.merciTitre, { prenom }))}
+          {lierPonctuation(remplirModele(T.merciTitre, { prenom }))}
         </Text>
-        <Text className="text-center font-texte text-base leading-6 text-encre">{lierPonctuation(remplirModele(texte, { chezLieu: direChezLieu(nomLieu) }))}</Text>
+        <Text className="text-center font-texte text-base leading-6 text-encre">{lierPonctuation(remplirModele(texte, { chezLieu: direChezLieuLangue(nomLieu, langue) }))}</Text>
       </View>
 
       {pointsGagnes > 0 ? (
         <View accessible className="items-center gap-1.5">
           <CompteurPoints points={pointsGagnes} />
-          <Text className="font-texte-semi text-sm text-gris">{TEXTES_DONNER_AVIS.merciPointsPhoto}</Text>
+          <Text className="font-texte-semi text-sm text-gris">{T.merciPointsPhoto}</Text>
         </View>
       ) : null}
-      {pointsGagnes === 0 && repasOffert && sourcePhoto ? <EncadreAvis emoji="🎁" texte={TEXTES_DONNER_AVIS.merciRepasOffert} /> : null}
+      {pointsGagnes === 0 && repasOffert && sourcePhoto ? <EncadreAvis emoji="🎁" texte={T.merciRepasOffert} /> : null}
 
       {avis ? (
         <View className="gap-3 self-stretch">
           <Text accessibilityRole="header" className="font-titre-gras text-lg text-encre">
-            {TEXTES_DONNER_AVIS.merciApercu}
+            {T.merciApercu}
           </Text>
           <CarteAvisPublic avis={avis} sourcePhoto={sourcePhoto} nomLieu={nomLieu} />
           {alcool ? <MentionPrevention /> : null}
         </View>
       ) : null}
 
-      <EncadreAvis emoji="💬" texte={remplirModele(TEXTES_DONNER_AVIS.merciReponse, { lieu: nomLieu })} />
-      <EncadreAvis emoji="🔎" texte={TEXTES_DONNER_AVIS.merciRelecture} />
+      <EncadreAvis emoji="💬" texte={remplirModele(T.merciReponse, { lieu: nomLieu })} />
+      <EncadreAvis emoji="🔎" texte={T.merciRelecture} />
 
       <Pressable accessibilityRole="link" hitSlop={8} onPress={onMesVisites} className="min-h-11 justify-center active:opacity-60">
-        <Text className="font-texte-gras text-base text-encre underline">{TEXTES_DONNER_AVIS.merciMesVisites}</Text>
+        <Text className="font-texte-gras text-base text-encre underline">{T.merciMesVisites}</Text>
       </Pressable>
     </View>
   );

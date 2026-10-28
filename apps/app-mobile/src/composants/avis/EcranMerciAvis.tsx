@@ -7,10 +7,11 @@ import type { Visite } from "@sos-miam/commun/types/visite";
 import { MerciAvis } from "~/composants/avis/MerciAvis";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import type { AvisEnvoye, PhotoAvis } from "~/contenus/type-donner-avis";
-import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visite: Visite;
@@ -23,6 +24,7 @@ type Props = {
 const DELAI_FOCUS_MS = 450;
 
 export function EcranMerciAvis({ visite, envoye, photo, onTerminer, onMesVisites }: Props) {
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
   const { profil } = utiliserProfil();
   const { lieu } = utiliserLieuParId(visite.lieu.id);
   const refTitre = useRef<Text>(null);
@@ -35,7 +37,7 @@ export function EcranMerciAvis({ visite, envoye, photo, onTerminer, onMesVisites
   }, []);
 
   return (
-    <EcranReglage onRetour={onTerminer} boutonPrincipal={{ libelle: TEXTES_DONNER_AVIS.merciTermine, onPress: onTerminer }}>
+    <EcranReglage onRetour={onTerminer} boutonPrincipal={{ libelle: T.merciTermine, onPress: onTerminer }}>
       <MerciAvis
         prenom={profil?.prenom ?? envoye.avis?.signature ?? ""}
         nomLieu={visite.lieu.nom}

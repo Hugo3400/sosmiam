@@ -5,19 +5,23 @@ import { EcranFormulaireAvis } from "~/composants/avis/EcranFormulaireAvis";
 import { EcranMerciAvis } from "~/composants/avis/EcranMerciAvis";
 import { RefusOuvertureAvis } from "~/composants/avis/RefusOuvertureAvis";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
 import { choisirRefusOuvertureAvis } from "~/fonctions/avis/choisir-refus-ouverture-avis";
 import { estRefusOuverturePassager } from "~/fonctions/avis/est-refus-ouverture-passager";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEnvoiAvis } from "~/hooks/utiliser-envoi-avis";
 import { utiliserEtatAvisEnDirect } from "~/hooks/utiliser-etat-avis-en-direct";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPhotoAvis } from "~/hooks/utiliser-photo-avis";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisiteEnDirect } from "~/hooks/utiliser-visite-en-direct";
 
 const lireVisiteId = (brut: unknown) => (typeof brut === "string" && /^\d{1,12}$/.test(brut) ? Number(brut) : null);
 
 export default function EcranDonnerAvis() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
   const router = useRouter();
   const { visiteId } = useLocalSearchParams<{ visiteId: string }>();
   const { pret, resultat, echec, relire } = utiliserVisiteEnDirect(lireVisiteId(visiteId));
@@ -35,14 +39,14 @@ export default function EcranDonnerAvis() {
   if (!pret) {
     return (
       <EcranReglage centre onRetour={revenir}>
-        <View accessible accessibilityLabel={TEXTES_DONNER_AVIS.chargement} className="items-center">
+        <View accessible accessibilityLabel={T.chargement} className="items-center">
           <ActivityIndicator color={couleurs.encre} size="large" />
         </View>
       </EcranReglage>
     );
   }
 
-  const refus = choisirRefusOuvertureAvis({ visite, echecLecture: echec, refusEnvoi: envoi.refus, etat, maintenant });
+  const refus = choisirRefusOuvertureAvis({ visite, echecLecture: echec, refusEnvoi: envoi.refus, etat, maintenant }, langue);
   if (refus || !visite) {
     const motif = refus ?? { erreur: "introuvable" as const };
     const passager = estRefusOuverturePassager(motif, visite !== null);

@@ -1,7 +1,8 @@
 import { Text, View } from "react-native";
 
-import { eliderDe } from "~/fonctions/texte/elider-de";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Son prénom, dans le texte */
@@ -19,19 +20,10 @@ type Props = {
  * juste au-dessus), ou dit que la demande est partie. Lu d'un seul tenant par VoiceOver.
  */
 export function EncadreComptePrive({ prenom, demandeEnvoyee = false, listesSeules = false, bande = false }: Props) {
-  const titre = bande ? "Réservé à sa bande" : listesSeules ? "Listes privées" : "Compte privé";
-  const texte = bande
-    ? `Qui suit ${prenom}, et qui ${prenom} suit : ça reste entre ${prenom} et sa bande.`
-    : listesSeules
-      ? `Qui suit ${prenom}, et qui ${prenom} suit : ça reste entre ${prenom} et ses abonnés.`
-      : `Les lieux, les listes et les abonnés ${eliderDe(prenom)} sont réservés à ses abonnés et à sa bande.`;
-  const suite = bande
-    ? `Une fois dans la bande ${eliderDe(prenom)}, tout s'ouvre ici.`
-    : listesSeules
-      ? "Son profil, lui, t'est grand ouvert."
-      : demandeEnvoyee
-        ? `Ta demande est partie : dès que ${prenom} dit oui, tout s'ouvre ici.`
-        : "Touche « Suivre » : ça lui envoie une demande.";
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE).comptePrive;
+  const titre = bande ? T.titreBande : listesSeules ? T.titreListes : T.titre;
+  const texte = bande ? T.texteBande(prenom) : listesSeules ? T.texteListes(prenom) : T.texte(prenom);
+  const suite = bande ? T.suiteBande(prenom) : listesSeules ? T.suiteListes : demandeEnvoyee ? T.suiteDemande(prenom) : T.suiteSuivre;
 
   return (
     <View accessible accessibilityLabel={lierPonctuation(`${titre}. ${texte} ${suite}`)} className="gap-1.5 rounded-carte border-2 border-encre bg-carte p-4">

@@ -2,25 +2,28 @@ import { Platform, Pressable, Text, View } from "react-native";
 
 import type { NoteAvis } from "@sos-miam/commun/types/avis";
 import { EtoileAvis } from "~/composants/avis/EtoileAvis";
-import { LIBELLES_NOTES_AVIS, NOTES_AVIS, TEXTES_DONNER_AVIS } from "~/contenus/textes-donner-avis";
+import { LIBELLES_NOTES_AVIS_PAR_LANGUE, NOTES_AVIS, TEXTES_DONNER_AVIS_PAR_LANGUE } from "~/contenus/textes-donner-avis";
+import { TEXTES_ETOILES_AVIS_PAR_LANGUE } from "~/contenus/textes-etoiles-avis";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   note: NoteAvis | null;
   onChoisir: (note: NoteAvis) => void;
 };
 
-const ecrireEtoiles = (note: NoteAvis) => `${note} étoile${note > 1 ? "s" : ""} sur 5`;
-
 export function ChoixNoteAvis({ note, onChoisir }: Props) {
+  const T = utiliserTextes(TEXTES_DONNER_AVIS_PAR_LANGUE);
+  const etoiles = utiliserTextes(TEXTES_ETOILES_AVIS_PAR_LANGUE);
+  const libelles = utiliserTextes(LIBELLES_NOTES_AVIS_PAR_LANGUE);
   const ios = Platform.OS === "ios";
   return (
     <View className="gap-2">
       <Text accessibilityRole="header" className="font-texte-semi text-base text-encre">
-        {TEXTES_DONNER_AVIS.noteTitre}
+        {T.noteTitre}
       </Text>
-      <View accessibilityRole="radiogroup" accessibilityLabel={TEXTES_DONNER_AVIS.noteTitre} className="flex-row justify-center gap-1.5">
+      <View accessibilityRole="radiogroup" accessibilityLabel={T.noteTitre} className="flex-row justify-center gap-1.5">
         {NOTES_AVIS.map((valeur) => {
           const choisie = note === valeur;
           return (
@@ -30,7 +33,7 @@ export function ChoixNoteAvis({ note, onChoisir }: Props) {
               accessibilityState={ios ? { selected: choisie } : { checked: choisie }}
               aria-checked={ios ? undefined : choisie}
               aria-selected={ios ? choisie : undefined}
-              accessibilityLabel={`${ecrireEtoiles(valeur)} : ${LIBELLES_NOTES_AVIS[valeur]}`}
+              accessibilityLabel={etoiles.choixLu(valeur, libelles[valeur])}
               hitSlop={2}
               onPress={() => {
                 vibrerLegerement();
@@ -45,7 +48,7 @@ export function ChoixNoteAvis({ note, onChoisir }: Props) {
       </View>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="min-h-7 justify-center">
         <Text className={`text-center ${note ? "font-titre-gras text-lg text-encre" : "font-texte text-sm text-gris"}`}>
-          {lierPonctuation(note ? LIBELLES_NOTES_AVIS[note] : TEXTES_DONNER_AVIS.noteVide)}
+          {lierPonctuation(note ? libelles[note] : T.noteVide)}
         </Text>
       </View>
     </View>

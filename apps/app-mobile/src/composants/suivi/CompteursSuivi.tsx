@@ -1,11 +1,14 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
-import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
+import { formaterNombreCourtLangue } from "~/fonctions/langue/formater-nombre-court-langue";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** La personne (« moi » pour toi) */
@@ -17,10 +20,10 @@ type Onglet = "abonnes" | "abonnements";
 type Compteur = { onglet: Onglet; chiffre: string; mot: string };
 
 /** « 0 abonné », « 1 abonné », « 12 abonnés » : en français, 0 et 1 restent au singulier */
-const preparer = (onglet: Onglet, nombre: number, mot: string): Compteur => ({
+const preparer = (onglet: Onglet, nombre: number, chiffre: string, mot: (n: number) => string): Compteur => ({
   onglet,
-  chiffre: formaterNombreCourt(nombre),
-  mot: `${mot}${nombre > 1 ? "s" : ""}`,
+  chiffre,
+  mot: mot(nombre),
 });
 
 /**
@@ -30,6 +33,8 @@ const preparer = (onglet: Onglet, nombre: number, mot: string): Compteur => ({
  */
 export function CompteursSuivi({ id }: Props) {
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE).compteurs;
   const { compteursDe, abonnesDe, abonnementsDe, lectureSuivis } = utiliserSuivisPersonnes();
   const { lectureActivite } = utiliserActivite();
   const monId = utiliserMonId();
@@ -37,8 +42,8 @@ export function CompteursSuivi({ id }: Props) {
   const lusSurLeServeur = id !== monId || (lectureSuivis === "lue" && lectureActivite === "lue");
   if (!compteurs || !lusSurLeServeur) return null;
 
-  const abonnes = preparer("abonnes", compteurs.abonnes, "abonné");
-  const abonnements = preparer("abonnements", compteurs.abonnements, "abonnement");
+  const abonnes = preparer("abonnes", compteurs.abonnes, formaterNombreCourtLangue(compteurs.abonnes, langue), T.abonnes);
+  const abonnements = preparer("abonnements", compteurs.abonnements, formaterNombreCourtLangue(compteurs.abonnements, langue), T.abonnements);
   const ouvert = abonnesDe(id) !== "ferme" && abonnementsDe(id) !== "ferme";
 
   if (!ouvert) {
@@ -54,7 +59,7 @@ export function CompteursSuivi({ id }: Props) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${chiffre} ${mot}`}
-      accessibilityHint="Ouvre la liste"
+      accessibilityHint={T.indiceOuvrir}
       onPress={() => {
         vibrerLegerement();
         router.push({ pathname: "/potes/reseau/[id]", params: { id, onglet } });

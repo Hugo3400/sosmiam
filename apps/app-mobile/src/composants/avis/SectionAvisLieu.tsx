@@ -5,13 +5,15 @@ import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alco
 import { CarteAvisPublic } from "~/composants/avis/CarteAvisPublic";
 import { Bouton } from "~/composants/interface/Bouton";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
-import { TEXTES_AVIS_LIEU } from "~/contenus/textes-avis-lieu";
+import { TEXTES_AVIS_LIEU_PAR_LANGUE } from "~/contenus/textes-avis-lieu";
 import { ecrireResumeAvis } from "~/fonctions/avis/ecrire-resume-avis";
 import { filtrerAvisSelonAge } from "~/fonctions/avis/filtrer-avis-selon-age";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserAvisLieu } from "~/hooks/utiliser-avis-lieu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserSourcePhotoAvis } from "~/hooks/utiliser-source-photo-avis";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieuId: number;
@@ -20,12 +22,13 @@ type Props = {
   lieuAlcool: boolean;
 };
 
-const T = TEXTES_AVIS_LIEU;
 const AVIS_AU_DEPART = 3;
 const AVIS_EN_PLUS = 5;
 
 export function SectionAvisLieu({ lieuId, nomLieu, age, lieuAlcool }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_AVIS_LIEU_PAR_LANGUE);
   const { lecture, suiteEnCours, relire, lireSuite } = utiliserAvisLieu(lieuId);
   const lireSourcePhoto = utiliserSourcePhotoAvis();
   const [montres, setMontres] = useState(AVIS_AU_DEPART);
@@ -48,7 +51,7 @@ export function SectionAvisLieu({ lieuId, nomLieu, age, lieuAlcool }: Props) {
         </View>
       );
     }
-    const resume = ecrireResumeAvis(lecture.resume);
+    const resume = ecrireResumeAvis(lecture.resume, langue);
     if (!resume) {
       return (
         <View className="gap-1 rounded-carte border-2 border-dashed border-gris/40 px-5 py-5">

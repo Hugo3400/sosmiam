@@ -4,11 +4,13 @@ import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
+import { TEXTES_SUIVI_PAR_LANGUE } from "~/contenus/textes-suivi";
 import type { Suggestion, TypeSuggestion } from "~/contenus/type-suggestion";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lirePersonneSuivie } from "~/fonctions/suivi/lire-personne-suivie";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   suggestion: Suggestion;
@@ -25,12 +27,6 @@ const TAILLE_ROND = 56;
 const DEBUT_DEGRADE = { x: 0.1, y: 0 };
 const FIN_DEGRADE = { x: 0.9, y: 1 };
 
-const indices: Record<TypeSuggestion, string> = {
-  personne: "Ouvre son profil",
-  createur: "Ouvre sa page",
-  lieu: "Ouvre la fiche du lieu",
-};
-
 // Personne : son avatar sur jaune clair (comme dans Ma bande) ; créateur : 🎬 sur jaune ; lieu : son dégradé
 const fondsRond: Record<TypeSuggestion, string> = { personne: "bg-jaune-clair", createur: "bg-jaune", lieu: "bg-jaune" };
 
@@ -41,6 +37,7 @@ const fondsRond: Record<TypeSuggestion, string> = { personne: "bg-jaune-clair", 
 export function CarteSuggestion({ suggestion, onAnnoncer, onMasquer, refOuvrir }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_SUIVI_PAR_LANGUE);
   const { cle, type, emoji, nom, raison, degrade, ouvrir } = suggestion;
 
   return (
@@ -49,7 +46,7 @@ export function CarteSuggestion({ suggestion, onAnnoncer, onMasquer, refOuvrir }
         ref={refOuvrir}
         accessibilityRole="button"
         accessibilityLabel={`${nom}, ${raison}`}
-        accessibilityHint={indices[type]}
+        accessibilityHint={T.ouvrir[type]}
         onPress={() => {
           vibrerLegerement();
           router.push(ouvrir);
@@ -79,8 +76,8 @@ export function CarteSuggestion({ suggestion, onAnnoncer, onMasquer, refOuvrir }
       {/* Après la carte et son bouton dans l'ordre de lecture ; 28 pt à l'écran, 44 pt sous le doigt */}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Masquer la suggestion ${nom}`}
-        accessibilityHint="On ne te la proposera plus"
+        accessibilityLabel={T.masquerSuggestionLu(nom)}
+        accessibilityHint={T.indiceMasquerSuggestion}
         onPress={() => {
           vibrerLegerement();
           onMasquer();
