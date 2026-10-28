@@ -7,7 +7,6 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLienInvitation } from "~/hooks/utiliser-lien-invitation";
-import { utiliserSourceSociale } from "~/hooks/utiliser-source-sociale";
 
 type Props = {
   /** Ton pseudo, sans « @ » ; vide tant que tu n'en as pas choisi */
@@ -22,15 +21,12 @@ const PARTAGE_IMPOSSIBLE = "Le partage n'a pas voulu s'ouvrir ici. Réessaie dan
 /**
  * Ton QR code d'invitation (ton lien SOS Miam dedans, avec ton code secret), ton lien écrit en clair, et de quoi le partager.
  * Compte connecté : le lien vient du serveur, sans date de fin, et « Changer mon lien » le remplace (l'ancien ne marche plus).
- * Démo : le lien ne sert que dans l'app, on le dit, et le message partagé pointe seulement vers sosmiam.fr.
  * Sans pseudo, l'invitation à en choisir un dans tes infos.
  */
 export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam à un pote" }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { lien, erreur, changer } = utiliserLienInvitation(pseudo);
-  // « Démo » seulement en démo : ni pendant que la session d'un compte se relit, ni en visite
-  const demo = utiliserSourceSociale() === "demo";
   const [changement, setChangement] = useState<"en-cours" | "fait" | "rate" | null>(null);
   // Partage impossible (aperçu web sans partage) : on le dit gentiment
   const [partageImpossible, setPartageImpossible] = useState(false);
@@ -65,7 +61,7 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
 
   async function partager() {
     try {
-      // Démo : pas de lien d'invitation, il ne mène nulle part chez un pote ; avec un compte, ton vrai lien
+      // Sans lien d'invitation (pas de compte), le message pointe seulement vers sosmiam.fr
       await Share.share({
         message:
           changer && lien
@@ -126,10 +122,6 @@ export function CodeQrInvitation({ pseudo, libellePartage = "Parler de SOS Miam 
             </Text>
           ) : null}
         </>
-      ) : demo ? (
-        <Text className="text-center font-texte text-xs leading-4 text-gris">
-          {lierPonctuation("Démo : ton lien et ton QR code ne servent que dans l'app.")}
-        </Text>
       ) : null}
       {erreur && !lien ? (
         <Text accessibilityLiveRegion="polite" className="text-center font-texte text-sm leading-5 text-gris">

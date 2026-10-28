@@ -26,7 +26,6 @@ const lirePseudoSeul = (texte: string): string | null => {
 /**
  * Ajouter un pote : ton QR code et ton lien, le scan du QR code d'un pote (ou son lien collé), et la recherche par pseudo. Un
  * lien ou un QR code avec son code secret vous met dans la même bande tout de suite ; un pseudo seul envoie une demande.
- * Démo : seuls les potes d'exemple se trouvent (ajoutés tout de suite), on le dit en haut de l'écran.
  */
 export default function AjouterPote() {
   const communaute = utiliserCommunaute();
@@ -85,22 +84,10 @@ export default function AjouterPote() {
 
   return (
     <EcranReglage titre="Ajouter un pote" sousTitre="Plus on est de fous, plus on sauve de lieux.">
-      {communaute.demo ? (
-        <View className="mb-7 flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5">
-          <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
-            🧪
-          </Text>
-          <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
-            <Text className="font-texte-gras text-encre">Démo</Text>
-            {lierPonctuation(" : seuls les potes d'exemple se trouvent, et ils arrivent tout de suite.")}
-          </Text>
-        </View>
-      ) : null}
-
       <SectionReglages titre="Ton QR code">
         <View className="gap-3 pt-1">
           <Text className="font-texte text-sm leading-5 text-gris">
-            {lierPonctuation(communaute.demo ? "Dans la démo, ton QR code ne sert que dans l'app." : "Ton pote le scanne dans l'app (Potes, « Ajouter un pote »), et hop : vous êtes dans la même bande.")}
+            {lierPonctuation("Ton pote le scanne dans l'app (Potes, « Ajouter un pote »), et hop : vous êtes dans la même bande.")}
           </Text>
           <CodeQrInvitation pseudo={communaute.moi.pseudo} />
         </View>

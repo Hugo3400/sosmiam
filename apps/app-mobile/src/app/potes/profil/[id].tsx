@@ -248,18 +248,6 @@ export default function ProfilPote() {
       </View>
 
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
-        {/* Démo seulement : avec un compte, ce sont de vraies personnes */}
-        {estMoi || !communaute.demo ? null : (
-          <View className="flex-row items-center gap-2.5 rounded-2xl border-2 border-dashed border-gris/40 bg-carte/70 px-3.5 py-2.5">
-            <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-lg">
-              🧪
-            </Text>
-            <Text className="flex-1 font-texte text-[13px] leading-5 text-gris">
-              <Text className="font-texte-gras text-encre">Potes d'exemple</Text>
-              {lierPonctuation(" : quitte la démo pour retrouver ta vraie bande.")}
-            </Text>
-          </View>
-        )}
 
         <ProfilCommunautaire
           pote={pote}
