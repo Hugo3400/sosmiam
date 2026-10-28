@@ -28,6 +28,7 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import palettes from "~/theme/palettes";
 
 type Props = {
@@ -94,6 +95,7 @@ const DELAI_FOCUS_REDUCTION = 300;
 /** Une publication en plein écran : la vidéo ou les photos d'un lieu, son auteur, ses infos et la colonne d'actions. Mémorisée : elle ne se redessine que si ses données changent. */
 export const PostPublication = memo(function PostPublication(props: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const { publication, lieu, km, depuis, largeur, hauteur, raison, aime, garde, suivi, avecCompte, nombreCommentaires, actif, envolCoeur, envolBouee, margeHaut, margeBas, reduit, reduction, gestes } = props;
   const animationsReduites = useReducedMotion();
   const pointSos = useSharedValue(1);
@@ -211,7 +213,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
     lieu.alerte,
     verifie ? null : "Lieu non vérifié, sans compte SOS Miam",
     raison,
-    `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}${km === null ? "" : `, à ${ecrireDistanceDepuis(km, depuis)}`}, ${lieu.prix}`,
+    `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}${km === null ? "" : `, à ${ecrireDistanceDepuis(km, depuis, langue)}`}, ${lieu.prix}`,
   ].filter(Boolean).join(". ");
   const video = media?.type === "video";
   const indiceCompte = avecCompte ? undefined : INDICE_COMPTE;
@@ -347,7 +349,7 @@ export const PostPublication = memo(function PostPublication(props: Props) {
               <Text className="font-titre text-[26px] leading-[30px] text-white" style={ombreTexte}>{lieu.nom}</Text>
               <Text className="font-texte-moyen text-[14px] text-white/90" style={ombreTexte}>
                 📍 {ecrireQuartierVille(lieu)}
-                {km === null ? "" : ` · ${ecrireDistanceDepuis(km, depuis)}`} · {lieu.prix}
+                {km === null ? "" : ` · ${ecrireDistanceDepuis(km, depuis, langue)}`} · {lieu.prix}
               </Text>
             </View>
             {alcool ? <MentionPrevention variante="sur-image" /> : null}

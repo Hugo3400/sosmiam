@@ -7,8 +7,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { Annonce } from "~/composants/interface/Annonce";
 import { BarreEtatTheme } from "~/composants/interface/BarreEtatTheme";
 import { ListeTuSuis } from "~/composants/suivi/ListeTuSuis";
+import { TEXTES_ECRAN_SUIVIS_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * « Tu suis » (depuis l'onglet Profil) : les personnes, les lieux et les créateurs que tu suis (ListeTuSuis), puis des
@@ -16,6 +18,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
  */
 export default function Suivis() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_SUIVIS_PAR_LANGUE);
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const [annonce, setAnnonce] = useState<{ texte: string; numero: number } | null>(null);
@@ -30,7 +33,7 @@ export default function Suivis() {
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={12}
           onPress={revenir}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -42,10 +45,10 @@ export default function Suivis() {
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-5 pb-10">
         <View className="gap-1">
           <Text accessibilityRole="header" className="font-titre text-3xl text-encre">
-            Tu suis
+            {T.titre}
           </Text>
           <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Les lieux et les créateurs passent en tête de ton fil ; les listes des gens que tu suis t'attendent dans Potes. Changé d'avis ? Touche « Suivi » : personne ne se vexe.")}
+            {lierPonctuation(T.intro)}
           </Text>
         </View>
 

@@ -2,6 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, ActivityIndicator, Alert, Linking, Platform, Pressable, Text, useWindowDimensions, View } from "react-native";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import type { IdMiamiAuChoix } from "@sos-miam/commun/regles/avatars-miamis";
 import { Bouton } from "~/composants/interface/Bouton";
 import { EncartPhotoLocale } from "~/composants/profil/EncartPhotoLocale";
@@ -39,7 +40,7 @@ const TAILLE_MAX_MIAMI = 84;
 const surLeWeb = Platform.OS === "web";
 
 function decrireAvatar(avatar: Avatar, langue: Langue): string {
-  const T = TEXTES_REGLAGES_AVATAR_PAR_LANGUE[langue];
+  const T = choisirTextes(TEXTES_REGLAGES_AVATAR_PAR_LANGUE, langue);
   return avatar.type === "photo" ? T.taPhoto : T.avatarNomme(nommerAvatar(avatar, langue));
 }
 

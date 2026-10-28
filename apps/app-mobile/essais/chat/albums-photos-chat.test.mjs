@@ -40,7 +40,7 @@ test("album : une photo en cours d'envoi reste dans l'album", () => {
 });
 
 test("lignes : un album compte pour une ligne, avec son heure et sa série", () => {
-  const lignes = construireLignesDiscussion([texte("t", "lea"), photo("a", "lea", "alb"), photo("b", "lea", "alb")], () => null, new Date("2026-10-22T20:00:00.000Z"), "moi");
+  const lignes = construireLignesDiscussion([texte("t", "lea"), photo("a", "lea", "alb"), photo("b", "lea", "alb")], () => null, new Date("2026-10-22T20:00:00.000Z"), "moi", "fr");
   assert.equal(lignes.length, 2);
   assert.equal(lignes[1].album.length, 2);
   assert.equal(lignes[1].debutSerie, false);

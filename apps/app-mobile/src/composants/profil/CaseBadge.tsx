@@ -1,7 +1,9 @@
 import { Pressable, Text, useWindowDimensions, View } from "react-native";
 
 import type { BadgeCatalogue } from "@sos-miam/commun/types/badge";
+import { TEXTES_BADGES_ONGLET_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const LARGEUR_PETIT_ECRAN = 370;
 
@@ -14,6 +16,7 @@ type Props = {
 };
 
 export function CaseBadge({ badge, obtenu, selectionne = false, commentObtenir = null, onToucher }: Props) {
+  const T = utiliserTextes(TEXTES_BADGES_ONGLET_PROFIL_PAR_LANGUE);
   const petitEcran = useWindowDimensions().width < LARGEUR_PETIT_ECRAN;
   const taille = petitEcran ? "text-[10px] leading-[13px]" : "text-xs leading-4";
   const dessin = (
@@ -34,7 +37,7 @@ export function CaseBadge({ badge, obtenu, selectionne = false, commentObtenir =
       </View>
     );
   }
-  const etat = obtenu ? "obtenu" : "à débloquer";
+  const etat = obtenu ? T.obtenu : T.aDebloquer;
   const aide = commentObtenir ? ` ${commentObtenir}` : "";
   return (
     <Pressable

@@ -39,6 +39,7 @@ import { retrouverPorteeSansPosition } from "~/fonctions/lieux/retrouver-portee-
 import { trierLieuxExplorer } from "~/fonctions/lieux/trier-lieux-explorer";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEvenementsExplorer } from "~/hooks/utiliser-evenements-explorer";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { DEPUIS_TOI } from "~/hooks/utiliser-origine-distances";
 import { utiliserPointDeDepart } from "~/hooks/utiliser-point-de-depart";
@@ -72,6 +73,7 @@ export default function Explorer() {
   const hauteurBarreOnglets = useBottomTabBarHeight();
   const focus = useIsFocused();
   const { profil } = utiliserProfil();
+  const { langue } = utiliserLangue();
   const pointDeDepart = utiliserPointDeDepart();
   const { position, approximative, recherche, chercher, oublier, oubliApresAbsence, marquerOubliDit } = utiliserPositionActuelle();
   const [filtres, setFiltres] = useState<ChoixFiltres>(FILTRES_EXPLORER_PAR_DEFAUT);
@@ -127,7 +129,7 @@ export default function Explorer() {
   }, []);
 
   const age = useMemo(() => (profil ? calculerAge(profil.dateNaissance) : null), [profil]);
-  const depuisVille = useMemo(() => (pointDeDepart ? ecrireDepuisVille(profil?.ville ?? "") : null), [pointDeDepart, profil?.ville]);
+  const depuisVille = useMemo(() => (pointDeDepart ? ecrireDepuisVille(profil?.ville ?? "", langue) : null), [pointDeDepart, profil?.ville, langue]);
   const { lieux: tousLesLieux, chargerZone } = utiliserLieux();
   const lieuxPermis = useMemo(() => filtrerLieuxSelonAge(tousLesLieux, age), [tousLesLieux, age]);
   const barsPermis = age !== null;
@@ -256,8 +258,8 @@ export default function Explorer() {
     const resultat = await chercher();
     if (!resultat) return;
     if ("erreur" in resultat) {
-      const message = ecrireErreurPosition(resultat.erreur, actualisation, depuisVille);
-      if (!alerterErreurPosition(resultat.erreur, message)) annoncer(message);
+      const message = ecrireErreurPosition(resultat.erreur, actualisation, depuisVille, langue);
+      if (!alerterErreurPosition(resultat.erreur, message, langue)) annoncer(message);
       return;
     }
     if (actualisation) return annoncer("Ta position est à jour 📍");
@@ -268,7 +270,7 @@ export default function Explorer() {
 
   function arreterAutourDeMoi() {
     oublier();
-    const repli = ecrireRepliDistances(depuisVille);
+    const repli = ecrireRepliDistances(depuisVille, langue);
     annoncer(repli ? `Autour de moi arrêté : ${repli}` : "Autour de moi arrêté : ta position est oubliée");
   }
 
@@ -283,8 +285,8 @@ export default function Explorer() {
   const bas = Math.max(hauteurBarreOnglets, hauteurClavier);
   const hauteurDisponible = Math.max(0, hauteurEcran - hauteurEnTete - bas - 8);
   const depuis = position ? DEPUIS_TOI : depuisVille;
-  const autourDe = depuis ?? (profil?.ville ? direDeVille(profil.ville) : DEPUIS_TOI);
-  const ouOnRegarde = decrireZoneRegardee(zone, region, autourDe);
+  const autourDe = depuis ?? (profil?.ville ? direDeVille(profil.ville, langue) : DEPUIS_TOI);
+  const ouOnRegarde = decrireZoneRegardee(zone, region, autourDe, langue);
   const tri = position ? "les plus proches d'abord" : profil ? "selon tes envies" : null;
   const origine = zone?.portee !== "proche" && depuis ? `distances à partir ${depuis}` : null;
   const resume = [ouOnRegarde, tri, origine].filter(Boolean).join(" · ");

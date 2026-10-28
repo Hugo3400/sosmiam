@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Pressable, Text } from "react-native";
 
 import { FeuilleSecoursMiamSafe } from "~/composants/miam-safe/FeuilleSecoursMiamSafe";
+import { TEXTES_MIAM_SAFE_AIDE_PAR_LANGUE } from "~/contenus/textes-miam-safe-aide";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   avecCreerCompte?: boolean;
@@ -13,6 +15,7 @@ const DELAI_FERMETURE_FEUILLE_MS = 450;
 
 export function BoutonSecoursMiamSafe({ avecCreerCompte = false, sansInternet = false }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_AIDE_PAR_LANGUE);
   const [etat, setEtat] = useState<"jamais" | "ouvert" | "ferme">("jamais");
   const fermer = () => setEtat("ferme");
   const ouvrirApresFermeture = (chemin: Href) => {
@@ -23,8 +26,8 @@ export function BoutonSecoursMiamSafe({ avecCreerCompte = false, sansInternet = 
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Miam Safe"
-        accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, et un écran à montrer à l'équipe"
+        accessibilityLabel={T.boutonLu}
+        accessibilityHint={T.boutonIndice}
         hitSlop={8}
         onPress={() => setEtat("ouvert")}
         className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

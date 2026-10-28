@@ -1,8 +1,11 @@
 import { View } from "react-native";
 
 import { BoutonActionReservation } from "~/composants/reservations/BoutonActionReservation";
-import { direChezLieu } from "~/fonctions/visites/dire-chez-lieu";
-import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
+import { CARTE_RESERVATION_PAR_LANGUE } from "~/contenus/textes-reservations-client";
+import { direChezLieuLangue } from "~/fonctions/langue/dire-chez-lieu-langue";
+import { direDeLieuLangue } from "~/fonctions/langue/dire-de-lieu-langue";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nomLieu: string;
@@ -12,18 +15,25 @@ type Props = {
 };
 
 export function ActionsReservation({ nomLieu, annulation, onOuvrirLieu, onAnnuler }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(CARTE_RESERVATION_PAR_LANGUE);
   if (!onOuvrirLieu && !annulation) return null;
-  const libelleAnnuler = annulation === "demande" ? "Annuler la demande" : "Annuler la réservation";
+  const libelleAnnuler = annulation === "demande" ? T.annulerDemande : T.annulerReservation;
   return (
     <View className="flex-row flex-wrap gap-2">
       {onOuvrirLieu ? (
-        <BoutonActionReservation libelle="Voir le lieu" libelleLu={`Voir la fiche ${direDeLieu(nomLieu)}`} indice="Ouvre la fiche du lieu" onPress={onOuvrirLieu} />
+        <BoutonActionReservation
+          libelle={T.voirLieu}
+          libelleLu={T.voirLieuLu(direDeLieuLangue(nomLieu, langue), nomLieu)}
+          indice={T.voirLieuIndice}
+          onPress={onOuvrirLieu}
+        />
       ) : null}
       {annulation ? (
         <BoutonActionReservation
-          libelle={annulation === "demande" ? "Annuler la demande" : "Annuler"}
-          libelleLu={`${libelleAnnuler} ${direChezLieu(nomLieu)}`}
-          indice="Te demande de confirmer avant d'annuler"
+          libelle={annulation === "demande" ? T.annulerDemande : T.annuler}
+          libelleLu={T.annulerLu(libelleAnnuler, direChezLieuLangue(nomLieu, langue))}
+          indice={T.annulerIndice}
           danger
           onPress={onAnnuler}
         />

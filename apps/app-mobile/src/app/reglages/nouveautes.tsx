@@ -2,15 +2,15 @@ import { useRouter } from "expo-router";
 import { Text, View } from "react-native";
 
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { NOUVEAUTES_VERSIONS, type NouveautesVersion } from "~/contenus/nouveautes-versions";
-import { TEXTES_NOUVEAUTES } from "~/contenus/textes-nouveautes";
+import { NOUVEAUTES_VERSIONS_PAR_LANGUE, type NouveautesVersion } from "~/contenus/nouveautes-versions";
+import { TEXTES_NOUVEAUTES_PAR_LANGUE } from "~/contenus/textes-nouveautes";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { comparerVersions } from "~/fonctions/version/comparer-versions";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { VERSION_INSTALLEE } from "~/services/version-installee";
 
-const T = TEXTES_NOUVEAUTES.page;
-
 function TitreVersion({ nouveautes, taVersion }: { nouveautes: NouveautesVersion; taVersion: boolean }) {
+  const T = utiliserTextes(TEXTES_NOUVEAUTES_PAR_LANGUE).page;
   return (
     <View className="flex-row items-center gap-2">
       <View className="flex-1">
@@ -30,8 +30,10 @@ function TitreVersion({ nouveautes, taVersion }: { nouveautes: NouveautesVersion
 
 export default function Nouveautes() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_NOUVEAUTES_PAR_LANGUE).page;
+  const versions = utiliserTextes(NOUVEAUTES_VERSIONS_PAR_LANGUE);
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/reglages"));
-  const sorties = NOUVEAUTES_VERSIONS.filter((v) => VERSION_INSTALLEE === null || comparerVersions(v.version, VERSION_INSTALLEE) <= 0);
+  const sorties = versions.filter((v) => VERSION_INSTALLEE === null || comparerVersions(v.version, VERSION_INSTALLEE) <= 0);
 
   return (
     <EcranReglage titre={T.titre} sousTitre={T.sousTitre} onRetour={revenir}>

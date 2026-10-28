@@ -15,11 +15,13 @@ import { SectionBande } from "~/composants/potes/SectionBande";
 import { SectionListes } from "~/composants/potes/SectionListes";
 import { SectionSorties } from "~/composants/potes/SectionSorties";
 import type { EspaceCommunaute } from "~/composants/potes/SelecteurEspaceCommunaute";
+import { TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE } from "~/contenus/textes-onglets-principaux";
 import { utiliserBandeauAnnuler } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const ONGLETS: readonly OngletPotes[] = ["sorties", "bande", "listes"];
 /** « /potes?onglet=listes » ouvre directement l'onglet demandé */
@@ -34,6 +36,7 @@ const lireEspace = (valeur: string | string[] | undefined) => ESPACES.find((e) =
  */
 export default function Potes() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE).communaute;
   const { profil, invite } = utiliserProfil();
   const { pret, moi, recommandationsRecues, trouverPote, ouvrirProfilSocial, pseudoRequis, demandesRecues, invitationsSorties, invitationsListes } = utiliserCommunaute();
   // La barre d'onglets est posée par-dessus l'écran : la fin de la page passe au-dessus
@@ -75,15 +78,9 @@ export default function Potes() {
       <EcranInvite
         raison="potes"
         emoji="👯"
-        titre="Ta bande t'attend"
-        texte="Ici, on s'organise entre potes : où on mange, qui vient, et qui n'a toujours pas répondu au groupe."
-        avantages={[
-          "Ta bande, et qui a sauvé le plus de lieux ce mois-ci",
-          "Des sorties où tout le monde vote pour le lieu (fini les débats sans fin)",
-          "Un chat entre potes pour caler l'heure du rendez-vous",
-          "Des listes partagées de bonnes adresses",
-          "Les Miamis : des sorties ouvertes à ta ville",
-        ]}
+        titre={T.titre}
+        texte={T.texte}
+        avantages={[...T.avantages]}
       />
     );
   }

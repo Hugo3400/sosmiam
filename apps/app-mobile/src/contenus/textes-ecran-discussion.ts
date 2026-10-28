@@ -19,6 +19,7 @@ export const TEXTES_ECRAN_DISCUSSION = {
   messages: "Messages",
   messagesNonLus: (nonLus: number) => `Messages, ${nonLus} non lu${nonLus > 1 ? "s" : ""}`,
   messagesIntro: "En privé ou en groupe, avec ta bande. Les meilleurs plans miam commencent par un « t'as faim ? ».",
+  finSondageLue: (libelle: string, heure: string) => `${libelle}, à ${heure}`,
 } as const;
 
 export const TEXTES_ECRAN_DISCUSSION_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ECRAN_DISCUSSION>> = { fr: TEXTES_ECRAN_DISCUSSION, en: TEXTES_ECRAN_DISCUSSION_ANGLAIS };

@@ -11,16 +11,20 @@ import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { ChoixEmojiSortie } from "~/composants/potes/ChoixEmojiSortie";
 import { ChoixParticipants } from "~/composants/potes/ChoixParticipants";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_NOUVEAU_GROUPE_PAR_LANGUE } from "~/contenus/textes-ecran-nouveau-groupe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Erreurs = { titre?: string; membres?: string };
 
 /** Créer un groupe : un nom et un emoji, puis les potes de ta bande à y inviter. */
 export default function NouveauGroupe() {
+  const T = utiliserTextes(TEXTES_ECRAN_NOUVEAU_GROUPE_PAR_LANGUE);
+  const REFUS_LIMITATION = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { potes } = utiliserCommunaute();
@@ -43,10 +47,10 @@ export default function NouveauGroupe() {
     if (enCours) return;
     const propre = titre.trim();
     const trouvees: Erreurs = {};
-    if (propre === "") trouvees.titre = "Donne un nom à ton groupe, même « Les affamés » fait l'affaire.";
-    else if (propre.length > LONGUEUR_MAX_TITRE_GROUPE) trouvees.titre = `${LONGUEUR_MAX_TITRE_GROUPE} caractères au plus : fais court et gourmand.`;
-    else if (contientMotInterdit(propre)) trouvees.titre = "Un mot de ce nom ne passe pas chez nous. Tu reformules gentiment ?";
-    if (choisis.length === 0) trouvees.membres = "Ajoute au moins un pote : un groupe tout seul, c'est un journal intime.";
+    if (propre === "") trouvees.titre = T.erreurs.titreVide;
+    else if (propre.length > LONGUEUR_MAX_TITRE_GROUPE) trouvees.titre = T.erreurs.titreLong(LONGUEUR_MAX_TITRE_GROUPE);
+    else if (contientMotInterdit(propre)) trouvees.titre = T.erreurs.titreMot;
+    if (choisis.length === 0) trouvees.membres = T.erreurs.membres;
 
     if (Object.keys(trouvees).length === 0) {
       setEnCours(true);
@@ -56,10 +60,10 @@ export default function NouveauGroupe() {
         router.replace({ pathname: "/potes/discussion/[id]", params: { id: resultat.id } });
         return;
       }
-      if (resultat.erreur === "titre") trouvees.titre = `Ce nom ne passe pas : ${LONGUEUR_MAX_TITRE_GROUPE} caractères au plus, et des mots gentils.`;
-      else if (resultat.erreur === "participants") trouvees.membres = `Choisis entre 1 et ${MAX_PARTICIPANTS_GROUPE - 1} potes de ta bande.`;
+      if (resultat.erreur === "titre") trouvees.titre = T.erreurs.titreRefuse(LONGUEUR_MAX_TITRE_GROUPE);
+      else if (resultat.erreur === "participants") trouvees.membres = T.erreurs.participants(MAX_PARTICIPANTS_GROUPE - 1);
       else if (resultat.erreur === "compte-limite") trouvees.membres = REFUS_LIMITATION.groupe;
-      else trouvees.membres = "Le groupe n'a pas pu être créé (le réseau, sûrement). Réessaie dans un instant !";
+      else trouvees.membres = T.erreurs.reseau;
     }
 
     setErreurs(trouvees);
@@ -76,7 +80,7 @@ export default function NouveauGroupe() {
         <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={T.retour}
             hitSlop={8}
             onPress={() => (router.canGoBack() ? router.back() : router.replace("/potes/messages"))}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -87,36 +91,36 @@ export default function NouveauGroupe() {
 
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-8" keyboardShouldPersistTaps="handled">
           <Text accessibilityRole="header" className="font-titre text-[32px] leading-[36px] text-encre">
-            Nouveau groupe
+            {T.titre}
           </Text>
           <Text className="mb-4 mt-2 font-texte text-base leading-6 text-gris">
-            {lierPonctuation("La team brunch, les fans de tielle ou toute la bande : un groupe, et vous papotez tous ensemble.")}
+            {lierPonctuation(T.intro)}
           </Text>
 
-          <SectionReglages titre="Le nom">
+          <SectionReglages titre={T.nom}>
             <View className="gap-4 pt-2">
               <ChampTexte
-                libelle="Le nom du groupe"
+                libelle={T.nomLibelle}
                 valeur={titre}
                 onChangeTexte={(texte) => {
                   setTitre(texte);
                   if (erreurs.titre) setErreurs((e) => ({ ...e, titre: undefined }));
                 }}
-                placeholder="Les affamés du jeudi"
+                placeholder={T.nomPlaceholder}
                 maxLength={LONGUEUR_MAX_TITRE_GROUPE}
                 returnKeyType="done"
-                aide={`${titre.length}/${LONGUEUR_MAX_TITRE_GROUPE} caractères`}
+                aide={T.caracteres(titre.length, LONGUEUR_MAX_TITRE_GROUPE)}
                 erreur={erreurs.titre}
               />
-              <ChoixEmojiSortie choisi={emoji} onChoisir={setEmoji} libelle="Emoji du groupe" />
+              <ChoixEmojiSortie choisi={emoji} onChoisir={setEmoji} libelle={T.emoji} />
             </View>
           </SectionReglages>
 
-          <SectionReglages titre="Avec qui ?">
+          <SectionReglages titre={T.avecQui}>
             <Text className="mb-1 font-texte text-sm leading-5 text-gris">
-              {lierPonctuation(`Jusqu'à ${MAX_PARTICIPANTS_GROUPE - 1} potes de ta bande (${MAX_PARTICIPANTS_GROUPE} avec toi).`)}
+              {lierPonctuation(T.avecQuiTexte(MAX_PARTICIPANTS_GROUPE - 1, MAX_PARTICIPANTS_GROUPE))}
             </Text>
-            <ChoixParticipants potes={potes} choisis={membres} max={MAX_PARTICIPANTS_GROUPE - 1} onBasculer={basculer} erreur={erreurs.membres} indiceMax={`${MAX_PARTICIPANTS_GROUPE - 1} potes au plus dans un groupe, toi en plus`} />
+            <ChoixParticipants potes={potes} choisis={membres} max={MAX_PARTICIPANTS_GROUPE - 1} onBasculer={basculer} erreur={erreurs.membres} indiceMax={T.indiceMax(MAX_PARTICIPANTS_GROUPE - 1)} />
           </SectionReglages>
         </ScrollView>
 
@@ -124,7 +128,7 @@ export default function NouveauGroupe() {
           {erreurBas ? (
             <Text className="overflow-hidden rounded-2xl bg-rose-alerte px-4 py-2.5 font-texte-semi text-sm leading-5 text-rouge-texte">{lierPonctuation(erreurBas)}</Text>
           ) : null}
-          <Bouton libelle={enCours ? "Un instant…" : "Créer le groupe"} desactive={enCours} onPress={() => void creer()} indice="Tes potes choisis pourront discuter tous ensemble" />
+          <Bouton libelle={enCours ? T.unInstant : T.creer} desactive={enCours} onPress={() => void creer()} indice={T.creerIndice} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

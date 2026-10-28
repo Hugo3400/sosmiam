@@ -8,9 +8,13 @@ import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPla
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { ChoixFin } from "~/composants/pro/ChoixFin";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { TEXTES_MESSAGE_MOMENT_PAR_LANGUE } from "~/contenus/textes-blocs-ce-soir";
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { listerDureesMessage } from "~/fonctions/pro/lister-durees-message";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type ChampMessage = "texte" | "jusqua";
 
@@ -31,8 +35,10 @@ type Props = {
  * (24 h au plus), puis effacé tout seul. Un message en place peut être remplacé ou effacé.
  */
 export function BlocMessageMoment({ moment, enCours, refusLimite, refusEffacer, onAfficher, onEffacer }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_MESSAGE_MOMENT_PAR_LANGUE);
   const [texte, setTexte] = useState("");
-  const durees = listerDureesMessage(new Date(), moment.fermeture);
+  const durees = listerDureesMessage(new Date(), moment.fermeture, langue);
   const [duree, setDuree] = useState<string | null>(durees[0]?.cle ?? null);
   const [erreur, setErreur] = useState<ChampMessage | null>(null);
   const actuel = moment.message;
@@ -49,32 +55,32 @@ export function BlocMessageMoment({ moment, enCours, refusLimite, refusEffacer, 
     <View className="gap-5">
       {actuel ? (
         <View className="gap-3 rounded-carte border-2 border-encre bg-carte p-4">
-          <Text className="font-texte-gras text-base text-encre">{`📣 « ${actuel.texte} »`}</Text>
-          <Text className="font-texte text-sm text-gris">{actuel.jusqua ? `Affiché sur ta fiche jusqu'à ${ecrireHeure(actuel.jusqua)}.` : "Affiché sur ta fiche par l'équipe SOS Miam."}</Text>
+          <Text className="font-texte-gras text-base text-encre">{`📣 ${citer(actuel.texte, langue)}`}</Text>
+          <Text className="font-texte text-sm text-gris">{actuel.jusqua ? T.afficheJusqua(ecrireHeureLangue(actuel.jusqua, langue)) : T.afficheParEquipe}</Text>
           <RefusLimitationEnPlace texte={refusEffacer} />
-          <Bouton libelle="Effacer le message" variante="blanc" petit desactive={enCours} onPress={onEffacer} />
+          <Bouton libelle={T.effacer} variante="blanc" petit desactive={enCours} onPress={onEffacer} />
         </View>
       ) : (
         <Text className="font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Une happy hour, le plat du jour, un concert improvisé ? Un petit mot sur ta fiche, qui s'efface tout seul.")}
+          {lierPonctuation(T.intro)}
         </Text>
       )}
       <ChampTexte
-        libelle={actuel ? "Le remplacer par" : "Ton message"}
+        libelle={actuel ? T.remplacerPar : T.tonMessage}
         valeur={texte}
         onChangeTexte={(t) => {
           setTexte(t);
           if (erreur === "texte") setErreur(null);
         }}
         maxLength={MESSAGE_MOMENT_MAX}
-        placeholder="Happy hour jusqu'à 20h"
+        placeholder={T.exemple}
         aide={`${texte.length}/${MESSAGE_MOMENT_MAX}`}
-        erreur={erreur === "texte" ? `De 1 à ${MESSAGE_MOMENT_MAX} caractères, et sans gros mot.` : null}
+        erreur={erreur === "texte" ? T.erreurTexte(MESSAGE_MOMENT_MAX) : null}
       />
-      <ChoixFin libelle="Combien de temps ?" choix={durees} choisi={duree} onChoisir={setDuree} />
-      {erreur === "jusqua" ? <Text className="font-texte text-sm text-rouge-texte">24 h au plus, et pas dans le passé.</Text> : null}
+      <ChoixFin libelle={T.combienDeTemps} choix={durees} choisi={duree} onChoisir={setDuree} />
+      {erreur === "jusqua" ? <Text className="font-texte text-sm text-rouge-texte">{T.erreurDuree}</Text> : null}
       <RefusLimitationEnPlace texte={refusLimite} />
-      <Bouton libelle={actuel ? "Remplacer le message" : "Afficher le message"} desactive={enCours || texte.trim() === ""} onPress={() => void afficher()} />
+      <Bouton libelle={actuel ? T.remplacer : T.afficher} desactive={enCours || texte.trim() === ""} onPress={() => void afficher()} />
     </View>
   );
 }

@@ -3,18 +3,20 @@ import { useEffect } from "react";
 import { AccessibilityInfo, Platform, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
-import { ANNONCES_PROFIL, BOUTON_COMPRIS } from "~/contenus/annonces-profil";
+import { ANNONCES_PROFIL, ANNONCES_PROFIL_PAR_LANGUE, BOUTON_COMPRIS_PAR_LANGUE } from "~/contenus/annonces-profil";
+import { TEXTES_ANNONCE_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { AnnonceSynchro } from "~/stockage/synchro-profil";
 
 /** Les annonces déjà lues au lecteur d'écran pendant ce lancement (l'onglet Profil se rouvre souvent) */
 const dejaDites = new Set<string>();
 
 /** Le titre et le texte d'une annonce, prêts à afficher */
-function decrire(annonce: AnnonceSynchro): { emoji: string; titre: string; texte: string } {
-  const modele = ANNONCES_PROFIL[annonce.type];
+function decrire(annonce: AnnonceSynchro, modeles: typeof ANNONCES_PROFIL_PAR_LANGUE.fr): { emoji: string; titre: string; texte: string } {
+  const modele = modeles[annonce.type];
   if (annonce.type === "prenom-limite") {
     // « Compte limité jusqu'au 12 octobre 2026 », ou « pour l'instant » sans date (même titre qu'une alerte « compte-limite »)
     const { titre } = decrireEchecVisite("compte-limite", annonce.jusqua ? { jusqua: annonce.jusqua } : undefined);
@@ -30,6 +32,9 @@ function decrire(annonce: AnnonceSynchro): { emoji: string; titre: string; texte
  */
 export function AnnonceProfil() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_ANNONCE_PROFIL_PAR_LANGUE);
+  const modeles = utiliserTextes(ANNONCES_PROFIL_PAR_LANGUE);
+  const compris = utiliserTextes(BOUTON_COMPRIS_PAR_LANGUE);
   const { annonce, fermerAnnonce } = utiliserProfil();
 
   // Lue une fois au lecteur d'écran, à sa première apparition
@@ -37,14 +42,14 @@ export function AnnonceProfil() {
     const cle = annonce ? JSON.stringify(annonce) : null;
     if (!annonce || !cle || dejaDites.has(cle)) return;
     dejaDites.add(cle);
-    const { titre, texte } = decrire(annonce);
+    const { titre, texte } = decrire(annonce, modeles);
     if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibilityWithOptions(`${titre}. ${texte}`, { queue: true });
     else AccessibilityInfo.announceForAccessibility(`${titre}. ${texte}`);
-  }, [annonce]);
+  }, [annonce, modeles]);
 
   if (!annonce) return null;
-  const description = decrire(annonce);
-  const modele = ANNONCES_PROFIL[annonce.type];
+  const description = decrire(annonce, modeles);
+  const modele = modeles[annonce.type];
 
   return (
     <View className="gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
@@ -64,13 +69,13 @@ export function AnnonceProfil() {
           libelle={modele.bouton}
           variante="encre"
           petit
-          indice={annonce.type === "prenom-limite" ? "Ouvre les décisions de la modération" : "Ouvre tes infos pour choisir ton pseudo"}
+          indice={annonce.type === "prenom-limite" ? T.indiceDecisions : T.indicePseudo}
           onPress={() => {
             fermerAnnonce();
-            router.push(modele.vers as Href);
+            router.push(ANNONCES_PROFIL[annonce.type].vers as Href);
           }}
         />
-        <Bouton libelle={BOUTON_COMPRIS} variante="blanc" petit indice="Range cette annonce pour de bon" onPress={fermerAnnonce} />
+        <Bouton libelle={compris} variante="blanc" petit indice={T.indiceRanger} onPress={fermerAnnonce} />
       </View>
     </View>
   );

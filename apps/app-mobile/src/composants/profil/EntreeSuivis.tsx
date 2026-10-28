@@ -1,15 +1,22 @@
 import { useRouter } from "expo-router";
 
 import { TuileRaccourci } from "~/composants/profil/TuileRaccourci";
-import { TEXTES_RACCOURCIS } from "~/contenus/textes-profil";
+import { TEXTES_RACCOURCIS_PAR_LANGUE } from "~/contenus/textes-profil";
+import { TEXTES_ENTREE_SUIVIS_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { listerSuivisAffichables } from "~/fonctions/suivi/lister-suivis-affichables";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export function EntreeSuivis() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_ENTREE_SUIVIS_PAR_LANGUE);
+  const raccourcis = utiliserTextes(TEXTES_RACCOURCIS_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   // Abonnements acceptés seulement (une demande en attente ne compte pas encore)
   const { pret, lectureSuivis, nombreAbonnements: nombrePersonnes } = utiliserSuivisPersonnes();
   const { suivis, lectureActivite } = utiliserActivite();
@@ -21,24 +28,24 @@ export function EntreeSuivis() {
   const nombreCreateurs = affichables.length - nombreLieux;
 
   const parties = [
-    nombrePersonnes > 0 ? `${nombrePersonnes} personne${nombrePersonnes > 1 ? "s" : ""}` : null,
-    nombreLieux > 0 ? `${nombreLieux} lieu${nombreLieux > 1 ? "x" : ""}` : null,
-    nombreCreateurs > 0 ? `${nombreCreateurs} créateur${nombreCreateurs > 1 ? "s" : ""}` : null,
+    nombrePersonnes > 0 ? T.personnes(nombrePersonnes) : null,
+    nombreLieux > 0 ? T.lieux(nombreLieux) : null,
+    nombreCreateurs > 0 ? T.createurs(nombreCreateurs) : null,
   ].filter((p) => p !== null);
   // « 2 personnes, 3 lieux et 1 créateur »
   const detail =
     !pret || lectureSuivis !== "lue" || lectureActivite !== "lue"
-      ? TEXTES_RACCOURCIS.suivisEnLecture
+      ? raccourcis.suivisEnLecture
       : parties.length > 1
-        ? `${parties.slice(0, -1).join(", ")} et ${parties[parties.length - 1]}`
-        : (parties[0] ?? TEXTES_RACCOURCIS.personne);
+        ? listerPrenomsLangue(parties, langue)
+        : (parties[0] ?? raccourcis.personne);
 
   return (
     <TuileRaccourci
       emoji="👀"
-      titre={TEXTES_RACCOURCIS.suivis}
+      titre={raccourcis.suivis}
       detail={detail}
-      indice={TEXTES_RACCOURCIS.indiceSuivis}
+      indice={raccourcis.indiceSuivis}
       onPress={() => router.push("/suivis")}
     />
   );

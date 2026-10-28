@@ -1,8 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_CHOIX_SORTIE_PAR_LANGUE } from "~/contenus/textes-choix-sortie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Un moment possible pour la fin du vote */
 export type OptionFinVote = {
@@ -22,8 +24,9 @@ type Props = {
 /** Choisir quand le vote d'une nouvelle sortie se termine : un seul choix parmi quelques moments. */
 export function ChoixFinVote({ options, choisie, onChoisir }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CHOIX_SORTIE_PAR_LANGUE);
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel="Fin du vote">
+    <View accessibilityRole="radiogroup" accessibilityLabel={T.finVote}>
       {options.map((o, i) => {
         const actif = o.cle === choisie;
         return (
@@ -32,7 +35,7 @@ export function ChoixFinVote({ options, choisie, onChoisir }: Props) {
             // Sur iPhone, une radio est lue en anglais : bouton « sélectionné », avec sa place dans la liste ; radio cochée ou non ailleurs
             accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
             accessibilityState={Platform.OS === "ios" ? { selected: actif } : { checked: actif }}
-            accessibilityLabel={`${o.libelle}, ${o.detail}${Platform.OS === "ios" ? `, ${i + 1} sur ${options.length}` : ""}`}
+            accessibilityLabel={`${o.libelle}, ${o.detail}${Platform.OS === "ios" ? `, ${T.position(i + 1, options.length)}` : ""}`}
             onPress={() => {
               vibrerLegerement();
               onChoisir(o.cle);

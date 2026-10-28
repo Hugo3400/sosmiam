@@ -7,11 +7,13 @@ import type { EvenementLieuPro } from "@sos-miam/commun/types/evenement";
 import { CarteEvenementPro } from "~/composants/pro/CarteEvenementPro";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
+import { TEXTES_ECRAN_EVENEMENTS_PAR_LANGUE } from "~/contenus/textes-ecran-pro-evenements";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Les événements du lieu (gérant et équipe) : à venir (le plus proche d'abord), puis passés ou annulés depuis 30 jours.
@@ -19,6 +21,7 @@ import { utiliserServices } from "~/hooks/utiliser-services";
  */
 export default function EcranEvenementsPro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_EVENEMENTS_PAR_LANGUE);
   const router = useRouter();
   const { lieuPro } = utiliserModes();
   const { lieuPro: service } = utiliserServices();
@@ -47,13 +50,13 @@ export default function EcranEvenementsPro() {
 
   return (
     <EcranReglage
-      titre="Événements"
+      titre={T.titre}
       sousTitre={`${lieuPro.emoji} ${lieuPro.nom}`}
       boutonPrincipal={{
-        libelle: "Nouvel événement",
+        libelle: T.nouvel,
         onPress: () => router.push("/pro/evenement"),
         desactive: plein || evenements === null,
-        indice: plein ? `${EVENEMENTS_A_VENIR_MAX} événements à venir au plus : annule ou attends qu'un soit passé` : undefined,
+        indice: plein ? T.pleinIndice : undefined,
       }}
     >
       {echec ? (
@@ -64,10 +67,10 @@ export default function EcranEvenementsPro() {
         </View>
       ) : (
         <>
-          <SectionReglages titre="À venir">
+          <SectionReglages titre={T.aVenir}>
             {aVenir.length === 0 ? (
               <Text className="font-texte text-base leading-6 text-gris">
-                {lierPonctuation("Rien de prévu pour l'instant. Un concert, un quiz, un atelier ? Les gourmands qui te suivent seront prévenus.")}
+                {lierPonctuation(T.vide)}
               </Text>
             ) : (
               <View className="gap-3">
@@ -76,10 +79,10 @@ export default function EcranEvenementsPro() {
                 ))}
               </View>
             )}
-            {plein ? <Text className="mt-3 font-texte text-sm text-gris">{`${EVENEMENTS_A_VENIR_MAX} événements à venir au plus.`}</Text> : null}
+            {plein ? <Text className="mt-3 font-texte text-sm text-gris">{T.plein}</Text> : null}
           </SectionReglages>
           {finis.length > 0 ? (
-            <SectionReglages titre="Passés et annulés">
+            <SectionReglages titre={T.finis}>
               <View className="gap-3">
                 {finis.map((e) => (
                   <CarteEvenementPro key={e.id} evenement={e} />

@@ -1,14 +1,19 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { ActivityIndicator, Text, View } from "react-native";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { TEXTES_PARAMETRES } from "~/contenus/textes-parametres";
+import { TEXTES_PARAMETRES_PAR_LANGUE } from "~/contenus/textes-parametres";
+import { TEXTES_REGLAGES_DONNEES_PAR_LANGUE } from "~/contenus/textes-reglages-donnees";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserExportSocial } from "~/hooks/utiliser-export-social";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Un compte est connecté (le texte sur ce qui est gardé où change) */
@@ -20,50 +25,50 @@ type Props = {
 };
 
 /** Ce qu'on dit après « Télécharger mes données sociales » */
-function annoncerExport(resultat: "ok" | "indisponible" | ErreurService): string {
+function annoncerExport(resultat: "ok" | "indisponible" | ErreurService, langue: Langue): string {
+  const T = choisirTextes(TEXTES_REGLAGES_DONNEES_PAR_LANGUE, langue);
   switch (resultat) {
     case "ok":
-      return "📦 Tes données sont prêtes. Garde ce fichier rien que pour toi !";
+      return T.exportPret;
     case "indisponible":
-      return "📱 Pas moyen d'enregistrer un fichier ici : télécharge tes données depuis l'app, sur ton téléphone.";
+      return T.exportIndisponible;
     // Tant que le serveur n'a pas la route (lot L7), il répond « introuvable »
     case "introuvable":
-      return "🍳 Bientôt dispo : le téléchargement de tes données mijote encore en cuisine.";
+      return T.exportBientot;
     case "trop-de-demandes":
-      return "🐢 Deux téléchargements par jour au plus : réessaie un peu plus tard.";
+      return T.exportTropDeDemandes;
     case "hors-ligne":
-      return "📶 Pas de réseau : rien n'est parti. Réessaie dans un instant.";
+      return T.exportHorsLigne;
     default: {
-      const message = MESSAGES_SERVICE[resultat];
-      return `${message.emoji} ${message.titre} : ${message.texte}`;
+      const message = choisirTextes(MESSAGES_SERVICE_PAR_LANGUE, langue)[resultat];
+      return T.exportErreur(message.emoji, message.titre, message.texte);
     }
   }
 }
 
 export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_REGLAGES_DONNEES_PAR_LANGUE);
+  const TP = utiliserTextes(TEXTES_PARAMETRES_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const exportSocial = utiliserExportSocial();
 
   async function telecharger() {
     if (exportSocial.enCours) return;
-    onAnnoncer(annoncerExport(await exportSocial.exporter()));
+    onAnnoncer(annoncerExport(await exportSocial.exporter(), langue));
   }
 
   return (
     <SectionReglages
-      titre={TEXTES_PARAMETRES.donnees.titre}
+      titre={TP.donnees.titre}
       section="parametres-donnees"
-      resume={exportSocial.disponible ? TEXTES_PARAMETRES.donnees.resume : TEXTES_PARAMETRES.donnees.resumeSansExport}
+      resume={exportSocial.disponible ? TP.donnees.resume : TP.donnees.resumeSansExport}
     >
       {exportSocial.disponible ? (
         <LigneReglage
           emoji="📦"
-          titre="Télécharger mes données sociales"
-          detail={
-            exportSocial.enCours
-              ? "On rassemble tout ça…"
-              : "Tes potes, tes listes, tes sorties et tes messages, rien que pour toi. Deux fois par jour au plus."
-          }
+          titre={T.telecharger}
+          detail={exportSocial.enCours ? T.telechargerEnCours : T.telechargerDetail}
           onPress={() => void telecharger()}
           droite={
             exportSocial.enCours ? (
@@ -76,14 +81,10 @@ export function SectionTesDonnees({ connecte, onEffacer, onAnnoncer }: Props) {
       ) : null}
       <View className="border-b border-ligne py-3">
         <Text className="font-texte text-sm leading-5 text-gris">
-          {lierPonctuation(
-            connecte
-              ? "Ton compte et ton profil sont gardés sur notre serveur (ton nom et ta date de naissance y sont chiffrés), ta photo de profil aussi quand tu la montres. Ton régime particulier reste sur ce téléphone. Effacer ici ne touche que ce téléphone : pour supprimer ton compte, passe par « Mon compte »."
-              : "Tout reste sur ce téléphone : ton profil dans son coffre-fort chiffré, ton activité, ton avatar et tes préférences dans l'app. Rien n'est envoyé à notre serveur pour l'instant. Et quand ton compte arrivera, ta photo et ton régime particulier ne partiront pas sans ton accord.",
-          )}
+          {lierPonctuation(connecte ? T.ouSontElles : T.ouSontEllesSansCompte)}
         </Text>
       </View>
-      <LigneReglage emoji="🧽" titre="Effacer mes données et recommencer" detail="Profil, avatar, rescousses, lieux gardés… tout repart à zéro" danger onPress={onEffacer} />
+      <LigneReglage emoji="🧽" titre={T.effacer} detail={T.effacerDetail} danger onPress={onEffacer} />
     </SectionReglages>
   );
 }

@@ -5,11 +5,13 @@ import { AccessibilityInfo, Platform, Pressable, Text, View } from "react-native
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { RondPote } from "~/composants/potes/RondPote";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_AJOUT_POTE_PAR_LANGUE } from "~/contenus/textes-ajout-pote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserRecherchePseudo } from "~/hooks/utiliser-recherche-pseudo";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // « @ » + 20 caractères au plus (FORME_PSEUDO)
 const LONGUEUR_MAX_SAISIE = 21;
@@ -22,23 +24,25 @@ const DELAI_ANNONCE = 700;
  */
 export function RecherchePseudo() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_AJOUT_POTE_PAR_LANGUE).recherche;
+  const REFUS = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { demanderAjout, demandesEnvoyees } = utiliserCommunaute();
   const [texte, setTexte] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const cherche = texte.trim().replace(/^@/, "");
   const { resultats, enCours, erreur: rechercheRatee } = utiliserRecherchePseudo(texte);
   const nombre = resultats.length;
-  const aucun = `On ne trouve personne pour @${cherche}. Vérifie l'orthographe, ou demande-lui plutôt son lien ou son QR code !`;
+  const aucun = T.aucun(cherche);
 
   // VoiceOver ignore accessibilityLiveRegion (qui sert à TalkBack) : sur iPhone, on annonce les résultats une fois la frappe posée
   useEffect(() => {
     if (Platform.OS !== "ios" || cherche.length < 2 || enCours) return;
     const minuterie = setTimeout(
-      () => AccessibilityInfo.announceForAccessibilityWithOptions(nombre === 0 ? aucun : `${nombre} résultat${nombre > 1 ? "s" : ""} pour @${cherche}`, { queue: true }),
+      () => AccessibilityInfo.announceForAccessibilityWithOptions(nombre === 0 ? aucun : T.resultats(nombre, cherche), { queue: true }),
       DELAI_ANNONCE,
     );
     return () => clearTimeout(minuterie);
-  }, [cherche, nombre, aucun, enCours]);
+  }, [cherche, nombre, aucun, enCours, T]);
 
   async function ajouter(pote: Pote) {
     vibrerLegerement();
@@ -46,18 +50,18 @@ export function RecherchePseudo() {
     // La ligne passe d'elle-même à « Déjà dans ta bande » ou « Demande envoyée »
     const message =
       resultat.type === "ajoute"
-        ? `${pote.prenom} a rejoint ta bande !`
+        ? T.ajoute(pote.prenom)
         : resultat.type === "demande"
-          ? `Demande envoyée à ${pote.prenom} : dès qu'elle est acceptée, vous êtes dans la même bande.`
+          ? T.demande(pote.prenom)
           : resultat.type === "deja"
-            ? `${pote.prenom} est déjà dans ta bande.`
+            ? T.deja(pote.prenom)
             : resultat.type === "bloque"
-              ? `Tu as bloqué ${pote.prenom} : pour l'ajouter, débloque d'abord cette personne depuis son profil.`
+              ? T.bloque(pote.prenom)
               : resultat.type === "demandes-fermees"
-                ? `${pote.prenom} ne reçoit pas de demandes par pseudo : demande-lui plutôt son lien ou son QR code !`
+                ? T.demandesFermees(pote.prenom)
                 : resultat.type === "erreur" && resultat.erreur === "compte-limite"
-                  ? REFUS_LIMITATION.bande
-                  : "Ça n'a pas marché cette fois. Réessaie dans un instant ?";
+                  ? REFUS.bande
+                  : T.erreur;
     setErreur(resultat.type === "ajoute" || resultat.type === "deja" || resultat.type === "demande" ? null : message);
     AccessibilityInfo.announceForAccessibility(message);
   }
@@ -65,7 +69,7 @@ export function RecherchePseudo() {
   return (
     <View className="gap-3">
       <ChampTexte
-        libelle="Pseudo de ton pote"
+        libelle={T.champ}
         valeur={texte}
         onChangeTexte={(nouveau) => {
           setTexte(nouveau);
@@ -78,16 +82,16 @@ export function RecherchePseudo() {
         spellCheck={false}
         returnKeyType="search"
         maxLength={LONGUEUR_MAX_SAISIE}
-        aide="Avec ou sans « @ » : le début du pseudo suffit."
+        aide={T.aide}
       />
 
       {cherche.length < 2 ? (
-        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation("Tape au moins 2 lettres.")}</Text>
+        <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.tropCourt)}</Text>
       ) : enCours && resultats.length === 0 ? (
-        <Text className="font-texte text-sm leading-5 text-gris">On cherche…</Text>
+        <Text className="font-texte text-sm leading-5 text-gris">{T.enCours}</Text>
       ) : rechercheRatee ? (
         <Text accessibilityLiveRegion="polite" className="font-texte text-sm leading-5 text-gris">
-          {lierPonctuation("La recherche n'a pas marché cette fois. Réessaie dans un instant !")}
+          {lierPonctuation(T.rechercheRatee)}
         </Text>
       ) : resultats.length === 0 ? (
         <Text accessibilityLiveRegion="polite" className="font-texte text-sm leading-5 text-gris">
@@ -100,7 +104,7 @@ export function RecherchePseudo() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${pote.prenom}, @${pote.pseudo}`}
-                accessibilityHint="Ouvre son profil"
+                accessibilityHint={T.profilIndice}
                 onPress={() => {
                   vibrerLegerement();
                   router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } });
@@ -118,22 +122,22 @@ export function RecherchePseudo() {
                 </View>
               </Pressable>
               {dejaDansLaBande ? (
-                <Text accessibilityLabel="Déjà dans ta bande" className="font-texte-semi text-[13px] text-gris">
-                  ✓ Déjà dans ta bande
+                <Text accessibilityLabel={T.dejaDansBande} className="font-texte-semi text-[13px] text-gris">
+                  {`✓ ${T.dejaDansBande}`}
                 </Text>
               ) : demandesEnvoyees.some((p) => p.id === pote.id) ? (
-                <Text accessibilityLabel="Demande envoyée" className="font-texte-semi text-[13px] text-gris">
-                  ✓ Demande envoyée
+                <Text accessibilityLabel={T.demandeEnvoyee} className="font-texte-semi text-[13px] text-gris">
+                  {`✓ ${T.demandeEnvoyee}`}
                 </Text>
               ) : (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`Ajouter ${pote.prenom}, @${pote.pseudo}`}
-                  accessibilityHint="Lui demande de rejoindre ta bande"
+                  accessibilityLabel={T.ajouterLu(pote.prenom, pote.pseudo)}
+                  accessibilityHint={T.ajouterIndice}
                   onPress={() => void ajouter(pote)}
                   className="min-h-11 items-center justify-center rounded-full border-2 border-encre bg-jaune px-4 active:opacity-80"
                 >
-                  <Text className="font-texte-gras text-sm text-nuit">Ajouter</Text>
+                  <Text className="font-texte-gras text-sm text-nuit">{T.ajouter}</Text>
                 </Pressable>
               )}
             </View>

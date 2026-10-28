@@ -2,22 +2,23 @@ import { Text, View } from "react-native";
 
 import { PHRASE_MIAM_SAFE } from "@sos-miam/commun/regles/miam-safe";
 import { Mascotte } from "~/composants/marque/Mascotte";
+import { ECRAN_COMPTOIR_MIAM_SAFE } from "~/contenus/ecran-comptoir-miam-safe";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
 const PHRASE = lierPonctuation(PHRASE_MIAM_SAFE);
-const CONSIGNE = lierPonctuation("Pour l'équipe : cette personne a besoin d'aide. Accompagne-la à l'écart, sans bruit, et demande-lui ce qu'il lui faut.");
+const CONSIGNE = lierPonctuation(ECRAN_COMPTOIR_MIAM_SAFE.consigneEquipe);
 
 export function PhraseComptoirMiamSafe() {
   return (
     <View className="flex-1 items-center justify-center gap-5 px-8">
       <Mascotte expression="clin" taille={150} />
       <View className="rounded-full border-2 border-jaune px-3 py-1">
-        <Text className="font-texte-gras text-sm text-jaune">🛡️ Miam Safe</Text>
+        <Text className="font-texte-gras text-sm text-jaune">{ECRAN_COMPTOIR_MIAM_SAFE.badge}</Text>
       </View>
-      <Text accessibilityRole="header" className="text-center font-titre-gras text-4xl text-lait">
+      <Text accessibilityRole="header" accessibilityLanguage="fr-FR" className="text-center font-titre-gras text-4xl text-lait">
         {PHRASE}
       </Text>
-      <Text className="max-w-[280px] text-center font-texte-semi text-sm leading-5 text-gris-nuit">
+      <Text accessibilityLanguage="fr-FR" className="max-w-[280px] text-center font-texte-semi text-sm leading-5 text-gris-nuit">
         {CONSIGNE}
       </Text>
     </View>

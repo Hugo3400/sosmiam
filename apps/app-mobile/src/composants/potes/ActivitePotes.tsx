@@ -3,19 +3,26 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { BADGES, BADGES_PAR_LANGUE } from "@sos-miam/commun/contenus/badges";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import { ecrireDateLangue } from "@sos-miam/commun/fonctions/langue/ecrire-date-langue";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ActivitePote, Pote } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { BoutonVoirPlus } from "~/composants/interface/BoutonVoirPlus";
 import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_BANDE_ACTIVITE_PAR_LANGUE } from "~/contenus/textes-bande-activite";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 type Props = {
@@ -30,40 +37,49 @@ type Ligne = { activite: ActivitePote; pote: Pote; lieu: Lieu | null };
 // Les 5 dernières, puis 10 de plus à chaque « Voir plus »
 const PREMIERES = 5;
 const PAR_PAGE = 10;
-const NOM = { un: "nouvelle", des: "nouvelles" };
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
 /** « à l'instant », « il y a 5 min », « il y a 3 h », « hier », « il y a 4 jours », « le 12 septembre » */
-const formaterIlYa = (iso: string, maintenant: number) => {
+const formaterIlYa = (iso: string, maintenant: number, langue: Langue) => {
+  const T = choisirTextes(TEXTES_BANDE_ACTIVITE_PAR_LANGUE, langue).quoiDeNeuf;
   const date = new Date(iso);
   const minutes = Math.max(0, Math.floor((maintenant - date.getTime()) / 60_000));
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 1) return T.instant;
+  if (minutes < 60) return T.ilYaMinutes(minutes);
   const heures = Math.floor(minutes / 60);
-  if (heures < 24) return `il y a ${heures} h`;
+  if (heures < 24) return T.ilYaHeures(heures);
   const jours = Math.floor(heures / 24);
-  if (jours === 1) return "hier";
-  if (jours < 7) return `il y a ${jours} jours`;
-  return `le ${date.getDate() === 1 ? "1er" : date.getDate()} ${MOIS[date.getMonth()]}`;
+  if (jours === 1) return T.hier;
+  if (jours < 7) return T.ilYaJours(jours);
+  return T.leDate(ecrireDateLangue({ annee: date.getFullYear(), mois: date.getMonth() + 1, jour: date.getDate() }, langue, { sansAnnee: true }));
 };
 
+const nommerBadge = (nom: string, langue: Langue) => {
+  const id = BADGES.find((b) => b.nom === nom)?.id;
+  const badge = id ? choisirTextes(BADGES_PAR_LANGUE, langue).find((b) => b.id === id) : undefined;
+  return badge?.nom ?? nom;
+};
+
+type Morceau = { texte: string; gras?: boolean };
+
 /** Ce qu'a fait le pote, en morceaux (le gras pour ce qui compte), et l'emoji posé sur son avatar */
-const decrire = ({ type, detail }: ActivitePote, lieu: Lieu | null): { emoji: string; morceaux: { texte: string; gras?: boolean }[] } => {
-  const nomLieu = { texte: lieu?.nom ?? "un lieu", gras: true };
-  const entreGuillemets = { texte: `« ${detail ?? ""} »`, gras: true };
+const decrire = ({ type, detail }: ActivitePote, lieu: Lieu | null, langue: Langue): { emoji: string; morceaux: Morceau[] } => {
+  const T = choisirTextes(TEXTES_BANDE_ACTIVITE_PAR_LANGUE, langue).quoiDeNeuf;
+  const nomLieu = { texte: lieu?.nom ?? T.unLieu, gras: true };
+  const entreGuillemets = (texte: string) => ({ texte: T.citer(texte), gras: true });
+  const assembler = (action: { avant: string; apres: string }, gras: Morceau): Morceau[] => [{ texte: action.avant }, gras, ...(action.apres ? [{ texte: action.apres }] : [])];
   switch (type) {
     case "rescousse":
-      return { emoji: "🛟", morceaux: [{ texte: " a sauvé " }, nomLieu] };
+      return { emoji: "🛟", morceaux: assembler(T.actions.rescousse, nomLieu) };
     case "garde":
-      return { emoji: "🔖", morceaux: [{ texte: " a gardé " }, nomLieu, { texte: " pour plus tard" }] };
+      return { emoji: "🔖", morceaux: assembler(T.actions.garde, nomLieu) };
     case "badge":
-      return { emoji: "🏅", morceaux: [{ texte: " a décroché le badge " }, entreGuillemets] };
+      return { emoji: "🏅", morceaux: assembler(T.actions.badge, entreGuillemets(nommerBadge(detail ?? "", langue))) };
     case "palier":
-      return { emoji: "🎖️", morceaux: [{ texte: " a atteint le palier " }, { texte: detail ?? "suivant", gras: true }] };
+      return { emoji: "🎖️", morceaux: assembler(T.actions.palier, { texte: detail ?? T.palierSuivant, gras: true }) };
     case "liste":
-      return { emoji: "📋", morceaux: [{ texte: " a créé la liste " }, entreGuillemets] };
+      return { emoji: "📋", morceaux: assembler(T.actions.liste, entreGuillemets(detail ?? "")) };
     case "sortie":
-      return { emoji: "🎉", morceaux: detail ? [{ texte: " organise " }, entreGuillemets] : [{ texte: " organise une sortie" }] };
+      return { emoji: "🎉", morceaux: detail ? assembler(T.actions.sortie, entreGuillemets(detail)) : [{ texte: T.sortieSansTitre }] };
   }
 };
 
@@ -75,6 +91,8 @@ const decrire = ({ type, detail }: ActivitePote, lieu: Lieu | null): { emoji: st
 export function ActivitePotes({ lieux, onRetire }: Props) {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_BANDE_ACTIVITE_PAR_LANGUE).quoiDeNeuf;
   const { activites, trouverPote, masquer, demasquer } = utiliserCommunaute();
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
@@ -99,13 +117,13 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
     if (!ligne) return [];
     const { activite, pote, lieu } = ligne;
     return [
-      ...(lieu ? [{ cle: "lieu", emoji: "📍", titre: `Voir ${lieu.nom}`, agir: () => ouvrirLieu(lieu) }] : []),
-      { cle: "profil", emoji: "👀", titre: `Voir le profil de ${pote.prenom}`, detail: `@${pote.pseudo}`, agir: () => ouvrirProfil(pote) },
+      ...(lieu ? [{ cle: "lieu", emoji: "📍", titre: T.voirLieu(lieu.nom), agir: () => ouvrirLieu(lieu) }] : []),
+      { cle: "profil", emoji: "👀", titre: T.voirProfil(pote.prenom), detail: `@${pote.pseudo}`, agir: () => ouvrirProfil(pote) },
       {
-        cle: "retirer", emoji: "🧹", titre: "Retirer de « Quoi de neuf »", detail: `Pour toi seulement : ${pote.prenom} n'en saura rien`,
+        cle: "retirer", emoji: "🧹", titre: T.retirer, detail: T.retirerDetail(pote.prenom),
         agir: () => {
           masquer("activite", activite.id);
-          onRetire("Nouvelle retirée", () => demasquer("activite", activite.id));
+          onRetire(T.retiree, () => demasquer("activite", activite.id));
         },
       },
     ];
@@ -115,9 +133,9 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
     <View className="gap-3">
       <View>
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-          Quoi de neuf dans ta bande
+          {T.titre}
         </Text>
-        <Text className="font-texte text-sm text-gris">Les dernières bonnes actions de tes potes.</Text>
+        <Text className="font-texte text-sm text-gris">{T.sousTitre}</Text>
       </View>
 
       {lignes.length === 0 ? (
@@ -126,15 +144,15 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
             🦗
           </Text>
           <Text className="text-center font-texte text-base leading-6 text-gris">
-            Calme plat pour l'instant. Montre l'exemple : une rescousse, et ta bande suivra.
+            {T.vide}
           </Text>
         </View>
       ) : (
         <View className="overflow-hidden rounded-carte border-2 border-encre bg-carte">
           {pages.visibles.map((ligne, i) => {
             const { activite, pote, lieu } = ligne;
-            const { emoji, morceaux } = decrire(activite, lieu);
-            const quand = formaterIlYa(activite.date, maintenant);
+            const { emoji, morceaux } = decrire(activite, lieu, langue);
+            const quand = formaterIlYa(activite.date, maintenant, langue);
             const phrase = `${pote.prenom}${morceaux.map((m) => m.texte).join("")}`;
             return (
               // Le « ⋯ » est à côté de la ligne (pas dedans) : le lecteur d'écran les lit l'un après l'autre
@@ -143,7 +161,7 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
                   ref={pages.refDe(activite.id)}
                   accessibilityRole="button"
                   accessibilityLabel={`${phrase}, ${quand}`}
-                  accessibilityHint={lieu ? "Ouvre la fiche du lieu" : `Ouvre le profil de ${pote.prenom}`}
+                  accessibilityHint={lieu ? T.indiceLieu : T.indiceProfil(pote.prenom)}
                   onPress={() => {
                     vibrerLegerement();
                     if (lieu) ouvrirLieu(lieu);
@@ -174,8 +192,8 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`Plus d'options : ${phrase}`}
-                  accessibilityHint="Voir le profil, ou retirer cette nouvelle"
+                  accessibilityLabel={T.options(phrase)}
+                  accessibilityHint={T.indiceOptions}
                   hitSlop={4}
                   onPress={() => {
                     vibrerLegerement();
@@ -191,9 +209,9 @@ export function ActivitePotes({ lieux, onRetire }: Props) {
         </View>
       )}
 
-      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={NOM} onVoirPlus={pages.voirPlus} />
+      <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={T.nom} onVoirPlus={pages.voirPlus} />
 
-      <MenuOptions visible={menuPour !== null} titre={menuPour ? `Ce qu'a fait ${menuPour.pote.prenom}` : ""} options={options(menuPour)} onFermer={() => setMenuPour(null)} />
+      <MenuOptions visible={menuPour !== null} titre={menuPour ? T.titreMenu(menuPour.pote.prenom) : ""} options={options(menuPour)} onFermer={() => setMenuPour(null)} />
     </View>
   );
 }

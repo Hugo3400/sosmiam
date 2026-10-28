@@ -10,6 +10,7 @@ import { ListeMessagesChat, type PoigneeListeMessages } from "~/composants/chat/
 import { MenuDiscussion } from "~/composants/chat/MenuDiscussion";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_ECRAN_DISCUSSION_PAR_LANGUE } from "~/contenus/textes-ecran-discussion";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { mettreEnPauseNoteQuiJoue } from "~/hooks/utiliser-audio-chat";
@@ -17,6 +18,7 @@ import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserFilDiscussion } from "~/hooks/utiliser-fil-discussion";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Le temps que l'écran suivant s'affiche avant de parler : sinon VoiceOver coupe la phrase pour lire le nouvel écran
 const DELAI_ANNONCE_APRES_DEPART = 700;
@@ -26,6 +28,7 @@ const DELAI_ANNONCE_APRES_DEPART = 700;
  * Conversation disparue (personne bloquée, groupe quitté) : un petit mot et le retour.
  */
 export default function EcranDiscussion() {
+  const T = utiliserTextes(TEXTES_ECRAN_DISCUSSION_PAR_LANGUE);
   const router = useRouter();
   const marges = useSafeAreaInsets();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
@@ -98,12 +101,12 @@ export default function EcranDiscussion() {
           💨
         </Text>
         <Text accessibilityRole="header" className="text-center font-titre text-2xl text-encre">
-          Plus personne au bout du fil
+          {T.plusPersonneTitre}
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Cette discussion n'est plus là : tu as peut-être quitté le groupe, ou bloqué la personne. Tes autres potes, eux, t'attendent !")}
+          {lierPonctuation(T.plusPersonneTexte)}
         </Text>
-        <Bouton libelle="Retour à mes messages" variante="blanc" onPress={retour} />
+        <Bouton libelle={T.retourMessages} variante="blanc" onPress={retour} />
       </View>
     );
   }
@@ -124,8 +127,8 @@ export default function EcranDiscussion() {
   };
   // Bloquer l'auteur d'un message : dans un groupe, ses messages disparaissent ; en privé, toute la conversation avec lui
   const apresBlocage = (prenom: string) => {
-    if (groupe) annoncer(`🚫 C'est fait : tu ne verras plus les messages de ${prenom}`);
-    else partir(`C'est fait : tu as bloqué ${prenom}.`);
+    if (groupe) annoncer(T.plusLesMessagesDe(prenom));
+    else partir(T.bloque(prenom));
   };
 
   return (
@@ -184,17 +187,17 @@ export default function EcranDiscussion() {
             />
           ) : (
             <View style={{ paddingBottom: marges.bottom + 12 }} className="gap-2 border-t border-ligne bg-creme px-5 pt-3">
-              <Text accessibilityRole="header" accessibilityLabel="Discussion en pause" className="font-texte-gras text-base text-encre">
-                🛡️ Discussion en pause
+              <Text accessibilityRole="header" accessibilityLabel={T.enPause} className="font-texte-gras text-base text-encre">
+                {T.enPauseTitre}
               </Text>
               <Text className="font-texte text-sm leading-5 text-gris">
                 {lierPonctuation(
                   !pote
-                    ? "Cette personne n'est plus sur SOS Miam : tu peux relire vos messages, mais plus lui en envoyer."
-                    : `${pote.prenom} n'est plus dans ta bande : vos messages restent là, mais pour vous réécrire, il faut d'abord vous rajouter.`,
+                    ? T.plusSurSosMiam
+                    : T.plusDansBande(pote.prenom),
                 )}
               </Text>
-              {pote ? <Bouton libelle={`Voir le profil de ${pote.prenom}`} variante="blanc" petit onPress={() => voirProfil(pote.id)} className="mt-1 self-start" /> : null}
+              {pote ? <Bouton libelle={T.voirProfil(pote.prenom)} variante="blanc" petit onPress={() => voirProfil(pote.id)} className="mt-1 self-start" /> : null}
             </View>
           )}
         </View>
@@ -207,8 +210,8 @@ export default function EcranDiscussion() {
         onAnnoncer={annoncer}
         onFermer={() => setMenuOuvert(false)}
         onVoirProfil={voirProfil}
-        onBloque={(prenom) => partir(`C'est fait : tu as bloqué ${prenom}.`)}
-        onQuitte={(titre) => partir(`Tu as quitté ${titre}.`)}
+        onBloque={(prenom) => partir(T.bloque(prenom))}
+        onQuitte={(titre) => partir(T.quitte(titre))}
         onVoirGroupe={voirGroupe}
       />
 

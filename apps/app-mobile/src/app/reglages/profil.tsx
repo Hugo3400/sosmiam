@@ -6,16 +6,24 @@ import { ImageAvatar } from "~/composants/profil/ImageAvatar";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { etapesEnvies } from "~/contenus/inscription/envies";
-import { TEXTES_GENRE } from "~/contenus/textes-genre";
-import { TEXTES_MON_PROFIL as T } from "~/contenus/textes-parametres";
+import { ETAPES_ENVIES_PAR_LANGUE } from "~/contenus/inscription/envies";
+import { TEXTES_GENRE_PAR_LANGUE } from "~/contenus/textes-genre";
+import { TEXTES_MON_PROFIL_PAR_LANGUE } from "~/contenus/textes-parametres";
+import { TEXTES_REGLAGES_PROFIL_PAR_LANGUE } from "~/contenus/textes-reglages-profil";
 import { nommerAvatar } from "~/fonctions/compte/nommer-avatar";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export default function MonProfil() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MON_PROFIL_PAR_LANGUE);
+  const TP = utiliserTextes(TEXTES_REGLAGES_PROFIL_PAR_LANGUE);
+  const TG = utiliserTextes(TEXTES_GENRE_PAR_LANGUE);
+  const etapesEnvies = utiliserTextes(ETAPES_ENVIES_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const router = useRouter();
   const { profil, avatar } = utiliserProfil();
   const { connecte } = utiliserSession();
@@ -26,8 +34,8 @@ export default function MonProfil() {
     return total + etape.choix.filter((choix) => coches.includes(choix.id)).length;
   }, 0);
   const detailEnvies =
-    nombreEnvies === 0 ? "Rien de coché pour l'instant" : `${nombreEnvies} envie${nombreEnvies > 1 ? "s" : ""} cochée${nombreEnvies > 1 ? "s" : ""}`;
-  const detailAvatar = avatar.type === "photo" ? "Ta photo pour l'instant, ou un Miami" : `En ${nommerAvatar(avatar)} pour l'instant, ou en photo`;
+    nombreEnvies === 0 ? TP.enviesAucune : TP.envies(nombreEnvies);
+  const detailAvatar = avatar.type === "photo" ? TP.avatarPhoto : TP.avatarAutre(nommerAvatar(avatar, langue));
   const revenir = () => (router.canGoBack() ? router.back() : router.replace("/profil"));
 
   return (
@@ -35,7 +43,7 @@ export default function MonProfil() {
       <SectionReglages titre={T.sectionProfil}>
         <LigneReglage
           emoji="🎭"
-          titre="Avatar"
+          titre={TP.avatar}
           detail={detailAvatar}
           onPress={() => router.push("/reglages/avatar")}
           droite={
@@ -47,16 +55,16 @@ export default function MonProfil() {
         />
         <LigneReglage
           emoji="🪪"
-          titre="Mes infos"
+          titre={TP.mesInfos}
           detail={`${profil.prenom}${profil.nom ? ` ${profil.nom}` : ""} · ${profil.ville}`}
           onPress={() => router.push("/reglages/infos")}
         />
       </SectionReglages>
 
       <SectionReglages titre={T.sectionPreferences}>
-        <LigneReglage emoji="😋" titre="Mes envies" detail={detailEnvies} onPress={() => router.push("/reglages/envies")} />
+        <LigneReglage emoji="😋" titre={TP.mesEnvies} detail={detailEnvies} onPress={() => router.push("/reglages/envies")} />
         {connecte ? (
-          <LigneReglage emoji="🙋" titre={TEXTES_GENRE.ligneReglage} detail={TEXTES_GENRE.ligneVide} onPress={() => router.push("/reglages/genre")} />
+          <LigneReglage emoji="🙋" titre={TG.ligneReglage} detail={TG.ligneVide} onPress={() => router.push("/reglages/genre")} />
         ) : null}
       </SectionReglages>
     </EcranReglage>

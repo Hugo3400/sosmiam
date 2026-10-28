@@ -2,12 +2,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 
+import { TEXTES_ONGLET_LISTES_PAR_LANGUE } from "~/contenus/textes-onglet-listes";
 import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Identifiant de la personne (« moi » pour toi) */
@@ -23,6 +25,7 @@ type Props = {
  */
 export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ONGLET_LISTES_PAR_LANGUE).profil;
   const router = useRouter();
   const { listes } = utiliserCommunaute();
   const { lieux: tousLesLieux } = utiliserLieux();
@@ -31,13 +34,13 @@ export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
 
   return (
     <View className="gap-3">
-      <Text accessibilityRole="header" accessibilityLabel={`Listes partagées, ${siennes.length}`} className="font-titre-gras text-xl text-encre">
-        🗂️ Listes partagées ({siennes.length})
+      <Text accessibilityRole="header" accessibilityLabel={T.titreLu(siennes.length)} className="font-titre-gras text-xl text-encre">
+        {T.titre(siennes.length)}
       </Text>
       {siennes.length === 0 ? (
         <View className="rounded-carte border-2 border-dashed border-ligne px-5 py-5">
           <Text className="text-center font-texte text-sm leading-5 text-gris">
-            {lierPonctuation(estMoi ? "Pas encore de liste : crée-en une dans Potes › Listes." : `${prenom} n'a pas encore de liste partagée.`)}
+            {lierPonctuation(estMoi ? T.videMoi : T.videAutre(prenom))}
           </Text>
         </View>
       ) : (
@@ -45,13 +48,13 @@ export function ListesDuProfil({ auteurId, prenom, estMoi }: Props) {
           {siennes.map((liste, i) => {
             // Compte connecté, lue en résumé : le nombre du serveur ; sinon, ses lieux encore dans l'app
             const nombre = liste.serveur && !liste.serveur.complete ? compterLieuxListe(liste) : liste.lieux.filter((id) => connus.has(id)).length;
-            const lieux = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
+            const lieux = T.lieux(nombre);
             return (
               <Pressable
                 key={liste.id}
                 accessibilityRole="button"
                 accessibilityLabel={`${liste.titre}, ${lieux}`}
-                accessibilityHint="Ouvre la liste"
+                accessibilityHint={T.ouvrirIndice}
                 onPress={() => {
                   vibrerLegerement();
                   router.push({ pathname: "/potes/liste/[id]", params: { id: liste.id } });

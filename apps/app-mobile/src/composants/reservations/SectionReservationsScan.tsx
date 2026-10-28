@@ -5,9 +5,11 @@ import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { ApercuReservation } from "~/composants/reservations/ApercuReservation";
 import { SectionVideScan } from "~/composants/scan/SectionVideScan";
 import { TitreSectionScan } from "~/composants/scan/TitreSectionScan";
-import { SECTION_RESERVATIONS_SCAN } from "~/contenus/textes-mes-reservations";
+import { SECTION_RESERVATIONS_SCAN_PAR_LANGUE } from "~/contenus/textes-mes-reservations";
+import { CARTE_RESERVATION_PAR_LANGUE } from "~/contenus/textes-reservations-client";
 import { listerReservationsEnCours } from "~/fonctions/reservations/lister-reservations-en-cours";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 type Props = {
@@ -18,6 +20,8 @@ const RESERVATIONS_AFFICHEES = 2;
 
 export function SectionReservationsScan({ reservations }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(SECTION_RESERVATIONS_SCAN_PAR_LANGUE);
+  const carte = utiliserTextes(CARTE_RESERVATION_PAR_LANGUE);
   const { maintenantMs } = utiliserHorlogeMinute();
   const { lecturesReservations } = utiliserVisites();
   const enCours = listerReservationsEnCours(reservations, maintenantMs);
@@ -26,8 +30,8 @@ export function SectionReservationsScan({ reservations }: Props) {
   return (
     <View className="gap-3">
       <TitreSectionScan
-        titre={SECTION_RESERVATIONS_SCAN.titre}
-        libelleLu={lecturesReservations === 0 ? SECTION_RESERVATIONS_SCAN.titre : `${SECTION_RESERVATIONS_SCAN.titre}, ${enCours.length} à venir`}
+        titre={T.titre}
+        libelleLu={lecturesReservations === 0 ? T.titre : carte.scanLu(T.titre, enCours.length)}
         onToutVoir={reservations.length > 0 || lecturesReservations === 0 ? ouvrir : undefined}
       />
       {enCours.length > 0 ? (
@@ -37,9 +41,9 @@ export function SectionReservationsScan({ reservations }: Props) {
           ))}
         </View>
       ) : lecturesReservations === 0 ? (
-        <SectionVideScan emoji="📶" texte={SECTION_RESERVATIONS_SCAN.pasEncoreLues} />
+        <SectionVideScan emoji="📶" texte={T.pasEncoreLues} />
       ) : (
-        <SectionVideScan emoji="📅" texte={SECTION_RESERVATIONS_SCAN.vide} />
+        <SectionVideScan emoji="📅" texte={T.vide} />
       )}
     </View>
   );

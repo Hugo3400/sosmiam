@@ -19,4 +19,5 @@ export const TEXTES_ECRAN_DISCUSSION_ANGLAIS: Traduction<typeof TEXTES_ECRAN_DIS
   messages: "Messages",
   messagesNonLus: (nonLus: number) => `Messages, ${nonLus} unread`,
   messagesIntro: "One-to-one or in a group, with your crew. The best yum plans start with a “hungry?”.",
+  finSondageLue: (libelle: string, heure: string) => `${libelle}, at ${heure}`,
 };

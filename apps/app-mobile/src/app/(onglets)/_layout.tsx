@@ -5,19 +5,21 @@ import type { ComponentProps } from "react";
 
 import { LibelleOnglet } from "~/composants/interface/LibelleOnglet";
 import { BandeauxOnglets } from "~/composants/visites/BandeauxOnglets";
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
+import { TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE } from "~/contenus/textes-onglets-principaux";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVisites } from "~/hooks/utiliser-visites";
 
 type NomIcone = ComponentProps<typeof Ionicons>["name"];
 
-const onglets: { nom: string; titre: string; icone: NomIcone }[] = [
-  { nom: "index", titre: "Pour toi", icone: "heart" },
-  { nom: "explorer", titre: "Explorer", icone: "map" },
-  { nom: "scan", titre: "Scan", icone: "qr-code" },
-  { nom: "potes", titre: "Communauté", icone: "people" },
-  { nom: "profil", titre: "Profil", icone: "person-circle" },
+const onglets: { nom: "index" | "explorer" | "scan" | "potes" | "profil"; icone: NomIcone }[] = [
+  { nom: "index", icone: "heart" },
+  { nom: "explorer", icone: "map" },
+  { nom: "scan", icone: "qr-code" },
+  { nom: "potes", icone: "people" },
+  { nom: "profil", icone: "person-circle" },
 ];
 
 const ongletTransparent = {
@@ -34,15 +36,17 @@ const ongletTransparent = {
  */
 export default function MiseEnPageOnglets() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE).barre;
+  const TM = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   const { enCours, aEcrire } = utiliserVisites();
   // Badge de l'onglet Scan : le nombre d'avis à donner, ou un simple point quand une addition attend
   const styleBadge = { backgroundColor: couleurs.tomate, color: couleurs.nuit, fontFamily: "Inter_700Bold" };
   const stylePoint = { backgroundColor: couleurs.tomate, minWidth: 11, width: 11, height: 11, borderRadius: 5.5, paddingHorizontal: 0, top: -1, end: -1, borderWidth: 1.5, borderColor: couleurs.creme };
   const badgeScan = aEcrire.length > 0 ? aEcrire.length : enCours ? "" : undefined;
-  const infoScan = aEcrire.length > 0 ? `${aEcrire.length} avis à donner` : enCours ? "une addition en attente" : null;
+  const infoScan = aEcrire.length > 0 ? T.avisADonner(aEcrire.length) : enCours ? T.additionEnAttente : null;
   const { nonLus } = utiliserConversations();
   const badgeCommunaute = nonLus > 0 ? (nonLus > 99 ? "99+" : nonLus) : undefined;
-  const infos: Record<string, string | null> = { scan: infoScan, potes: nonLus > 0 ? TEXTES_MESSAGES.messagesNonLus(nonLus) : null };
+  const infos: Record<string, string | null> = { scan: infoScan, potes: nonLus > 0 ? TM.messagesNonLus(nonLus) : null };
   return (
     <Tabs
       // Les bandeaux d'abord : VoiceOver les lit avant les onglets
@@ -64,11 +68,11 @@ export default function MiseEnPageOnglets() {
           key={onglet.nom}
           name={onglet.nom}
           options={{
-            title: onglet.titre,
+            title: T.titres[onglet.nom],
             // Sinon VoiceOver dit la position en anglais (« tab, 2 of 5 »)
-            tabBarAccessibilityLabel: `${onglet.titre}, onglet ${index + 1} sur ${onglets.length}${infos[onglet.nom] ? `, ${infos[onglet.nom]}` : ""}`,
+            tabBarAccessibilityLabel: T.lu(T.titres[onglet.nom], index + 1, onglets.length, infos[onglet.nom] ?? null),
             tabBarIcon: ({ color, size }) => <Ionicons name={onglet.icone} color={color} size={size} />,
-            tabBarLabel: ({ color, position }) => <LibelleOnglet titre={onglet.titre} color={color} position={position} />,
+            tabBarLabel: ({ color, position }) => <LibelleOnglet titre={T.titres[onglet.nom]} color={color} position={position} />,
             // « Pour toi » : barre transparente posée sur les vidéos, icônes blanches
             ...(onglet.nom === "index" ? ongletTransparent : {}),
             ...(onglet.nom === "scan" ? { tabBarBadge: badgeScan, tabBarBadgeStyle: badgeScan === "" ? stylePoint : styleBadge } : {}),

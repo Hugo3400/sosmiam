@@ -1,8 +1,10 @@
 import { ActivityIndicator, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_ENCART_PHOTO_LOCALE_PAR_LANGUE } from "~/contenus/textes-profil-photo";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   enCours: boolean;
@@ -12,20 +14,21 @@ type Props = {
 
 export function EncartPhotoLocale({ enCours, onMontrer, onLaisser }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ENCART_PHOTO_LOCALE_PAR_LANGUE);
   return (
     <View className="mt-6 gap-3 rounded-carte border-2 border-encre bg-jaune-clair p-4">
       <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">
-        📸 Ta photo est restée sur ce téléphone
+        {T.titre}
       </Text>
       <Text className="font-texte text-sm leading-5 text-encre">
-        {lierPonctuation("Ta photo n'est visible que sur ce téléphone. La montrer à ta bande et aux Miamis ? Elle apparaîtra partout où ton avatar apparaît, et tu la retires quand tu veux.")}
+        {lierPonctuation(T.texte)}
       </Text>
       {enCours ? (
-        <ActivityIndicator color={couleurs.encre} accessibilityLabel="Ta photo se prépare" />
+        <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.preparation} />
       ) : (
         <View className="gap-3">
-          <Bouton libelle="La montrer" variante="encre" petit onPress={onMontrer} indice="Ta photo part sur SOS Miam, visible par les autres" />
-          <Bouton libelle="Laisser comme ça" variante="blanc" petit onPress={onLaisser} indice="Ta photo reste sur ce téléphone" />
+          <Bouton libelle={T.montrer} variante="encre" petit onPress={onMontrer} indice={T.indiceMontrer} />
+          <Bouton libelle={T.laisser} variante="blanc" petit onPress={onLaisser} indice={T.indiceLaisser} />
         </View>
       )}
     </View>

@@ -3,9 +3,12 @@ import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
-import { formaterDistance } from "~/fonctions/geo/formater-distance";
+import { TEXTES_ONGLET_LISTES_PAR_LANGUE } from "~/contenus/textes-onglet-listes";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { formaterDistanceLangue } from "~/fonctions/langue/formater-distance-langue";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   lieu: Lieu;
@@ -23,14 +26,16 @@ type Props = {
 /** Une adresse d'une liste partagée : vignette, nom, ce que c'est, ville et distance ; la toucher ouvre sa fiche. */
 export function LigneLieuListe({ lieu, km, image, derniere, onOuvrir, onRetirer }: Props) {
   const couleurs = utiliserCouleurs();
-  const distance = km === null ? null : formaterDistance(km);
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_ONGLET_LISTES_PAR_LANGUE).ligneLieu;
+  const distance = km === null ? null : formaterDistanceLangue(km, langue);
 
   return (
     <View className={`flex-row items-center ${derniere ? "" : "border-b border-ligne"}`}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${lieu.nom}, ${lieu.info}, ${lieu.ville}${distance ? `. À ${distance}` : ""}`}
-        accessibilityHint="Ouvre la fiche du lieu"
+        accessibilityLabel={`${lieu.nom}, ${lieu.info}, ${lieu.ville}${distance ? `. ${T.aDistance(distance)}` : ""}`}
+        accessibilityHint={T.ficheIndice}
         onPress={() => {
           vibrerLegerement();
           onOuvrir(lieu.id);
@@ -57,7 +62,7 @@ export function LigneLieuListe({ lieu, km, image, derniere, onOuvrir, onRetirer 
       {onRetirer ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Retirer ${lieu.nom} de la liste`}
+          accessibilityLabel={T.retirer(lieu.nom)}
           onPress={() => {
             vibrerLegerement();
             onRetirer(lieu);

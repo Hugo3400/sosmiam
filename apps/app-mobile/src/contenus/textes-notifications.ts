@@ -1,0 +1,65 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_NOTIFICATIONS_ANGLAIS } from "~/contenus/anglais/textes-notifications";
+import { eliderDe } from "~/fonctions/texte/elider-de";
+
+export const TEXTES_NOTIFICATIONS = {
+  titre: "Notifications",
+  retour: "Retour",
+  effacerTitre: "Effacer cette notification",
+  effacerDetail: "Hop, un coup de chiffon et elle quitte ta cloche",
+  videTitre: "Calme plat par ici",
+  videTexte: "Quand quelqu'un te suivra, ou qu'un lieu ou un créateur que tu suis publiera, ça s'affichera ici.",
+  periodes: { aujourdhui: "Aujourd'hui", semaine: "Cette semaine", "plus-tot": "Plus tôt" },
+  effacerLuesDetail: (n: number) =>
+    n > 1
+      ? `Les ${n} notifications que tu as déjà lues s'envolent. Les nouvelles, elles, restent bien au chaud.`
+      : "La notification que tu as déjà lue s'envole. Les nouvelles, elles, restent bien au chaud.",
+  effacerLuesLu: (n: number) => `Effacer les lues, ${n} notification${n > 1 ? "s" : ""}`,
+  effacerLuesIndice: "Un petit coup de balai sur ce que tu as déjà vu. On te demande avant.",
+  effacerLues: "Effacer les lues",
+  balaiTitre: "Un petit coup de balai ?",
+  balayer: "Balayer",
+  garderTout: "Je garde tout",
+  garderToutIndice: "Tes notifications restent là",
+  clocheLu: (n: number) => (n > 0 ? `Notifications, ${n} nouveauté${n > 1 ? "s" : ""}` : "Notifications"),
+  clocheIndice: "Tes abonnés, tes demandes et les nouveautés des comptes que tu suis",
+  retireLu: (prenom: string) => `${prenom} n'est plus dans ta bande`,
+  retire: "Retiré",
+  retirerLu: (prenom: string) => `Retirer ${prenom} de ta bande`,
+  retirerIndice: "Pas toi qui as partagé ton lien ? Un geste et c'est réglé. On ne prévient personne.",
+  retireAnnonce: (prenom: string) => `${prenom} n'est plus dans ta bande. En toute discrétion 🤫`,
+  retirer: "Retirer",
+  suitMaintenant: (prenom: string) => `${prenom} te suit maintenant`,
+  indiceProfil: "Ouvre son profil",
+  refuseeLu: (prenom: string) => `Demande ${eliderDe(prenom)} refusée, en toute discrétion`,
+  refusee: "Demande refusée, en toute discrétion 🤫",
+  veutSuivreLu: (prenom: string, pseudo: string) => `${prenom}, ${pseudo}, veut te suivre`,
+  veutSuivre: (pseudo: string) => `@${pseudo} · veut te suivre`,
+  accepterLu: (prenom: string) => `Accepter la demande ${eliderDe(prenom)}`,
+  accepterIndice: "Ça ne te fait pas suivre en retour : tu choisiras juste après",
+  accepter: "Accepter",
+  refuserLu: (prenom: string) => `Refuser la demande ${eliderDe(prenom)}`,
+  refuserIndice: "En toute discrétion : personne n'est prévenu",
+  refuser: "Refuser",
+  effacer: "Effacer",
+  indiceFiche: "Ouvre la fiche du lieu",
+  indicePage: "Ouvre sa page",
+  nouveau: "Nouveau. ",
+  plusDOptions: (texte: string) => `Plus d'options : ${texte}`,
+  plusDOptionsIndice: "Pour effacer cette notification",
+  demandePlusValable: "Cette demande n'est plus valable.",
+  demandesLu: (enAttente: number) => `Demandes d'abonnement, ${enAttente > 0 ? `${enAttente} en attente` : "toutes traitées"}`,
+  demandes: (enAttente: number) => `📨 Demandes d'abonnement${enAttente > 0 ? ` (${enAttente})` : ""}`,
+  effacement: {
+    une: "🍃 Envolée ! Ta cloche respire.",
+    rienABalayer: "✨ Rien à balayer : c'était déjà tout propre.",
+    balayees: (n: number) => (n === 1 ? "🧹 Coup de balai ! 1 notification envolée." : `🧹 Coup de balai ! ${n} notifications envolées.`),
+    horsLigneUne: "📶 Pas de réseau : ta notification reste là. Réessaie tout à l'heure.",
+    horsLigneLues: "📶 Pas de réseau : le balai attendra, rien n'a bougé.",
+    tropDeDemandes: "🐢 Doucement ! Réessaie dans quelques minutes.",
+    erreurUne: "😬 La cloche a fait de la résistance : ta notification est revenue. Réessaie dans un instant.",
+    erreurLues: "😬 Le balai s'est coincé : rien n'a bougé. Réessaie dans un instant.",
+  },
+};
+
+export const TEXTES_NOTIFICATIONS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_NOTIFICATIONS>> = { fr: TEXTES_NOTIFICATIONS, en: TEXTES_NOTIFICATIONS_ANGLAIS };

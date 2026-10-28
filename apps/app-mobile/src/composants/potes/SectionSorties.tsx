@@ -10,12 +10,14 @@ import { MenuOptions, type OptionMenu } from "~/composants/interface/MenuOptions
 import { CarteInvitationSortie } from "~/composants/potes/CarteInvitationSortie";
 import { CarteSortie } from "~/composants/potes/CarteSortie";
 import { RecommandationsRecues } from "~/composants/potes/RecommandationsRecues";
+import { TEXTES_ONGLET_SORTIES_PAR_LANGUE } from "~/contenus/textes-onglet-sorties";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Lieux reçus de tes potes, déjà limités à ceux que tu peux voir */
@@ -30,8 +32,6 @@ type Props = {
 const DUREE_SORTIE = 4 * 3_600_000;
 // L'heure de l'onglet avance toute seule : une fin de vote passe sans qu'il faille changer d'onglet
 const RAFRAICHISSEMENT = 30_000;
-// À venir : 5, puis 5 de plus ; déjà vécues : 3, puis 5 de plus
-const NOM = { un: "sortie", des: "sorties" };
 
 /**
  * Onglet « Sorties » : les lieux reçus de tes potes, les invitations qui attendent ta réponse (« Tu viens ? »), tes sorties à venir, « Nouvelle sortie », puis les sorties passées, par
@@ -40,6 +40,7 @@ const NOM = { un: "sortie", des: "sorties" };
  */
 export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_ONGLET_SORTIES_PAR_LANGUE).sorties;
   const { sorties, potes, invitationsSorties, quitterSortie, masquer, demasquer } = utiliserCommunaute();
   const monId = utiliserMonId();
   const [maintenant, setMaintenant] = useState(() => new Date());
@@ -65,37 +66,36 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
   // Les plus récentes d'abord
   const passees = sorties.filter((s) => new Date(s.quand).getTime() + DUREE_SORTIE < instant).reverse();
   const ouvrir = (id: string) => router.push({ pathname: "/potes/sortie/[id]", params: { id } });
+  // À venir : 5, puis 5 de plus ; déjà vécues : 3, puis 5 de plus
   const pagesAVenir = utiliserPagination(aVenir, 5, 5, (x) => x.id);
   const pagesPassees = utiliserPagination(passees, 3, 5, (x) => x.id);
 
   const options = (choix: { sortie: Sortie; passee: boolean } | null): OptionMenu[] => {
     if (!choix) return [];
     const { sortie, passee } = choix;
-    const voir: OptionMenu = { cle: "ouvrir", emoji: "👀", titre: "Ouvrir la sortie", detail: "Le vote, les lieux proposés et la discussion", agir: () => ouvrir(sortie.id) };
+    const voir: OptionMenu = { cle: "ouvrir", emoji: "👀", titre: T.ouvrir, detail: T.ouvrirDetail, agir: () => ouvrir(sortie.id) };
     if (passee) {
       return [voir, {
-        cle: "retirer", emoji: "🧹", titre: "Retirer de tes sorties", detail: "Elle disparaît d'ici, pour toi seulement : tes potes la gardent",
+        cle: "retirer", emoji: "🧹", titre: T.retirer, detail: T.retirerDetail,
         agir: () => {
           masquer("sortie", sortie.id);
-          onRetire("Sortie retirée", () => demasquer("sortie", sortie.id));
+          onRetire(T.retiree, () => demasquer("sortie", sortie.id));
         },
       }];
     }
     return [voir, {
-      cle: "quitter", emoji: "👋", titre: "Quitter la sortie", detail: "Tu ne verras plus le vote ni la discussion",
+      cle: "quitter", emoji: "👋", titre: T.quitter, detail: T.quitterDetail,
       // Mêmes mots que sur l'écran de la sortie
       confirmation: {
-        titre: "Quitter la sortie ?",
-        detail: sortie.organisateur === monId
-          ? "Tu organises cette sortie : tes potes la garderont sans toi, et tu ne verras plus le vote ni la discussion."
-          : "Tu ne verras plus le vote ni la discussion de cette sortie.",
-        confirmer: "Quitter",
-        rester: "Je reste",
+        titre: T.quitterTitre,
+        detail: sortie.organisateur === monId ? T.quitterOrganisateur : T.quitterParticipant,
+        confirmer: T.quitterConfirmer,
+        rester: T.quitterRester,
       },
       agir: () => {
         quitterSortie(sortie.id);
         // La carte disparaît, sans « Annuler » (on ne rejoint pas une sortie qu'on a quittée) : on le dit, une fois la feuille partie
-        setTimeout(() => annoncerLecteurEcran(retirerEmoji(`Tu as quitté « ${sortie.titre} »`)), 500);
+        setTimeout(() => annoncerLecteurEcran(retirerEmoji(T.quittee(sortie.titre))), 500);
       },
     }];
   };
@@ -107,9 +107,9 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
       <View className="gap-3">
         <View>
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            Tes sorties
+            {T.titre}
           </Text>
-          <Text className="font-texte text-sm text-gris">Chacun propose ses lieux, tout le monde vote, et c'est plié.</Text>
+          <Text className="font-texte text-sm text-gris">{T.sousTitre}</Text>
         </View>
 
         {invitationsSorties.map((invitation) => (
@@ -121,13 +121,9 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">
               🗓️
             </Text>
-            <Text className="text-center font-texte-gras text-base text-encre">Rien de prévu pour l'instant</Text>
+            <Text className="text-center font-texte-gras text-base text-encre">{T.videTitre}</Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation(
-                potes.length > 0
-                  ? "Ton agenda est plus vide qu'un frigo un dimanche soir. Lance une sortie : tes potes votent pour le lieu, fini les « on va où ? » qui durent trois jours."
-                  : "Ajoute d'abord un pote ou deux : une sortie en solo, c'est juste un dîner (très bien aussi, remarque).",
-              )}
+              {lierPonctuation(potes.length > 0 ? T.videAvecPotes : T.videSansPotes)}
             </Text>
           </View>
         ) : (
@@ -144,24 +140,24 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
             />
           ))
         )}
-        <BoutonVoirPlus restants={pagesAVenir.restants} prochains={pagesAVenir.prochains} nom={NOM} onVoirPlus={pagesAVenir.voirPlus} />
+        <BoutonVoirPlus restants={pagesAVenir.restants} prochains={pagesAVenir.prochains} nom={T.nom} onVoirPlus={pagesAVenir.voirPlus} />
 
         {potes.length > 0 ? (
           <Bouton
-            libelle="Nouvelle sortie"
-            indice="Choisis tes potes et propose des lieux, puis tout le monde vote"
+            libelle={T.nouvelle}
+            indice={T.nouvelleIndice}
             onPress={() => router.push("/potes/nouvelle-sortie")}
             className="mt-2"
           />
         ) : (
-          <Bouton libelle="Ajouter un pote" indice="Par son pseudo, ton lien ou ton QR code" onPress={() => router.push("/potes/ajouter")} className="mt-2" />
+          <Bouton libelle={T.ajouterPote} indice={T.ajouterPoteIndice} onPress={() => router.push("/potes/ajouter")} className="mt-2" />
         )}
       </View>
 
       {passees.length > 0 ? (
         <View className="gap-3">
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            Déjà vécues
+            {T.passees}
           </Text>
           {pagesPassees.visibles.map((s) => (
             <CarteSortie
@@ -175,7 +171,7 @@ export function SectionSorties({ recommandations, lieux, onRetire }: Props) {
               refPrincipal={pagesPassees.refDe(s.id)}
             />
           ))}
-          <BoutonVoirPlus restants={pagesPassees.restants} prochains={pagesPassees.prochains} nom={NOM} onVoirPlus={pagesPassees.voirPlus} />
+          <BoutonVoirPlus restants={pagesPassees.restants} prochains={pagesPassees.prochains} nom={T.nom} onVoirPlus={pagesPassees.voirPlus} />
         </View>
       ) : null}
 

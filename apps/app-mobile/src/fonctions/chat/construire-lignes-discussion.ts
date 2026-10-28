@@ -1,8 +1,9 @@
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { decrireJourDiscussion } from "~/fonctions/chat/decrire-jour-discussion";
 import { regrouperAlbumsChat } from "~/fonctions/chat/regrouper-albums-chat";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 
 /** Un message du chat prêt à afficher : son auteur, son heure, le jour à écrire au-dessus, et s'il ouvre une série */
 export type LigneDiscussion = {
@@ -24,7 +25,7 @@ const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth()
  * Range les messages d'une conversation pour la liste : jour au-dessus du premier message de chaque jour, séries par auteur,
  * photos d'un même album réunies (regrouperAlbumsChat). monId : ton identifiant (utiliserMonId), pour reconnaître tes messages.
  */
-export function construireLignesDiscussion(messages: MessageChatEnrichi[], trouverPote: (id: string) => Pote | null, maintenant: Date, monId: string): LigneDiscussion[] {
+export function construireLignesDiscussion(messages: MessageChatEnrichi[], trouverPote: (id: string) => Pote | null, maintenant: Date, monId: string, langue: Langue): LigneDiscussion[] {
   const groupes = regrouperAlbumsChat(messages);
   return groupes.map(({ message, album }, i) => {
     const date = new Date(message.date);
@@ -35,8 +36,8 @@ export function construireLignesDiscussion(messages: MessageChatEnrichi[], trouv
       album,
       auteur: trouverPote(message.auteur),
       deMoi: message.auteur === monId,
-      heure: formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`),
-      jour: nouveauJour ? decrireJourDiscussion(date, maintenant) : null,
+      heure: ecrireHeureLangue(date, langue),
+      jour: nouveauJour ? decrireJourDiscussion(date, maintenant, langue) : null,
       debutSerie: nouveauJour || precedent.auteur !== message.auteur || !!precedent.systeme || !!message.systeme,
     };
   });

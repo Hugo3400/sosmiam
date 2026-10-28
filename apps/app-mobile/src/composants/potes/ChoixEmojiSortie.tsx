@@ -1,6 +1,8 @@
 import { Platform, Pressable, Text, View } from "react-native";
 
+import { TEXTES_CHOIX_SORTIE_PAR_LANGUE } from "~/contenus/textes-choix-sortie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   choisi: string;
@@ -10,22 +12,14 @@ type Props = {
 };
 
 /** Les emoji proposés pour une sortie, avec un nom lu par le lecteur d'écran (le premier est celui par défaut) */
-const EMOJIS = [
-  { emoji: "🍽️", nom: "Resto" },
-  { emoji: "🍕", nom: "Pizza" },
-  { emoji: "🍣", nom: "Sushis" },
-  { emoji: "🍔", nom: "Burger" },
-  { emoji: "🥐", nom: "Brunch" },
-  { emoji: "🍰", nom: "Goûter" },
-  { emoji: "🎉", nom: "Fête" },
-  { emoji: "🛶", nom: "Grand air" },
-];
+const EMOJIS = ["🍽️", "🍕", "🍣", "🍔", "🥐", "🍰", "🎉", "🛶"];
 
 /** Choisir l'emoji d'une sortie parmi quelques-uns : un seul choix, dit par son nom. */
-export function ChoixEmojiSortie({ choisi, onChoisir, libelle = "Emoji de la sortie" }: Props) {
+export function ChoixEmojiSortie({ choisi, onChoisir, libelle }: Props) {
+  const T = utiliserTextes(TEXTES_CHOIX_SORTIE_PAR_LANGUE);
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={libelle} className="flex-row flex-wrap gap-x-1 gap-y-2">
-      {EMOJIS.map((e, i) => {
+    <View accessibilityRole="radiogroup" accessibilityLabel={libelle ?? T.emoji.libelle} className="flex-row flex-wrap gap-x-1 gap-y-2">
+      {EMOJIS.map((emoji, i) => ({ emoji, nom: T.emoji.noms[i] ?? "" })).map((e, i) => {
         const actif = e.emoji === choisi;
         return (
           <Pressable
@@ -33,7 +27,7 @@ export function ChoixEmojiSortie({ choisi, onChoisir, libelle = "Emoji de la sor
             // Sur iPhone, une radio est lue en anglais : bouton « sélectionné », avec sa place dans la liste ; radio cochée ou non ailleurs
             accessibilityRole={Platform.OS === "ios" ? "button" : "radio"}
             accessibilityState={Platform.OS === "ios" ? { selected: actif } : { checked: actif }}
-            accessibilityLabel={Platform.OS === "ios" ? `${e.nom}, ${i + 1} sur ${EMOJIS.length}` : e.nom}
+            accessibilityLabel={Platform.OS === "ios" ? `${e.nom}, ${T.position(i + 1, EMOJIS.length)}` : e.nom}
             onPress={() => {
               vibrerLegerement();
               onChoisir(e.emoji);

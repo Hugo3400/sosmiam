@@ -4,10 +4,12 @@ import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { ListePartagee } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
+import { TEXTES_LISTES_PARTAGEES_PAR_LANGUE } from "~/contenus/textes-listes-partagees";
 import { compterAbonnesListe } from "~/fonctions/communaute/compter-abonnes-liste";
 import { compterLieuxListe } from "~/fonctions/communaute/compter-lieux-liste";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   liste: ListePartagee;
@@ -28,19 +30,21 @@ const MAX_VIGNETTES = 3;
 /** Une liste partagée : emoji, titre, nombre de lieux, qui l'a faite, et ses premiers lieux en petit. Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipal }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_LISTES_PARTAGEES_PAR_LANGUE).carte;
+  const deMoi = auteur === "toi";
   // Compte connecté : le nombre du serveur (la liste n'est souvent lue qu'en résumé) ; sinon : ses lieux encore dans l'app
   const nombre = liste.serveur ? compterLieuxListe(liste) : lieux.length;
   const abonnes = compterAbonnesListe(liste);
-  const lieuxTexte = `${nombre} lieu${nombre > 1 ? "x" : ""}`;
-  const abonnesTexte = abonnes > 0 ? `${abonnes} abonné${abonnes > 1 ? "s" : ""}` : null;
-  const lu = [liste.titre, lieuxTexte, auteur === "toi" ? "Créée par toi" : `Par ${auteur}`, abonnesTexte].filter(Boolean).join(", ");
+  const lieuxTexte = T.lieux(nombre);
+  const abonnesTexte = abonnes > 0 ? T.abonnes(abonnes) : null;
+  const lu = [liste.titre, lieuxTexte, deMoi ? T.creeeParToi : T.parAuteur(auteur), abonnesTexte].filter(Boolean).join(", ");
 
   const carte = (
     <Pressable
       ref={refPrincipal}
       accessibilityRole="button"
       accessibilityLabel={lu}
-      accessibilityHint="Ouvre la liste"
+      accessibilityHint={T.indiceOuvrir}
       onPress={() => {
         vibrerLegerement();
         onOuvrir(liste.id);
@@ -58,7 +62,7 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipa
           {liste.titre}
         </Text>
         <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
-          {lieuxTexte} · {auteur === "toi" ? "par toi" : `par ${auteur}`}
+          {lieuxTexte} · {deMoi ? T.parToiCourt : T.parAuteurCourt(auteur)}
           {abonnesTexte ? ` · ${abonnesTexte}` : ""}
         </Text>
       </View>
@@ -83,8 +87,8 @@ export function CarteListe({ liste, auteur, lieux, onOuvrir, onMenu, refPrincipa
       {carte}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Plus d'options sur la liste ${liste.titre}`}
-        accessibilityHint={`La retirer d'ici, voir le profil de ${auteur}, signaler la liste, ou bloquer cette personne`}
+        accessibilityLabel={T.optionsLu(liste.titre)}
+        accessibilityHint={T.indiceOptions(auteur)}
         onPress={() => {
           vibrerLegerement();
           onMenu();

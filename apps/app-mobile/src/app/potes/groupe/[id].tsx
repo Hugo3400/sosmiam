@@ -15,8 +15,9 @@ import { PartagesGroupe } from "~/composants/chat/PartagesGroupe";
 import { Annonce } from "~/composants/interface/Annonce";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
-import { TEXTES_INFOS_GROUPE as T } from "~/contenus/textes-infos-groupe";
-import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_ECRAN_DISCUSSION_PAR_LANGUE } from "~/contenus/textes-ecran-discussion";
+import { TEXTES_INFOS_GROUPE_PAR_LANGUE } from "~/contenus/textes-infos-groupe";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import { decrireMembresGroupe } from "~/fonctions/chat/decrire-membres-groupe";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -25,11 +26,15 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFilDiscussion } from "~/hooks/utiliser-fil-discussion";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { renouvelerPhotoGroupe } from "~/services/photos-groupes-chat";
 
 const OPTIONS_PHOTO: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7 };
 
 export default function EcranInfosGroupe() {
+  const T = utiliserTextes(TEXTES_INFOS_GROUPE_PAR_LANGUE);
+  const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T_ECRAN = utiliserTextes(TEXTES_ECRAN_DISCUSSION_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
@@ -64,7 +69,7 @@ export default function EcranInfosGroupe() {
           💨
         </Text>
         <Text className="text-center font-texte text-base leading-6 text-gris">{lierPonctuation(T.plusLa)}</Text>
-        <Bouton libelle="Retour à mes messages" variante="blanc" onPress={() => router.replace("/potes/messages")} />
+        <Bouton libelle={T_ECRAN.retourMessages} variante="blanc" onPress={() => router.replace("/potes/messages")} />
       </View>
     );
   }
@@ -83,12 +88,12 @@ export default function EcranInfosGroupe() {
       return [{ pote, moi: p === monId, role: p === groupe.creePar ? T.organisateur : admins.includes(p) ? T.admin : null }];
     });
   const invites = (groupe.invites ?? []).map(trouverPote).filter((p): p is Pote => p !== null && !bloquesIds.has(p.id));
-  const createur = groupe.creePar === monId ? "toi" : (trouverPote(groupe.creePar)?.prenom ?? null);
+  const createur = groupe.creePar === monId ? T_ECRAN.creePar : (trouverPote(groupe.creePar)?.prenom ?? null);
   const aUnePhoto = groupe.photo === true || !!groupe.fichierPhoto;
   const epinglee = groupe.epinglee === true;
   const coupee = groupe.coupee === true;
   const repere = groupe.messages[groupe.messages.length - 1]?.id ?? "";
-  const prenomDe = (auteur: string) => (auteur === monId ? T.toi : (trouverPote(auteur)?.prenom ?? "Quelqu'un"));
+  const prenomDe = (auteur: string) => (auteur === monId ? T.toi : (trouverPote(auteur)?.prenom ?? T_ECRAN.quelquun));
 
   async function changerPhoto(uri: string | null) {
     setPhotoEnCours(true);
@@ -122,7 +127,7 @@ export default function EcranInfosGroupe() {
       <ScrollView contentContainerStyle={{ paddingTop: marges.top + 8, paddingBottom: marges.bottom + 24 }} contentContainerClassName="gap-5 px-5">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T_ECRAN.retour}
           hitSlop={8}
           onPress={retour}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

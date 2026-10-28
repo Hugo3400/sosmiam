@@ -1,0 +1,53 @@
+import type { Traduction } from "@sos-miam/commun/types/traduction";
+import type { TEXTES_SCAN } from "~/contenus/textes-scan";
+
+export const TEXTES_SCAN_ANGLAIS: Traduction<typeof TEXTES_SCAN> = {
+  titre: "Scan",
+  promesse: "Your visit counts when you pay – that's what keeps the reviews real.",
+  indisponibleTitre: "Coming with accounts",
+  indisponibleTexte: "Scanning at the counter and asking for the bill in the app open with real accounts. We're tightening the last few bolts, promise.",
+  chargement: "Gathering your visits…",
+  scannerTitre: "Scan the counter QR code",
+  scannerTexte: "Just paid? Scan the QR code the staff show you.",
+  scannerIndice: "Opens the camera",
+  additionTitre: "Ask for the bill",
+  additionTexte: "No QR code in sight? Ask for it here – the staff confirm it with a single tap.",
+  cartesTitre: "My loyalty cards",
+  cartesLu: (nombre: number) => `My loyalty cards, ${nombre}`,
+  cartesVide: "Your first confirmed visit adds your first stamp. Cards fill up faster than a glass on a sunny terrace.",
+  visitesTitre: "My visits",
+  visitesLu: (validees: number) => `My visits, ${validees} confirmed`,
+  visitesResume: (validees: number, points: number) =>
+    `${validees} confirmed visit${validees === 1 ? "" : "s"} · ${points} point${points === 1 ? "" : "s"} earned`,
+  visitesVide: "No visits yet – your next independent restaurant is just waiting for you (and your scan).",
+  toutVoir: "See all",
+  toutVoirLu: (libelle: string) => `See all: ${libelle}`,
+  commentTitre: "How does it work?",
+  etapes: [
+    { titre: "You tuck in, you pay", texte: "Your visit counts when you pay – that's what keeps the reviews real." },
+    {
+      titre: "You confirm it in one tap",
+      texte: "Scan the QR code the staff show you, or ask for the bill in the app. A booking made here and honoured counts too.",
+    },
+    { titre: "You reap the rewards", texte: "+15 points (+25 during an SOS), a stamp on your loyalty card, and your review opens an hour later – not under the owner's nose." },
+  ],
+  etapeLue: (numero: string, titre: string, texte: string) => `Step ${numero}: ${titre}. ${texte}`,
+  faqLu: "All the answers in the website FAQ",
+  faq: "All the answers in the FAQ →",
+  invitationTexte: "Here, your visits really count: points, stamps and verified reviews.",
+  invitationTitre: "Create your account so your visits count",
+  invitationDetail: "One minute flat, and your next restaurant visits earn you points, stamps and the right to leave a review.",
+  invitationBouton: "Create my account",
+  invitationIndice: "Opens sign-up – it takes a minute",
+  statuts: {
+    demandee: "Pending",
+    validee: "Confirmed",
+    refusee: "Not confirmed",
+    annulee: "Cancelled",
+    expiree: "Dozed off",
+    retiree: "Withdrawn",
+  },
+  gain: (points: number, tampon: boolean) => `+${points} points${tampon ? " · 1 stamp" : ""}`,
+  apercuLu: (nom: string, jour: string) => `${nom}, on ${jour}`,
+  apercuIndice: "Opens the visit details",
+};

@@ -31,17 +31,26 @@ test("compte supprimé, photo, message caché : rien à lire", () => {
 
 test("la citation dans la bulle : « Message indisponible » pour un message caché", () => {
   for (const etat of ["supprime", "masque", "retire", "illisible"]) {
-    assert.deepEqual(decrireCitation({ id: "m1", auteur: null, type: "texte", extrait: null, etat }), { vu: "Message indisponible", lu: "Message indisponible" });
+    assert.deepEqual(decrireCitation({ id: "m1", auteur: null, type: "texte", extrait: null, etat }, "fr"), { vu: "Message indisponible", lu: "Message indisponible" });
   }
 });
 
 test("la citation dans la bulle : le texte replié, ou ce qu'était le message", () => {
   const cite = (type, extrait = null) => ({ id: "m1", auteur: "lea", type, extrait, etat: "visible" });
-  assert.equal(decrireCitation(cite("texte", "Pizza\n\nce soir ?")).vu, "Pizza ce soir ?");
-  assert.equal(decrireCitation(cite("photo")).vu, "📷 Photo");
-  assert.equal(decrireCitation(cite("vocal")).lu, "une note vocale");
-  assert.equal(decrireCitation(cite("lieu", "On y va ?"), "Chez Nonna Lia").vu, "📍 Chez Nonna Lia · On y va ?");
-  assert.equal(decrireCitation(cite("lieu")).vu, "📍 Un lieu");
-  assert.equal(decrireCitation(cite("gif")).vu, "🎞️ GIF");
-  assert.equal(decrireCitation(cite("texte", "   ")).vu, "Message indisponible");
+  assert.equal(decrireCitation(cite("texte", "Pizza\n\nce soir ?"), "fr").vu, "Pizza ce soir ?");
+  assert.equal(decrireCitation(cite("photo"), "fr").vu, "📷 Photo");
+  assert.equal(decrireCitation(cite("vocal"), "fr").lu, "une note vocale");
+  assert.equal(decrireCitation(cite("lieu", "On y va ?"), "fr", "Chez Nonna Lia").vu, "📍 Chez Nonna Lia · On y va ?");
+  assert.equal(decrireCitation(cite("lieu"), "fr").vu, "📍 Un lieu");
+  assert.equal(decrireCitation(cite("gif"), "fr").vu, "🎞️ GIF");
+  assert.equal(decrireCitation(cite("texte", "   "), "fr").vu, "Message indisponible");
+});
+
+test("la citation en anglais : « Message unavailable », ce qu'était le message, deux-points sans espace", () => {
+  const cite = (type, extrait = null) => ({ id: "m1", auteur: "lea", type, extrait, etat: "visible" });
+  assert.deepEqual(decrireCitation({ id: "m1", auteur: null, type: "texte", extrait: null, etat: "masque" }, "en"), { vu: "Message unavailable", lu: "Message unavailable" });
+  assert.deepEqual(decrireCitation(cite("vocal"), "en"), { vu: "🎙️ Voice note", lu: "a voice note" });
+  assert.deepEqual(decrireCitation(cite("lieu", "On y va ?"), "en", "Chez Nonna Lia"), { vu: "📍 Chez Nonna Lia · On y va ?", lu: "a place, Chez Nonna Lia: On y va ?" });
+  assert.equal(decrireCitation(cite("lieu"), "en").vu, "📍 A place");
+  assert.equal(decrireCitation(cite("vote"), "en").vu, "🗳️ Poll");
 });

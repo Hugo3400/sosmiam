@@ -6,7 +6,8 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import { SectionPliable } from "~/composants/interface/SectionPliable";
 import { BoutonContour } from "~/composants/profil/BoutonContour";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
-import { TEXTES_COLLECTION, TEXTES_PROFIL } from "~/contenus/textes-profil";
+import { TEXTES_COLLECTION_PAR_LANGUE, TEXTES_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil";
+import { TEXTES_COLLECTIONS_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil-onglet";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
@@ -15,6 +16,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Lieux gardés (🔖), du plus récent au plus ancien */
@@ -31,6 +33,9 @@ const VIGNETTES_VISIBLES = 3;
 /** Tes adresses gardées et tes publications aimées, en deux onglets et en grille de 3 colonnes. */
 export function CollectionsProfil({ gardes, jaimes }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_COLLECTIONS_PROFIL_PAR_LANGUE);
+  const textesCollection = utiliserTextes(TEXTES_COLLECTION_PAR_LANGUE);
+  const textesProfil = utiliserTextes(TEXTES_PROFIL_PAR_LANGUE);
   const { estMasquee } = utiliserActivite();
   const { publications: toutesLesPublications } = utiliserPublications();
   // Seulement les lieux qui existent encore (tout compte a 18 ans ou plus : aucun n'est filtré par l'âge)
@@ -50,12 +55,12 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
     const lieu = publication ? lieux.find((l) => l.id === publication.lieuId) : undefined;
     if (!publication || !lieu) return [];
     const image = trouverVignettePublication(publication) ?? trouverVignetteLieu(lieu.id, publications);
-    return [{ cle: publication.id, lieu, image, libelle: `Publication aimée de ${lieu.nom}, ${ecrireQuartierVille(lieu)}` }];
+    return [{ cle: publication.id, lieu, image, libelle: T.publicationAimeeLu(lieu.nom, ecrireQuartierVille(lieu)) }];
   });
 
   const onglets = [
-    { cle: "gardes" as const, emoji: "🔖", nom: "Gardés", nombre: vignettesGardes.length },
-    { cle: "jaimes" as const, emoji: "❤️", nom: "J'aime", nombre: vignettesJaimes.length },
+    { cle: "gardes" as const, emoji: "🔖", nom: T.gardes, nombre: vignettesGardes.length },
+    { cle: "jaimes" as const, emoji: "❤️", nom: T.jaimes, nombre: vignettesJaimes.length },
   ];
   const vignettes = onglet === "gardes" ? vignettesGardes : vignettesJaimes;
   // « lu » : la même invitation pour le lecteur d'écran, avec les boutons qu'il annonce (la vidéo, elle, ne prend pas le focus)
@@ -63,25 +68,25 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
     onglet === "gardes"
       ? {
           emoji: "🔖",
-          texte: "Touche 🔖 dans le fil pour garder une adresse. Ton futur toi affamé te dira merci.",
-          lu: "Touche « Garder » sur une publication du fil pour garder une adresse. Ton futur toi affamé te dira merci.",
+          texte: T.videGardes,
+          lu: T.videGardesLu,
         }
       : {
           emoji: "❤️",
-          texte: "Double-touche une vidéo pour l'aimer : tes coups de cœur t'attendront ici.",
-          lu: "Touche « J'aime » sur une publication du fil : tes coups de cœur t'attendront ici.",
+          texte: T.videJaimes,
+          lu: T.videJaimesLu,
         };
   const dernierGarde = vignettesGardes[0]?.lieu.nom;
   const resume =
     vignettesGardes.length + vignettesJaimes.length === 0
-      ? [TEXTES_COLLECTION.vide]
-      : [TEXTES_COLLECTION.compte(vignettesGardes.length, vignettesJaimes.length), ...(dernierGarde ? [TEXTES_COLLECTION.dernierGarde(dernierGarde)] : [])];
+      ? [textesCollection.vide]
+      : [textesCollection.compte(vignettesGardes.length, vignettesJaimes.length), ...(dernierGarde ? [textesCollection.dernierGarde(dernierGarde)] : [])];
   const autres = vignettes.length - VIGNETTES_VISIBLES;
-  const voirTout = onglet === "gardes" ? TEXTES_COLLECTION.voirGardes(vignettes.length) : TEXTES_COLLECTION.voirJaimes(vignettes.length);
-  const voirMoinsLu = onglet === "gardes" ? TEXTES_COLLECTION.voirMoinsGardesLu : TEXTES_COLLECTION.voirMoinsJaimesLu;
+  const voirTout = onglet === "gardes" ? textesCollection.voirGardes(vignettes.length) : textesCollection.voirJaimes(vignettes.length);
+  const voirMoinsLu = onglet === "gardes" ? textesCollection.voirMoinsGardesLu : textesCollection.voirMoinsJaimesLu;
 
   return (
-    <SectionPliable section="collection" titre={TEXTES_COLLECTION.titre} sousTitre={TEXTES_COLLECTION.sousTitre} resume={resume}>
+    <SectionPliable section="collection" titre={textesCollection.titre} sousTitre={textesCollection.sousTitre} resume={resume}>
       <View accessibilityRole="tablist" className="flex-row border-b-2 border-ligne">
         {onglets.map((o, i) => {
           const actif = o.cle === onglet;
@@ -90,7 +95,7 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
             <Pressable
               key={o.cle}
               accessibilityRole={Platform.OS === "ios" ? "button" : "tab"}
-              accessibilityLabel={Platform.OS === "ios" ? `${o.nom}, ${o.nombre}, onglet ${i + 1} sur ${onglets.length}` : `${o.nom}, ${o.nombre}`}
+              accessibilityLabel={Platform.OS === "ios" ? T.ongletLu(o.nom, o.nombre, i + 1, onglets.length) : `${o.nom}, ${o.nombre}`}
               accessibilityState={{ selected: actif }}
               onPress={() => {
                 vibrerLegerement();
@@ -128,7 +133,7 @@ export function CollectionsProfil({ gardes, jaimes }: Props) {
       {autres > 0 ? (
         <BoutonContour
           fond="blanc"
-          libelle={toutesVisibles ? TEXTES_PROFIL.voirMoins : voirTout}
+          libelle={toutesVisibles ? textesProfil.voirMoins : voirTout}
           libelleLu={toutesVisibles ? voirMoinsLu : undefined}
           onPress={() => setToutesVisibles(!toutesVisibles)}
         />

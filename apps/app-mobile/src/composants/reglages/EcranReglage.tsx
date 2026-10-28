@@ -5,8 +5,10 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } fro
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_ECRAN_REGLAGE_PAR_LANGUE } from "~/contenus/textes-ecran-reglage";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   titre?: string;
@@ -22,7 +24,8 @@ type Props = {
 };
 
 /** Cadre des écrans de réglages : bouton retour, grand titre, contenu qui défile et bouton principal fixé en bas. */
-export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal, auDessusDuBouton, onRetour, libelleRetour = "Retour", children }: Props) {
+export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal, auDessusDuBouton, onRetour, libelleRetour, children }: Props) {
+  const T = utiliserTextes(TEXTES_ECRAN_REGLAGE_PAR_LANGUE);
   const router = useRouter();
   const couleurs = utiliserCouleurs();
   return (
@@ -31,7 +34,7 @@ export function EcranReglage({ titre, sousTitre, centre = false, boutonPrincipal
         <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={libelleRetour}
+            accessibilityLabel={libelleRetour ?? T.retour}
             hitSlop={12}
             onPress={onRetour ?? (() => router.back())}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"

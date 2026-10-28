@@ -24,7 +24,7 @@ const CONVERSATIONS = [
   groupe("g-sans-titre", "  ", ["lea"]),
 ];
 const AUCUN_BLOQUE = new Set();
-const noms = (bloques = AUCUN_BLOQUE) => (c) => listerNomsConversation(c, "moi", trouverPote, bloques);
+const noms = (bloques = AUCUN_BLOQUE) => (c) => listerNomsConversation(c, "moi", trouverPote, bloques, "fr");
 const chercher = (recherche, bloques) => filtrerConversations(CONVERSATIONS, recherche, noms(bloques)).map((c) => c.id);
 
 test("recherche vide ou faite d'espaces : toutes les conversations, la même liste", () => {
@@ -67,7 +67,8 @@ test("rien qui corresponde : une liste vide", () => {
 });
 
 test("les noms d'une conversation : sans toi, prénom puis pseudo de chacun", () => {
-  assert.deepEqual(listerNomsConversation(CONVERSATIONS[0], "moi", trouverPote, AUCUN_BLOQUE), ["Léa", "lea.croque"]);
-  assert.deepEqual(listerNomsConversation(CONVERSATIONS[1], "moi", trouverPote, AUCUN_BLOQUE), ["Les gourmands de Sète", "Karim", "karim_mtp", "Zoé", "zoe.coeur"]);
-  assert.deepEqual(listerNomsConversation(CONVERSATIONS[4], "moi", trouverPote, AUCUN_BLOQUE), ["Compte supprimé"]);
+  assert.deepEqual(listerNomsConversation(CONVERSATIONS[0], "moi", trouverPote, AUCUN_BLOQUE, "fr"), ["Léa", "lea.croque"]);
+  assert.deepEqual(listerNomsConversation(CONVERSATIONS[1], "moi", trouverPote, AUCUN_BLOQUE, "fr"), ["Les gourmands de Sète", "Karim", "karim_mtp", "Zoé", "zoe.coeur"]);
+  assert.deepEqual(listerNomsConversation(CONVERSATIONS[4], "moi", trouverPote, AUCUN_BLOQUE, "fr"), ["Compte supprimé"]);
+  assert.deepEqual(listerNomsConversation(CONVERSATIONS[4], "moi", trouverPote, AUCUN_BLOQUE, "en"), ["Deleted account"]);
 });

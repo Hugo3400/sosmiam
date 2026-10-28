@@ -5,8 +5,10 @@ import { Alert, Platform, Text, View } from "react-native";
 import type { CategorieEnvie, Profil } from "@sos-miam/commun/types/profil";
 import { GrilleChoix } from "~/composants/inscription/GrilleChoix";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { etapesEnvies } from "~/contenus/inscription/envies";
+import { ETAPES_ENVIES_PAR_LANGUE } from "~/contenus/inscription/envies";
+import { TEXTES_REGLAGES_PROFIL_PAR_LANGUE } from "~/contenus/textes-reglages-profil";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Mes envies : toutes les catégories, l'une sous l'autre. On coche sur une copie, enregistrée d'un coup sur le téléphone ;
@@ -14,6 +16,8 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
  */
 export default function ReglagesEnvies() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_REGLAGES_PROFIL_PAR_LANGUE);
+  const etapesEnvies = utiliserTextes(ETAPES_ENVIES_PAR_LANGUE);
   const { profil, modifierEnvies } = utiliserProfil();
   const [envies, setEnvies] = useState<Profil["envies"]>(() => profil?.envies ?? {});
   const [enregistrementEnCours, setEnregistrementEnCours] = useState(false);
@@ -41,19 +45,19 @@ export default function ReglagesEnvies() {
       router.back();
     } catch {
       setEnregistrementEnCours(false);
-      if (Platform.OS !== "web") Alert.alert("Oups, ça a coincé", "Tes envies n'ont pas pu être enregistrées. Réessaie dans un instant.");
+      if (Platform.OS !== "web") Alert.alert(T.enviesOups, T.enviesRatees);
     }
   }
 
   return (
     <EcranReglage
-      titre="Mes envies"
-      sousTitre="Coche tout ce qui te tente : on s'en sert pour mettre en avant les lieux qui te ressemblent."
+      titre={T.mesEnvies}
+      sousTitre={T.enviesSousTitre}
       boutonPrincipal={{
-        libelle: "Enregistrer",
+        libelle: T.enregistrer,
         onPress: () => void sauver(),
         desactive: !change || enregistrementEnCours,
-        indice: "Enregistre tes envies et revient à Mon profil",
+        indice: T.enviesIndice,
       }}
     >
       <View className="gap-10">
@@ -72,7 +76,7 @@ export default function ReglagesEnvies() {
                 </Text>
                 {nombre > 0 ? (
                   <Text className="font-texte-semi text-sm text-gris">
-                    {nombre} choisi{nombre > 1 ? "s" : ""}
+                    {T.choisis(nombre)}
                   </Text>
                 ) : null}
               </View>

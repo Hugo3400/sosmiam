@@ -2,8 +2,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
-import { TYPES_EVENEMENT_ECRITS } from "@sos-miam/commun/contenus/types-evenement";
-import { DESCRIPTION_EVENEMENT_MAX, TITRE_EVENEMENT_MAX, TITRE_EVENEMENT_MIN, TYPES_EVENEMENT } from "@sos-miam/commun/regles/evenements";
+import { TYPES_EVENEMENT_ECRITS, TYPES_EVENEMENT_ECRITS_PAR_LANGUE } from "@sos-miam/commun/contenus/types-evenement";
+import { DESCRIPTION_EVENEMENT_MAX, TITRE_EVENEMENT_MAX, TYPES_EVENEMENT } from "@sos-miam/commun/regles/evenements";
 import type { ChampEvenement, EvenementLieuPro } from "@sos-miam/commun/types/evenement";
 import { validerEvenement } from "@sos-miam/commun/validation/valider-evenement";
 import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
@@ -16,7 +16,8 @@ import { ChampsQuandEvenement } from "~/composants/pro/ChampsQuandEvenement";
 import { ChampsTarifEvenement } from "~/composants/pro/ChampsTarifEvenement";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_EVENEMENT_PAR_LANGUE } from "~/contenus/textes-ecran-pro-evenements";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { convertirBrouillonEvenement } from "~/fonctions/pro/convertir-brouillon-evenement";
 import { creerBrouillonEvenement, type BrouillonEvenement } from "~/fonctions/pro/creer-brouillon-evenement";
@@ -24,19 +25,7 @@ import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
-
-const ERREURS: Record<ChampEvenement, string> = {
-  titre: `De ${TITRE_EVENEMENT_MIN} à ${TITRE_EVENEMENT_MAX} caractères, sans gros mot ni « open bar ».`,
-  type: "Choisis un type.",
-  description: `${DESCRIPTION_EVENEMENT_MAX} caractères au plus, sans gros mot ni « open bar ».`,
-  debut: "Une date à venir, 3 mois à l'avance au plus.",
-  fin: "24 h au plus après le début.",
-  hebdoJusqua: "Au moins une semaine, et 3 mois à l'avance au plus.",
-  tarif: "Choisis un tarif.",
-  prixCentimes: "Prix à corriger.",
-  places: "Places à corriger.",
-  alcool: "Case à revoir.",
-};
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Publier ou modifier un événement du lieu (gérant et équipe) : titre, type, description, quand (et chaque semaine), prix,
@@ -44,6 +33,9 @@ const ERREURS: Record<ChampEvenement, string> = {
  */
 export default function EcranEvenementPro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_EVENEMENT_PAR_LANGUE);
+  const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const TYPES = utiliserTextes(TYPES_EVENEMENT_ECRITS_PAR_LANGUE);
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { lieuPro } = utiliserModes();
@@ -89,7 +81,7 @@ export default function EcranEvenementPro() {
       return router.back();
     }
     if (r.erreur === "evenement-invalide" && r.champ) return setErreur(r.champ as ChampEvenement);
-    if (r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.evenement);
+    if (r.erreur === "compte-limite") return setRefusLimite(TL.evenement);
     echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
   }
 
@@ -97,7 +89,7 @@ export default function EcranEvenementPro() {
     if (!existant) return;
     setRefusLimite(null);
     const r = await service.annulerEvenement(lieuId, existant.id);
-    if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.annulerEvenement);
+    if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(TL.annulerEvenement);
     if (!r.ok) return echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
     vibrerLegerement();
     router.back();
@@ -105,7 +97,7 @@ export default function EcranEvenementPro() {
 
   if (existant === undefined) {
     return (
-      <EcranReglage titre="Événement">
+      <EcranReglage titre={T.chargement}>
         <View className="items-center py-10">
           <ActivityIndicator color={couleurs.encre} />
         </View>
@@ -114,62 +106,62 @@ export default function EcranEvenementPro() {
   }
   if (id && existant === null) {
     return (
-      <EcranReglage titre="Événement introuvable" sousTitre="Il a peut-être été annulé entre-temps.">
-        <Bouton libelle="Retour" variante="blanc" onPress={() => router.back()} />
+      <EcranReglage titre={T.introuvableTitre} sousTitre={T.introuvableTexte}>
+        <Bouton libelle={T.retour} variante="blanc" onPress={() => router.back()} />
       </EcranReglage>
     );
   }
 
   const b = brouillon;
-  const message = (champ: ChampEvenement) => (erreur === champ ? ERREURS[champ] : undefined);
+  const message = (champ: ChampEvenement) => (erreur === champ ? T.erreurs[champ] : undefined);
   return (
     <EcranReglage
-      titre={existant ? "Modifier l'événement" : "Nouvel événement"}
-      sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · sur ta fiche, dans Explorer, et chez qui te suit`}
-      boutonPrincipal={{ libelle: enCours ? "Un instant…" : existant ? "Enregistrer" : "Publier l'événement", onPress: () => void enregistrer(), desactive: enCours }}
+      titre={existant ? T.modifier : T.nouvel}
+      sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · ${T.sousTitre}`}
+      boutonPrincipal={{ libelle: enCours ? T.enCours : existant ? T.enregistrer : T.publier, onPress: () => void enregistrer(), desactive: enCours }}
       auDessusDuBouton={<RefusLimitationEnPlace texte={refusLimite} />}
     >
-      <SectionReglages titre="L'essentiel">
+      <SectionReglages titre={T.essentiel}>
         <View className="gap-4">
-          <ChampTexte libelle="Titre" valeur={b.titre} onChangeTexte={(titre) => changer({ titre })} maxLength={TITRE_EVENEMENT_MAX} placeholder="Jazz manouche au coin du feu" erreur={message("titre") ?? null} />
-          <Text className="-mb-2 font-texte-gras text-base text-encre">C'est quoi ?</Text>
+          <ChampTexte libelle={T.champTitre} valeur={b.titre} onChangeTexte={(titre) => changer({ titre })} maxLength={TITRE_EVENEMENT_MAX} placeholder={T.champTitreExemple} erreur={message("titre") ?? null} />
+          <Text className="-mb-2 font-texte-gras text-base text-encre">{T.type}</Text>
           <View accessibilityRole="radiogroup" className="flex-row flex-wrap gap-2">
             {TYPES_EVENEMENT.map((t, i) => (
-              <Pastille key={t} emoji={TYPES_EVENEMENT_ECRITS[t].emoji} libelle={TYPES_EVENEMENT_ECRITS[t].nom} role="radio" choisi={b.type === t} onPress={() => changer({ type: t })} position={i + 1} total={TYPES_EVENEMENT.length} />
+              <Pastille key={t} emoji={TYPES_EVENEMENT_ECRITS[t].emoji} libelle={TYPES[t].nom} role="radio" choisi={b.type === t} onPress={() => changer({ type: t })} position={i + 1} total={TYPES_EVENEMENT.length} />
             ))}
           </View>
           <ChampTexte
-            libelle="Description"
-            mention="facultatif"
+            libelle={T.description}
+            mention={T.facultatif}
             valeur={b.description}
             onChangeTexte={(description) => changer({ description })}
             maxLength={DESCRIPTION_EVENEMENT_MAX}
             multiline
-            placeholder="Ce qui attend les gourmands, le programme, ce qu'il faut savoir"
+            placeholder={T.descriptionExemple}
             aide={`${b.description.length}/${DESCRIPTION_EVENEMENT_MAX}`}
             erreur={message("description") ?? null}
           />
         </View>
       </SectionReglages>
-      <SectionReglages titre="Quand">
+      <SectionReglages titre={T.quand}>
         <ChampsQuandEvenement brouillon={b} onChanger={changer} erreurs={{ debut: message("debut"), fin: message("fin"), hebdoJusqua: message("hebdoJusqua") }} />
       </SectionReglages>
-      <SectionReglages titre="Prix et places">
+      <SectionReglages titre={T.prixPlaces}>
         <ChampsTarifEvenement brouillon={b} onChanger={changer} erreurs={{ prixCentimes: message("prixCentimes"), places: message("places"), alcool: message("alcool") }} />
       </SectionReglages>
       {existant && existant.statut === "a-venir" ? (
         <View className="gap-2">
-          <Text className="font-texte text-sm text-gris">{`${existant.interesses} personne${existant.interesses > 1 ? "s" : ""} intéressée${existant.interesses > 1 ? "s" : ""}${existant.publiePar ? ` · publié par ${existant.publiePar}` : ""}`}</Text>
-          <Bouton libelle="Annuler l'événement" variante="blanc" onPress={() => setAnnulation(true)} />
+          <Text className="font-texte text-sm text-gris">{T.interesses(existant.interesses, existant.publiePar)}</Text>
+          <Bouton libelle={T.annuler} variante="blanc" onPress={() => setAnnulation(true)} />
         </View>
       ) : null}
       <FeuilleConfirmation
         visible={annulation}
         emoji="🗓️"
-        titre="Annuler l'événement ?"
-        detail="Toutes ses dates à venir sont annulées. Les personnes intéressées verront « Annulé »."
-        libelleConfirmer="Annuler l'événement"
-        libelleRester="Je le garde"
+        titre={T.annulationTitre}
+        detail={T.annulationDetail}
+        libelleConfirmer={T.annuler}
+        libelleRester={T.garder}
         onConfirmer={() => void annuler()}
         onFermer={() => setAnnulation(false)}
       />

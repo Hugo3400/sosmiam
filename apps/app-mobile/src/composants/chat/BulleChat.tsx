@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, Pressable, Text, View, type PressableProps } from "react-native";
 import Animated, { FadeOut, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
+import { REACTIONS_PAR_CODE } from "@sos-miam/commun/regles/chat";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { AlbumChat } from "~/composants/chat/AlbumChat";
 import { CarteLieuChat } from "~/composants/chat/CarteLieuChat";
@@ -17,8 +18,10 @@ import { PhotoChat } from "~/composants/chat/PhotoChat";
 import { ReactionsMessage } from "~/composants/chat/ReactionsMessage";
 import { TexteMessageChat } from "~/composants/chat/TexteMessageChat";
 import { RondPote } from "~/composants/potes/RondPote";
-import { TEXTES_MEDIAS_CHAT as T_MEDIAS } from "~/contenus/textes-medias-chat";
-import { TEXTES_MESSAGES as T_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_APERCUS_PAR_LANGUE } from "~/contenus/textes-chat-apercus";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { decrireEnvoiMessage } from "~/fonctions/chat/decrire-envoi-message";
 import { decrireMomentMessage } from "~/fonctions/chat/decrire-moment-message";
@@ -29,8 +32,10 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMediaChat } from "~/hooks/utiliser-media-chat";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { estGlissementReponseRecent } from "~/services/glissement-reponse";
 
 type Props = {
@@ -61,13 +66,6 @@ type Props = {
 
 const TAILLE_AVATAR = 32;
 
-/** Ce qu'on montre à la place d'un message qui n'est plus visible (compte connecté) */
-const ETATS_CACHES: Record<"supprime" | "masque" | "retire" | "illisible", string> = {
-  supprime: "Message supprimé",
-  masque: "🛡️ Masqué en attendant la modération",
-  retire: "🛡️ Retiré par la modération",
-  illisible: "Message illisible",
-};
 const DELAI_DOUBLE_APPUI = 300;
 const DELAI_APPUI_LONG = 350;
 
@@ -79,6 +77,11 @@ export function BulleChat(props: Props) {
   const { conversationId, message, album, participants, auteur, deMoi, heure, debutSerie, groupe, onOptions, maintenant, deplie, dernierDeMoi, onBasculerDetail, onDoubleToucher } = props;
   const { onRepondre, onVoirCitation, pseudos, vu } = props;
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
+  const T_APERCUS = utiliserTextes(TEXTES_CHAT_APERCUS_PAR_LANGUE);
+  const T_MEDIAS = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
+  const T_MESSAGES = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   const { basculerReaction, renvoyer, envoisEnPause, retirerEnPause } = utiliserConversations();
   const { trouverPote } = utiliserCommunaute();
   const serie = album ?? [message];
@@ -101,7 +104,7 @@ export function BulleChat(props: Props) {
     [],
   );
 
-  const coeurMis = (message.reactions[T_MESSAGES.emojiDoubleToucher] ?? []).includes(monId);
+  const coeurMis = (message.reactions[REACTIONS_PAR_CODE.miam] ?? []).includes(monId);
   // Le fichier de la photo ou de la note : sur le téléphone (ton envoi en cours), ou téléchargé depuis le serveur
   const media = utiliserMediaChat(conversationId, message);
   const fichier = media.fichier;
@@ -112,7 +115,7 @@ export function BulleChat(props: Props) {
   /** Met ou retire ton « miam » ; vrai s'il vient d'être mis */
   function basculerCoeur(): boolean {
     if (!reactionsPossibles) return false;
-    basculerReaction(conversationId, message.id, T_MESSAGES.emojiDoubleToucher);
+    basculerReaction(conversationId, message.id, REACTIONS_PAR_CODE.miam);
     return !coeurMis;
   }
 
@@ -158,7 +161,7 @@ export function BulleChat(props: Props) {
   }
 
   const reponseA = message.reponseA;
-  const auteurCite = !reponseA ? null : reponseA.auteur === monId ? "Toi" : reponseA.auteur ? (trouverPote(reponseA.auteur)?.prenom ?? "Quelqu'un") : "Compte supprimé";
+  const auteurCite = !reponseA ? null : reponseA.auteur === monId ? T_APERCUS.toi : reponseA.auteur ? (trouverPote(reponseA.auteur)?.prenom ?? T_APERCUS.quelquUn) : T_APERCUS.compteSupprime;
   const mentionne = !deMoi && (message.mentions ?? []).includes(monId);
   const complements: string[] = [];
   if (message.modifieLe) complements.push(T_MESSAGES.modifie);
@@ -167,7 +170,7 @@ export function BulleChat(props: Props) {
   const suiteLue = complements.map((c) => `, ${c}`).join("");
 
   // Un auteur qui a supprimé son compte : « Compte supprimé » (ses messages restent)
-  const prenom = deMoi ? "Toi" : (auteur?.prenom ?? (message.auteur === "" ? "Compte supprimé" : "Quelqu'un"));
+  const prenom = deMoi ? T_APERCUS.toi : (auteur?.prenom ?? (message.auteur === "" ? T_APERCUS.compteSupprime : T_APERCUS.quelquUn));
   const avecPrenom = !deMoi && groupe && debutSerie;
   const coins = deMoi ? "rounded-2xl rounded-br-md" : "rounded-2xl rounded-tl-md";
   const fond = deMoi ? "bg-jaune" : "bg-carte";
@@ -175,16 +178,16 @@ export function BulleChat(props: Props) {
   // VoiceOver : le « miam » et le menu en actions (balayer vers le haut ou le bas), sur l'élément qui porte le message
   const actionsLecteur: Pick<PressableProps, "accessibilityActions" | "onAccessibilityAction"> = {
     accessibilityActions: [
-      { name: "coeur", label: coeurMis ? "Retirer ton miam" : "Dire miam" },
+      { name: "coeur", label: coeurMis ? T.retirerMiam : T.direMiam },
       ...(onRepondre && !message.etat && !message.systeme ? [{ name: "repondre", label: T_MESSAGES.repondre }] : []),
       ...(reponseA && onVoirCitation ? [{ name: "citation", label: T_MESSAGES.voirCitation }] : []),
-      ...(message.systeme ? [] : [{ name: "options", label: deMoi ? "Réagir" : "Réagir, signaler ou bloquer" }]),
+      ...(message.systeme ? [] : [{ name: "options", label: deMoi ? T.reagir : T.reagirSignalerBloquer }]),
     ],
     onAccessibilityAction: (evenement) => {
       const action = evenement.nativeEvent.actionName;
       if (action === "coeur") {
         vibrerJaime();
-        AccessibilityInfo.announceForAccessibility(basculerCoeur() ? "Cœur mis" : "Cœur retiré");
+        AccessibilityInfo.announceForAccessibility(basculerCoeur() ? T.miamMis : T.miamRetire);
       } else if (action === "repondre") {
         onRepondre?.();
       } else if (action === "citation" && reponseA) {
@@ -205,10 +208,10 @@ export function BulleChat(props: Props) {
 
   let contenu: ReactNode;
   if (cache || ((message.type === "photo" || message.type === "vocal") && media.etat === "expire")) {
-    const texte = cache ? ETATS_CACHES[cache] : "Ce média a expiré";
+    const texte = cache ? T.etatsCaches[cache] : T.mediaExpire;
     contenu = (
       <Pressable
-        accessibilityLabel={`${prenom}, ${heure} : ${texte}`}
+        accessibilityLabel={T.messageLu(prenom, heure, texte)}
         onLongPress={ouvrirOptions}
         delayLongPress={DELAI_APPUI_LONG}
         className={`border-2 border-dashed border-gris/50 px-3.5 py-2.5 ${coins} bg-carte/60`}
@@ -226,7 +229,7 @@ export function BulleChat(props: Props) {
         legende={serie.find((m) => m.legende)?.legende}
         deMoi={deMoi}
         prenom={prenom}
-        libelle={deMoi ? `Tes photos, ${heure}` : `Photos de ${prenom}, ${heure}`}
+        libelle={deMoi ? T.tesPhotos(heure) : T.photosDe(prenom, heure)}
         onAppuiLong={onOptions}
         onAppuiTexte={appuiSurLaBulle}
         onDoubleAppui={() => {
@@ -243,7 +246,7 @@ export function BulleChat(props: Props) {
         message={message}
         prenom={prenom}
         fichier={fichier}
-        libelle={deMoi ? `Ta photo, ${heure}` : `Photo de ${prenom}, ${heure}`}
+        libelle={deMoi ? T.taPhoto(heure) : T.photoDe(prenom, heure)}
         deMoi={deMoi}
         onAppuiLong={onOptions}
         onDoubleAppui={() => {
@@ -261,7 +264,7 @@ export function BulleChat(props: Props) {
           fichier={fichier}
           dureeSecondes={message.dureeSecondes}
           onde={message.onde}
-          libelle={deMoi ? `Ta note vocale, ${heure}` : `Note vocale de ${prenom}, ${heure}`}
+          libelle={deMoi ? T.tonVocal(heure) : T.vocalDe(prenom, heure)}
           deMoi={deMoi}
           onAppuiLong={onOptions}
           actionsLecteur={actionsLecteur}
@@ -297,7 +300,7 @@ export function BulleChat(props: Props) {
     const enGrand = !reponseA && estMessageToutEmoji(texte);
     contenu = (
       <Pressable
-        accessibilityLabel={`${prenom}, ${heure}${suiteLue}${reponseA ? `, en réponse à ${auteurCite}` : ""} : ${texte}`}
+        accessibilityLabel={T.texteLu(prenom, heure, suiteLue, reponseA ? auteurCite : null, texte)}
         onPress={appuiSurLaBulle}
         onLongPress={ouvrirOptions}
         delayLongPress={DELAI_APPUI_LONG}
@@ -342,8 +345,8 @@ export function BulleChat(props: Props) {
     </View>
   );
 
-  const detail = deplie ? decrireMomentMessage(message.date, heure, maintenant, deMoi) : null;
-  const envoi = deMoi && dernierDeMoi && !message.etat ? (vu ?? decrireEnvoiMessage(message.date, maintenant)) : null;
+  const detail = deplie ? decrireMomentMessage(message.date, heure, maintenant, deMoi, langue) : null;
+  const envoi = deMoi && dernierDeMoi && !message.etat ? (vu ?? decrireEnvoiMessage(message.date, maintenant, langue)) : null;
   const heureEcrite = detail ? (
     <View accessible accessibilityLabel={`${detail.lu}${suiteLue}`} accessibilityLiveRegion="polite" className={`mt-1 rounded-full border border-ligne bg-carte px-2 py-0.5 ${deMoi ? "" : "ml-1"}`}>
       <Text className="font-texte-semi text-xs text-encre">{`${detail.vu}${suite}`}</Text>
@@ -374,18 +377,18 @@ export function BulleChat(props: Props) {
             ) : etatEnvoi === "echec" ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Pas parti. Touche pour réessayer."
+                accessibilityLabel={T.pasParti}
                 onPress={() => {
                   vibrerLegerement();
                   echecs.forEach((m) => renvoyer(conversationId, m.id));
                 }}
                 className="mt-0.5 min-h-8 justify-center active:opacity-70"
               >
-                <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
+                <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation(T.pasParti)}</Text>
               </Pressable>
             ) : etatEnvoi === "envoi" ? (
               <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
-                Envoi…
+                {T.envoi}
               </Text>
             ) : (
               heureEcrite
@@ -417,8 +420,8 @@ export function BulleChat(props: Props) {
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Options du message de ${prenom}`}
-            accessibilityHint="Réagir, signaler ce message ou bloquer cette personne"
+            accessibilityLabel={T.optionsDe(prenom)}
+            accessibilityHint={T.optionsIndice}
             hitSlop={{ left: 4, right: 4 }}
             onPress={ouvrirOptions}
             className={`h-11 w-9 items-center justify-center active:opacity-60 ${avecPrenom ? "mt-5" : ""}`}

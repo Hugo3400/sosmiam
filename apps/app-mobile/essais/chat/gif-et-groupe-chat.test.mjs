@@ -55,7 +55,9 @@ test("zoom : la photo déplacée ne quitte jamais l'écran", () => {
 });
 
 test("groupe : le nombre de membres et qui l'a créé", () => {
-  assert.equal(decrireMembresGroupe(4, "Karim"), "4 membres · créé par Karim");
-  assert.equal(decrireMembresGroupe(1, "toi"), "1 membre · créé par toi");
-  assert.equal(decrireMembresGroupe(3, null), "3 membres");
+  assert.equal(decrireMembresGroupe(4, "Karim", "fr"), "4 membres · créé par Karim");
+  assert.equal(decrireMembresGroupe(1, "toi", "fr"), "1 membre · créé par toi");
+  assert.equal(decrireMembresGroupe(3, null, "fr"), "3 membres");
+  assert.equal(decrireMembresGroupe(4, "Karim", "en"), "4 members · created by Karim");
+  assert.equal(decrireMembresGroupe(1, "you", "en"), "1 member · created by you");
 });

@@ -5,10 +5,12 @@ import type { MessageSortie, Pote } from "@sos-miam/commun/types/potes";
 import { PauseMessageLimite } from "~/composants/chat/PauseMessageLimite";
 import { TexteMessageChat } from "~/composants/chat/TexteMessageChat";
 import { RondPote } from "~/composants/potes/RondPote";
-import { TEXTES_MESSAGES } from "~/contenus/textes-messages";
+import { TEXTES_DISCUSSION_SORTIE_PAR_LANGUE } from "~/contenus/textes-discussion-sortie";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   texte: string;
@@ -42,6 +44,8 @@ const ETATS_CACHES = new Set<MessageSortie["etat"]>(["supprime", "masque", "reti
  */
 export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOptions, etat, onRenvoyer, enPause = false, onRetirer, pseudos, mentionne = false }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_DISCUSSION_SORTIE_PAR_LANGUE).bulle;
+  const TM = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
   // Supprimé, masqué, retiré par la modération ou illisible : le texte dit ce qu'il en est, en discret
   const cache = ETATS_CACHES.has(etat);
   const texteBulle = cache ? (
@@ -54,7 +58,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
     const echec = etat === "echec";
     return (
       <View className={`max-w-[85%] items-end self-end ${debutSerie ? "mt-3" : "mt-1"}`}>
-        <View accessible accessibilityLabel={`Toi, ${heure} : ${texte}${etat === "envoi" ? ". En cours d'envoi" : ""}`} className="items-end">
+        <View accessible accessibilityLabel={`${T.toiLu(heure, texte)}${etat === "envoi" ? T.enCoursLu : ""}`} className="items-end">
           <View
             className={`rounded-2xl rounded-br-md border-2 px-3.5 py-2.5 ${
               cache ? "border-dashed border-gris/50 bg-carte/60" : echec ? "border-rouge-texte bg-jaune-clair" : `border-encre bg-jaune ${etat === "envoi" ? "opacity-70" : ""}`
@@ -65,7 +69,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
           {etat === "envoi" || echec ? null : <Text className="mt-0.5 font-texte text-[11px] text-gris">{heure}</Text>}
           {etat === "envoi" ? (
             <Text accessibilityLiveRegion="polite" className="mt-0.5 font-texte text-[11px] text-gris">
-              Envoi…
+              {T.envoi}
             </Text>
           ) : null}
         </View>
@@ -74,7 +78,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
         ) : echec ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Pas parti. Touche pour réessayer."
+            accessibilityLabel={T.pasParti}
             onPress={() => {
               vibrerLegerement();
               onRenvoyer?.();
@@ -83,14 +87,14 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
             className="mt-0.5 min-h-8 flex-row items-center gap-1 active:opacity-70"
           >
             <Ionicons name="refresh" size={14} color={couleurs["rouge-texte"]} />
-            <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation("Pas parti. Touche pour réessayer.")}</Text>
+            <Text className="font-texte-semi text-[12px] text-rouge-texte">{lierPonctuation(T.pasParti)}</Text>
           </Pressable>
         ) : null}
       </View>
     );
   }
 
-  const prenom = auteur?.prenom ?? "Quelqu'un";
+  const prenom = auteur?.prenom ?? T.quelquUn;
   return (
     <View className={`max-w-[92%] flex-row items-start gap-1.5 self-start ${debutSerie ? "mt-3" : "mt-1"}`}>
       <View style={{ width: TAILLE_AVATAR }} className={debutSerie ? "pt-5" : ""}>
@@ -98,7 +102,7 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
       </View>
       <Pressable
         accessible
-        accessibilityLabel={`${prenom}, ${heure}${mentionne ? `, ${TEXTES_MESSAGES.mentionne}` : ""} : ${texte}`}
+        accessibilityLabel={T.messageLu(`${prenom}, ${heure}${mentionne ? `, ${TM.mentionne}` : ""}`, texte)}
         onLongPress={
           onOptions
             ? () => {
@@ -117,14 +121,14 @@ export function BulleMessage({ texte, auteur, deMoi, heure, debutSerie, onOption
         ) : null}
         <View className={`rounded-2xl rounded-tl-md border-2 px-3.5 py-2.5 ${cache ? "border-dashed border-gris/50 bg-carte/60" : "border-encre bg-carte"}`}>{texteBulle}</View>
         <Text className={`ml-1 mt-0.5 font-texte text-[11px] ${mentionne ? "font-texte-semi text-encre" : "text-gris"}`}>
-          {mentionne ? `${heure} · ${TEXTES_MESSAGES.mentionne}` : heure}
+          {mentionne ? `${heure} · ${TM.mentionne}` : heure}
         </Text>
       </Pressable>
       {onOptions ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Options du message de ${prenom}`}
-          accessibilityHint="Signaler ce message ou bloquer cette personne"
+          accessibilityLabel={T.optionsLu(prenom)}
+          accessibilityHint={T.indiceOptions}
           hitSlop={{ left: 4, right: 4 }}
           onPress={() => {
             vibrerLegerement();

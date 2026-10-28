@@ -1,0 +1,50 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_MES_VISITES_ANGLAIS } from "~/contenus/anglais/textes-mes-visites";
+
+export const TEXTES_MES_VISITES = {
+  vide: "Aucune visite validée pour l'instant. La prochaine fois que tu manges quelque part, demande l'addition dans l'app : c'est là que la magie opère.",
+  rateeTitre: "Tes visites sont restées en cuisine",
+  rateeTexte: "La connexion fait des siennes, rien de grave : tout arrive dès que le réseau revient. Aucune visite ne se perd en route, promis.",
+  chargement: "On rassemble tes visites…",
+  relireIndice: "Relit tes visites",
+  allerScan: "Aller à l'onglet Scan",
+  allerScanIndice: "Ouvre l'onglet Scan",
+  enCours: "En cours",
+  moisLu: (titre: string, nombre: number) => `${titre}, ${nombre} visite${nombre > 1 ? "s" : ""}`,
+  retour: "Retour",
+  titre: "Mes visites",
+  sousTitre: "Ton carnet de bonnes adresses, mois par mois. Les jours et les heures ne sont visibles que par toi.",
+  sansDate: "Sans date",
+  petitsMots: {
+    debut: "Le début d'un beau carnet de bonnes adresses.",
+    pli: "Tu prends le pli, et les cuisines du coin aussi.",
+    reconnu: "Les indépendants du coin commencent à te reconnaître.",
+    quartier: "Tu fais vivre le quartier, une addition après l'autre. Merci !",
+  },
+  chiffres: {
+    visites: { singulier: "visite", pluriel: "visites" },
+    lieux: { singulier: "lieu", pluriel: "lieux" },
+    villes: { singulier: "ville", pluriel: "villes" },
+  },
+  phrasePoints: (points: number) => ` ${points} point${points > 1 ? "s" : ""} gagné${points > 1 ? "s" : ""} en passant à table.`,
+  resumeLu: (visites: string, validees: number, lieux: string, villes: string) => `${visites} validée${validees > 1 ? "s" : ""}, dans ${lieux} et ${villes}.`,
+  pointsGagnes: (points: number) => `+${points} points · `,
+  modesTentes: { addition: "Addition demandée", comptoir: "QR du comptoir", reservation: "Réservation" },
+  momentCourt: (jour: string, date: number, mois: string, annee: string, heure: string) => `${jour} ${date === 1 ? "1er" : date} ${mois}${annee} · ${heure}`,
+  momentLu: (jour: string, date: number, mois: string, annee: string, heure: string) => `${jour} ${date === 1 ? "1er" : date} ${mois}${annee} à ${heure}`,
+  contestee: { texte: "🔎 Contestée · on regarde", lu: "Contestée : on regarde ça de près" },
+  enAttente: { texte: "🧾 En attente au comptoir", lu: "En attente au comptoir" },
+  pointsTexte: (points: number, sos: boolean) => `+${points}${sos ? " · SOS" : ""}`,
+  pointsLu: (points: number, sos: boolean) => `plus ${points} points${sos ? ", pendant leur SOS" : ""}`,
+  tampon: { texte: "🎟️ Tampon", lu: "un tampon sur ta carte" },
+  avisOuvert: { texte: "✍️ Donner mon avis", lu: "Ton avis t'attend" },
+  avisDonne: { texte: "💬 Avis donné", lu: "Avis donné, merci" },
+  avisBientot: { texte: "🕐 Avis bientôt", lu: "Ton avis s'ouvre bientôt" },
+  refusee: { texte: "Pas validée · C'est une erreur ?", lu: "Pas validée. C'est une erreur ?" },
+  retiree: { texte: "Annulée par le lieu · C'est une erreur ?", lu: "Validation annulée par le lieu. C'est une erreur ?" },
+  annulee: { texte: "Demande annulée", lu: "Demande annulée" },
+  expiree: { texte: "😴 Demande endormie", lu: "Demande endormie, sans réponse à temps" },
+  ouvrirIndice: "Ouvre ta visite",
+};
+
+export const TEXTES_MES_VISITES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_MES_VISITES>> = { fr: TEXTES_MES_VISITES, en: TEXTES_MES_VISITES_ANGLAIS };

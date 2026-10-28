@@ -1,15 +1,22 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Pressable, Text, View } from "react-native";
 
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import { ecrireDateLangue } from "@sos-miam/commun/fonctions/langue/ecrire-date-langue";
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
+import { nommerJourLangue } from "@sos-miam/commun/fonctions/langue/nommer-jour-langue";
 import { choisirLieuGagnant } from "@sos-miam/commun/fonctions/sorties/choisir-lieu-gagnant";
+import type { Langue } from "@sos-miam/commun/regles/langues";
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote, Sortie } from "@sos-miam/commun/types/potes";
 import { RondPote } from "~/composants/potes/RondPote";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_CARTES_SORTIES_PAR_LANGUE } from "~/contenus/textes-cartes-sorties";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   sortie: Sortie;
@@ -28,26 +35,25 @@ type Props = {
 
 const TAILLE_ROND = 32;
 const MAX_RONDS = 5;
-const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
-const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
 const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
 /** « aujourd'hui à 20h30 », « demain à 18h », « vendredi 10 octobre à 20h30 » */
-const formaterMoment = (iso: string, maintenant: Date) => {
+const formaterMoment = (iso: string, maintenant: Date, langue: Langue) => {
+  const T = choisirTextes(TEXTES_CARTES_SORTIES_PAR_LANGUE, langue).carte;
   const date = new Date(iso);
-  const heure = formaterHeure(`${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`);
+  const heure = formaterHeureLangue(date.getHours(), date.getMinutes(), langue);
   // Arrondi : un changement d'heure (été, hiver) donne des journées de 23 ou 25 heures
   const ecart = Math.round((debutDuJour(date) - debutDuJour(maintenant)) / 86_400_000);
   const jour =
     ecart === 0
-      ? "aujourd'hui"
+      ? T.aujourdhui
       : ecart === 1
-        ? "demain"
+        ? T.demain
         : ecart === -1
-          ? "hier"
-          : `${JOURS[date.getDay()]} ${date.getDate() === 1 ? "1er" : date.getDate()} ${MOIS[date.getMonth()]}`;
-  return `${jour} à ${heure}`;
+          ? T.hier
+          : T.jourDate(nommerJourLangue(date.getDay(), langue), ecrireDateLangue({ annee: date.getFullYear(), mois: date.getMonth() + 1, jour: date.getDate() }, langue, { sansAnnee: true }));
+  return T.moment(jour, heure);
 };
 
 const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1);
@@ -55,6 +61,8 @@ const majuscule = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice
 /** Une sortie entre potes : emoji, titre, jour et heure, qui vient, et où en est le vote (ou le lieu retenu). Lue d'un seul bloc, avec son « ⋯ » à côté s'il y en a un. */
 export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMenu, refPrincipal }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CARTES_SORTIES_PAR_LANGUE).carte;
   const { trouverPote, bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const bloquesIds = new Set(bloques.map((b) => b.id));
@@ -67,7 +75,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const enPlus = participants.length - visibles.length;
   // Une personne bloquée n'apparaît plus, même comme organisatrice
   const organisateur =
-    sortie.organisateur === monId ? "toi" : bloquesIds.has(sortie.organisateur) ? null : (trouverPote(sortie.organisateur)?.prenom ?? null);
+    sortie.organisateur === monId ? T.toi : bloquesIds.has(sortie.organisateur) ? null : (trouverPote(sortie.organisateur)?.prenom ?? null);
 
   // Comme l'écran de la sortie : fin du vote passée, le lieu le plus voté l'emporte (les propositions sont déjà filtrées)
   const voteFini = sortie.lieuChoisi !== null || sortie.voteTermine === true || new Date(sortie.finVote).getTime() <= maintenant.getTime();
@@ -79,13 +87,13 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const aVote = sortie.propositions.some((p) => p.votes.includes(monId));
   // « Chez Nonna Lia » → « On va chez Nonna Lia »
   const etat = lieu
-    ? { emoji: "📍", texte: passee ? `Lieu retenu\u00a0: ${lieu.nom}` : `On va chez ${lieu.nom.replace(/^chez\s+/i, "")}`, fond: "bg-jaune", couleurTexte: "text-nuit" }
+    ? { emoji: "📍", texte: passee ? T.lieuRetenu(lieu.nom) : T.onVaChez(lieu.nom), fond: "bg-jaune", couleurTexte: "text-nuit" }
     : voteEnCours
-      ? { emoji: "🗳️", texte: `Vote en cours, fin ${formaterMoment(sortie.finVote, maintenant)}`, fond: "bg-jaune-clair", couleurTexte: "text-encre" }
-      : { emoji: "🤷", texte: "Vote terminé, aucun lieu retenu", fond: "bg-ligne", couleurTexte: "text-encre" };
+      ? { emoji: "🗳️", texte: T.voteEnCours(formaterMoment(sortie.finVote, maintenant, langue)), fond: "bg-jaune-clair", couleurTexte: "text-encre" }
+      : { emoji: "🤷", texte: T.voteTermine, fond: "bg-ligne", couleurTexte: "text-encre" };
   const aToiDeVoter = voteEnCours && !aVote;
-  const moment = formaterMoment(sortie.quand, maintenant);
-  const quand = passee ? `C'était ${moment}` : majuscule(moment);
+  const moment = formaterMoment(sortie.quand, maintenant, langue);
+  const quand = passee ? T.cetait(moment) : majuscule(moment);
   const messages = sortie.messages.length;
   // Compte connecté : les messages pas encore lus de sa discussion
   const nonLus = sortie.nonLus ?? 0;
@@ -93,12 +101,12 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
   const lu = [
     sortie.titre,
     quand,
-    `${participants.length} participant${participants.length > 1 ? "s" : ""} : ${participants.map((p) => (p.id === monId ? "toi" : p.prenom)).join(", ")}`,
-    organisateur ? `Organisée par ${organisateur}` : null,
+    T.participants(participants.length, participants.map((p) => (p.id === monId ? T.toi : p.prenom)).join(", ")),
+    organisateur ? T.organisee(organisateur) : null,
     etat.texte,
-    aToiDeVoter ? "À toi de voter" : null,
-    messages > 0 ? `${messages} message${messages > 1 ? "s" : ""}` : null,
-    nonLus > 0 ? `${nonLus} message${nonLus > 1 ? "s" : ""} pas encore lu${nonLus > 1 ? "s" : ""}` : null,
+    aToiDeVoter ? T.aToiDeVoterLu : null,
+    messages > 0 ? T.messages(messages) : null,
+    nonLus > 0 ? T.nonLus(nonLus) : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -108,7 +116,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
       ref={refPrincipal}
       accessibilityRole="button"
       accessibilityLabel={lu}
-      accessibilityHint="Ouvre la sortie : vote, lieux proposés et discussion"
+      accessibilityHint={T.indiceOuvrir}
       onPress={() => {
         vibrerLegerement();
         onOuvrir(sortie.id);
@@ -153,7 +161,7 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
           ) : null}
         </View>
         <Text numberOfLines={1} className="flex-1 font-texte text-[13px] text-gris">
-          {organisateur ? `Organisée par ${organisateur}` : ""}
+          {organisateur ? T.organisee(organisateur) : ""}
           {messages > 0 ? ` · 💬 ${messages}` : ""}
         </Text>
       </View>
@@ -165,13 +173,13 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
         </View>
         {aToiDeVoter ? (
           <View className="rounded-full bg-rose-alerte px-3 py-1.5">
-            <Text className="font-texte-gras text-[13px] text-rouge-texte">{"À toi de voter\u00a0!"}</Text>
+            <Text className="font-texte-gras text-[13px] text-rouge-texte">{T.aToiDeVoter}</Text>
           </View>
         ) : null}
         {nonLus > 0 ? (
           <View className="flex-row items-center gap-1 rounded-full border border-encre bg-nuit px-3 py-1.5">
             <Text className="text-sm">💬</Text>
-            <Text className="font-texte-gras text-[13px] text-jaune">{`${nonLus > 99 ? "99+" : nonLus} nouveau${nonLus > 1 ? "x" : ""}`}</Text>
+            <Text className="font-texte-gras text-[13px] text-jaune">{T.nouveaux(nonLus)}</Text>
           </View>
         ) : null}
       </View>
@@ -185,8 +193,8 @@ export function CarteSortie({ sortie, lieux, passee, maintenant, onOuvrir, onMen
       {carte}
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Plus d'options sur la sortie ${sortie.titre}`}
-        accessibilityHint={passee ? "La retirer de tes sorties" : "La quitter"}
+        accessibilityLabel={T.optionsLu(sortie.titre)}
+        accessibilityHint={passee ? T.indiceRetirer : T.indiceQuitter}
         hitSlop={4}
         onPress={() => {
           vibrerLegerement();

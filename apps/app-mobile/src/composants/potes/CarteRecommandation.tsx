@@ -5,9 +5,11 @@ import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote, Recommandation } from "@sos-miam/commun/types/potes";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_ENVOYER_A_POTE_PAR_LANGUE } from "~/contenus/textes-envoyer-a-pote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   recommandation: Recommandation;
@@ -26,11 +28,12 @@ type Props = {
 /** Un lieu envoyé par un pote : qui, le lieu en vignette, son petit mot, et « Nouveau » tant que tu ne l'as pas ouvert. */
 export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir, onMenu, refPrincipal }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ENVOYER_A_POTE_PAR_LANGUE).recue;
   const nouveau = !recommandation.vue;
   const lu = [
-    nouveau ? "Nouveau" : null,
-    `${de.prenom} t'envoie ${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}`,
-    recommandation.mot ? `Son mot : ${recommandation.mot}` : null,
+    nouveau ? T.nouveau : null,
+    T.envoieLu(de.prenom, lieu.nom, `${lieu.info}, ${ecrireQuartierVille(lieu)}`),
+    recommandation.mot ? T.sonMot(recommandation.mot) : null,
   ]
     .filter(Boolean)
     .join(". ");
@@ -42,7 +45,7 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
         ref={refPrincipal}
         accessibilityRole="button"
         accessibilityLabel={lu}
-        accessibilityHint="Ouvre la fiche du lieu"
+        accessibilityHint={T.indiceOuvrir}
         onPress={() => {
           vibrerLegerement();
           onOuvrir();
@@ -52,11 +55,11 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
         <View className="flex-row items-center gap-2 pr-10">
           <RondPote pote={de} taille={28} />
           <Text numberOfLines={1} className="shrink font-texte-semi text-[13px] text-encre">
-            {de.prenom} t'envoie
+            {T.envoie(de.prenom)}
           </Text>
           {nouveau ? (
             <View className="rounded-full border border-encre bg-nuit px-2 py-0.5">
-              <Text className="font-texte-gras text-[11px] text-jaune">Nouveau</Text>
+              <Text className="font-texte-gras text-[11px] text-jaune">{T.nouveau}</Text>
             </View>
           ) : null}
         </View>
@@ -76,15 +79,15 @@ export function CarteRecommandation({ recommandation, de, lieu, image, onOuvrir,
 
         {recommandation.mot ? (
           <View className="self-start rounded-2xl rounded-tl-md border border-ligne bg-carte px-3 py-2">
-            <Text className="font-texte text-sm leading-5 text-encre">{`«\u00a0${recommandation.mot}\u00a0»`}</Text>
+            <Text className="font-texte text-sm leading-5 text-encre">{T.citerMot(recommandation.mot)}</Text>
           </View>
         ) : null}
       </Pressable>
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Plus d'options sur ce lieu envoyé par ${de.prenom}`}
-        accessibilityHint="Le retirer d'ici, voir son profil, signaler ce lieu envoyé, ou bloquer cette personne"
+        accessibilityLabel={T.optionsLu(de.prenom)}
+        accessibilityHint={T.indiceOptions}
         hitSlop={4}
         onPress={() => {
           vibrerLegerement();

@@ -2,6 +2,7 @@ import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
 import { Text, View } from "react-native";
 
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
 import { PHRASE_MIAM_SAFE } from "@sos-miam/commun/regles/miam-safe";
 import { Bouton } from "~/composants/interface/Bouton";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
@@ -10,10 +11,13 @@ import { ChoixAideMiamSafe, type CharteLueMiamSafe } from "~/composants/miam-saf
 import { FeuilleSecoursMiamSafe } from "~/composants/miam-safe/FeuilleSecoursMiamSafe";
 import { PrevenirPoteMiamSafe } from "~/composants/miam-safe/PrevenirPoteMiamSafe";
 import { RaconterMiamSafe } from "~/composants/miam-safe/RaconterMiamSafe";
+import { TEXTES_MIAM_SAFE_AIDE_PAR_LANGUE } from "~/contenus/textes-miam-safe-aide";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserEtatMiamSafeLieu, type EtatLectureMiamSafeLieu } from "~/hooks/utiliser-etat-miam-safe-lieu";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserSuiviAlerteMiamSafe } from "~/hooks/utiliser-suivi-alerte-miam-safe";
-import { utiliserVueFeuilleMiamSafe, type VueFeuilleMiamSafe } from "~/hooks/utiliser-vue-feuille-miam-safe";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
+import { utiliserVueFeuilleMiamSafe } from "~/hooks/utiliser-vue-feuille-miam-safe";
 
 type Props = {
   visible: boolean;
@@ -26,26 +30,7 @@ type Props = {
   onCreerCompte: () => void;
 };
 
-const TITRES: Record<VueFeuilleMiamSafe, string> = {
-  choix: "Miam Safe",
-  pote: "Prévenir un pote",
-  comptoir: "Demander au comptoir",
-  alerte: "Alerter le comptoir",
-  raconter: "Raconte-nous",
-};
-
 const DELAI_FERMETURE_FEUILLE_MS = 450;
-
-const TEXTES_ECRAN_EN_CLAIR: Record<CharteLueMiamSafe, string> = {
-  signee: "Ce lieu a signé la charte Miam Safe. L'écran dit en clair à son équipe que tu as besoin d'aide, et quoi faire.",
-  "pas-signee": lierPonctuation("Ce lieu n'a pas signé la charte Miam Safe : son équipe ne connaît peut-être pas Miam Safe. L'écran lui dit en clair que tu as besoin d'aide, et quoi faire."),
-  "en-cours": "On vérifie si ce lieu a signé la charte Miam Safe. L'écran dit en clair à l'équipe que tu as besoin d'aide, et quoi faire.",
-  inconnue: "On n'a pas pu vérifier si ce lieu a signé la charte Miam Safe. L'écran dit en clair à l'équipe que tu as besoin d'aide, et quoi faire.",
-};
-
-const SOUCI_EQUIPE = lierPonctuation("Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.");
-
-const PHRASE_ENTRE_GUILLEMETS = lierPonctuation(`« ${PHRASE_MIAM_SAFE} »`);
 
 function lireCharte({ lecture, engage }: EtatLectureMiamSafeLieu): CharteLueMiamSafe {
   if (lecture === "lue") return engage ? "signee" : "pas-signee";
@@ -54,6 +39,8 @@ function lireCharte({ lecture, engage }: EtatLectureMiamSafeLieu): CharteLueMiam
 
 export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer, onCreerCompte }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_AIDE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const { cle, alerte, aRelire } = utiliserSuiviAlerteMiamSafe(lieuId, visible && avecCompte);
   const etatLieu = utiliserEtatMiamSafeLieu(lieuId);
   const charte = lireCharte(etatLieu);
@@ -69,12 +56,15 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
     setTimeout(() => router.push(chemin), DELAI_FERMETURE_FEUILLE_MS);
   };
 
+  const texteEcranEnClair = lierPonctuation(T.ecranEnClair[charte]);
+  const souciEquipe = lierPonctuation(T.souciEquipe);
+
   if (!avecCompte) {
     return (
       <FeuilleSecoursMiamSafe
         visible={visible}
         nomLieu={nomLieu}
-        texteComptoir={TEXTES_ECRAN_EN_CLAIR[charte]}
+        texteComptoir={texteEcranEnClair}
         onFermer={onFermer}
         onMontrerEcran={() => ouvrirApresFermeture("/miam-safe/comptoir" as Href)}
         onCreerCompte={onCreerCompte}
@@ -85,10 +75,10 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
   return (
     <FeuilleBas
       visible={visible}
-      titre={TITRES[vue]}
-      sousTitre={vue === "choix" ? `${nomLieu} · on est là, prends ton temps.` : undefined}
+      titre={T.titres[vue]}
+      sousTitre={vue === "choix" ? T.sousTitreChoix(nomLieu) : undefined}
       onFermer={onFermer}
-      pied={vue === "choix" ? <Bouton libelle="Fermer" variante="blanc" onPress={onFermer} /> : <Bouton libelle="Retour" variante="blanc" onPress={() => aller("choix")} />}
+      pied={vue === "choix" ? <Bouton libelle={T.fermer} variante="blanc" onPress={onFermer} /> : <Bouton libelle={T.retour} variante="blanc" onPress={() => aller("choix")} />}
     >
       {vue === "choix" ? <ChoixAideMiamSafe charte={charte} alerte={alerte} aRelire={aRelire} onChoisir={aller} /> : null}
       {vue === "pote" ? (
@@ -115,20 +105,24 @@ export function FeuilleMiamSafe({ visible, lieuId, nomLieu, avecCompte, onFermer
       {vue === "raconter" ? <RaconterMiamSafe lieuId={lieuId} nomLieu={nomLieu} /> : null}
       {vue === "comptoir" && charte === "signee" ? (
         <View className="gap-4">
-          <Text className="font-texte text-base leading-6 text-gris">{"Dis cette phrase à quelqu'un de l'équipe. Elle ne veut rien dire pour les autres."}</Text>
-          <Text className="font-titre-gras text-3xl text-encre">{PHRASE_ENTRE_GUILLEMETS}</Text>
-          <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Pas envie de parler ? Montre l'écran : il est sombre et discret, la consigne n'est écrite qu'en petit.")}
+          <Text className="font-texte text-base leading-6 text-gris">{T.direPhrase}</Text>
+          <Text accessibilityLanguage="fr-FR" className="font-titre-gras text-3xl text-encre">
+            {lierPonctuation(citer(PHRASE_MIAM_SAFE, langue))}
           </Text>
-          <Bouton libelle="Montrer l'écran au personnel" variante="encre" onPress={() => ouvrirApresFermeture("/miam-safe/comptoir?phrase=1" as Href)} />
-          <Text className="font-texte text-sm leading-5 text-gris">{SOUCI_EQUIPE}</Text>
+          {T.prononciationPhrase ? <Text className="font-texte-semi text-base leading-6 text-encre">{T.prononciationPhrase}</Text> : null}
+          {T.sensPhrase ? <Text className="font-texte text-base leading-6 text-gris">{T.sensPhrase}</Text> : null}
+          <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(T.pasEnvieDeParler)}</Text>
+          {T.traductionConsigneEquipe ? <Text className="font-texte text-sm leading-5 text-gris">{T.traductionConsigneEquipe}</Text> : null}
+          <Bouton libelle={T.montrerEcranPersonnel} variante="encre" onPress={() => ouvrirApresFermeture("/miam-safe/comptoir?phrase=1" as Href)} />
+          <Text className="font-texte text-sm leading-5 text-gris">{souciEquipe}</Text>
         </View>
       ) : null}
       {vue === "comptoir" && charte !== "signee" ? (
         <View className="gap-4">
-          <Text accessibilityLiveRegion="polite" className="font-texte text-base leading-6 text-gris">{TEXTES_ECRAN_EN_CLAIR[charte]}</Text>
-          <Bouton libelle="Montrer l'écran à l'équipe" variante="encre" onPress={() => ouvrirApresFermeture("/miam-safe/comptoir" as Href)} />
-          <Text className="font-texte text-sm leading-5 text-gris">{SOUCI_EQUIPE}</Text>
+          <Text accessibilityLiveRegion="polite" className="font-texte text-base leading-6 text-gris">{texteEcranEnClair}</Text>
+          {T.traductionConsigne ? <Text className="font-texte text-sm leading-5 text-gris">{T.traductionConsigne}</Text> : null}
+          <Bouton libelle={T.montrerEcranEquipe} variante="encre" onPress={() => ouvrirApresFermeture("/miam-safe/comptoir" as Href)} />
+          <Text className="font-texte text-sm leading-5 text-gris">{souciEquipe}</Text>
         </View>
       ) : null}
     </FeuilleBas>

@@ -32,7 +32,7 @@ export const TEXTES_ONGLET_LISTES_ANGLAIS: Traduction<typeof TEXTES_ONGLET_LISTE
   profil: {
     titreLu: (n: number) => `Shared lists, ${n}`,
     titre: (n: number) => `🗂️ Shared lists (${n})`,
-    videMoi: `No lists yet – create one in ${TEXTES_ESPACE_COMMUNAUTE_ANGLAIS.bande} › ${TEXTES_ONGLETS_POTES_ANGLAIS.onglets.noms.listes}.`,
+    videMoi: `No lists yet – create one in ${TEXTES_ESPACE_COMMUNAUTE_ANGLAIS.titre} › ${TEXTES_ESPACE_COMMUNAUTE_ANGLAIS.bande} › ${TEXTES_ONGLETS_POTES_ANGLAIS.onglets.noms.listes}.`,
     videAutre: (prenom: string) => `${prenom} hasn't shared any lists yet.`,
     lieux: (n: number) => `${n} place${n === 1 ? "" : "s"}`,
     ouvrirIndice: "Opens the list",

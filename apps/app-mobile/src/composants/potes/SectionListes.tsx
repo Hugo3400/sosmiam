@@ -10,6 +10,7 @@ import { CarteInvitationListe } from "~/composants/potes/CarteInvitationListe";
 import { CarteListe } from "~/composants/potes/CarteListe";
 import { FeuilleNouvelleListe } from "~/composants/potes/FeuilleNouvelleListe";
 import { MenuContenuPote, type ContenuPote } from "~/composants/potes/MenuContenuPote";
+import { TEXTES_ONGLET_LISTES_PAR_LANGUE } from "~/contenus/textes-onglet-listes";
 import { estListeSuivie } from "~/fonctions/communaute/est-liste-suivie";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -19,6 +20,7 @@ import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPagination } from "~/hooks/utiliser-pagination";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
 import { utiliserSuivisPersonnes } from "~/hooks/utiliser-suivis-personnes";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserVoitEnEntier } from "~/hooks/utiliser-voit-en-entier";
 
 type Props = {
@@ -30,7 +32,6 @@ type Props = {
 
 // 5 listes par section, puis 5 de plus à chaque « Voir plus »
 const PAR_PAGE = 5;
-const NOM = { un: "liste", des: "listes" };
 
 /**
  * Onglet « Listes » : les invitations à remplir la liste d'un pote, tes listes, celles que tu remplis avec un pote, celles que tu suis, celles de ta bande et des personnes que tu suis à découvrir (avec leur « ⋯ » :
@@ -38,6 +39,7 @@ const NOM = { un: "liste", des: "listes" };
  */
 export function SectionListes({ lieux, onRetire }: Props) {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_ONGLET_LISTES_PAR_LANGUE).section;
   const { listes, potes, bloques, trouverPote, invitationsListes, basculerSuiviListe, estMasque, masquer, demasquer } = utiliserCommunaute();
   const monId = utiliserMonId();
   const { estMasquee } = utiliserActivite();
@@ -77,7 +79,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
   const pagesSuivies = utiliserPagination(suivies, PAR_PAGE, PAR_PAGE, parId);
   const pagesADecouvrir = utiliserPagination(aDecouvrir, PAR_PAGE, PAR_PAGE, parId);
   const boutonVoirPlus = (pages: ReturnType<typeof utiliserPagination<ListePartagee>>) => (
-    <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={NOM} onVoirPlus={pages.voirPlus} />
+    <BoutonVoirPlus restants={pages.restants} prochains={pages.prochains} nom={T.nom} onVoirPlus={pages.voirPlus} />
   );
 
   // Le choix propre à la section : ne plus suivre une liste suivie, ou écarter une liste à découvrir (rien pour celles que tu
@@ -90,23 +92,23 @@ export function SectionListes({ lieux, onRetire }: Props) {
           ? {
               cle: "ne-plus-suivre",
               emoji: "👋",
-              titre: "Ne plus suivre cette liste",
-              detail: `Elle quitte « Celles que tu suis ». ${menuPour.pote.prenom} n'en saura rien.`,
+              titre: T.nePlusSuivre,
+              detail: T.nePlusSuivreDetail(menuPour.pote.prenom),
               agir: () => {
                 const id = menuPour.id;
                 basculerSuiviListe(id);
-                onRetire("Tu ne suis plus cette liste", () => basculerSuiviListe(id));
+                onRetire(T.nePlusSuivreFait, () => basculerSuiviListe(id));
               },
             }
           : {
               cle: "pas-interesse",
               emoji: "🙈",
-              titre: "Pas intéressé",
-              detail: `Elle disparaît de « À découvrir », pour toi seulement. Elle reste sur le profil de ${menuPour.pote.prenom}.`,
+              titre: T.pasInteresse,
+              detail: T.pasInteresseDetail(menuPour.pote.prenom),
               agir: () => {
                 const id = menuPour.id;
                 masquer("liste", id);
-                onRetire("Liste retirée", () => demasquer("liste", id));
+                onRetire(T.retiree, () => demasquer("liste", id));
               },
             },
       ]
@@ -120,7 +122,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
       <CarteListe
         key={liste.id}
         liste={liste}
-        auteur={estAMoi(liste) ? "toi" : (auteur?.prenom ?? "un pote")}
+        auteur={estAMoi(liste) ? "toi" : (auteur?.prenom ?? T.unPote)}
         lieux={liste.lieux.flatMap((id) => {
           const lieu = lieux.get(id);
           return lieu ? [{ lieu, image: trouverVignetteLieu(id, publications) }] : [];
@@ -137,7 +139,7 @@ export function SectionListes({ lieux, onRetire }: Props) {
       {invitationsListes.length > 0 ? (
         <View className="gap-3">
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            {"On t'invite à remplir"}
+            {T.invitations}
           </Text>
           {invitationsListes.map((l) => (
             <CarteInvitationListe key={l.id} liste={l} />
@@ -148,9 +150,9 @@ export function SectionListes({ lieux, onRetire }: Props) {
       <View className="gap-3">
         <View>
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            Tes listes
+            {T.tesListes}
           </Text>
-          <Text className="font-texte text-sm text-gris">Tes adresses chouchous, rangées par envie.</Text>
+          <Text className="font-texte text-sm text-gris">{T.tesListesSousTitre}</Text>
         </View>
         {miennes.length === 0 ? (
           <View className="items-center gap-2 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
@@ -158,23 +160,23 @@ export function SectionListes({ lieux, onRetire }: Props) {
               📋
             </Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation("Pas encore de liste. « Terrasses au soleil », « Fin de mois serrée »… à toi de jouer !")}
+              {lierPonctuation(T.videMiennes)}
             </Text>
           </View>
         ) : (
           pagesMiennes.visibles.map(carte(pagesMiennes))
         )}
         {boutonVoirPlus(pagesMiennes)}
-        <Bouton libelle="Nouvelle liste" indice="Choisis un emoji et un nom, puis ajoute tes lieux" onPress={() => setCreation(true)} className="mt-2" />
+        <Bouton libelle={T.nouvelle} indice={T.nouvelleIndice} onPress={() => setCreation(true)} className="mt-2" />
       </View>
 
       {remplies.length > 0 ? (
         <View className="gap-3">
           <View>
             <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-              Celles que tu remplis
+              {T.remplies}
             </Text>
-            <Text className="font-texte text-sm text-gris">{"À plusieurs, c'est encore meilleur."}</Text>
+            <Text className="font-texte text-sm text-gris">{T.rempliesSousTitre}</Text>
           </View>
           {pagesRemplies.visibles.map(carte(pagesRemplies))}
           {boutonVoirPlus(pagesRemplies)}
@@ -183,11 +185,11 @@ export function SectionListes({ lieux, onRetire }: Props) {
 
       <View className="gap-3">
         <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-          Celles que tu suis
+          {T.suivies}
         </Text>
         {suivies.length === 0 ? (
           <Text className="font-texte text-base leading-6 text-gris">
-            {lierPonctuation("Tu ne suis aucune liste pour l'instant. Ouvre celle d'un pote et suis-la : elle t'attendra ici.")}
+            {lierPonctuation(T.suiviesVide)}
           </Text>
         ) : (
           pagesSuivies.visibles.map(carte(pagesSuivies))
@@ -199,9 +201,9 @@ export function SectionListes({ lieux, onRetire }: Props) {
         <View className="gap-3">
           <View>
             <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-              À découvrir
+              {T.aDecouvrir}
             </Text>
-            <Text className="font-texte text-sm text-gris">Les bonnes adresses de ta bande et des gens que tu suis, à piocher sans complexe.</Text>
+            <Text className="font-texte text-sm text-gris">{T.aDecouvrirSousTitre}</Text>
           </View>
           {pagesADecouvrir.visibles.map(carte(pagesADecouvrir))}
           {boutonVoirPlus(pagesADecouvrir)}

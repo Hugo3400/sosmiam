@@ -9,12 +9,14 @@ import { BlocMessageMoment, type ChampMessage } from "~/composants/pro/BlocMessa
 import { BlocSosDuSoir, type ChampSos } from "~/composants/pro/BlocSosDuSoir";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_CE_SOIR_PAR_LANGUE } from "~/contenus/textes-ecran-pro-mon-lieu";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Relu toutes les minutes tant que l'écran est ouvert : un SOS ou un message finit tout seul
 const RELECTURE_MS = 60_000;
@@ -28,6 +30,8 @@ type BlocRefuse = "sos" | "arreter" | "message" | "effacer";
  */
 export default function EcranCeSoir() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_CE_SOIR_PAR_LANGUE);
+  const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { lieuPro } = utiliserModes();
   const { lieuPro: service } = utiliserServices();
   const [moment, setMoment] = useState<MomentLieu | null>(null);
@@ -83,34 +87,34 @@ export default function EcranCeSoir() {
   const refusDe = (bloc: BlocRefuse) => (refusLimite?.bloc === bloc ? refusLimite.texte : null);
 
   return (
-    <EcranReglage titre="Ce soir" sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · le SOS du soir et ton message du moment`}>
+    <EcranReglage titre={T.titre} sousTitre={`${lieuPro.emoji} ${lieuPro.nom} · ${T.sousTitre}`}>
       {moment === null ? (
         <View className="items-center py-10">
           <ActivityIndicator color={couleurs.encre} />
         </View>
       ) : (
         <>
-          <SectionReglages titre="SOS du soir">
+          <SectionReglages titre={T.sos}>
             <BlocSosDuSoir
               moment={moment}
               enCours={enCours}
               refusLimite={refusDe("sos")}
               refusArreter={refusDe("arreter")}
-              onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], "🛟 SOS lancé : les gourmands du coin arrivent !", { bloc: "sos", texte: REFUS_LIMITATION.sosDuSoir })}
-              onArreter={() => void agir(() => service.arreterSos(id), [], "SOS arrêté. À demain pour le prochain !", { bloc: "arreter", texte: REFUS_LIMITATION.arreterSos })}
+              onLancer={(sos) => agir<ChampSos>(() => service.lancerSos(id, sos), ["places", "offre", "jusqua"], T.sosLance, { bloc: "sos", texte: TL.sosDuSoir })}
+              onArreter={() => void agir(() => service.arreterSos(id), [], T.sosArrete, { bloc: "arreter", texte: TL.arreterSos })}
             />
           </SectionReglages>
-          <SectionReglages titre="Message du moment">
+          <SectionReglages titre={T.message}>
             <BlocMessageMoment
               moment={moment}
               enCours={enCours}
               refusLimite={refusDe("message")}
               refusEffacer={refusDe("effacer")}
-              onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], "📣 Message affiché sur ta fiche", { bloc: "message", texte: REFUS_LIMITATION.messageMoment })}
-              onEffacer={() => void agir(() => service.effacerMessage(id), [], "Message effacé", { bloc: "effacer", texte: REFUS_LIMITATION.effacerMessage })}
+              onAfficher={(message) => agir<ChampMessage>(() => service.reglerMessage(id, message), ["texte", "jusqua"], T.messageAffiche, { bloc: "message", texte: TL.messageMoment })}
+              onEffacer={() => void agir(() => service.effacerMessage(id), [], T.messageEfface, { bloc: "effacer", texte: TL.effacerMessage })}
             />
           </SectionReglages>
-          <Text className="font-texte text-xs leading-4 text-gris">Ce qui parle d'alcool s'affiche avec le message sanitaire, et jamais en visite sans compte.</Text>
+          <Text className="font-texte text-xs leading-4 text-gris">{T.alcool}</Text>
         </>
       )}
       <Annonce annonce={annonce} haut={8} onFin={() => setAnnonce(null)} />

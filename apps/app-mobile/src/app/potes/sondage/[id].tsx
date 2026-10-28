@@ -8,7 +8,8 @@ import { MAX_LIEUX_SONDAGE, MIN_LIEUX_SONDAGE } from "@sos-miam/commun/regles/ch
 import { LigneLieuSondage } from "~/composants/chat/LigneLieuSondage";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Pastille } from "~/composants/interface/Pastille";
-import { TEXTES_SONDAGE as T } from "~/contenus/textes-sondage";
+import { TEXTES_ECRAN_DISCUSSION_PAR_LANGUE } from "~/contenus/textes-ecran-discussion";
+import { TEXTES_SONDAGE_PAR_LANGUE } from "~/contenus/textes-sondage";
 import { calculerFinsSondage, type FinSondage } from "~/fonctions/chat/calculer-fins-sondage";
 import { chercherLieuxSondage } from "~/fonctions/chat/chercher-lieux-sondage";
 import { retirerEmojiAnnonce } from "~/fonctions/chat/retirer-emoji-annonce";
@@ -17,10 +18,13 @@ import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserHorlogeMinute } from "~/hooks/utiliser-horloge-minute";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const FIN_PAR_DEFAUT: FinSondage["cle"] = "3h";
 
 export default function EcranNouveauSondage() {
+  const T = utiliserTextes(TEXTES_SONDAGE_PAR_LANGUE);
+  const T_ECRAN = utiliserTextes(TEXTES_ECRAN_DISCUSSION_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
@@ -95,7 +99,7 @@ export default function EcranNouveauSondage() {
         <View className="min-h-14 flex-row items-center px-5 pb-2 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={T_ECRAN.retour}
             hitSlop={8}
             onPress={retour}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -136,7 +140,7 @@ export default function EcranNouveauSondage() {
                 choisi={f.cle === fin.cle}
                 position={i + 1}
                 total={fins.length}
-                libelleLu={`${f.libelle}, à ${f.heure}`}
+                libelleLu={T_ECRAN.finSondageLue(f.libelle, f.heure)}
                 onPress={() => setCleFin(f.cle)}
               />
             ))}
