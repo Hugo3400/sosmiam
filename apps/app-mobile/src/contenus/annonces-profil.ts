@@ -3,6 +3,9 @@
 // Au tutoiement ; un profil retenu par la modération, on en parle simplement, sans gronder. {pseudo} et {date} sont remplis
 // par remplirModele.
 
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { ANNONCES_PROFIL_ANGLAIS, BOUTON_COMPRIS_ANGLAIS, MESSAGES_INFOS_ANGLAIS } from "~/contenus/anglais/annonces-profil";
+
 /** Ce que dit la carte, pour chaque annonce ; `bouton` : l'action principale, `vers` : l'écran qu'elle ouvre */
 export const ANNONCES_PROFIL = {
   "pseudo-neutre": {
@@ -46,3 +49,7 @@ export const MESSAGES_INFOS = {
   enAttenteDuReseau: "C'est noté ! Ça partira dès que le réseau revient.",
   enAttenteDuServeur: "C'est noté ! Petit pépin de notre côté : ça repartira tout seul dans un instant.",
 } as const;
+
+export const ANNONCES_PROFIL_PAR_LANGUE: ParLangue<Traduction<typeof ANNONCES_PROFIL>> = { fr: ANNONCES_PROFIL, en: ANNONCES_PROFIL_ANGLAIS };
+export const BOUTON_COMPRIS_PAR_LANGUE: ParLangue<Traduction<typeof BOUTON_COMPRIS>> = { fr: BOUTON_COMPRIS, en: BOUTON_COMPRIS_ANGLAIS };
+export const MESSAGES_INFOS_PAR_LANGUE: ParLangue<Traduction<typeof MESSAGES_INFOS>> = { fr: MESSAGES_INFOS, en: MESSAGES_INFOS_ANGLAIS };

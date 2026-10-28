@@ -1,3 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_AVIS_LIEU_ANGLAIS } from "~/contenus/anglais/textes-avis-lieu";
+
 export const TEXTES_AVIS_LIEU = {
   titre: "Les avis des Miamis",
   chargement: "On va chercher les avis…",
@@ -16,3 +19,5 @@ export const TEXTES_AVIS_LIEU = {
   voirPlusEnCours: "On en cherche d'autres…",
   voirPlusIndice: "Affiche les avis suivants, du plus récent au plus ancien",
 } as const;
+
+export const TEXTES_AVIS_LIEU_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_AVIS_LIEU>> = { fr: TEXTES_AVIS_LIEU, en: TEXTES_AVIS_LIEU_ANGLAIS };

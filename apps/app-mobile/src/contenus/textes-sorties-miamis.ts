@@ -1,5 +1,15 @@
 import type { Genre } from "@sos-miam/commun/types/genre";
 import type { TrancheAge } from "@sos-miam/commun/types/sorties-miamis";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  CHOIX_PUBLICS_SORTIE_ANGLAIS,
+  NOMS_TRANCHES_AGE_ANGLAIS,
+  PUBLIC_FERME_ANGLAIS,
+  QUI_VOIT_PUBLIC_ANGLAIS,
+  REGLES_SORTIE_MIAMIS_ANGLAIS,
+  TEXTES_ORGANISER_ANGLAIS,
+  TEXTES_SORTIE_MIAMIS_ANGLAIS,
+} from "~/contenus/anglais/textes-sorties-miamis";
 
 export type ChoixPublicSortie = "tous" | Genre | "age" | "nouveaux" | "ambassadeurs";
 
@@ -189,3 +199,11 @@ export const TEXTES_ORGANISER = {
     reseau: "Le réseau a fait des siennes : ta sortie n'est pas partie. Réessaie dans un instant.",
   },
 } as const;
+
+export const CHOIX_PUBLICS_SORTIE_PAR_LANGUE: ParLangue<Traduction<typeof CHOIX_PUBLICS_SORTIE>> = { fr: CHOIX_PUBLICS_SORTIE, en: CHOIX_PUBLICS_SORTIE_ANGLAIS };
+export const NOMS_TRANCHES_AGE_PAR_LANGUE: ParLangue<Traduction<typeof NOMS_TRANCHES_AGE>> = { fr: NOMS_TRANCHES_AGE, en: NOMS_TRANCHES_AGE_ANGLAIS };
+export const QUI_VOIT_PUBLIC_PAR_LANGUE: ParLangue<Traduction<typeof QUI_VOIT_PUBLIC>> = { fr: QUI_VOIT_PUBLIC, en: QUI_VOIT_PUBLIC_ANGLAIS };
+export const PUBLIC_FERME_PAR_LANGUE: ParLangue<Traduction<typeof PUBLIC_FERME>> = { fr: PUBLIC_FERME, en: PUBLIC_FERME_ANGLAIS };
+export const REGLES_SORTIE_MIAMIS_PAR_LANGUE: ParLangue<Traduction<typeof REGLES_SORTIE_MIAMIS>> = { fr: REGLES_SORTIE_MIAMIS, en: REGLES_SORTIE_MIAMIS_ANGLAIS };
+export const TEXTES_SORTIE_MIAMIS_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_SORTIE_MIAMIS>> = { fr: TEXTES_SORTIE_MIAMIS, en: TEXTES_SORTIE_MIAMIS_ANGLAIS };
+export const TEXTES_ORGANISER_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_ORGANISER>> = { fr: TEXTES_ORGANISER, en: TEXTES_ORGANISER_ANGLAIS };

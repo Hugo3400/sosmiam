@@ -1,5 +1,13 @@
 import type { EndroitAlerte, RaisonSignalementMiamSafe } from "@sos-miam/commun/regles/miam-safe";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  ECHEC_ALERTE_MIAM_SAFE_ANGLAIS,
+  ECHECS_ALERTE_MIAM_SAFE_ANGLAIS,
+  LIBELLES_ENDROIT_ALERTE_ANGLAIS,
+  LIBELLES_RAISON_MIAM_SAFE_ANGLAIS,
+  NUMEROS_URGENCE_ANGLAIS,
+} from "~/contenus/anglais/miam-safe";
 
 export type NumeroUrgence = { numero: string; libelle: string; lien: string; lu: string };
 
@@ -42,3 +50,9 @@ export const REPONSES_SENTI_BIEN_EXEMPLES: Readonly<Record<number, { oui: number
   4: { oui: 15, reponses: 16 },
   18: { oui: 29, reponses: 31 },
 };
+
+export const NUMEROS_URGENCE_PAR_LANGUE: ParLangue<Traduction<typeof NUMEROS_URGENCE>> = { fr: NUMEROS_URGENCE, en: NUMEROS_URGENCE_ANGLAIS };
+export const LIBELLES_ENDROIT_ALERTE_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_ENDROIT_ALERTE>> = { fr: LIBELLES_ENDROIT_ALERTE, en: LIBELLES_ENDROIT_ALERTE_ANGLAIS };
+export const ECHECS_ALERTE_MIAM_SAFE_PAR_LANGUE: ParLangue<Traduction<typeof ECHECS_ALERTE_MIAM_SAFE>> = { fr: ECHECS_ALERTE_MIAM_SAFE, en: ECHECS_ALERTE_MIAM_SAFE_ANGLAIS };
+export const ECHEC_ALERTE_MIAM_SAFE_PAR_LANGUE: ParLangue<Traduction<typeof ECHEC_ALERTE_MIAM_SAFE>> = { fr: ECHEC_ALERTE_MIAM_SAFE, en: ECHEC_ALERTE_MIAM_SAFE_ANGLAIS };
+export const LIBELLES_RAISON_MIAM_SAFE_PAR_LANGUE: ParLangue<Traduction<typeof LIBELLES_RAISON_MIAM_SAFE>> = { fr: LIBELLES_RAISON_MIAM_SAFE, en: LIBELLES_RAISON_MIAM_SAFE_ANGLAIS };

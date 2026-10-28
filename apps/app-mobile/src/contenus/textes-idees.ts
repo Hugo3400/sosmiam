@@ -1,4 +1,11 @@
 import type { StatutIdee } from "@sos-miam/commun/types/idees";
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import {
+  FILTRES_IDEES_ANGLAIS,
+  NOMS_STATUTS_IDEE_ANGLAIS,
+  REFUS_LIMITATION_IDEES_ANGLAIS,
+  TEXTES_IDEES_ANGLAIS,
+} from "~/contenus/anglais/textes-idees";
 
 export type FiltreIdees = "top" | "nouvelles" | "prevues" | "faites";
 
@@ -168,3 +175,8 @@ export const REFUS_LIMITATION_IDEES = {
   idee: "Ton compte est limité : proposer une idée attendra la fin de la limitation. Voter « Miam ! », tu peux toujours.",
   commentaire: "Ton compte est limité : commenter les idées attendra la fin de la limitation. Voter « Miam ! » et mettre des J'aime, tu peux toujours.",
 } as const;
+
+export const NOMS_STATUTS_IDEE_PAR_LANGUE: ParLangue<Traduction<typeof NOMS_STATUTS_IDEE>> = { fr: NOMS_STATUTS_IDEE, en: NOMS_STATUTS_IDEE_ANGLAIS };
+export const FILTRES_IDEES_PAR_LANGUE: ParLangue<Traduction<typeof FILTRES_IDEES>> = { fr: FILTRES_IDEES, en: FILTRES_IDEES_ANGLAIS };
+export const TEXTES_IDEES_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_IDEES>> = { fr: TEXTES_IDEES, en: TEXTES_IDEES_ANGLAIS };
+export const REFUS_LIMITATION_IDEES_PAR_LANGUE: ParLangue<Traduction<typeof REFUS_LIMITATION_IDEES>> = { fr: REFUS_LIMITATION_IDEES, en: REFUS_LIMITATION_IDEES_ANGLAIS };

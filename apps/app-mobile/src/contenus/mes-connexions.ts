@@ -1,6 +1,9 @@
 // Textes de « Tes clés pour entrer » (Réglages → Mon compte) : relier ou délier Apple et Google, ajouter un mot de passe.
 // Mêmes mots que la partie « Mes façons de me connecter » du site (apps/site-web/src/contenus/mes-connexions.ts).
 
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { aideAjouterMotDePasseAnglais, AVERTISSEMENT_RELAIS_APPLE_ANGLAIS, CHAPO_MES_CONNEXIONS_ANGLAIS, messagesMesConnexionsAnglais } from "~/contenus/anglais/mes-connexions";
+
 export type FournisseurConnexion = "apple" | "google";
 
 export const NOMS_FOURNISSEURS: Record<FournisseurConnexion, string> = { apple: "Apple", google: "Google" };
@@ -33,3 +36,8 @@ export const aideAjouterMotDePasse = (email: string) => `On t'envoie un lien à 
 /** Adresse masquée d'Apple (relais privé) : le lien n'arrive que si le relais transmet les mails */
 export const AVERTISSEMENT_RELAIS_APPLE =
   "C'est une adresse masquée d'Apple : le lien n'arrive que si le transfert des e-mails est activé pour SOS Miam, dans les réglages de ton identifiant Apple (« Se connecter avec Apple »).";
+
+export const CHAPO_MES_CONNEXIONS_PAR_LANGUE: ParLangue<Traduction<typeof CHAPO_MES_CONNEXIONS>> = { fr: CHAPO_MES_CONNEXIONS, en: CHAPO_MES_CONNEXIONS_ANGLAIS };
+export const messagesMesConnexionsParLangue: ParLangue<Traduction<typeof messagesMesConnexions>> = { fr: messagesMesConnexions, en: messagesMesConnexionsAnglais };
+export const aideAjouterMotDePasseParLangue: ParLangue<Traduction<typeof aideAjouterMotDePasse>> = { fr: aideAjouterMotDePasse, en: aideAjouterMotDePasseAnglais };
+export const AVERTISSEMENT_RELAIS_APPLE_PAR_LANGUE: ParLangue<Traduction<typeof AVERTISSEMENT_RELAIS_APPLE>> = { fr: AVERTISSEMENT_RELAIS_APPLE, en: AVERTISSEMENT_RELAIS_APPLE_ANGLAIS };

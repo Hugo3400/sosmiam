@@ -1,4 +1,6 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
 import type { PartieInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
+import { sujetsPropositionAnglais } from "~/contenus/anglais/sujets-proposition";
 
 /** Ce qui peut avoir changé sur la fiche d'un lieu, à cocher avant de proposer une modification */
 export type SujetProposition = "horaires" | "adresse" | "nom" | "contact" | "animaux" | "equipements" | "reservation" | "paiements" | "texte";
@@ -15,3 +17,5 @@ export const sujetsProposition: readonly { sujet: SujetProposition; emoji: strin
   { sujet: "nom", emoji: "🏷️", libelle: "Nom" },
   { sujet: "texte", emoji: "✍️", libelle: "Présentation" },
 ];
+
+export const sujetsPropositionParLangue: ParLangue<Traduction<typeof sujetsProposition>> = { fr: sujetsProposition, en: sujetsPropositionAnglais };
