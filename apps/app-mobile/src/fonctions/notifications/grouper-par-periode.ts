@@ -1,7 +1,9 @@
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { TEXTES_NOTIFICATIONS_PAR_LANGUE } from "~/contenus/textes-notifications";
+
 /** Un groupe de l'écran Notifications : « Aujourd'hui », « Cette semaine » ou « Plus tôt » */
 export type GroupePeriode<T> = { periode: "aujourdhui" | "semaine" | "plus-tot"; titre: string; elements: T[] };
-
-const TITRES: Record<GroupePeriode<unknown>["periode"], string> = { aujourdhui: "Aujourd'hui", semaine: "Cette semaine", "plus-tot": "Plus tôt" };
 
 const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 
@@ -9,8 +11,9 @@ const debutDuJour = (date: Date) => new Date(date.getFullYear(), date.getMonth()
  * Range des éléments datés (ISO) par période, dans cet ordre : aujourd'hui, les 6 jours d'avant, puis plus tôt.
  * L'ordre reçu est gardé dans chaque groupe ; les groupes vides sont retirés. Une date illisible (ou dans le futur) compte pour aujourd'hui.
  */
-export function grouperParPeriode<T extends { date: string }>(elements: readonly T[], maintenant: Date = new Date()): GroupePeriode<T>[] {
-  const groupes: GroupePeriode<T>[] = (["aujourdhui", "semaine", "plus-tot"] as const).map((periode) => ({ periode, titre: TITRES[periode], elements: [] }));
+export function grouperParPeriode<T extends { date: string }>(elements: readonly T[], langue: Langue, maintenant: Date = new Date()): GroupePeriode<T>[] {
+  const titres = choisirTextes(TEXTES_NOTIFICATIONS_PAR_LANGUE, langue).periodes;
+  const groupes: GroupePeriode<T>[] = (["aujourdhui", "semaine", "plus-tot"] as const).map((periode) => ({ periode, titre: titres[periode], elements: [] }));
   const aujourdhui = debutDuJour(maintenant);
   for (const element of elements) {
     const date = new Date(element.date);

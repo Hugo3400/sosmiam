@@ -5,6 +5,7 @@ import Animated, { useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
+import { TEXTES_CHOIX_SORTIE_PAR_LANGUE } from "~/contenus/textes-choix-sortie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { normaliserRecherche } from "~/fonctions/texte/normaliser-recherche";
@@ -12,6 +13,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -25,6 +27,7 @@ type Props = {
 /** Choisir un lieu dans une feuille qui monte du bas, avec une recherche (nom, plat, quartier, ville). Réservé aux inscrits : tous les lieux. */
 export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFermer }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CHOIX_SORTIE_PAR_LANGUE).lieu;
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const geste = utiliserGlisserPourFermer(visible, onFermer);
@@ -47,7 +50,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+        <Pressable accessibilityRole="button" accessibilityLabel={T.fermer} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
         <Animated.View
           accessibilityViewIsModal
           // VoiceOver ne voit que la feuille : le geste d'échappement (Z à deux doigts) la referme, en plus du bouton « Fermer sans choisir »
@@ -64,7 +67,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
                 </Text>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Fermer sans choisir"
+                  accessibilityLabel={T.fermerSansChoisir}
                   onPress={onFermer}
                   className="-mr-2 h-11 w-11 items-center justify-center rounded-full active:opacity-60"
                 >
@@ -72,10 +75,10 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
                 </Pressable>
               </View>
               <TextInput
-                accessibilityLabel="Chercher un lieu"
+                accessibilityLabel={T.chercher}
                 value={texte}
                 onChangeText={setTexte}
-                placeholder="Un lieu, un plat, un quartier…"
+                placeholder={T.exempleRecherche}
                 placeholderTextColor={couleurs.gris}
                 autoCorrect={false}
                 returnKeyType="search"
@@ -88,7 +91,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
               contentContainerClassName="px-5"
-              ListEmptyComponent={<Text className="py-6 text-center font-texte text-base text-gris">Aucun lieu ne correspond, essaie un autre mot.</Text>}
+              ListEmptyComponent={<Text className="py-6 text-center font-texte text-base text-gris">{T.aucun}</Text>}
               renderItem={({ item }) => {
                 const deja = dejaChoisis.includes(item.id);
                 return (
@@ -96,7 +99,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
                     accessibilityRole="button"
                     accessibilityLabel={`${item.nom}, ${item.info}, ${ecrireQuartierVille(item)}`}
                     accessibilityState={{ disabled: deja }}
-                    accessibilityHint={deja ? "Déjà choisi" : undefined}
+                    accessibilityHint={deja ? T.dejaChoisi : undefined}
                     disabled={deja}
                     onPress={() => {
                       vibrerLegerement();
@@ -115,7 +118,7 @@ export function ChoixLieu({ visible, titre, dejaChoisis = [], onChoisir, onFerme
                         {item.info} · {ecrireQuartierVille(item)}
                       </Text>
                     </View>
-                    {deja ? <Text className="font-texte-semi text-xs text-gris">Déjà choisi</Text> : null}
+                    {deja ? <Text className="font-texte-semi text-xs text-gris">{T.dejaChoisi}</Text> : null}
                   </Pressable>
                 );
               }}

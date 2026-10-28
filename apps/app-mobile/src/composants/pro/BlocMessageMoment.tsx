@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Text, View } from "react-native";
 
 import type { ReglageMessageMoment } from "@sos-miam/commun/client-api/contrat-lieu-pro";
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
 import { MESSAGE_MOMENT_MAX } from "@sos-miam/commun/regles/sos-lieu";
 import type { MomentLieu } from "@sos-miam/commun/types/moment-lieu";
 import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
@@ -9,7 +10,6 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { ChoixFin } from "~/composants/pro/ChoixFin";
 import { TEXTES_MESSAGE_MOMENT_PAR_LANGUE } from "~/contenus/textes-blocs-ce-soir";
-import { citer } from "@sos-miam/commun/fonctions/langue/citer";
 import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { listerDureesMessage } from "~/fonctions/pro/lister-durees-message";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";

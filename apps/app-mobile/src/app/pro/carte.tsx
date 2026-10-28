@@ -5,8 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
-import { LIMITES_CARTE } from "@sos-miam/commun/regles/carte-du-lieu";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import type { CarteLieu, ElementCarte } from "@sos-miam/commun/types/carte";
 import { validerCarteDuLieu } from "@sos-miam/commun/validation/valider-carte-du-lieu";
 import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
@@ -17,29 +16,22 @@ import { Mascotte } from "~/composants/marque/Mascotte";
 import { FeuilleElementCarte } from "~/composants/pro/FeuilleElementCarte";
 import { FeuilleSectionCarte } from "~/composants/pro/FeuilleSectionCarte";
 import { SectionCartePro } from "~/composants/pro/SectionCartePro";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_ECRAN_CARTE_PAR_LANGUE } from "~/contenus/textes-ecran-pro-carte";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserBrouillonCarte } from "~/hooks/utiliser-brouillon-carte";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 const CARTE_VIDE: CarteLieu = { sections: [] };
-
-/** Ce qui ne passe pas, dit à l'endroit où le corriger */
-const SOUCIS: Record<string, string> = {
-  nom: "le nom ne passe pas (vide, trop long ou avec un gros mot)",
-  description: "la description ne passe pas (trop longue ou avec un gros mot)",
-  prix: "le prix ne passe pas (comme 12 ou 4,50)",
-  unite: "le « pour » ne passe pas (trop long ou avec un gros mot)",
-  etiquettes: "un repère n'existe pas",
-  titre: "le titre ne passe pas (vide, trop long ou avec un gros mot)",
-};
 
 /**
  * Quelle feuille est ouverte : un élément (nouveau si index null) ou une section (nouvelle si index null), avec ce qu'elle
@@ -57,6 +49,10 @@ type FeuilleOuverte =
  */
 export default function EcranCartePro() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_ECRAN_CARTE_PAR_LANGUE);
+  const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const messages = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const router = useRouter();
   const navigation = useNavigation();
   const marges = useSafeAreaInsets();
@@ -126,14 +122,14 @@ export default function EcranCartePro() {
     const element = s?.elements[rang];
     if (!s || !element || rang + sens < 0 || rang + sens >= s.elements.length) return;
     brouillon.deplacerElement(section, rang, sens);
-    annoncerLecteurEcran(`${element.nom}, ${rang + sens + 1} sur ${s.elements.length}`);
+    annoncerLecteurEcran(T.rangElement(element.nom, rang + sens + 1, s.elements.length));
   }
 
   function deplacerSection(index: number, sens: -1 | 1) {
     const s = carte.sections[index];
     if (!s || index + sens < 0 || index + sens >= carte.sections.length) return;
     brouillon.deplacerSection(index, sens);
-    annoncerLecteurEcran(`Section ${s.titre}, ${index + sens + 1} sur ${carte.sections.length}`);
+    annoncerLecteurEcran(T.rangSection(s.titre, index + sens + 1, carte.sections.length));
   }
 
   function annulerTout() {
@@ -177,27 +173,23 @@ export default function EcranCartePro() {
     if (!valide.ok) {
       const section = valide.section !== null ? carte.sections[valide.section] : undefined;
       const element = valide.element !== null ? section?.elements[valide.element] : undefined;
-      if (valide.champ === "trop-de-sections") return annoncer(`Ta carte a trop de sections (${LIMITES_CARTE.sections} au plus).`);
-      if (valide.champ === "trop-d-elements")
-        return annoncer(
-          section
-            ? `La section « ${section.titre} » est trop longue (${LIMITES_CARTE.elementsParSection} éléments au plus).`
-            : `Ta carte est trop longue (${LIMITES_CARTE.elements} éléments au plus).`,
-        );
-      const ou = element ? `Pour « ${element.nom} »` : section ? `Pour la section « ${section.titre} »` : "Sur ta carte";
-      return annoncer(`${ou}, ${SOUCIS[valide.champ] ?? "quelque chose ne passe pas"}.`);
+      if (valide.champ === "trop-de-sections") return annoncer(T.tropDeSections);
+      if (valide.champ === "trop-d-elements") return annoncer(section ? T.sectionTropLongue(section.titre) : T.carteTropLongue);
+      const ou = element ? T.pourElement(element.nom) : section ? T.pourSection(section.titre) : T.surCarte;
+      const soucis: Partial<Record<string, string>> = T.soucis;
+      return annoncer(T.souci(ou, soucis[valide.champ] ?? T.souciAutre));
     }
     setEnregistrement(true);
     setRefusLimite(null);
     const r = await comptoir.reglerCarteDuLieu(lieuPro.id, valide.carte);
     setEnregistrement(false);
-    if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.ficheLieu);
-    if (!r.ok) return annoncer(`${MESSAGES_SERVICE[r.erreur].titre}. ${MESSAGES_SERVICE[r.erreur].texte}`);
+    if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(TL.ficheLieu);
+    if (!r.ok) return annoncer(`${messages[r.erreur].titre}. ${messages[r.erreur].texte}`);
     vibrerLegerement();
     setDepart(r.carte);
     repartirDe(r.carte);
     setRangement(false);
-    annoncer("✅ Carte enregistrée : elle est déjà sur ta fiche.");
+    annoncer(T.enregistree);
   }
 
   return (
@@ -205,7 +197,7 @@ export default function EcranCartePro() {
       <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={8}
           onPress={fermer}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -214,7 +206,7 @@ export default function EcranCartePro() {
         </Pressable>
         <View className="flex-1">
           <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-            {formules ? "Tes formules" : "Ta carte"}
+            {formules ? T.titreFormules : T.titreCarte}
           </Text>
           <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
             {lieuPro.emoji} {lieuPro.nom}
@@ -223,41 +215,37 @@ export default function EcranCartePro() {
         {rangement || nombre > 1 || carte.sections.length > 1 ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={rangement ? "Terminé, quitter le rangement" : "Ranger, changer l'ordre de la carte"}
-            accessibilityHint={rangement ? undefined : "Des flèches apparaissent pour changer l'ordre des sections et des éléments"}
+            accessibilityLabel={rangement ? T.rangerFiniLu : T.rangerLu}
+            accessibilityHint={rangement ? undefined : T.rangerIndice}
             onPress={() => {
               vibrerLegerement();
               setRangement((r) => !r);
             }}
             className={`min-h-11 items-center justify-center rounded-full border-2 border-encre px-4 active:opacity-80 ${rangement ? "bg-choix" : "bg-carte"}`}
           >
-            <Text className={`font-texte-gras text-[15px] ${rangement ? "text-sur-choix" : "text-encre"}`}>{rangement ? "Terminé" : "Ranger"}</Text>
+            <Text className={`font-texte-gras text-[15px] ${rangement ? "text-sur-choix" : "text-encre"}`}>{rangement ? T.termine : T.ranger}</Text>
           </Pressable>
         ) : null}
       </View>
 
       <ScrollView contentContainerClassName="gap-6 px-5 pb-8 pt-2">
         <Text className="font-texte text-base leading-6 text-gris">
-          {lierPonctuation(
-            rangement
-              ? "Monte et descends les sections et ce qu'elles contiennent, dans l'ordre où tu veux qu'on les lise."
-              : "Ce que les gourmands voient sur ta fiche. Touche un élément pour le modifier ; l'alcool est caché à qui visite sans compte.",
-          )}
+          {lierPonctuation(rangement ? T.introRangement : T.intro)}
         </Text>
 
         {depart === null ? (
           <View className="items-center gap-3 py-10">
             <Text className="text-center font-texte text-base text-gris">
-              {erreurLecture ? "Ta carte n'a pas pu être lue. Reviens dans un instant ?" : "On sort ta carte…"}
+              {erreurLecture ? T.erreurLecture : T.chargement}
             </Text>
-            {erreurLecture ? <Bouton libelle="Retour" variante="blanc" petit onPress={fermer} /> : null}
+            {erreurLecture ? <Bouton libelle={T.retour} variante="blanc" petit onPress={fermer} /> : null}
           </View>
         ) : carte.sections.length === 0 ? (
           <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne bg-carte px-6 py-8">
             <Mascotte expression="surprise" taille={110} />
-            <Text className="text-center font-titre-gras text-xl text-encre">{formules ? "Pas encore de formules" : "Ta carte est encore vide"}</Text>
+            <Text className="text-center font-titre-gras text-xl text-encre">{formules ? T.videFormules : T.videCarte}</Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation(formules ? "Commence par une section, « Formules » par exemple, puis ajoute tes tarifs." : "Commence par une section (les plats, les desserts, à boire…), puis ajoute ce que tu sers.")}
+              {lierPonctuation(formules ? T.videFormulesTexte : T.videCarteTexte)}
             </Text>
           </View>
         ) : (
@@ -280,27 +268,27 @@ export default function EcranCartePro() {
         )}
 
         {rangement || depart === null ? null : (
-          <Bouton libelle="Ajouter une section" variante="blanc" indice="Une section range ta carte : les plats, les desserts, à boire…" onPress={() => ouvrirSection(null)} />
+          <Bouton libelle={T.ajouterSection} variante="blanc" indice={T.ajouterSectionIndice} onPress={() => ouvrirSection(null)} />
         )}
 
-        {carte.majLe && !brouillon.modifiee ? <Text className="text-center font-texte text-sm text-gris">Dernière mise à jour le {formaterDateLongue(carte.majLe)}</Text> : null}
+        {carte.majLe && !brouillon.modifiee ? <Text className="text-center font-texte text-sm text-gris">{T.miseAJour(ecrireDateLongueLangue(carte.majLe, langue))}</Text> : null}
       </ScrollView>
 
       <View className="gap-2 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
         {brouillon.modifiee ? (
           <>
             <Text accessibilityLiveRegion="polite" className="text-center font-texte-semi text-sm text-gris">
-              Des changements pas encore enregistrés
+              {T.pasEnregistre}
             </Text>
             <RefusLimitationEnPlace texte={refusLimite} />
             <View className="flex-row gap-3">
-              <Bouton className="flex-1" libelle="Annuler" libelleLu="Annuler tous les changements" variante="blanc" indice="Revient à la carte telle qu'elle était" desactive={enregistrement} onPress={annulerTout} />
-              <Bouton className="flex-1" libelle={enregistrement ? "Envoi…" : "Enregistrer"} desactive={enregistrement} onPress={enregistrer} />
+              <Bouton className="flex-1" libelle={T.annuler} libelleLu={T.annulerLu} variante="blanc" indice={T.annulerIndice} desactive={enregistrement} onPress={annulerTout} />
+              <Bouton className="flex-1" libelle={enregistrement ? T.envoi : T.enregistrer} desactive={enregistrement} onPress={enregistrer} />
             </View>
           </>
         ) : (
           <Bouton
-            libelle={formules ? "Voir mes formules comme un client" : "Voir ma carte comme un client"}
+            libelle={formules ? T.voirFormules : T.voirCarte}
             variante="blanc"
             onPress={() => router.push({ pathname: "/lieu/[id]/carte", params: { id: String(lieuPro.id) } })}
           />
@@ -330,11 +318,11 @@ export default function EcranCartePro() {
       <FeuilleConfirmation
         visible={departDemande}
         emoji="📝"
-        titre="Partir sans enregistrer ?"
-        detail="Tes changements sur la carte seront perdus. Les gourmands verront toujours l'ancienne version."
-        libelleConfirmer="Partir sans enregistrer"
-        libelleRester="Rester"
-        indiceRester="Tu restes sur ta carte, rien n'est perdu"
+        titre={T.partir.titre}
+        detail={T.partir.detail}
+        libelleConfirmer={T.partir.confirmer}
+        libelleRester={T.partir.rester}
+        indiceRester={T.partir.resterIndice}
         onConfirmer={annulerTout}
         onRefermee={() => {
           const action = actionDepart.current;

@@ -4,12 +4,15 @@ import { File } from "expo-file-system";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, Text, View, type PressableProps } from "react-native";
 
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
 import { formaterDureeVocal } from "~/fonctions/chat/formater-duree-vocal";
 import { formaterDureeVocalLue } from "~/fonctions/chat/formater-duree-vocal-lue";
 import { lireOndeVocal } from "~/fonctions/chat/lire-onde-vocal";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { estEnregistrementEnCours, jouerNoteVocale, oublierNoteVocale, utiliserAudioChat } from "~/hooks/utiliser-audio-chat";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Adresse de la note dans les fichiers de l'app */
@@ -61,6 +64,8 @@ async function existeEncore(fichier: string): Promise<boolean> {
  */
 export function NoteVocale({ fichier, dureeSecondes, onde, libelle, deMoi, onAppuiLong, actionsLecteur }: Props) {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const { enregistrementEnCours } = utiliserAudioChat();
   const lecteur = useRef<AudioPlayer | null>(null);
   const abonnement = useRef<{ remove: () => void } | null>(null);
@@ -162,11 +167,11 @@ export function NoteVocale({ fichier, dureeSecondes, onde, libelle, deMoi, onApp
   const icone = deMoi ? couleurs.encre : couleurs.nuit;
   if (etat === "introuvable") {
     return (
-      <View accessible accessibilityLabel={`${libelle} : partie se promener, elle ne se lit plus`} {...actionsLecteur} className="min-h-11 flex-row items-center gap-2.5 py-0.5">
+      <View accessible accessibilityLabel={T.vocalPartiLu(libelle)} {...actionsLecteur} className="min-h-11 flex-row items-center gap-2.5 py-0.5">
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
           🎙️
         </Text>
-        <Text className={`shrink font-texte-semi text-sm ${texte}`}>Note vocale partie se promener</Text>
+        <Text className={`shrink font-texte-semi text-sm ${texte}`}>{T.vocalParti}</Text>
       </View>
     );
   }
@@ -175,13 +180,13 @@ export function NoteVocale({ fichier, dureeSecondes, onde, libelle, deMoi, onApp
   const niveaux = lireOndeVocal(onde);
   const avancee = enCours && duree > 0 ? Math.min(1, position / duree) : 0;
   // Pendant que tu enregistres une note, les autres attendent leur tour
-  const action = enregistrementEnCours ? "à écouter après ton enregistrement" : etat === "lecture" ? "mettre en pause" : etat === "pause" ? "reprendre" : "lire";
+  const action = enregistrementEnCours ? T.ecouterApres : etat === "lecture" ? T.mettreEnPause : etat === "pause" ? T.reprendre : T.lire;
 
   return (
     <View className="w-52 flex-row items-center gap-3">
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${libelle}, ${formaterDureeVocalLue(duree)}, ${action}`}
+        accessibilityLabel={`${libelle}, ${formaterDureeVocalLue(duree, langue)}, ${action}`}
         accessibilityState={{ disabled: enregistrementEnCours }}
         disabled={enregistrementEnCours}
         onPress={basculer}

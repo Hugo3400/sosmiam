@@ -4,8 +4,10 @@ import { useCallback, useRef, useState } from "react";
 import { AccessibilityInfo, Linking, Text, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_AJOUT_POTE_PAR_LANGUE } from "~/contenus/textes-ajout-pote";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Même contrat que ScannerQrCode.web.tsx (aperçu web) : à garder identique
 type Props = {
@@ -19,36 +21,14 @@ type Props = {
 
 type Souci = "refuse" | "bloque" | "panne";
 
-const TEXTES = {
-  pote: {
-    messages: {
-      refuse: "Sans l'appareil photo, pas de scan. Pas de souci : retouche « Scanner » si tu changes d'avis, ou colle le lien de ton pote juste en dessous.",
-      bloque: "L'appareil photo est coupé pour SOS Miam. Tu peux l'autoriser dans les réglages de ton téléphone, ou coller le lien de ton pote juste en dessous.",
-      panne: "L'appareil photo n'a pas voulu s'allumer. Réessaie dans un instant, ou colle le lien de ton pote juste en dessous.",
-    } satisfies Record<Souci, string>,
-    viseur: "Viseur de l'appareil photo : vise le QR code de ton pote, il sera lu tout seul",
-    aide: "Vise le QR code de ton pote, on s'occupe du reste.",
-    indice: "Allume l'appareil photo pour lire le QR code d'un pote",
-  },
-  appareil: {
-    messages: {
-      refuse: "Sans l'appareil photo, pas de scan. Pas de souci : retouche « Scanner » si tu changes d'avis.",
-      bloque: "L'appareil photo est coupé pour SOS Miam. Tu peux l'autoriser dans les réglages de ton téléphone.",
-      panne: "L'appareil photo n'a pas voulu s'allumer. Réessaie dans un instant.",
-    } satisfies Record<Souci, string>,
-    viseur: "Viseur de l'appareil photo : vise le QR code de l'appareil à connecter, il sera lu tout seul",
-    aide: "Vise le QR code affiché sur l'appareil à connecter.",
-    indice: "Allume l'appareil photo pour lire le QR code de l'appareil à connecter",
-  },
-};
-
 /**
  * Scanner un QR code (celui d'un pote, ou d'un appareil à connecter au compte) : l'autorisation de l'appareil photo est demandée seulement quand on touche « Scanner »,
  * un refus est accueilli gentiment (avec le chemin des réglages s'il faut), et la caméra s'éteint dès qu'un code est lu
  * ou qu'un autre écran passe devant (profil d'un pote, tes infos…).
  */
 export function ScannerQrCode({ onLu, onOuvrir, pour = "pote" }: Props) {
-  const textes = TEXTES[pour];
+  const T = utiliserTextes(TEXTES_AJOUT_POTE_PAR_LANGUE).scanner;
+  const textes = T[pour];
   const [permission, demanderPermission] = useCameraPermissions();
   const [ouvert, setOuvert] = useState(false);
   const [souci, setSouci] = useState<Souci | null>(null);
@@ -112,19 +92,19 @@ export function ScannerQrCode({ onLu, onOuvrir, pour = "pote" }: Props) {
           </View>
         </View>
         <Text className="text-center font-texte text-sm text-gris">{textes.aide}</Text>
-        <Bouton libelle="Arrêter le scan" variante="blanc" petit onPress={() => setOuvert(false)} />
+        <Bouton libelle={T.arreter} variante="blanc" petit onPress={() => setOuvert(false)} />
       </View>
     );
   }
 
   return (
     <View className="gap-3">
-      <Bouton libelle="Scanner un QR code" indice={textes.indice} onPress={() => void ouvrir()} />
+      <Bouton libelle={T.scanner} indice={textes.indice} onPress={() => void ouvrir()} />
       {souci ? (
         <View className="gap-3 rounded-2xl border-2 border-ligne bg-carte px-4 py-3">
           <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(textes.messages[souci])}</Text>
           {souci === "bloque" ? (
-            <Bouton libelle="Ouvrir les réglages" variante="blanc" petit onPress={() => Linking.openSettings().catch(() => signaler("panne"))} />
+            <Bouton libelle={T.ouvrirReglages} variante="blanc" petit onPress={() => Linking.openSettings().catch(() => signaler("panne"))} />
           ) : null}
         </View>
       ) : null}

@@ -15,7 +15,8 @@ import { ListeDefis } from "~/composants/profil/ListeDefis";
 import { RaccourcisProfil } from "~/composants/profil/RaccourcisProfil";
 import { SectionPalier } from "~/composants/profil/SectionPalier";
 import { BADGES_VISIBLES } from "~/contenus/badges-visibles";
-import { TEXTES_PROFIL } from "~/contenus/textes-profil";
+import { TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE } from "~/contenus/textes-onglets-principaux";
+import { TEXTES_PROFIL_PAR_LANGUE } from "~/contenus/textes-profil";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { listerBadgesDuCompte } from "~/fonctions/profil/lister-badges-du-compte";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -23,19 +24,16 @@ import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
-const PAGES_LEGALES = [
-  { titre: "Conditions d'utilisation", adresse: "https://sosmiam.fr/cgu" },
-  { titre: "Confidentialité", adresse: "https://sosmiam.fr/confidentialite" },
-  { titre: "Mentions légales", adresse: "https://sosmiam.fr/mentions-legales" },
-] as const;
+type TextesLienRate = { lienRateTitre: string; lienRate: (adresse: string) => string };
 
 /** Ouvre une page légale du site ; si le téléphone n'y arrive pas, on le dit gentiment (Alert n'existe pas sur le web). */
-function ouvrirPageLegale(adresse: string) {
+function ouvrirPageLegale(adresse: string, textes: TextesLienRate) {
   vibrerLegerement();
   Linking.openURL(adresse).catch(() => {
     if (Platform.OS !== "web") {
-      Alert.alert("Oups, ça ne veut pas s'ouvrir", `Ton téléphone n'a pas réussi à ouvrir ce lien. Tu peux le retrouver sur ${adresse.replace("https://", "")}.`);
+      Alert.alert(textes.lienRateTitre, textes.lienRate(adresse.replace("https://", "")));
     }
   });
 }
@@ -48,6 +46,8 @@ function ouvrirPageLegale(adresse: string) {
 export default function Profil() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_ONGLETS_PRINCIPAUX_PAR_LANGUE).profil;
+  const TP = utiliserTextes(TEXTES_PROFIL_PAR_LANGUE);
   const { profil, avatar, invite } = utiliserProfil();
   const activite = utiliserActivite();
   const { connecte, compte } = utiliserSession();
@@ -59,21 +59,16 @@ export default function Profil() {
       <EcranInvite
         raison="profil"
         emoji="🙋"
-        titre="Et toi, t'es qui ?"
-        texte="Ici s'affiche tout ce que tu fais pour les lieux du coin. Ta mamie serait fière."
-        avantages={[
-          "Tes points et ton palier, de Curieux à Ambassadeur de quartier",
-          "Tes badges et des défis à relever",
-          "Tes lieux gardés pour plus tard",
-          "Tes paramètres (avatar, envies, notifications)",
-        ]}
+        titre={T.titre}
+        texte={T.texte}
+        avantages={[...T.avantages]}
         enPlus={
           <View className="flex-row flex-wrap justify-center gap-x-5">
-            {PAGES_LEGALES.map((page) => (
+            {T.pagesLegales.map((page) => (
               <Pressable
                 key={page.adresse}
                 accessibilityRole="link"
-                onPress={() => ouvrirPageLegale(page.adresse)}
+                onPress={() => ouvrirPageLegale(page.adresse, T)}
                 className="min-h-11 justify-center active:opacity-70"
               >
                 <Text className="font-texte text-sm text-gris underline">{page.titre}</Text>
@@ -99,8 +94,8 @@ export default function Profil() {
         {/* Pseudo remplacé par l'équipe, pseudo jamais parti de ce téléphone, prénom gelé : une annonce douce, une fois */}
         <AnnonceProfil />
         <BoutonContour
-          libelle={TEXTES_PROFIL.modifier}
-          indice={TEXTES_PROFIL.indiceModifier}
+          libelle={TP.modifier}
+          indice={TP.indiceModifier}
           icone="pencil"
           fond="blanc"
           grand
@@ -124,9 +119,7 @@ export default function Profil() {
             </Text>
             <Text className="flex-1 font-texte-semi text-base text-encre">
               {lierPonctuation(
-                connecte
-                  ? "Tes points, ton palier et tes badges arrivent dès que le réseau revient. Ils t'attendent bien au chaud !"
-                  : "Connecte-toi à ton compte pour retrouver tes points, ton palier et tes badges.",
+                connecte ? T.horsLigne : T.connecteToi,
               )}
             </Text>
           </View>

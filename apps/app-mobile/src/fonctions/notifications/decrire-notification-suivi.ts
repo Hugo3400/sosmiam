@@ -2,7 +2,10 @@ import type { Href } from "expo-router";
 
 import type { Lieu } from "@sos-miam/commun/types/lieu";
 import type { Pote } from "@sos-miam/commun/types/potes";
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
 import { parleDAlcool } from "@sos-miam/commun/fonctions/prevention/parle-d-alcool";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { TEXTES_CLOCHE_PAR_LANGUE } from "~/contenus/textes-cloche";
 import type { Publication } from "~/contenus/type-publication";
 import { decrireNotificationCloche } from "~/fonctions/notifications/decrire-notification-cloche";
 import { lireCleSuivi } from "~/fonctions/suivi/lire-cle-suivi";
@@ -36,8 +39,9 @@ const couperLegende = (legende: string) => {
  * personne inconnue, publication ou lieu disparu. Le filtre des bloqués est fait avant, par le fournisseur. Les types de la
  * cloche du serveur sont écrits par decrireNotificationCloche.
  */
-export function decrireNotificationSuivi(n: NotificationApp, sources: Sources): NotificationDecrite | null {
-  if (n.type === "cloche") return decrireNotificationCloche(n, sources);
+export function decrireNotificationSuivi(n: NotificationApp, sources: Sources, langue: Langue): NotificationDecrite | null {
+  if (n.type === "cloche") return decrireNotificationCloche(n, sources, langue);
+  const T = choisirTextes(TEXTES_CLOCHE_PAR_LANGUE, langue);
   const { trouverPote, publications, lieux } = sources;
   const cible = lireCleSuivi(n.cle);
   if (!cible) return null;
@@ -46,12 +50,7 @@ export function decrireNotificationSuivi(n: NotificationApp, sources: Sources): 
     if (cible.type !== "personne") return null;
     const pote = trouverPote(cible.id);
     if (!pote) return null;
-    const texte =
-      n.type === "demande-acceptee"
-        ? `${pote.prenom} a accepté ta demande : bienvenue dans ses bons plans !`
-        : n.enRetour
-          ? `${pote.prenom} te suit en retour 🎉`
-          : `${pote.prenom} te suit maintenant 👋`;
+    const texte = n.type === "demande-acceptee" ? T.demandeAcceptee(pote.prenom) : n.enRetour ? T.suitEnRetour(pote.prenom) : T.suitMaintenant(pote.prenom);
     return { emoji: pote.avatar, texte: lierPonctuation(texte), ouvrir: { pathname: "/potes/profil/[id]", params: { id: pote.id } } };
   }
 
@@ -65,13 +64,13 @@ export function decrireNotificationSuivi(n: NotificationApp, sources: Sources): 
   if (cible.type === "createur") {
     return {
       emoji: "🎬",
-      texte: lierPonctuation(`@${cible.pseudo} a posté : « ${extrait} »`),
+      texte: lierPonctuation(T.createurAPoste(cible.pseudo, extrait)),
       ouvrir: { pathname: "/createur/[pseudo]", params: { pseudo: cible.pseudo } },
       alcool,
     };
   }
   if (cible.type === "lieu" && cible.id === lieu.id) {
-    return { emoji: lieu.emoji, texte: lierPonctuation(`${lieu.nom} a posté : « ${extrait} »`), ouvrir: { pathname: "/lieu/[id]", params: { id: String(lieu.id) } }, alcool };
+    return { emoji: lieu.emoji, texte: lierPonctuation(T.lieuAPoste(lieu.nom, extrait)), ouvrir: { pathname: "/lieu/[id]", params: { id: String(lieu.id) } }, alcool };
   }
   return null;
 }

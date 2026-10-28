@@ -1,9 +1,15 @@
+import { choisirTextes } from "@sos-miam/commun/fonctions/langue/choisir-textes";
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
+import type { Langue } from "@sos-miam/commun/regles/langues";
+import { TEXTES_CLOCHE_PAR_LANGUE } from "~/contenus/textes-cloche";
 import type { NotificationDecrite } from "~/fonctions/notifications/decrire-notification-suivi";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import type { NotificationCloche } from "~/hooks/utiliser-notifications";
 
-export function decrireNotificationClocheCommunaute(n: NotificationCloche, qui: string): NotificationDecrite | null {
-  const titre = n.detail ? `« ${n.detail} »` : "ta sortie";
+export function decrireNotificationClocheCommunaute(n: NotificationCloche, qui: string, langue: Langue): NotificationDecrite | null {
+  const T = choisirTextes(TEXTES_CLOCHE_PAR_LANGUE, langue);
+  const titre = n.detail ? citer(n.detail, langue) : T.taSortie;
+  const titreEnTete = `${titre.charAt(0).toUpperCase()}${titre.slice(1)}`;
   const id = n.cible?.id ?? "";
   const sortie = n.cible?.type === "miamis" ? ({ pathname: "/potes/miamis/sortie/[id]", params: { id } } as const) : null;
   const idee = n.cible?.type === "idee" ? ({ pathname: "/potes/miamis/idee/[id]", params: { id } } as const) : null;
@@ -16,27 +22,27 @@ export function decrireNotificationClocheCommunaute(n: NotificationCloche, qui: 
 
   switch (n.sorte) {
     case "demande-sortie-miamis":
-      return decrire("🙋", `${qui} demande à venir à ${titre} : à toi de dire oui (ou pas).`, sortie, "Ouvre la sortie pour répondre");
+      return decrire("🙋", T.demandeSortie(qui, titre), sortie, T.indiceRepondre);
     case "arrivee-acceptee":
-      return decrire("🎉", `C'est oui ! ${qui} t'accueille dans ${titre} : la discussion est ouverte.`, sortie, "Ouvre la sortie");
+      return decrire("🎉", T.arriveeAcceptee(qui, titre), sortie, T.indiceSortieMiamis);
     case "liste-attente-miamis":
-      return decrire("⏳", `Acceptée, mais ${titre} est complète : te voilà sur la liste d'attente, au chaud.`, sortie, "Ouvre la sortie");
+      return decrire("⏳", T.listeAttente(titre), sortie, T.indiceSortieMiamis);
     case "place-liberee-miamis":
-      return decrire("🪑", `Une place s'est libérée : tu es dans ${titre}. Bon appétit !`, sortie, "Ouvre la sortie");
+      return decrire("🪑", T.placeLiberee(titre), sortie, T.indiceSortieMiamis);
     case "rappel-sortie-miamis":
-      return decrire("⏰", `C'est demain : ${titre}. Un empêchement ? Libère ta place en un geste.`, sortie, "Ouvre la sortie");
+      return decrire("⏰", T.rappelSortie(titre), sortie, T.indiceSortieMiamis);
     case "sortie-miamis-annulee":
-      return decrire("🙅", `${titre.charAt(0).toUpperCase()}${titre.slice(1)} est annulée. Une autre t'attend sûrement chez les Miamis !`, null, "");
+      return decrire("🙅", T.sortieMiamisAnnulee(titreEnTete), null, "");
     case "invitation-habitue":
-      return decrire("🔁", `${titre.charAt(0).toUpperCase()}${titre.slice(1)} remet le couvert ! Ta place d'habitué·e est gardée 48 h.`, sortie, "Ouvre la sortie");
+      return decrire("🔁", T.invitationHabitue(titreEnTete), sortie, T.indiceSortieMiamis);
     case "coucou-reciproque":
-      return decrire("👋", `${qui} et toi, vous vous êtes fait coucou ! Et si vous vous ajoutiez à vos bandes ?`, "/potes/miamis/qui-est-la", "Ouvre « Qui est là ? »");
+      return decrire("👋", T.coucouReciproque(qui), "/potes/miamis/qui-est-la", T.indiceQuiEstLa);
     case "idee-publiee":
-      return decrire("💡", `Ton idée ${titre} est publiée : que les votes commencent !`, idee, "Ouvre l'idée");
+      return decrire("💡", T.ideePubliee(titre), idee, T.indiceIdee);
     case "reponse-brigade":
-      return decrire("🧑‍🍳", `La Brigade a répondu à ${titre}.`, idee, "Ouvre l'idée");
+      return decrire("🧑‍🍳", T.reponseBrigade(titre), idee, T.indiceIdee);
     case "idee-du-mois":
-      return decrire("🏆", `${titre.charAt(0).toUpperCase()}${titre.slice(1)} est l'idée du mois ! Merci, et bravo.`, idee, "Ouvre l'idée");
+      return decrire("🏆", T.ideeDuMois(titreEnTete), idee, T.indiceIdee);
     default:
       return null;
   }

@@ -8,11 +8,14 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { Pastille } from "~/composants/interface/Pastille";
 import { NumerosUrgence } from "~/composants/miam-safe/NumerosUrgence";
-import { ECHEC_ALERTE_MIAM_SAFE, ECHECS_ALERTE_MIAM_SAFE, LIBELLES_ENDROIT_ALERTE } from "~/contenus/miam-safe";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { ECHEC_ALERTE_MIAM_SAFE_PAR_LANGUE, ECHECS_ALERTE_MIAM_SAFE_PAR_LANGUE, LIBELLES_ENDROIT_ALERTE_PAR_LANGUE } from "~/contenus/miam-safe";
+import { TEXTES_MIAM_SAFE_ALERTE_PAR_LANGUE } from "~/contenus/textes-miam-safe-alerte";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserServices } from "~/hooks/utiliser-services";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { garderAlerteMiamSafe, type AlerteGardeeMiamSafe } from "~/services/memoire-alertes-miam-safe";
 import { oublierMiamSafeLieu } from "~/services/memoire-miam-safe-lieux";
 
@@ -27,17 +30,14 @@ type Props = {
 };
 
 const MINUTES_RELANCE = DELAI_RELANCE_ALERTE_SECONDES / 60;
-const SOUCI_EQUIPE = lierPonctuation("Le souci vient de l'équipe ? Appelle plutôt un proche ou les secours.");
-const PAS_SEUL = "Ne reste pas seul·e : appelle les secours, ou préviens un pote.";
 const DELAI_FOCUS_ECHEC_MS = 200;
 
-function decrireEnvoi(telephones: number | null, heure: string): string {
-  if (telephones === null) return lierPonctuation(`Elle est partie à ${heure} vers l'équipe du lieu, avec ton prénom et où tu es. Rien ne sonne de ton côté.`);
-  const vers = `${telephones} téléphone${telephones > 1 ? "s" : ""}`;
-  return lierPonctuation(`Elle est partie à ${heure} sur ${vers} de l'équipe, avec ton prénom et où tu es. Rien ne sonne de ton côté.`);
-}
-
 export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, onRenvoyer, onPrevenirPote }: Props) {
+  const T = utiliserTextes(TEXTES_MIAM_SAFE_ALERTE_PAR_LANGUE);
+  const echecs = utiliserTextes(ECHECS_ALERTE_MIAM_SAFE_PAR_LANGUE);
+  const echecParDefaut = utiliserTextes(ECHEC_ALERTE_MIAM_SAFE_PAR_LANGUE);
+  const endroits = utiliserTextes(LIBELLES_ENDROIT_ALERTE_PAR_LANGUE);
+  const { langue } = utiliserLangue();
   const { miamSafe } = utiliserServices();
   const [endroit, setEndroit] = useState<EndroitAlerte | null>(null);
   const [detail, setDetail] = useState("");
@@ -53,6 +53,9 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
 
   const suivie = renvoi === null ? alerte : null;
   const etat = suivie?.statut ?? "a-envoyer";
+  const heure = (instant: number) => ecrireHeureLangue(new Date(instant), langue);
+  const decrireEnvoi = (telephones: number | null, quand: string) =>
+    lierPonctuation(telephones === null ? T.envoiVersLieu(quand) : T.envoiSurTelephones(quand, telephones));
 
   const envoyer = async () => {
     if (endroit === null || envoi) return;
@@ -79,18 +82,18 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
   };
 
   const renvoyer = (
-    <Bouton libelle="Renvoyer une alerte" variante="blanc" petit indice="Une nouvelle alerte silencieuse à l'équipe du lieu" onPress={recommencer} />
+    <Bouton libelle={T.renvoyer} variante="blanc" petit indice={T.renvoyerIndice} onPress={recommencer} />
   );
 
   if (suivie && etat === "sans-reponse") {
     return (
       <View className="gap-4">
-        <Text accessibilityRole="alert" className="font-texte-gras text-lg text-encre">{aRelire ? "On regarde si l'équipe a répondu…" : "L'équipe n'a pas encore répondu."}</Text>
+        <Text accessibilityRole="alert" className="font-texte-gras text-lg text-encre">{aRelire ? T.relecture : T.pasEncoreRepondu}</Text>
         <Text className="font-texte text-base leading-6 text-gris">
-          {lierPonctuation(`Ton alerte de ${ecrireHeure(new Date(suivie.envoyeeLe))} est remontée à l'équipe SOS Miam. ${PAS_SEUL}`)}
+          {lierPonctuation(`${T.remontee(heure(suivie.envoyeeLe))} ${T.pasSeul}`)}
         </Text>
         <NumerosUrgence />
-        <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />
+        <Bouton libelle={T.prevenirPote} variante="encre" onPress={onPrevenirPote} />
         {renvoyer}
       </View>
     );
@@ -100,13 +103,11 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
     return (
       <View className="gap-4">
         <View accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
-          <Text className="font-texte-gras text-base text-nuit">{"⚠️ L'équipe n'a rien reçu"}</Text>
-          <Text className="font-texte text-base leading-6 text-nuit">
-            {lierPonctuation("Aucun téléphone de l'équipe n'a reçu l'alerte. Va voir quelqu'un de l'équipe si tu peux, ou préviens un pote.")}
-          </Text>
+          <Text className="font-texte-gras text-base text-nuit">{T.rienRecuTitre}</Text>
+          <Text className="font-texte text-base leading-6 text-nuit">{lierPonctuation(T.rienRecuTexte)}</Text>
         </View>
         <NumerosUrgence />
-        <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />
+        <Bouton libelle={T.prevenirPote} variante="encre" onPress={onPrevenirPote} />
         {renvoyer}
       </View>
     );
@@ -115,21 +116,21 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
   if (suivie) {
     const enRoute = etat === "en-route";
     const texte = enRoute
-      ? lierPonctuation(`Elle a répondu « On arrive » à ${ecrireHeure(new Date(suivie.reponduLe ?? suivie.envoyeeLe))}. Reste où tu es si tu peux : quelqu'un vient te voir discrètement.`)
-      : decrireEnvoi(suivie.telephones, ecrireHeure(new Date(suivie.envoyeeLe)));
+      ? lierPonctuation(T.enRoute(heure(suivie.reponduLe ?? suivie.envoyeeLe)))
+      : decrireEnvoi(suivie.telephones, heure(suivie.envoyeeLe));
     return (
       <View className="gap-4">
         <View accessible accessibilityLiveRegion="polite" className={`gap-1 rounded-2xl p-4 ${enRoute ? "bg-jaune" : "bg-carte"}`}>
-          <Text className={`font-texte-gras text-lg ${enRoute ? "text-nuit" : "text-encre"}`}>{enRoute ? "L'équipe arrive" : "Alerte envoyée"}</Text>
+          <Text className={`font-texte-gras text-lg ${enRoute ? "text-nuit" : "text-encre"}`}>{enRoute ? T.equipeArrive : T.alerteEnvoyee}</Text>
           <Text className={`font-texte text-base leading-6 ${enRoute ? "text-nuit" : "text-encre"}`}>{texte}</Text>
         </View>
         {enRoute ? null : (
           <Text className="font-texte text-sm leading-5 text-gris">
-            {lierPonctuation(`Sans réponse dans ${MINUTES_RELANCE} minutes, on te propose d'appeler les secours ou de prévenir un pote.`)}
+            {lierPonctuation(T.relance(MINUTES_RELANCE))}
           </Text>
         )}
         <NumerosUrgence />
-        {enRoute ? <Bouton libelle="Nouvelle alerte" variante="blanc" petit indice="Si tu as encore besoin de l'équipe" onPress={recommencer} /> : null}
+        {enRoute ? <Bouton libelle={T.nouvelleAlerte} variante="blanc" petit indice={T.nouvelleAlerteIndice} onPress={recommencer} /> : null}
       </View>
     );
   }
@@ -139,35 +140,36 @@ export function AlerteComptoirMiamSafe({ lieuId, cle, alerte, aRelire, renvoi, o
       {echec ? (
         <>
           <View ref={refEchec} accessible accessibilityRole="alert" className="gap-2 rounded-2xl bg-tomate p-4">
-            <Text className="font-texte-gras text-base text-nuit">{"⚠️ L'alerte n'est pas partie"}</Text>
-            <Text className="font-texte text-base leading-6 text-nuit">{lierPonctuation(`${ECHECS_ALERTE_MIAM_SAFE[echec] ?? ECHEC_ALERTE_MIAM_SAFE} ${PAS_SEUL}`)}</Text>
+            <Text className="font-texte-gras text-base text-nuit">{T.pasPartieTitre}</Text>
+            <Text className="font-texte text-base leading-6 text-nuit">{lierPonctuation(`${echecs[echec] ?? echecParDefaut} ${T.pasSeul}`)}</Text>
           </View>
           <NumerosUrgence />
-          <Bouton libelle="Prévenir un pote" variante="encre" onPress={onPrevenirPote} />
+          <Bouton libelle={T.prevenirPote} variante="encre" onPress={onPrevenirPote} />
         </>
       ) : null}
-      <Text className="font-texte text-base leading-6 text-gris">{"L'alerte donne à l'équipe ton prénom et où tu es, jamais ton nom ni ta photo."}</Text>
+      <Text className="font-texte text-base leading-6 text-gris">{T.donnees}</Text>
       <View className="flex-row flex-wrap gap-2">
         {ENDROITS_ALERTE.map((e, i) => (
-          <Pastille key={e} libelle={LIBELLES_ENDROIT_ALERTE[e]} role="radio" position={i + 1} total={ENDROITS_ALERTE.length} choisi={endroit === e} onPress={() => setEndroit(e)} />
+          <Pastille key={e} libelle={endroits[e]} role="radio" position={i + 1} total={ENDROITS_ALERTE.length} choisi={endroit === e} onPress={() => setEndroit(e)} />
         ))}
       </View>
       <ChampTexte
-        libelle="Un détail pour te trouver"
-        mention="facultatif"
+        libelle={T.detailLibelle}
+        mention={T.facultatif}
         valeur={detail}
         onChangeTexte={setDetail}
-        placeholder="Table 12, pull vert…"
+        placeholder={T.detailPlaceholder}
+        aide={T.detailAide || undefined}
         maxLength={LONGUEUR_MAX_DETAIL_ALERTE}
       />
       <Bouton
-        libelle={envoi ? "Envoi…" : "Envoyer en silence"}
+        libelle={envoi ? T.envoi : T.envoyer}
         variante="encre"
         desactive={endroit === null || envoi}
-        indice={endroit === null ? "Dis d'abord où tu es" : "L'alerte part sur les téléphones de l'équipe du lieu"}
+        indice={endroit === null ? T.indiceEndroit : T.indiceEnvoyer}
         onPress={() => void envoyer()}
       />
-      <Text className="text-center font-texte text-sm leading-5 text-gris">{SOUCI_EQUIPE}</Text>
+      <Text className="text-center font-texte text-sm leading-5 text-gris">{lierPonctuation(T.souciEquipe)}</Text>
     </View>
   );
 }

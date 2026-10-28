@@ -1,10 +1,11 @@
 import { useRouter } from "expo-router";
 import { Pressable, Text, useWindowDimensions, View, type PressableProps } from "react-native";
 
+import { formaterHeureLangue } from "@sos-miam/commun/fonctions/langue/formater-heure-langue";
 import { lieuEvoqueAlcool } from "@sos-miam/commun/fonctions/prevention/lieu-evoque-alcool";
 import { VignetteLieu } from "~/composants/explorer/VignetteLieu";
 import { Bouton } from "~/composants/interface/Bouton";
-import { formaterHeure } from "~/fonctions/dates/formater-heure";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { estSosEnCours } from "~/fonctions/lieux/est-sos-en-cours";
@@ -12,9 +13,11 @@ import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-l
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -35,6 +38,8 @@ type Props = {
 export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, actionsLecteur }: Props) {
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const { trouverConversation } = utiliserConversations();
   const monId = utiliserMonId();
   const { trouverLieu } = utiliserLieux();
@@ -46,7 +51,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
   if (!lieu) {
     return (
       <Pressable
-        accessibilityLabel={`${contexte} : un lieu qui n'est plus disponible`}
+        accessibilityLabel={T.lieuIndisponibleLu(contexte)}
         onLongPress={() => {
           vibrerLegerement();
           onAppuiLong();
@@ -59,15 +64,16 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
           🗺️
         </Text>
-        <Text className="flex-1 font-texte text-sm leading-5 text-gris">{lierPonctuation("Ce lieu s'est perdu en route : il n'est plus dans l'app.")}</Text>
+        <Text className="flex-1 font-texte text-sm leading-5 text-gris">{lierPonctuation(T.lieuPerdu)}</Text>
       </Pressable>
     );
   }
 
   const conversation = trouverConversation(conversationId);
   const participants = conversation?.participants ?? [monId];
-  const sos = lieu.sos && estSosEnCours(lieu) ? `${lieu.sos.places} place${lieu.sos.places > 1 ? "s" : ""} jusqu'à ${formaterHeure(lieu.sos.jusqua)}` : null;
-  const lu = [`${contexte} : un lieu partagé`, `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}`, sos ? `SOS : ${sos}` : lieu.alerte].filter(Boolean).join(". ");
+  const [heuresSos, minutesSos] = (lieu.sos?.jusqua ?? "").split(":").map(Number);
+  const sos = lieu.sos && estSosEnCours(lieu) ? T.sosPlaces(lieu.sos.places, formaterHeureLangue(heuresSos, minutesSos, langue)) : null;
+  const lu = [T.lieuPartageLu(contexte), `${lieu.nom}, ${lieu.info}, ${ecrireQuartierVille(lieu)}`, sos ? T.sosLu(sos) : lieu.alerte].filter(Boolean).join(". ");
 
   function partir() {
     if (!lieu) return;
@@ -80,7 +86,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={lu}
-        accessibilityHint="Ouvre la fiche du lieu"
+        accessibilityHint={T.ouvreFiche}
         onPress={() => {
           vibrerLegerement();
           router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } });
@@ -118,7 +124,7 @@ export function CarteLieuChat({ conversationId, lieuId, contexte, onAppuiLong, a
         </View>
       </Pressable>
       <View className="px-3.5 pb-3.5 pt-2">
-        <Bouton petit libelle={lierPonctuation("On y va ?")} onPress={partir} indice="Prépare une sortie à ce lieu avec les potes de la conversation" />
+        <Bouton petit libelle={lierPonctuation(T.onYVa)} onPress={partir} indice={T.onYVaIndice} />
       </View>
     </View>
   );

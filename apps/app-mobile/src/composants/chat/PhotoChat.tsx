@@ -5,9 +5,12 @@ import { Keyboard, Platform, Pressable, Text, useWindowDimensions, type Pressabl
 import { useReducedMotion } from "react-native-reanimated";
 
 import { VisionneusePhotosChat } from "~/composants/chat/VisionneusePhotosChat";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_MEDIAS_CHAT_PAR_LANGUE } from "~/contenus/textes-medias-chat";
 import type { MessageChatEnrichi } from "~/contenus/type-discussion-chat";
 import { lireSourcePhotoChat } from "~/fonctions/chat/lire-source-photo-chat";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -50,6 +53,8 @@ function existeEncore(fichier: string): boolean {
  */
 export function PhotoChat({ conversationId, message, prenom, fichier, libelle, deMoi, onAppuiLong, onDoubleAppui, actionsLecteur }: Props) {
   const { width } = useWindowDimensions();
+  const T = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
+  const T_MEDIAS = utiliserTextes(TEXTES_MEDIAS_CHAT_PAR_LANGUE);
   const animationsReduites = useReducedMotion();
   const present = useMemo(() => !!fichier && existeEncore(fichier), [fichier]);
   const [illisible, setIllisible] = useState(false);
@@ -62,7 +67,7 @@ export function PhotoChat({ conversationId, message, prenom, fichier, libelle, d
   if (!fichier || !present || illisible) {
     return (
       <Pressable
-        accessibilityLabel={`${libelle} : partie en vacances, elle ne s'affiche plus`}
+        accessibilityLabel={T.photoPartieLu(libelle)}
         onLongPress={() => {
           vibrerLegerement();
           onAppuiLong();
@@ -75,7 +80,7 @@ export function PhotoChat({ conversationId, message, prenom, fichier, libelle, d
         <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-3xl">
           📷
         </Text>
-        <Text className="text-center font-texte-semi text-sm text-gris">Photo partie en vacances</Text>
+        <Text className="text-center font-texte-semi text-sm text-gris">{T_MEDIAS.photoPartie}</Text>
       </Pressable>
     );
   }
@@ -85,7 +90,7 @@ export function PhotoChat({ conversationId, message, prenom, fichier, libelle, d
       <Pressable
         accessibilityRole="imagebutton"
         accessibilityLabel={libelle}
-        accessibilityHint="Ouvre la photo en grand"
+        accessibilityHint={T.ouvrePhoto}
         onPress={() => {
           vibrerLegerement();
           // Le clavier resterait par-dessus la photo en grand

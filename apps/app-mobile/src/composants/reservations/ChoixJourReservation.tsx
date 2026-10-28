@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef } from "react";
 import { Platform, Pressable, ScrollView, Text } from "react-native";
 
 import type { JourReservation } from "@sos-miam/commun/types/reglages-reservations";
-import { SANS_CRENEAU } from "~/contenus/textes-reserver-table";
+import { CARTE_RESERVATION_PAR_LANGUE } from "~/contenus/textes-reservations-client";
+import { SANS_CRENEAU_PAR_LANGUE } from "~/contenus/textes-reserver-table";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireJourReservation } from "~/fonctions/reservations/decrire-jour-reservation";
 import { lireRaisonSansCreneau } from "~/fonctions/reservations/lire-raison-sans-creneau";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   jours: readonly JourReservation[];
@@ -27,6 +30,9 @@ function lireCouleurs(choisi: boolean, sansCreneau: boolean) {
 
 export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: Props) {
   const ios = Platform.OS === "ios";
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(CARTE_RESERVATION_PAR_LANGUE);
+  const sansCreneau = utiliserTextes(SANS_CRENEAU_PAR_LANGUE);
   const rangee = useRef<ScrollView>(null);
   const decalage = useRef(0);
   const largeurVisible = useRef(0);
@@ -65,12 +71,12 @@ export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: P
       contentContainerClassName="gap-2 px-5 py-1"
     >
       {jours.map((jour, index) => {
-        const decrit = decrireJourReservation(jour.jour, aujourdhui);
+        const decrit = decrireJourReservation(jour.jour, aujourdhui, langue);
         const raison = lireRaisonSansCreneau(jour.etat);
         const estChoisi = jour.jour === choisi;
         const couleurs = lireCouleurs(estChoisi, raison !== null);
-        const etat = raison ? `, ${SANS_CRENEAU[raison].lu}` : "";
-        const place = ios ? `, ${index + 1} sur ${jours.length}` : "";
+        const etat = raison ? `, ${sansCreneau[raison].lu}` : "";
+        const place = ios ? T.jourPlace(index + 1, jours.length) : "";
         return (
           <Pressable
             key={jour.jour}
@@ -90,7 +96,7 @@ export function ChoixJourReservation({ jours, aujourdhui, choisi, onChoisir }: P
               {decrit.numero}
             </Text>
             <Text numberOfLines={1} maxFontSizeMultiplier={AGRANDISSEMENT_MAX} className={`font-texte text-[11px] ${couleurs.bas}`}>
-              {raison ? SANS_CRENEAU[raison].court : decrit.mois}
+              {raison ? sansCreneau[raison].court : decrit.mois}
             </Text>
           </Pressable>
         );

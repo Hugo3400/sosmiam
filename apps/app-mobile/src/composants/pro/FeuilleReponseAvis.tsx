@@ -6,8 +6,9 @@ import { REPONSE_LIEU_MAX } from "@sos-miam/commun/regles/avis";
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
 import { FeuilleBas } from "~/composants/interface/FeuilleBas";
-import { TEXTES_AVIS_PRO } from "~/contenus/textes-avis-pro";
+import { TEXTES_AVIS_PRO_PAR_LANGUE } from "~/contenus/textes-avis-pro";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -19,9 +20,8 @@ type Props = {
   onFermer: () => void;
 };
 
-const T = TEXTES_AVIS_PRO;
-
 export function FeuilleReponseAvis({ visible, signature, enCours, motRefuse, onPublier, onChanger, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_AVIS_PRO_PAR_LANGUE);
   const [texte, setTexte] = useState("");
   const vide = texte.trim().length === 0;
   const fermer = () => {

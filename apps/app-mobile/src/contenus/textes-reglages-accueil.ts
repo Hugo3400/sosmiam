@@ -1,0 +1,46 @@
+import type { ParLangue, Traduction } from "@sos-miam/commun/types/traduction";
+import { TEXTES_REGLAGES_ACCUEIL_ANGLAIS } from "~/contenus/anglais/textes-reglages-accueil";
+
+export const TEXTES_REGLAGES_ACCUEIL = {
+  lienRateTitre: "Oups, ça ne veut pas s'ouvrir",
+  lienRateTexte: (adresse: string) => `Ton téléphone n'a pas réussi à ouvrir ce lien. Tu peux aussi nous écrire à ${adresse}.`,
+  bloquesEnLecture: "Les gens dont tu ne veux plus rien voir",
+  bloquesAucun: "Personne pour l'instant, que des bonnes ondes",
+  bloques: (n: number) => `${n} personne${n > 1 ? "s" : ""} bloquée${n > 1 ? "s" : ""} · tu peux changer d'avis`,
+  confidentialiteAvecBande: (etat: string) => `${etat} · qui te trouve, ce que voit ta bande`,
+  confidentialiteEnLecture: "Qui peut te suivre sans demander",
+  confidentialitePrive: "Activé : chaque abonné te demande d'abord",
+  confidentialitePublic: "Désactivé : tout le monde peut te suivre",
+  effacementRateTitre: "Oups, ça a coincé",
+  effacementRateTexte: "Une partie de tes données n'a pas pu être effacée. Réessaie dans un instant.",
+  effacerTitre: "Tout effacer et recommencer ?",
+  effacerTexte:
+    "Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements et tes réglages de notifications vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.",
+  annuler: "Annuler",
+  toutEffacer: "Tout effacer",
+  monCompte: "Mon compte",
+  monCompteDetail: (email: string, verifie: boolean) => `${email}${verifie ? "" : " · e-mail à confirmer"}`,
+  monCompteDetailEnLecture: "E-mail, mot de passe, déconnexion",
+  notifications: "Mes notifications",
+  notificationsDetail: "Les alertes qui t'intéressent, et du calme la nuit",
+  messages: "Messages",
+  messagesDetail: "Le « Vu », et ce que disent tes notifications",
+  confidentialite: "Confidentialité",
+  comptePrive: "Compte privé",
+  personnesBloquees: "Personnes bloquées",
+  decisions: "Décisions de la modération",
+  decisionsDetail: "Ce que l'équipe a décidé sur tes contenus et tes signalements",
+  nousEcrire: "Nous écrire",
+  nousEcrireDetail: (adresse: string) => `Une question, une idée, un bug : ${adresse}`,
+  sante: "Santé et prévention",
+  santeDetail: "L'alcool, la route, manger-bouger, et où trouver de l'aide",
+  politiqueConfidentialite: "Politique de confidentialité",
+  politiqueConfidentialiteDetail: "Ce qu'on garde, pourquoi, et tes droits",
+  conditions: "Conditions d'utilisation",
+  conditionsDetail: "Les règles du jeu, noir sur blanc",
+  mentionsLegales: "Mentions légales",
+  mentionsLegalesDetail: "Qui se cache derrière SOS Miam",
+  version: (version: string) => `SOS Miam · version ${version}`,
+} as const;
+
+export const TEXTES_REGLAGES_ACCUEIL_PAR_LANGUE: ParLangue<Traduction<typeof TEXTES_REGLAGES_ACCUEIL>> = { fr: TEXTES_REGLAGES_ACCUEIL, en: TEXTES_REGLAGES_ACCUEIL_ANGLAIS };

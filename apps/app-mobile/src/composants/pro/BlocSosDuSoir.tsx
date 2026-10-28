@@ -11,9 +11,12 @@ import { CompteurPlusMoins } from "~/composants/interface/CompteurPlusMoins";
 import { FeuilleConfirmation } from "~/composants/interface/FeuilleConfirmation";
 import { ChoixFin } from "~/composants/pro/ChoixFin";
 import { ZoneClaire } from "~/composants/theme/ZoneClaire";
-import { ecrireHeure } from "~/fonctions/dates/ecrire-heure";
+import { TEXTES_SOS_DU_SOIR_PAR_LANGUE } from "~/contenus/textes-blocs-ce-soir";
+import { ecrireHeureLangue } from "~/fonctions/langue/ecrire-heure-langue";
 import { listerFinsCeSoir } from "~/fonctions/pro/lister-fins-ce-soir";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type ChampSos = "places" | "offre" | "jusqua";
 
@@ -29,20 +32,22 @@ type Props = {
   refusArreter: string | null;
 };
 
-const ERREURS: Record<ChampSos, string> = {
-  places: `Entre ${SOS_PLACES_MIN} et ${SOS_PLACES_MAX} places.`,
-  offre: `${SOS_OFFRE_MAX} caractères au plus, et sans gros mot.`,
-  jusqua: "Choisis une fin, avant la fermeture de ce soir.",
-};
-
 /**
  * Le SOS « place ce soir » : un par jour, jusqu'à la fermeture (ou plus tôt). Lancé, il montre ses places, son offre et
  * jusqu'à quand, avec « Arrêter le SOS » ; arrêté ou fini, il dit qu'on se retrouve demain.
  */
 export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLancer, onArreter }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_SOS_DU_SOIR_PAR_LANGUE);
+  const erreurs: Record<ChampSos, string> = {
+    places: T.erreurPlaces(SOS_PLACES_MIN, SOS_PLACES_MAX),
+    offre: T.erreurOffre(SOS_OFFRE_MAX),
+    jusqua: T.erreurFin,
+  };
+  const heure = (instant: string) => ecrireHeureLangue(instant, langue);
   const [places, setPlaces] = useState(4);
   const [offre, setOffre] = useState("");
-  const fins = listerFinsCeSoir(new Date(), moment.fermeture);
+  const fins = listerFinsCeSoir(new Date(), moment.fermeture, langue);
   const [fin, setFin] = useState<string | null>(fins[0]?.cle ?? null);
   const [erreur, setErreur] = useState<ChampSos | null>(null);
   const [confirmation, setConfirmation] = useState<"lancer" | "arreter" | null>(null);
@@ -51,22 +56,22 @@ export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLa
   if (sos?.enCours) {
     return (
       <View className="gap-4 rounded-carte border-2 border-encre bg-jaune p-4">
-        <Text className="font-titre text-2xl text-nuit">🛟 SOS en cours</Text>
+        <Text className="font-titre text-2xl text-nuit">{T.enCoursTitre}</Text>
         <Text className="font-texte text-base leading-6 text-nuit">
-          {lierPonctuation(`${sos.places} place${sos.places > 1 ? "s" : ""} à remplir jusqu'à ${ecrireHeure(sos.jusqua)}${sos.offre ? ` · ${sos.offre}` : ""}.`)}
+          {lierPonctuation(T.enCours(sos.places, heure(sos.jusqua), sos.offre))}
         </Text>
-        <Text className="font-texte text-sm text-nuit/75">{`Lancé à ${ecrireHeure(sos.lanceLe)}${sos.lancePar ? ` par ${sos.lancePar}` : ""}. Les gourmands du coin le voient dans l'app.`}</Text>
+        <Text className="font-texte text-sm text-nuit/75">{T.lance(heure(sos.lanceLe), sos.lancePar)}</Text>
         <ZoneClaire className="gap-4">
           <RefusLimitationEnPlace texte={refusArreter} />
-          <Bouton libelle="Arrêter le SOS" variante="blanc" desactive={enCours} onPress={() => setConfirmation("arreter")} />
+          <Bouton libelle={T.arreter} variante="blanc" desactive={enCours} onPress={() => setConfirmation("arreter")} />
         </ZoneClaire>
         <FeuilleConfirmation
           visible={confirmation === "arreter"}
           emoji="🛟"
-          titre="Arrêter le SOS ?"
-          detail="Il disparaît tout de suite de l'app, et il ne se relance pas avant demain."
-          libelleConfirmer="Arrêter le SOS"
-          libelleRester="Je le garde"
+          titre={T.arreterTitre}
+          detail={T.arreterDetail}
+          libelleConfirmer={T.arreter}
+          libelleRester={T.garder}
           onConfirmer={onArreter}
           onFermer={() => setConfirmation(null)}
         />
@@ -75,11 +80,11 @@ export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLa
   }
 
   if (sos || !moment.sosPossible) {
-    const fini = sos?.arreteLe ? `arrêté à ${ecrireHeure(sos.arreteLe)}` : sos ? `fini à ${ecrireHeure(sos.jusqua)}` : "déjà lancé";
+    const fini = sos?.arreteLe ? T.arreteA(heure(sos.arreteLe)) : sos ? T.finiA(heure(sos.jusqua)) : T.dejaLance;
     return (
       <View className="gap-2 rounded-carte border-2 border-encre bg-carte p-4">
-        <Text className="font-texte-gras text-base text-encre">{`🌙 Le SOS de ce soir est ${fini}`}</Text>
-        <Text className="font-texte text-sm leading-5 text-gris">Un SOS par jour : le prochain se lance demain. Le message du moment, lui, reste à ta main.</Text>
+        <Text className="font-texte-gras text-base text-encre">{T.finiTitre(fini)}</Text>
+        <Text className="font-texte text-sm leading-5 text-gris">{T.finiDetail}</Text>
       </View>
     );
   }
@@ -94,35 +99,35 @@ export function BlocSosDuSoir({ moment, enCours, refusLimite, refusArreter, onLa
   return (
     <View className="gap-5">
       <Text className="font-texte text-base leading-6 text-gris">
-        {lierPonctuation("Des tables vides ce soir ? Lance un SOS : les gourmands du coin le voient tout de suite, avec ton offre si tu en fais une.")}
+        {lierPonctuation(T.intro)}
       </Text>
-      <Text className="-mb-3 font-texte-gras text-base text-encre">Places à remplir</Text>
-      <CompteurPlusMoins libelle="Places à remplir" valeur={places} min={SOS_PLACES_MIN} max={SOS_PLACES_MAX} unite={(n) => `${n} place${n > 1 ? "s" : ""}`} onChanger={setPlaces} />
-      {erreur === "places" ? <Text className="font-texte text-sm text-rouge-texte">{ERREURS.places}</Text> : null}
+      <Text className="-mb-3 font-texte-gras text-base text-encre">{T.places}</Text>
+      <CompteurPlusMoins libelle={T.places} valeur={places} min={SOS_PLACES_MIN} max={SOS_PLACES_MAX} unite={T.unite} onChanger={setPlaces} />
+      {erreur === "places" ? <Text className="font-texte text-sm text-rouge-texte">{erreurs.places}</Text> : null}
       <ChampTexte
-        libelle="Une petite offre ?"
-        mention="facultatif"
+        libelle={T.offre}
+        mention={T.facultatif}
         valeur={offre}
         onChangeTexte={(t) => {
           setOffre(t);
           if (erreur === "offre") setErreur(null);
         }}
         maxLength={SOS_OFFRE_MAX}
-        placeholder="Un tiramisu offert"
+        placeholder={T.offreExemple}
         aide={`${offre.length}/${SOS_OFFRE_MAX}`}
-        erreur={erreur === "offre" ? ERREURS.offre : null}
+        erreur={erreur === "offre" ? erreurs.offre : null}
       />
-      <ChoixFin libelle="Jusqu'à quand ?" choix={fins} choisi={fin} onChoisir={setFin} />
-      {erreur === "jusqua" ? <Text className="font-texte text-sm text-rouge-texte">{ERREURS.jusqua}</Text> : null}
+      <ChoixFin libelle={T.jusquaQuand} choix={fins} choisi={fin} onChoisir={setFin} />
+      {erreur === "jusqua" ? <Text className="font-texte text-sm text-rouge-texte">{erreurs.jusqua}</Text> : null}
       <RefusLimitationEnPlace texte={refusLimite} />
-      <Bouton libelle="Lancer le SOS" variante="encre" desactive={enCours || !choixFin} onPress={() => setConfirmation("lancer")} />
+      <Bouton libelle={T.lancer} variante="encre" desactive={enCours || !choixFin} onPress={() => setConfirmation("lancer")} />
       <FeuilleConfirmation
         visible={confirmation === "lancer"}
         emoji="🛟"
-        titre="On lance le SOS ?"
-        detail={`${places} place${places > 1 ? "s" : ""}, ${choixFin?.libelle.toLowerCase() ?? ""}. Un seul SOS par jour : même arrêté, il ne se relance pas avant demain.`}
-        libelleConfirmer="C'est parti"
-        libelleRester="Pas encore"
+        titre={T.lancerTitre}
+        detail={T.lancerDetail(places, choixFin?.libelle ?? "")}
+        libelleConfirmer={T.confirmer}
+        libelleRester={T.rester}
         onConfirmer={() => void lancer()}
         onFermer={() => setConfirmation(null)}
       />

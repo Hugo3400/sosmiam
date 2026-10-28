@@ -3,11 +3,14 @@ import { useEffect } from "react";
 import { AccessibilityInfo, Text, View } from "react-native";
 
 import type { Pote } from "@sos-miam/commun/types/potes";
+import type { Traduction } from "@sos-miam/commun/types/traduction";
 import type { ResultatAjoutBande } from "~/hooks/utiliser-communaute";
 import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
-import { CARTE_REFUS_LIMITATION, REFUS_LIMITATION } from "~/contenus/limitation-compte";
+import { CARTE_REFUS_LIMITATION_PAR_LANGUE, REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { TEXTES_AJOUT_POTE_PAR_LANGUE, type TEXTES_AJOUT_POTE } from "~/contenus/textes-ajout-pote";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Ce qui s'est passé après un scan ou un texte collé (lien d'invitation, ou pseudo seul) */
 export type RetourAjout = ResultatAjoutBande | { type: "pas-invitation" };
@@ -16,38 +19,40 @@ type Props = {
   retour: RetourAjout;
 };
 
-const decrire = (retour: RetourAjout): { emoji: string; titre: string; detail: string } => {
+type TextesRetour = Traduction<typeof TEXTES_AJOUT_POTE>["retour"];
+
+const decrire = (retour: RetourAjout, T: TextesRetour, limitation: { emoji: string; titre: string; detail: string }): { emoji: string; titre: string; detail: string } => {
   switch (retour.type) {
     case "ajoute":
-      return { emoji: "🎉", titre: `${retour.pote.prenom} a rejoint ta bande !`, detail: "Vous pouvez maintenant organiser des sorties et vous envoyer des lieux." };
+      return { emoji: "🎉", titre: T.ajoute.titre(retour.pote.prenom), detail: T.ajoute.detail };
     case "deja":
-      return { emoji: "😄", titre: `${retour.pote.prenom} est déjà dans ta bande`, detail: "On ne peut pas l'ajouter deux fois, même un pote en or." };
+      return { emoji: "😄", titre: T.deja.titre(retour.pote.prenom), detail: T.deja.detail };
     case "demande":
       return retour.pote
-        ? { emoji: "📨", titre: `Demande envoyée à ${retour.pote.prenom}`, detail: "Dès qu'elle est acceptée, vous êtes dans la même bande. Avec son lien ou son QR code, c'est immédiat !" }
-        : { emoji: "📨", titre: "Demande envoyée", detail: "Dès qu'elle est acceptée, vous êtes dans la même bande." };
+        ? { emoji: "📨", titre: T.demande.titre(retour.pote.prenom), detail: T.demande.detail }
+        : { emoji: "📨", titre: T.demandeSansPote.titre, detail: T.demandeSansPote.detail };
     case "bloque":
-      return { emoji: "🚫", titre: `Tu as bloqué ${retour.pote.prenom}`, detail: "Tant que cette personne est bloquée, elle ne rejoint pas ta bande. Tu peux changer d'avis depuis son profil." };
+      return { emoji: "🚫", titre: T.bloque.titre(retour.pote.prenom), detail: T.bloque.detail };
     case "introuvable":
-      return { emoji: "🔍", titre: `On ne trouve pas @${retour.pseudo}`, detail: "Vérifie l'orthographe, ou demande-lui plutôt son lien ou son QR code (dans Potes, « Ajouter un pote »)." };
+      return { emoji: "🔍", titre: T.introuvable.titre(retour.pseudo), detail: T.introuvable.detail };
     case "demandes-fermees":
       return {
         emoji: "🔒",
-        titre: retour.pote ? `${retour.pote.prenom} ne reçoit pas de demandes` : "Cette personne ne reçoit pas de demandes",
-        detail: "Elle a choisi qu'on ne la trouve pas par son pseudo. Pour rejoindre sa bande, demande-lui son lien ou son QR code !",
+        titre: retour.pote ? T.demandesFermees.titre(retour.pote.prenom) : T.demandesFermees.titreSansPote,
+        detail: T.demandesFermees.detail,
       };
     case "lien-change":
-      return { emoji: "🔄", titre: "Ce lien a changé", detail: "Ton pote a changé de pseudo depuis : demande-lui son nouveau lien, ou son QR code." };
+      return { emoji: "🔄", titre: T.lienChange.titre, detail: T.lienChange.detail };
     case "invitation-invalide":
-      return { emoji: "🔗", titre: "Ce lien ne marche plus", detail: "Ton pote a peut-être changé son lien. Demande-lui le nouveau, ou son QR code : c'est réglé en 2 secondes." };
+      return { emoji: "🔗", titre: T.invitationInvalide.titre, detail: T.invitationInvalide.detail };
     case "erreur":
       // Compte limité : pas une panne, rien à réessayer (l'annonce de toute l'app dit où lire le pourquoi)
-      if (retour.erreur === "compte-limite") return { emoji: CARTE_REFUS_LIMITATION.emoji, titre: CARTE_REFUS_LIMITATION.titreAjout, detail: REFUS_LIMITATION.bande };
-      return { emoji: "😕", titre: "Ça n'a pas marché cette fois", detail: "Réessaie dans un instant. Si ça continue, demande à ton pote de te remontrer son QR code." };
+      if (retour.erreur === "compte-limite") return limitation;
+      return { emoji: "😕", titre: T.erreur.titre, detail: T.erreur.detail };
     case "pas-invitation":
-      return { emoji: "🤔", titre: "Ce n'est pas une invitation SOS Miam", detail: "Demande à ton pote son QR code, dans Potes puis « Ajouter un pote ». Ou colle son lien, il commence par sosmiam.fr/invitation/." };
+      return { emoji: "🤔", titre: T.pasInvitation.titre, detail: T.pasInvitation.detail };
     case "toi":
-      return { emoji: "🪞", titre: "Hé, mais c'est toi !", detail: "Joli, mais tu fais déjà partie de ta bande. Montre plutôt ton QR code à un pote." };
+      return { emoji: "🪞", titre: T.toi.titre, detail: T.toi.detail };
   }
 };
 
@@ -57,7 +62,10 @@ const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}\u{200D}]/gu;
 /** La réponse après un scan ou un texte collé : ajouté, déjà là, bloqué, introuvable… annoncée au lecteur d'écran, avec « Voir son profil » quand on connaît la personne. */
 export function RetourAjoutPote({ retour }: Props) {
   const router = useRouter();
-  const { emoji, titre, detail } = decrire(retour);
+  const T = utiliserTextes(TEXTES_AJOUT_POTE_PAR_LANGUE).retour;
+  const CARTE_REFUS = utiliserTextes(CARTE_REFUS_LIMITATION_PAR_LANGUE);
+  const REFUS = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const { emoji, titre, detail } = decrire(retour, T, { emoji: CARTE_REFUS.emoji, titre: CARTE_REFUS.titreAjout, detail: REFUS.bande });
   const pote = "pote" in retour ? retour.pote : null;
   const reussi = retour.type === "ajoute" || retour.type === "demande";
 
@@ -86,10 +94,10 @@ export function RetourAjoutPote({ retour }: Props) {
       </View>
       {pote ? (
         <Bouton
-          libelle="Voir son profil"
+          libelle={T.voirProfil}
           variante="blanc"
           petit
-          indice={`Ouvre le profil de ${pote.prenom}`}
+          indice={T.voirProfilIndice(pote.prenom)}
           onPress={() => router.push({ pathname: "/potes/profil/[id]", params: { id: pote.id } })}
         />
       ) : null}

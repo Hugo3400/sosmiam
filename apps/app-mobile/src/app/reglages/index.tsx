@@ -15,7 +15,8 @@ import { LigneReglage } from "~/composants/reglages/LigneReglage";
 import { SectionReglages } from "~/composants/reglages/SectionReglages";
 import { SectionTesDonnees } from "~/composants/reglages/SectionTesDonnees";
 import { TEXTES_LANGUE_PAR_LANGUE } from "~/contenus/textes-langue";
-import { TEXTES_PARAMETRES as T } from "~/contenus/textes-parametres";
+import { TEXTES_PARAMETRES_PAR_LANGUE } from "~/contenus/textes-parametres";
+import { TEXTES_REGLAGES_ACCUEIL_PAR_LANGUE } from "~/contenus/textes-reglages-accueil";
 import { TEXTES_THEMES_SAISON_APP_PAR_LANGUE } from "~/contenus/textes-themes-saison-app";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserEffacementLocal } from "~/hooks/utiliser-effacement-local";
@@ -31,16 +32,18 @@ import { utiliserTheme } from "~/hooks/utiliser-theme";
 const ADRESSE_CONTACT = "bonjour@sosmiam.fr";
 
 /** Ouvre une page web ou l'appli Mail ; si le téléphone n'y arrive pas, on le dit gentiment (Alert n'existe pas sur le web). */
-function ouvrirLien(adresse: string) {
+function ouvrirLien(adresse: string, textes: { lienRateTitre: string; lienRateTexte: (adresse: string) => string }) {
   Linking.openURL(adresse).catch(() => {
     if (Platform.OS !== "web") {
-      Alert.alert("Oups, ça ne veut pas s'ouvrir", `Ton téléphone n'a pas réussi à ouvrir ce lien. Tu peux aussi nous écrire à ${ADRESSE_CONTACT}.`);
+      Alert.alert(textes.lienRateTitre, textes.lienRateTexte(ADRESSE_CONTACT));
     }
   });
 }
 
 export default function Parametres() {
   const router = useRouter();
+  const T = utiliserTextes(TEXTES_PARAMETRES_PAR_LANGUE);
+  const TA = utiliserTextes(TEXTES_REGLAGES_ACCUEIL_PAR_LANGUE);
   const { reglage: reglageApparence } = utiliserTheme();
   const { reglage: reglageLangue } = utiliserLangue();
   const TL = utiliserTextes(TEXTES_LANGUE_PAR_LANGUE);
@@ -61,20 +64,20 @@ export default function Parametres() {
 
   const nombreBloques = communaute.bloques.length;
   const detailBloques = !communaute.pret
-    ? "Les gens dont tu ne veux plus rien voir"
+    ? TA.bloquesEnLecture
     : nombreBloques === 0
-      ? "Personne pour l'instant, que des bonnes ondes"
-      : `${nombreBloques} personne${nombreBloques > 1 ? "s" : ""} bloquée${nombreBloques > 1 ? "s" : ""} · tu peux changer d'avis`;
+      ? TA.bloquesAucun
+      : TA.bloques(nombreBloques);
 
   // Avec un compte, l'écran règle aussi « Ta bande » (qui te trouve, ce que voit ta bande)
   const avecTaBande = suivisPersonnes.source === "compte";
   const detailConfidentialite = avecTaBande
-    ? `${suivisPersonnes.pret ? (suivisPersonnes.comptePrive ? "Compte privé" : "Compte public") : "Compte privé ou public"} · qui te trouve, ce que voit ta bande`
+    ? TA.confidentialiteAvecBande(suivisPersonnes.pret ? (suivisPersonnes.comptePrive ? T.securite.comptePrive : T.securite.comptePublic) : T.securite.compteEnLecture)
     : !suivisPersonnes.pret
-      ? "Qui peut te suivre sans demander"
+      ? TA.confidentialiteEnLecture
       : suivisPersonnes.comptePrive
-        ? "Activé : chaque abonné te demande d'abord"
-        : "Désactivé : tout le monde peut te suivre";
+        ? TA.confidentialitePrive
+        : TA.confidentialitePublic;
 
   const etatCompte = !suivisPersonnes.pret ? T.securite.compteEnLecture : suivisPersonnes.comptePrive ? T.securite.comptePrive : T.securite.comptePublic;
   const resumeSecurite = `${etatCompte} · ${communaute.pret ? T.securite.bloques(nombreBloques) : T.securite.bloquesEnLecture}`;
@@ -92,21 +95,17 @@ export default function Parametres() {
       : undefined;
     // Sans profil, l'app repart toute seule à la bienvenue ; un échec est dit (Alert n'existe pas sur le web)
     if (!(await effacement.toutEffacer(fermerSession)) && Platform.OS !== "web") {
-      Alert.alert("Oups, ça a coincé", "Une partie de tes données n'a pas pu être effacée. Réessaie dans un instant.");
+      Alert.alert(TA.effacementRateTitre, TA.effacementRateTexte);
     }
   }
 
   function demanderEffacement() {
     // Sur le web (aperçu de développement), Alert n'existe pas : on efface directement
     if (Platform.OS === "web") return void toutEffacer();
-    Alert.alert(
-      "Tout effacer et recommencer ?",
-      `Ton profil, ton avatar, tes rescousses, tes lieux gardés, tes J'aime, tes abonnés et abonnements, tes notifications, tes signalements et tes réglages de notifications vont disparaître de ce téléphone. Tu repartiras de la bienvenue, comme au premier jour.`,
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Tout effacer", style: "destructive", onPress: () => void toutEffacer() },
-      ],
-    );
+    Alert.alert(TA.effacerTitre, TA.effacerTexte, [
+      { text: TA.annuler, style: "cancel" },
+      { text: TA.toutEffacer, style: "destructive", onPress: () => void toutEffacer() },
+    ]);
   }
 
   return (
@@ -116,19 +115,19 @@ export default function Parametres() {
           {connecte ? (
             <LigneReglage
               emoji="🔑"
-              titre="Mon compte"
-              detail={compte ? `${compte.email}${compte.emailVerifie ? "" : " · e-mail à confirmer"}` : "E-mail, mot de passe, déconnexion"}
+              titre={TA.monCompte}
+              detail={compte ? TA.monCompteDetail(compte.email, compte.emailVerifie) : TA.monCompteDetailEnLecture}
               onPress={() => router.push("/reglages/compte")}
             />
           ) : null}
           <LigneReglage
             emoji="🔔"
-            titre="Mes notifications"
-            detail="Les alertes qui t'intéressent, et du calme la nuit"
+            titre={TA.notifications}
+            detail={TA.notificationsDetail}
             onPress={() => router.push("/reglages/notifications")}
           />
           {avecMessages ? (
-            <LigneReglage emoji="💬" titre="Messages" detail="Le « Vu », et ce que disent tes notifications" onPress={() => router.push("/reglages/messages")} />
+            <LigneReglage emoji="💬" titre={TA.messages} detail={TA.messagesDetail} onPress={() => router.push("/reglages/messages")} />
           ) : null}
         </SectionReglages>
 
@@ -146,16 +145,16 @@ export default function Parametres() {
         <SectionReglages titre={T.securite.titre} section="parametres-securite" resume={resumeSecurite}>
           <LigneReglage
             emoji="🔒"
-            titre={avecTaBande ? "Confidentialité" : "Compte privé"}
+            titre={avecTaBande ? TA.confidentialite : TA.comptePrive}
             detail={detailConfidentialite}
             onPress={() => router.push("/reglages/confidentialite")}
           />
-          <LigneReglage emoji="🚫" titre="Personnes bloquées" detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
+          <LigneReglage emoji="🚫" titre={TA.personnesBloquees} detail={detailBloques} onPress={() => router.push("/reglages/personnes-bloquees")} />
           {connecte ? (
             <LigneReglage
               emoji="🧑‍⚖️"
-              titre="Décisions de la modération"
-              detail="Ce que l'équipe a décidé sur tes contenus et tes signalements"
+              titre={TA.decisions}
+              detail={TA.decisionsDetail}
               onPress={() => router.push("/reglages/decisions-moderation")}
             />
           ) : null}
@@ -164,51 +163,51 @@ export default function Parametres() {
         <SectionReglages titre={T.vie.titre} section="parametres-vie" resume={T.vie.resume}>
           <LigneReglage emoji="🎉" titre={T.vie.nouveautes} detail={T.vie.nouveautesDetail} onPress={() => router.push("/reglages/nouveautes")} />
           <LigneReglage emoji="💡" titre={T.vie.boiteIdees} detail={T.vie.boiteIdeesDetail} onPress={() => router.push("/potes/miamis/idees")} />
-          <LigneReglage emoji="🧑‍🍳" titre={T.vie.onRecrute} detail={T.vie.onRecruteDetail} role="lien" onPress={() => ouvrirLien("https://sosmiam.fr/carriere")} />
-          <LigneReglage emoji="🐞" titre={T.vie.chasseAuxBugs} detail={T.vie.chasseAuxBugsDetail} role="lien" onPress={() => ouvrirLien("https://sosmiam.fr/securite")} />
+          <LigneReglage emoji="🧑‍🍳" titre={T.vie.onRecrute} detail={T.vie.onRecruteDetail} role="lien" onPress={() => ouvrirLien("https://sosmiam.fr/carriere", TA)} />
+          <LigneReglage emoji="🐞" titre={T.vie.chasseAuxBugs} detail={T.vie.chasseAuxBugsDetail} role="lien" onPress={() => ouvrirLien("https://sosmiam.fr/securite", TA)} />
           <LigneReglage
             emoji="💌"
-            titre="Nous écrire"
-            detail={`Une question, une idée, un bug\u00a0: ${ADRESSE_CONTACT}`}
+            titre={TA.nousEcrire}
+            detail={TA.nousEcrireDetail(ADRESSE_CONTACT)}
             role="lien"
-            onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`)}
+            onPress={() => ouvrirLien(`mailto:${ADRESSE_CONTACT}`, TA)}
           />
         </SectionReglages>
 
         <SectionReglages titre={T.aide.titre} section="parametres-aide" resume={T.aide.resume}>
           <LigneReglage
             emoji="🩺"
-            titre="Santé et prévention"
-            detail="L'alcool, la route, manger-bouger, et où trouver de l'aide"
+            titre={TA.sante}
+            detail={TA.santeDetail}
             role="lien"
-            onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION)}
+            onPress={() => ouvrirLien(ADRESSE_PAGE_PREVENTION, TA)}
           />
           <LigneReglage
             emoji="🔐"
-            titre="Politique de confidentialité"
-            detail="Ce qu'on garde, pourquoi, et tes droits"
+            titre={TA.politiqueConfidentialite}
+            detail={TA.politiqueConfidentialiteDetail}
             role="lien"
-            onPress={() => ouvrirLien("https://sosmiam.fr/confidentialite")}
+            onPress={() => ouvrirLien("https://sosmiam.fr/confidentialite", TA)}
           />
           <LigneReglage
             emoji="📜"
-            titre="Conditions d'utilisation"
-            detail="Les règles du jeu, noir sur blanc"
+            titre={TA.conditions}
+            detail={TA.conditionsDetail}
             role="lien"
-            onPress={() => ouvrirLien("https://sosmiam.fr/cgu")}
+            onPress={() => ouvrirLien("https://sosmiam.fr/cgu", TA)}
           />
           <LigneReglage
             emoji="⚖️"
-            titre="Mentions légales"
-            detail="Qui se cache derrière SOS Miam"
+            titre={TA.mentionsLegales}
+            detail={TA.mentionsLegalesDetail}
             role="lien"
-            onPress={() => ouvrirLien("https://sosmiam.fr/mentions-legales")}
+            onPress={() => ouvrirLien("https://sosmiam.fr/mentions-legales", TA)}
           />
         </SectionReglages>
 
         <SectionTesDonnees connecte={connecte} onEffacer={demanderEffacement} onAnnoncer={annoncer} />
 
-        {version ? <Text className="text-center font-texte text-xs text-gris">SOS Miam · version {version}</Text> : null}
+        {version ? <Text className="text-center font-texte text-xs text-gris">{TA.version(version)}</Text> : null}
       </EcranReglage>
       <Annonce annonce={annonce} haut={marges.top + 60} onFin={finAnnonce} />
     </View>

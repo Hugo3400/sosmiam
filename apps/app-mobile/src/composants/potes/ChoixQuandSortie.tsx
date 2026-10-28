@@ -7,8 +7,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { ChampTexte } from "~/composants/interface/ChampTexte";
+import { TEXTES_CHOIX_SORTIE_PAR_LANGUE } from "~/contenus/textes-choix-sortie";
 import { formaterSaisieDate } from "~/fonctions/dates/formater-saisie-date";
 import { lireDateSaisie } from "~/fonctions/dates/lire-date-saisie";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTheme } from "~/hooks/utiliser-theme";
 
 type Props = {
@@ -51,6 +53,7 @@ const formaterSaisieHeure = (texte: string) => {
  */
 export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Props) {
   const { couleurs, schema } = utiliserTheme();
+  const T = utiliserTextes(TEXTES_CHOIX_SORTIE_PAR_LANGUE).quand;
   const marges = useSafeAreaInsets();
   const animationsReduites = useReducedMotion();
   // Le mode reste gardé pendant que le tiroir se referme (pas de changement de titre en pleine animation)
@@ -68,8 +71,8 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
   if (Platform.OS === "web") {
     const dateLue = lireDateSaisie(saisieJour);
     const heureLue = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(saisieHeure);
-    const erreurJour = saisieJour.length === 10 && !dateLue ? "Ce jour n'existe pas, même dans nos rêves les plus gourmands." : null;
-    const erreurHeure = saisieHeure.length === 5 && !heureLue ? "Une heure entre 00:00 et 23:59, s'il te plaît." : null;
+    const erreurJour = saisieJour.length === 10 && !dateLue ? T.jourInexistant : null;
+    const erreurHeure = saisieHeure.length === 5 && !heureLue ? T.heureInvalide : null;
     const essayer = (texteJour: string, texteHeure: string) => {
       const date = lireDateSaisie(texteJour);
       const morceaux = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(texteHeure);
@@ -80,28 +83,28 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
     return (
       <View className="gap-3">
         <ChampTexte
-          libelle="Le jour"
+          libelle={T.jour}
           valeur={saisieJour}
           onChangeTexte={(texte) => {
             const miseEnForme = formaterSaisieDate(texte);
             setSaisieJour(miseEnForme);
             essayer(miseEnForme, saisieHeure);
           }}
-          placeholder="JJ/MM/AAAA"
+          placeholder={T.exempleJour}
           inputMode="numeric"
           maxLength={10}
           erreur={erreurJour}
           aide={dateLue ? jour : undefined}
         />
         <ChampTexte
-          libelle="L'heure"
+          libelle={T.heure}
           valeur={saisieHeure}
           onChangeTexte={(texte) => {
             const miseEnForme = formaterSaisieHeure(texte);
             setSaisieHeure(miseEnForme);
             essayer(saisieJour, miseEnForme);
           }}
-          placeholder="HH:MM"
+          placeholder={T.exempleHeure}
           inputMode="numeric"
           maxLength={5}
           erreur={erreurHeure ?? erreur}
@@ -119,8 +122,8 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
         is24Hour: true,
         minimumDate: mode === "date" ? debutDAujourdhui() : undefined,
         maximumDate: mode === "date" ? dansUnAn() : undefined,
-        positiveButton: { label: "Valider" },
-        negativeButton: { label: "Annuler" },
+        positiveButton: { label: T.valider },
+        negativeButton: { label: T.annuler },
         onValueChange: (_evenement, date) => onChanger(fusionner(quand, date, mode)),
       });
       return;
@@ -131,8 +134,8 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
   };
 
   const cases = [
-    { mode: "date" as const, libelle: "Jour de la sortie", valeur: jour, icone: "calendar-outline" as const, largeur: 1.6 },
-    { mode: "time" as const, libelle: "Heure de la sortie", valeur: heure, icone: "time-outline" as const, largeur: 1 },
+    { mode: "date" as const, libelle: T.caseJour, valeur: jour, icone: "calendar-outline" as const, largeur: 1.6 },
+    { mode: "time" as const, libelle: T.caseHeure, valeur: heure, icone: "time-outline" as const, largeur: 1 },
   ];
 
   return (
@@ -144,7 +147,7 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
             accessibilityRole="button"
             accessibilityLabel={c.libelle}
             accessibilityValue={{ text: c.valeur }}
-            accessibilityHint={c.mode === "date" ? "Ouvre le choix du jour" : "Ouvre le choix de l'heure"}
+            accessibilityHint={c.mode === "date" ? T.indiceJour : T.indiceHeure}
             onPress={() => ouvrir(c.mode)}
             style={{ flex: c.largeur }}
             className={`min-h-[52px] flex-row items-center justify-between gap-2 rounded-2xl border-2 bg-carte px-4 py-3 active:opacity-80 ${erreur ? "border-rouge-texte" : "border-encre"}`}
@@ -165,7 +168,7 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
       {Platform.OS === "ios" ? (
         <Modal visible={tiroirOuvert} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={() => setTiroirOuvert(false)}>
           <View className="flex-1 justify-end bg-nuit/40">
-            <Pressable accessibilityRole="button" accessibilityLabel="Fermer sans rien changer" onPress={() => setTiroirOuvert(false)} className="flex-1" />
+            <Pressable accessibilityRole="button" accessibilityLabel={T.fermerSansChanger} onPress={() => setTiroirOuvert(false)} className="flex-1" />
             <View
               accessibilityViewIsModal
               // Le geste d'échappement de VoiceOver (Z à deux doigts) referme le tiroir sans rien changer, comme « Annuler »
@@ -174,15 +177,15 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
               style={{ paddingBottom: marges.bottom + 12 }}
             >
               <Text accessibilityRole="header" className="font-titre text-2xl text-encre">
-                {tiroir === "time" ? "À quelle heure ?" : "Quel jour ?"}
+                {tiroir === "time" ? T.titreHeure : T.titreJour}
               </Text>
-              <Text className="mt-1 font-texte text-base text-gris">Fais tourner les roulettes, la bande s'occupe du reste.</Text>
+              <Text className="mt-1 font-texte text-base text-gris">{T.roulettes}</Text>
               <DateTimePicker
                 key={tiroir}
                 value={enCours}
                 mode={tiroir}
                 display="spinner"
-                locale="fr-FR"
+                locale={T.localeRoulettes}
                 minuteInterval={tiroir === "time" ? 5 : undefined}
                 minimumDate={tiroir === "date" ? debutDAujourdhui() : undefined}
                 maximumDate={tiroir === "date" ? dansUnAn() : undefined}
@@ -191,14 +194,14 @@ export function ChoixQuandSortie({ quand, onChanger, jour, heure, erreur }: Prop
                 onValueChange={(_evenement, date) => setEnCours(date)}
               />
               <Bouton
-                libelle="Valider"
+                libelle={T.valider}
                 onPress={() => {
                   onChanger(fusionner(quand, enCours, tiroir));
                   setTiroirOuvert(false);
                 }}
               />
               <Pressable accessibilityRole="button" onPress={() => setTiroirOuvert(false)} hitSlop={8} className="mt-2 min-h-11 justify-center active:opacity-70">
-                <Text className="text-center font-texte-semi text-base text-gris underline">Annuler</Text>
+                <Text className="text-center font-texte-semi text-base text-gris underline">{T.annuler}</Text>
               </Pressable>
             </View>
           </View>

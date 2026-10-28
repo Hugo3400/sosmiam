@@ -5,14 +5,16 @@ import { MESSAGE_SANITAIRE_ALCOOL } from "@sos-miam/commun/contenus/prevention-a
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EtiquetteStatutReservation } from "~/composants/reservations/EtiquetteStatutReservation";
-import { SECTION_RESERVATIONS_SCAN } from "~/contenus/textes-mes-reservations";
+import { SECTION_RESERVATIONS_SCAN_PAR_LANGUE } from "~/contenus/textes-mes-reservations";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
 import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-creneau-reservation";
 import { decrireStatutReservation } from "~/fonctions/reservations/decrire-statut-reservation";
 import { doitPrevenirAlcoolReservation } from "~/fonctions/reservations/doit-prevenir-alcool-reservation";
-import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { lireHorairesReservation } from "~/fonctions/reservations/lire-horaires-reservation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reservation: Reservation;
@@ -22,9 +24,11 @@ type Props = {
 
 export function ApercuReservation({ reservation, maintenantMs, onPress }: Props) {
   const couleurs = utiliserCouleurs();
-  const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs);
-  const etiquette = decrireStatutReservation(reservation, maintenantMs);
-  const personnes = ecrireNombrePersonnes(reservation.personnes);
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(SECTION_RESERVATIONS_SCAN_PAR_LANGUE);
+  const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs, langue);
+  const etiquette = decrireStatutReservation(reservation, maintenantMs, langue);
+  const personnes = ecrireNombrePersonnesLangue(reservation.personnes, langue);
   const alcool = doitPrevenirAlcoolReservation(reservation.lieu.type, reservation.message);
   const libelle = `${reservation.lieu.nom}, ${creneau.lu}, ${personnes}. ${etiquette.lu}${alcool ? `. ${MESSAGE_SANITAIRE_ALCOOL}` : ""}`;
 
@@ -32,7 +36,7 @@ export function ApercuReservation({ reservation, maintenantMs, onPress }: Props)
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={libelle}
-      accessibilityHint={SECTION_RESERVATIONS_SCAN.indiceLigne}
+      accessibilityHint={T.indiceLigne}
       onPress={() => {
         vibrerLegerement();
         onPress();

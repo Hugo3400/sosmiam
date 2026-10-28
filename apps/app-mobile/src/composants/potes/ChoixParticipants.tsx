@@ -5,9 +5,11 @@ import { Platform, Pressable, Text, View } from "react-native";
 import type { Pote } from "@sos-miam/commun/types/potes";
 import { Bouton } from "~/composants/interface/Bouton";
 import { RondPote } from "~/composants/potes/RondPote";
+import { TEXTES_CHOIX_SORTIE_PAR_LANGUE } from "~/contenus/textes-choix-sortie";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** Ta bande */
@@ -26,6 +28,7 @@ type Props = {
 /** Choisir les potes à inviter dans ta bande : une ligne par pote, cochée ou non. */
 export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, indiceMax }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_CHOIX_SORTIE_PAR_LANGUE).participants;
   const router = useRouter();
   const complet = choisis.length >= max;
 
@@ -33,9 +36,9 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
     return (
       <View className="items-center gap-3 rounded-carte border-2 border-dashed border-ligne px-6 py-6">
         <Text className="text-center font-texte text-base leading-6 text-gris">
-          {lierPonctuation("Ta bande est vide pour l'instant : ajoute un pote, et tu pourras l'inviter.")}
+          {lierPonctuation(T.bandeVide)}
         </Text>
-        <Bouton libelle="Ajouter un pote" variante="blanc" petit onPress={() => router.push("/potes/ajouter")} />
+        <Bouton libelle={T.ajouter} variante="blanc" petit onPress={() => router.push("/potes/ajouter")} />
       </View>
     );
   }
@@ -54,7 +57,7 @@ export function ChoixParticipants({ potes, choisis, max, onBasculer, erreur, ind
             accessibilityRole={Platform.OS === "ios" ? "button" : "checkbox"}
             accessibilityState={Platform.OS === "ios" ? { selected: choisi, disabled: bloque } : { checked: choisi, disabled: bloque }}
             accessibilityLabel={ville ? `${pote.prenom}, ${ville}` : pote.prenom}
-            accessibilityHint={bloque ? (indiceMax ?? `${max} invités au plus par sortie`) : undefined}
+            accessibilityHint={bloque ? (indiceMax ?? T.maxInvites(max)) : undefined}
             disabled={bloque}
             onPress={() => {
               vibrerLegerement();

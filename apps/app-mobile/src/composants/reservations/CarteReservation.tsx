@@ -1,16 +1,20 @@
 import { Text, View } from "react-native";
 
+import { citer } from "@sos-miam/commun/fonctions/langue/citer";
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { ActionsReservation } from "~/composants/reservations/ActionsReservation";
 import { BlocArriveeReservation } from "~/composants/reservations/BlocArriveeReservation";
 import { EnTeteReservation } from "~/composants/reservations/EnTeteReservation";
+import { CARTE_RESERVATION_PAR_LANGUE } from "~/contenus/textes-reservations-client";
 import { calculerGestesReservation } from "~/fonctions/reservations/calculer-gestes-reservation";
 import { doitPrevenirAlcoolReservation } from "~/fonctions/reservations/doit-prevenir-alcool-reservation";
 import { estLieuDisparu } from "~/fonctions/reservations/est-lieu-disparu";
 import { estReservationNonPointee } from "~/fonctions/reservations/est-reservation-non-pointee";
 import { expliquerReservation } from "~/fonctions/reservations/expliquer-reservation";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reservation: Reservation;
@@ -25,8 +29,10 @@ type Props = {
 
 export function CarteReservation(props: Props) {
   const { reservation, maintenantMs, client, presenceEnCours = null, avecVoirLieu = true } = props;
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(CARTE_RESERVATION_PAR_LANGUE);
   const gestes = calculerGestesReservation(reservation, maintenantMs);
-  const explication = expliquerReservation(reservation, gestes.presence, maintenantMs);
+  const explication = expliquerReservation(reservation, gestes.presence, maintenantMs, langue);
   const nonPointee = estReservationNonPointee(reservation, maintenantMs);
   const enRetrait = reservation.statut === "annulee" || reservation.statut === "expiree" || nonPointee;
   const enCours = (reservation.statut === "acceptee" && !nonPointee) || gestes.presence;
@@ -43,8 +49,8 @@ export function CarteReservation(props: Props) {
 
       {reservation.message ? (
         <View accessible className="rounded-2xl bg-creme px-3 py-2.5">
-          <Text className="font-texte-semi text-[12px] text-gris">Ton petit mot</Text>
-          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(`« ${reservation.message} »`)}</Text>
+          <Text className="font-texte-semi text-[12px] text-gris">{T.petitMot}</Text>
+          <Text className="font-texte text-sm leading-5 text-encre">{lierPonctuation(citer(reservation.message, langue))}</Text>
         </View>
       ) : null}
 

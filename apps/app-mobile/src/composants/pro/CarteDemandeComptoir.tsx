@@ -3,8 +3,11 @@ import { Text, View } from "react-native";
 import type { DemandeComptoir } from "@sos-miam/commun/types/comptoir";
 import { BoutonCarteComptoir } from "~/composants/pro/BoutonCarteComptoir";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
+import { TEXTES_DEMANDES_COMPTOIR_PAR_LANGUE } from "~/contenus/textes-demandes-comptoir";
 import { decrireAttente } from "~/fonctions/pro/decrire-attente";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   demande: DemandeComptoir;
@@ -22,17 +25,17 @@ type Props = {
  * montre le client, et les gestes. Une addition se marque réglée ou se refuse ; une récompense s'offre.
  */
 export function CarteDemandeComptoir({ demande, maintenant, onRegler, onRefuser, onOffrir }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_DEMANDES_COMPTOIR_PAR_LANGUE);
   const nom = demande.initialeNom ? `${demande.prenom} ${demande.initialeNom}.` : demande.prenom;
-  const attente = decrireAttente(demande.depuis, maintenant);
+  const attente = decrireAttente(demande.depuis, langue, maintenant);
   const recompense = demande.type === "recompense";
-  const detail = recompense
-    ? `Récompense : ${demande.recompense ?? "sa récompense"}`
-    : `Addition · ${demande.tamponsIci} tampon${demande.tamponsIci > 1 ? "s" : ""} ici`;
+  const detail = recompense ? T.recompense(demande.recompense ?? T.saRecompense) : T.addition(demande.tamponsIci);
   const codeLu = demande.code.split("").join(", ");
 
   return (
     <View className={`gap-4 rounded-carte border-2 border-encre p-4 ${recompense ? "bg-jaune-clair" : "bg-carte"}`}>
-      <View accessible accessibilityLabel={`${nom}, ${attente}. ${detail}. Code : ${codeLu}`} className="gap-3">
+      <View accessible accessibilityLabel={T.demandeLu(nom, attente, detail, codeLu)} className="gap-3">
         <View className="flex-row items-start gap-3">
           <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-encre bg-creme">
             <EmojiOuMiami valeur={demande.avatar} taille={44} className="text-2xl" />
@@ -61,12 +64,12 @@ export function CarteDemandeComptoir({ demande, maintenant, onRegler, onRefuser,
       </View>
       {recompense ? (
         <View className="flex-row">
-          <BoutonCarteComptoir libelle="Offrir" libelleLu={`Offrir la récompense de ${nom}`} plein icone="gift" onPress={onOffrir} />
+          <BoutonCarteComptoir libelle={T.offrir} libelleLu={T.offrirLu(nom)} plein icone="gift" onPress={onOffrir} />
         </View>
       ) : (
         <View className="flex-row gap-3">
-          <BoutonCarteComptoir libelle="Réglée" libelleLu={`Addition de ${nom} réglée`} plein icone="checkmark" onPress={onRegler} />
-          <BoutonCarteComptoir libelle="Refuser" libelleLu={`Refuser l'addition de ${nom}`} plein={false} onPress={onRefuser} />
+          <BoutonCarteComptoir libelle={T.reglee} libelleLu={T.regleeLu(nom)} plein icone="checkmark" onPress={onRegler} />
+          <BoutonCarteComptoir libelle={T.refuser} libelleLu={T.refuserLu(nom)} plein={false} onPress={onRefuser} />
         </View>
       )}
     </View>

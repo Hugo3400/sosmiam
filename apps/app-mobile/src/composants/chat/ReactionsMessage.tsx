@@ -2,11 +2,14 @@ import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { REACTIONS_CHAT, type MessageChat } from "@sos-miam/commun/types/conversations";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
 import { decrireReactionChat } from "~/fonctions/chat/decrire-reaction-chat";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { utiliserCommunaute } from "~/hooks/utiliser-communaute";
 import { utiliserConversations } from "~/hooks/utiliser-conversations";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserMonId } from "~/hooks/utiliser-mon-id";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   conversationId: string;
@@ -22,6 +25,8 @@ type Props = {
  */
 export function ReactionsMessage({ conversationId, message, deMoi, centre = false }: Props) {
   const { basculerReaction } = utiliserConversations();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   const { bloques } = utiliserCommunaute();
   const monId = utiliserMonId();
   const bloquesIds = useMemo(() => new Set(bloques.map((p) => p.id)), [bloques]);
@@ -39,8 +44,8 @@ export function ReactionsMessage({ conversationId, message, deMoi, centre = fals
           key={reaction}
           accessibilityRole="button"
           accessibilityState={{ selected: dontMoi }}
-          accessibilityLabel={decrireReactionChat(reaction, nombre, dontMoi)}
-          accessibilityHint={dontMoi ? "Retire ta réaction" : "Réagis pareil"}
+          accessibilityLabel={decrireReactionChat(reaction, nombre, dontMoi, langue)}
+          accessibilityHint={dontMoi ? T.retireReaction : T.reagisPareil}
           hitSlop={{ top: 8, bottom: 8, left: 2, right: 2 }}
           onPress={() => {
             vibrerLegerement();

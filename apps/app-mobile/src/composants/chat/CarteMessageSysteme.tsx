@@ -2,9 +2,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import type { ComponentProps, ReactNode } from "react";
 import { Pressable, Text, View, type PressableProps } from "react-native";
 
-import { TEXTES_MESSAGES as T } from "~/contenus/textes-messages";
+import { TEXTES_CHAT_BULLES_PAR_LANGUE } from "~/contenus/textes-chat-bulles";
+import { TEXTES_MESSAGES_PAR_LANGUE } from "~/contenus/textes-messages";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   systeme: string;
@@ -22,10 +24,12 @@ const ICONES: Readonly<Record<string, ComponentProps<typeof Ionicons>["name"]>> 
 
 export function CarteMessageSysteme({ systeme, texte, heure, onPress, actionsLecteur, children }: Props) {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_MESSAGES_PAR_LANGUE);
+  const T_BULLES = utiliserTextes(TEXTES_CHAT_BULLES_PAR_LANGUE);
   return (
     <View className="mt-3 max-w-[88%] items-center self-center">
       <Pressable
-        accessibilityLabel={`${T.sosMiam}, ${heure} : ${texte}`}
+        accessibilityLabel={T_BULLES.messageLu(T.sosMiam, heure, texte)}
         onPress={onPress}
         disabled={!onPress}
         {...actionsLecteur}

@@ -2,11 +2,14 @@ import { Text, View } from "react-native";
 
 import type { Reservation } from "@sos-miam/commun/types/reservation";
 import { EtiquetteStatutReservation } from "~/composants/reservations/EtiquetteStatutReservation";
+import { CARTE_RESERVATION_PAR_LANGUE } from "~/contenus/textes-reservations-client";
+import { ecrireNombrePersonnesLangue } from "~/fonctions/langue/ecrire-nombre-personnes-langue";
 import { decrireCreneauReservation } from "~/fonctions/reservations/decrire-creneau-reservation";
 import { decrireHorairesSecours } from "~/fonctions/reservations/decrire-horaires-secours";
 import { decrireStatutReservation } from "~/fonctions/reservations/decrire-statut-reservation";
-import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { lireHorairesReservation } from "~/fonctions/reservations/lire-horaires-reservation";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   reservation: Reservation;
@@ -15,12 +18,14 @@ type Props = {
 };
 
 export function EnTeteReservation({ reservation, maintenantMs, enRetrait }: Props) {
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(CARTE_RESERVATION_PAR_LANGUE);
   const { lieu } = reservation;
-  const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs);
-  const secours = decrireHorairesSecours(reservation);
-  const personnes = ecrireNombrePersonnes(reservation.personnes);
-  const etiquette = decrireStatutReservation(reservation, maintenantMs);
-  const ou = lieu.ville ? `${lieu.nom}, à ${lieu.ville}` : lieu.nom;
+  const creneau = decrireCreneauReservation(lireHorairesReservation(reservation).affiche, maintenantMs, langue);
+  const secours = decrireHorairesSecours(reservation, langue);
+  const personnes = ecrireNombrePersonnesLangue(reservation.personnes, langue);
+  const etiquette = decrireStatutReservation(reservation, maintenantMs, langue);
+  const ou = lieu.ville ? T.ouEtVille(lieu.nom, lieu.ville) : lieu.nom;
   const libelle = [ou, `${creneau.lu}, ${personnes}`, ...(secours ? [secours.lu] : []), etiquette.lu].join(". ");
 
   return (
