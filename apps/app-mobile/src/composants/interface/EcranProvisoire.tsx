@@ -3,9 +3,11 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   emoji: string;
@@ -23,6 +25,7 @@ export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
   // Retour à l'écran d'avant ; premier écran d'une pile en plein écran (Scan, mode pro…) : la pile entière se referme
   const revenir = utiliserFermerPile();
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} edges={["top", "bottom"]}>
@@ -30,7 +33,7 @@ export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
         <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={T.retour}
             hitSlop={12}
             onPress={revenir}
             className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -48,7 +51,7 @@ export function EcranProvisoire({ emoji, titre, texte, action }: Props) {
         </Text>
         <Text className="text-center font-texte text-base text-gris">{lierPonctuation(texte)}</Text>
         <View className="mt-4 rounded-full border-2 border-encre bg-jaune px-5 py-2">
-          <Text className="font-texte-gras text-nuit">Bientôt dans l'app</Text>
+          <Text className="font-texte-gras text-nuit">{T.bientot}</Text>
         </View>
         {action ? <Bouton libelle={action.libelle} onPress={action.onPress} variante="blanc" className="mt-6 self-stretch" /> : null}
       </ScrollView>

@@ -12,10 +12,11 @@ import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserBrouillonInscription } from "~/hooks/utiliser-brouillon-inscription";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { lireLangueActuelle } from "~/services/langue-actuelle";
 
 /** Montre un refus de l'API (texte de contenus/messages-services.ts, au tutoiement) */
 export function montrerErreurCompte(erreur: ErreurService, details?: DetailsErreur) {
-  const message = decrireEchecVisite(erreur, details);
+  const message = decrireEchecVisite(erreur, lireLangueActuelle(), details);
   Alert.alert(`${message.emoji} ${message.titre}`, message.texte);
 }
 

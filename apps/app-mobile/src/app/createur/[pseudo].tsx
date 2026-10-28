@@ -12,18 +12,21 @@ import { Bouton } from "~/composants/interface/Bouton";
 import { VignetteCollection } from "~/composants/profil/VignetteCollection";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
 import { BoutonSuivreProfil } from "~/composants/suivi/BoutonSuivreProfil";
+import { TEXTES_CREATEUR_PAR_LANGUE } from "~/contenus/textes-createur";
 import { ecrireQuartierVille } from "~/fonctions/lieux/ecrire-quartier-ville";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { calculerCleSuivi } from "~/fonctions/publications/calculer-cle-suivi";
 import { trouverVignetteLieu } from "~/fonctions/publications/trouver-vignette-lieu";
 import { trouverVignettePublication } from "~/fonctions/publications/trouver-vignette-publication";
-import { formaterNombreCourt } from "~/fonctions/texte/formater-nombre-court";
+import { formaterNombreCourtLangue } from "~/fonctions/langue/formater-nombre-court-langue";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserActivite } from "~/hooks/utiliser-activite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserPublications } from "~/hooks/utiliser-publications";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * La page d'un créateur (ouverte depuis son avatar dans le fil) : avatar 🎬, @pseudo, « Suivre » ou « Suivi », ses partenariats déclarés
@@ -33,6 +36,8 @@ export default function PageCreateur() {
   const couleurs = utiliserCouleurs();
   const router = useRouter();
   const marges = useSafeAreaInsets();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CREATEUR_PAR_LANGUE);
   const { pseudo = "" } = useLocalSearchParams<{ pseudo: string }>();
   const { profil } = utiliserProfil();
   const activite = utiliserActivite();
@@ -50,10 +55,10 @@ export default function PageCreateur() {
   if (siennes.length === 0) {
     return (
       <EcranReglage
-        titre="Ce créateur s'est éclipsé"
-        sousTitre={`On ne trouve personne${estPseudoValide(pseudo) ? ` qui s'appelle @${pseudo}` : ""} : le pseudo a peut-être changé, ou le lien s'est emmêlé les pinceaux.`}
+        titre={T.introuvableTitre}
+        sousTitre={T.introuvable(estPseudoValide(pseudo) ? pseudo : null)}
       >
-        <Bouton libelle="Retour" variante="blanc" onPress={revenir} />
+        <Bouton libelle={T.retour} variante="blanc" onPress={revenir} />
       </EcranReglage>
     );
   }
@@ -78,7 +83,7 @@ export default function PageCreateur() {
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={12}
           onPress={revenir}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -99,12 +104,9 @@ export default function PageCreateur() {
           <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
             {nom}
           </Text>
-          <Text className="text-center font-texte text-base text-gris">Raconte ses bonnes adresses en vidéo</Text>
-          <Text
-            accessibilityLabel={`${publications.length} publication${publications.length > 1 ? "s" : ""}, ${jaimes} J'aime`}
-            className="text-center font-texte-semi text-sm text-encre"
-          >
-            {publications.length} publication{publications.length > 1 ? "s" : ""} · {formaterNombreCourt(jaimes)} J'aime
+          <Text className="text-center font-texte text-base text-gris">{T.accroche}</Text>
+          <Text accessibilityLabel={T.chiffresLu(publications.length, jaimes)} className="text-center font-texte-semi text-sm text-encre">
+            {T.chiffres(publications.length, jaimes, formaterNombreCourtLangue(jaimes, langue))}
           </Text>
         </View>
 
@@ -112,28 +114,26 @@ export default function PageCreateur() {
         <BoutonSuivreProfil cle={cle} nom={nom} emoji="🎬" onAnnoncer={annoncer} taille="grand" />
 
         <View className="gap-3">
-          <Text accessibilityRole="header" accessibilityLabel={`Partenariats déclarés, ${partenariats.length}`} className="font-titre-gras text-xl text-encre">
-            🤝 Partenariats déclarés ({partenariats.length})
+          <Text accessibilityRole="header" accessibilityLabel={T.partenariatsLu(partenariats.length)} className="font-titre-gras text-xl text-encre">
+            {T.partenariats(partenariats.length)}
           </Text>
-          <Text className="font-texte text-sm leading-5 text-gris">
-            {lierPonctuation("Quand un lieu offre ou paie quelque chose, c'est écrit noir sur blanc : « Collaboration commerciale ».")}
-          </Text>
+          <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(T.aidePartenariats)}</Text>
           {partenariats.length === 0 ? (
             <View className="rounded-carte border-2 border-dashed border-ligne px-5 py-5">
-              <Text className="text-center font-texte text-sm leading-5 text-gris">Aucune collaboration commerciale déclarée sur ses publications.</Text>
+              <Text className="text-center font-texte text-sm leading-5 text-gris">{T.aucunPartenariat}</Text>
             </View>
           ) : (
             partenariats.map((p) => (
               <View
                 key={p.cle}
                 accessible
-                accessibilityLabel={`Collaboration commerciale : ${p.partenariat}, avec ${p.lieu.nom}`}
+                accessibilityLabel={T.partenariatLu(p.partenariat, p.lieu.nom)}
                 className="flex-row items-center gap-3 rounded-carte border-2 border-encre bg-carte p-4"
               >
                 <Text className="text-3xl">{p.lieu.emoji}</Text>
                 <View className="flex-1 gap-1">
                   <Text className="self-start overflow-hidden rounded-md bg-jaune-clair px-2 py-0.5 font-texte-semi text-xs text-encre">
-                    Collaboration commerciale · {p.partenariat}
+                    {T.partenariat(p.partenariat)}
                   </Text>
                   <Text className="font-texte-gras text-[15px] text-encre">{p.lieu.nom}</Text>
                 </View>
@@ -143,12 +143,12 @@ export default function PageCreateur() {
         </View>
 
         <View className="gap-3">
-          <Text accessibilityRole="header" accessibilityLabel={`Ses publications, ${publications.length}`} className="font-titre-gras text-xl text-encre">
-            🎬 Ses publications ({publications.length})
+          <Text accessibilityRole="header" accessibilityLabel={T.publicationsLu(publications.length)} className="font-titre-gras text-xl text-encre">
+            {T.publications(publications.length)}
           </Text>
           {publications.length === 0 ? (
             <View className="rounded-carte border-2 border-dashed border-ligne px-5 py-5">
-              <Text className="text-center font-texte text-sm leading-5 text-gris">{lierPonctuation("Rien à te montrer ici pour l'instant : ses prochaines pépites arrivent !")}</Text>
+              <Text className="text-center font-texte text-sm leading-5 text-gris">{lierPonctuation(T.aucunePublication)}</Text>
             </View>
           ) : (
             <View className="-mx-0.5 flex-row flex-wrap">
@@ -157,7 +157,7 @@ export default function PageCreateur() {
                   key={publication.id}
                   lieu={lieu}
                   image={trouverVignettePublication(publication) ?? trouverVignetteLieu(lieu.id, siennes)}
-                  libelle={`Publication de ${nom} sur ${lieu.nom}, ${ecrireQuartierVille(lieu)}`}
+                  libelle={T.vignette(nom, lieu.nom, ecrireQuartierVille(lieu))}
                   onPress={() => router.push({ pathname: "/lieu/[id]", params: { id: String(lieu.id) } })}
                 />
               ))}

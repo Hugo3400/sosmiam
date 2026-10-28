@@ -1,13 +1,14 @@
 import { Image } from "expo-image";
 import { Text, View, type ImageSourcePropType } from "react-native";
 
-import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-moderation";
+import { DETAILS_MOTIFS_MODERATION_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-moderation";
 import type { ArticleCitantLieuActus } from "@sos-miam/commun/types/actus";
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { Bouton } from "~/composants/interface/Bouton";
 import type { TEXTES_ACTUS_PRO } from "~/contenus/textes-actus-pro";
 import { ecrireDateArticle } from "~/fonctions/actus/ecrire-date-article";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   article: ArticleCitantLieuActus<ImageSourcePropType>;
@@ -18,6 +19,7 @@ type Props = {
 
 export function CarteArticleCitantLieu({ article, T, onLire, onRepondre }: Props) {
   const { langue } = utiliserLangue();
+  const motifs = utiliserTextes(DETAILS_MOTIFS_MODERATION_PAR_LANGUE);
   const { reponse } = article;
   const peutRepondre = reponse === null || (reponse.statut === "refuse" && reponse.peutReecrire);
   return (
@@ -33,7 +35,7 @@ export function CarteArticleCitantLieu({ article, T, onLire, onRepondre }: Props
         <View className="gap-1 rounded-xl bg-ligne px-3 py-2.5">
           <Text className="font-texte-gras text-[13px] text-encre">{T.reponses[reponse.statut]}</Text>
           <Text className="font-texte text-[13px] leading-5 text-encre">{reponse.texte}</Text>
-          {reponse.motif ? <Text className="font-texte text-xs text-gris">{T.motif(DETAILS_MOTIFS_MODERATION[reponse.motif].enClair)}</Text> : null}
+          {reponse.motif ? <Text className="font-texte text-xs text-gris">{T.motif(motifs[reponse.motif].enClair)}</Text> : null}
         </View>
       ) : null}
       <View className="flex-row flex-wrap gap-2">

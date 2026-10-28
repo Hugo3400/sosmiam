@@ -72,8 +72,8 @@ function decrireGains(T: TextesVisite, lieu: Lieu, infos: InfosVisiteLieu): stri
 export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lieu }) {
   const couleurs = utiliserCouleurs();
   const T = utiliserTextes(TEXTES_VISITE_LIEU_PAR_LANGUE);
-  const TEXTES_RESERVER_TABLE = utiliserTextes(TEXTES_RESERVER_TABLE_PAR_LANGUE);
-  const MESSAGES_SERVICE = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  const reserverTable = utiliserTextes(TEXTES_RESERVER_TABLE_PAR_LANGUE);
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
   const router = useRouter();
   const services = utiliserServices();
   const demanderCompte = utiliserDemandeCompte();
@@ -107,7 +107,7 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
   const scanner = () => {
     if (demanderCompte("scan")) router.push("/scan/camera");
   };
-  const titreReserver = lieu.type === "sortie" ? TEXTES_RESERVER_TABLE.titreSortie : TEXTES_RESERVER_TABLE.titre;
+  const titreReserver = lieu.type === "sortie" ? reserverTable.titreSortie : reserverTable.titre;
   const reserver = () => {
     if (demanderCompte("reserver")) router.push({ pathname: "/lieu/[id]/reserver", params: { id: String(lieu.id) } });
   };
@@ -130,7 +130,7 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
           </View>
         );
       }
-      const message = MESSAGES_SERVICE[lecture.erreur];
+      const message = messagesService[lecture.erreur];
       return (
         <View className="gap-2">
           <Text className="font-texte-gras text-[15px] text-encre">{lierPonctuation(remplirModele(message.titre, { lieu: lieu.nom }))}</Text>
@@ -195,11 +195,11 @@ export const BlocVisiteLieu = memo(function BlocVisiteLieu({ lieu }: { lieu: Lie
         ) : (
           <View accessible className="flex-row gap-3">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-2xl">
-              {MESSAGES_SERVICE["lieu-sans-validation"].emoji}
+              {messagesService["lieu-sans-validation"].emoji}
             </Text>
             <View className="flex-1 gap-1">
-              <Text className="font-texte-gras text-[15px] leading-5 text-encre">{lierPonctuation(remplirModele(MESSAGES_SERVICE["lieu-sans-validation"].titre, { lieu: lieu.nom }))}</Text>
-              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(MESSAGES_SERVICE["lieu-sans-validation"].texte)}</Text>
+              <Text className="font-texte-gras text-[15px] leading-5 text-encre">{lierPonctuation(remplirModele(messagesService["lieu-sans-validation"].titre, { lieu: lieu.nom }))}</Text>
+              <Text className="font-texte text-sm leading-5 text-gris">{lierPonctuation(messagesService["lieu-sans-validation"].texte)}</Text>
             </View>
           </View>
         )}

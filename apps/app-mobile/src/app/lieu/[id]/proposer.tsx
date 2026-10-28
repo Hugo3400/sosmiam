@@ -4,7 +4,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MESSAGES_SERVICE } from "@sos-miam/commun/contenus/messages-services";
+import { MESSAGES_SERVICE_PAR_LANGUE } from "@sos-miam/commun/contenus/messages-services";
 import type { ErreurService } from "@sos-miam/commun/types/erreurs-service";
 import { validerPropositionLieu, type ChampPropositionLieu } from "@sos-miam/commun/validation/valider-proposition-lieu";
 import { RefusLimitationEnPlace } from "~/composants/compte/RefusLimitationEnPlace";
@@ -14,8 +14,11 @@ import { Pastille } from "~/composants/interface/Pastille";
 import { ChampsInfosPratiques } from "~/composants/lieux/ChampsInfosPratiques";
 import { LieuEnAttente } from "~/composants/lieux/LieuEnAttente";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { REFUS_LIMITATION } from "~/contenus/limitation-compte";
-import { sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
+import { REFUS_LIMITATION_PAR_LANGUE } from "~/contenus/limitation-compte";
+import { SUJETS_PROPOSITION_PAR_LANGUE, sujetsProposition, type SujetProposition } from "~/contenus/sujets-proposition";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
+import { TEXTES_INFOS_PRATIQUES_PAR_LANGUE } from "~/contenus/textes-infos-pratiques";
+import { TEXTES_PROPOSER_LIEU_PAR_LANGUE } from "~/contenus/textes-proposer-lieu";
 import { calculerPropositionLieu, type BrouillonProposition, type FicheActuelle } from "~/fonctions/lieux/calculer-proposition-lieu";
 import { creerBrouillonInfosPratiques } from "~/fonctions/lieux/creer-brouillon-infos-pratiques";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
@@ -24,16 +27,7 @@ import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserInfosPratiquesLieu } from "~/hooks/utiliser-infos-pratiques-lieu";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserServices } from "~/hooks/utiliser-services";
-
-/** Ce qu'on dit sous le champ à corriger (mêmes règles que l'API : validerPropositionLieu) */
-const ERREURS: Partial<Record<ChampPropositionLieu, string>> = {
-  nom: "Un nom de 80 caractères au plus, sans gros mot.",
-  adresse: "Une adresse de 160 caractères au plus, sans gros mot.",
-  horaires: "Des horaires de 160 caractères au plus, sans gros mot.",
-  texte: "Une présentation de 1 000 caractères au plus, sans gros mot.",
-  message: "Un mot de 1 000 caractères au plus, sans gros mot.",
-  vide: "Change au moins une info : pour l'instant, tout est pareil que sur la fiche.",
-};
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * « Proposer une modification » d'une fiche : on coche ce qui a changé (horaires, téléphone, adresse, animaux…), on corrige,
@@ -41,6 +35,14 @@ const ERREURS: Partial<Record<ChampPropositionLieu, string>> = {
  */
 export default function ProposerModification() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_PROPOSER_LIEU_PAR_LANGUE);
+  const F = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const facultatif = utiliserTextes(TEXTES_INFOS_PRATIQUES_PAR_LANGUE).champs.facultatif;
+  const libellesSujets = utiliserTextes(SUJETS_PROPOSITION_PAR_LANGUE);
+  const refusLimitation = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
+  const messagesService = utiliserTextes(MESSAGES_SERVICE_PAR_LANGUE);
+  // Ce qu'on dit sous le champ à corriger (mêmes règles que l'API : validerPropositionLieu)
+  const erreurs: Partial<Record<ChampPropositionLieu, string>> = T.erreurs;
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { suggestions: service } = utiliserServices();
@@ -67,8 +69,8 @@ export default function ProposerModification() {
     if (recherche.enAttente || recherche.horsLigne) return <LieuEnAttente horsLigne={recherche.horsLigne} onReessayer={recherche.reessayer} />;
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.creme }} className="items-center justify-center gap-4 px-8">
-        <Text className="text-center font-titre text-2xl text-encre">Ce lieu n'est pas disponible</Text>
-        <Bouton libelle="Retour" variante="blanc" onPress={() => router.back()} />
+        <Text className="text-center font-titre text-2xl text-encre">{F.indisponible}</Text>
+        <Bouton libelle={F.retour} variante="blanc" onPress={() => router.back()} />
       </SafeAreaView>
     );
   }
@@ -87,7 +89,7 @@ export default function ProposerModification() {
   };
   const parties = sujetsProposition.filter((s) => sujets.includes(s.sujet) && s.partie).map((s) => s.partie!);
 
-  const messageRefus = refus ? MESSAGES_SERVICE[refus] : null;
+  const messageRefus = refus ? messagesService[refus] : null;
 
   async function envoyer() {
     if (envoi || !lieu) return;
@@ -100,7 +102,7 @@ export default function ProposerModification() {
     setRefusLimite(null);
     const reponse = await service.proposer(lieu.id, r.suggestion);
     setEnvoi(false);
-    if (!reponse.ok && reponse.erreur === "compte-limite") return setRefusLimite(REFUS_LIMITATION.suggestion);
+    if (!reponse.ok && reponse.erreur === "compte-limite") return setRefusLimite(refusLimitation.suggestion);
     if (!reponse.ok) return setRefus(reponse.erreur);
     vibrerLegerement();
     setEnvoyee(true);
@@ -112,7 +114,7 @@ export default function ProposerModification() {
         <View className="min-h-14 flex-row items-center gap-3 px-5 pb-2 pt-2">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Retour"
+            accessibilityLabel={F.retour}
             hitSlop={8}
             onPress={() => router.back()}
             className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -121,7 +123,7 @@ export default function ProposerModification() {
           </Pressable>
           <View className="flex-1">
             <Text accessibilityRole="header" className="font-titre-gras text-xl text-encre">
-              Proposer une modification
+              {T.titre}
             </Text>
             <Text numberOfLines={1} className="font-texte text-[13px] text-gris">
               {lieu.emoji} {lieu.nom}
@@ -133,39 +135,39 @@ export default function ProposerModification() {
           <View className="flex-1 items-center justify-center gap-4 px-8 pb-10">
             <Mascotte expression="miam" taille={130} />
             <Text accessibilityRole="header" className="text-center font-titre text-3xl text-encre">
-              Merci, c'est envoyé !
+              {T.merci}
             </Text>
             <Text className="text-center font-texte text-base leading-6 text-gris">
-              {lierPonctuation(`L'équipe relit ta proposition avant de changer la fiche de ${lieu.nom}. Grâce à toi, les gourmands auront les bonnes infos 💛`)}
+              {lierPonctuation(T.merciTexte(lieu.nom))}
             </Text>
-            <Bouton libelle="Retour à la fiche" onPress={() => router.back()} />
+            <Bouton libelle={F.retourFiche} onPress={() => router.back()} />
           </View>
         ) : (
           <>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="gap-6 px-5 pb-8 pt-2">
               <Text className="font-texte text-base leading-6 text-gris">
-                {lierPonctuation("Tu as vu quelque chose qui a changé ? Dis-le-nous : l'équipe vérifie avant de mettre la fiche à jour.")}
+                {lierPonctuation(T.intro)}
               </Text>
 
               <View className="gap-2">
                 <Text accessibilityRole="header" className="font-texte-gras text-base text-encre">
-                  Qu'est-ce qui a changé ?
+                  {T.quoi}
                 </Text>
                 <View className="flex-row flex-wrap gap-2">
                   {sujetsProposition.map((s, i) => (
-                    <Pastille key={s.sujet} libelle={s.libelle} emoji={s.emoji} position={i + 1} total={sujetsProposition.length} choisi={sujets.includes(s.sujet)} onPress={() => basculerSujet(s.sujet)} />
+                    <Pastille key={s.sujet} libelle={libellesSujets[i].libelle} emoji={s.emoji} position={i + 1} total={sujetsProposition.length} choisi={sujets.includes(s.sujet)} onPress={() => basculerSujet(s.sujet)} />
                   ))}
                 </View>
               </View>
 
               {sujets.includes("horaires") ? (
-                <ChampTexte libelle="Les horaires" valeur={b.horaires} onChangeTexte={(horaires) => changer({ horaires })} placeholder="12h–14h30 · 19h–22h30 · fermé lundi" multiline maxLength={160} erreur={erreur === "horaires" ? ERREURS.horaires : null} />
+                <ChampTexte libelle={T.horaires} valeur={b.horaires} onChangeTexte={(horaires) => changer({ horaires })} placeholder={T.exempleHoraires} multiline maxLength={160} erreur={erreur === "horaires" ? erreurs.horaires : null} />
               ) : null}
               {sujets.includes("adresse") ? (
-                <ChampTexte libelle="La nouvelle adresse" valeur={b.adresse} onChangeTexte={(adresse) => changer({ adresse })} placeholder="12 rue de la Loge, Montpellier" maxLength={160} erreur={erreur === "adresse" ? ERREURS.adresse : null} />
+                <ChampTexte libelle={T.adresse} valeur={b.adresse} onChangeTexte={(adresse) => changer({ adresse })} placeholder={T.exempleAdresse} maxLength={160} erreur={erreur === "adresse" ? erreurs.adresse : null} />
               ) : null}
               {sujets.includes("nom") ? (
-                <ChampTexte libelle="Le nom" valeur={b.nom} onChangeTexte={(nom) => changer({ nom })} maxLength={80} erreur={erreur === "nom" ? ERREURS.nom : null} />
+                <ChampTexte libelle={T.nom} valeur={b.nom} onChangeTexte={(nom) => changer({ nom })} maxLength={80} erreur={erreur === "nom" ? erreurs.nom : null} />
               ) : null}
               {parties.length > 0 ? (
                 <ChampsInfosPratiques
@@ -176,27 +178,27 @@ export default function ProposerModification() {
                 />
               ) : null}
               {sujets.includes("texte") ? (
-                <ChampTexte libelle="La présentation" valeur={b.texte} onChangeTexte={(texte) => changer({ texte })} multiline maxLength={1000} erreur={erreur === "texte" ? ERREURS.texte : null} />
+                <ChampTexte libelle={T.presentation} valeur={b.texte} onChangeTexte={(texte) => changer({ texte })} multiline maxLength={1000} erreur={erreur === "texte" ? erreurs.texte : null} />
               ) : null}
 
               {sujets.length > 0 ? (
                 <ChampTexte
-                  libelle="Un mot pour l'équipe"
-                  mention="facultatif"
+                  libelle={T.motEquipe}
+                  mention={facultatif}
                   valeur={message}
                   onChangeTexte={(t) => {
                     setMessage(t);
                     setErreur(null);
                     setRefus(null);
                   }}
-                  placeholder="J'y étais hier : ils sont fermés le lundi maintenant"
+                  placeholder={T.exempleMot}
                   multiline
                   maxLength={1000}
-                  erreur={erreur === "message" ? ERREURS.message : null}
+                  erreur={erreur === "message" ? erreurs.message : null}
                 />
               ) : null}
 
-              {erreur === "vide" ? <Text className="font-texte-semi text-sm text-rouge-texte">{ERREURS.vide}</Text> : null}
+              {erreur === "vide" ? <Text className="font-texte-semi text-sm text-rouge-texte">{erreurs.vide}</Text> : null}
               {messageRefus ? (
                 <View accessibilityLiveRegion="polite" className="gap-1 rounded-2xl border-2 border-tomate bg-rose-alerte px-4 py-3">
                   <Text className="font-texte-gras text-[15px] text-encre">
@@ -210,9 +212,9 @@ export default function ProposerModification() {
             <View className="gap-3 border-t border-ligne px-5 pt-3" style={{ paddingBottom: 12 }}>
               <RefusLimitationEnPlace texte={refusLimite} />
               <Bouton
-                libelle={envoi ? "Envoi…" : "Envoyer ma proposition"}
+                libelle={envoi ? T.envoi : T.envoyer}
                 desactive={sujets.length === 0 || envoi}
-                indice={sujets.length === 0 ? "Coche d'abord ce qui a changé" : undefined}
+                indice={sujets.length === 0 ? T.cocherDAbord : undefined}
                 onPress={envoyer}
               />
             </View>

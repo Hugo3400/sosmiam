@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import type { BandeauAnnulerAffiche } from "~/hooks/utiliser-bandeau-annuler";
 import { utiliserLecteurEcran } from "~/hooks/utiliser-lecteur-ecran";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   /** utiliserBandeauAnnuler ; null : rien à montrer */
@@ -28,16 +30,17 @@ const DELAI_ANNONCE = 500;
  */
 export function BandeauAnnuler({ bandeau, bas, onFermer }: Props) {
   const lecteurEcran = utiliserLecteurEcran();
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
 
   useEffect(() => {
     if (!bandeau) return;
-    const annonce = setTimeout(() => annoncerLecteurEcran(`${bandeau.texte}. Tu peux annuler.`), DELAI_ANNONCE);
+    const annonce = setTimeout(() => annoncerLecteurEcran(T.annonceBandeau(bandeau.texte)), DELAI_ANNONCE);
     const minuterie = setTimeout(onFermer, lecteurEcran ? DUREE_LECTEUR_ECRAN : DUREE);
     return () => {
       clearTimeout(annonce);
       clearTimeout(minuterie);
     };
-  }, [bandeau, lecteurEcran, onFermer]);
+  }, [bandeau, lecteurEcran, onFermer, T]);
 
   if (!bandeau) return null;
   return (
@@ -47,17 +50,17 @@ export function BandeauAnnuler({ bandeau, bas, onFermer }: Props) {
         <Text className="flex-1 font-texte-semi text-[15px] text-white">{bandeau.texte}</Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Annuler"
-          accessibilityHint="Remet ce que tu viens de retirer"
+          accessibilityLabel={T.annuler}
+          accessibilityHint={T.indiceAnnulerBandeau}
           onPress={() => {
             vibrerLegerement();
             bandeau.annuler();
             onFermer();
-            annoncerLecteurEcran("C'est remis");
+            annoncerLecteurEcran(T.remis);
           }}
           className="min-h-11 items-center justify-center rounded-full px-4 active:opacity-70"
         >
-          <Text className="font-texte-gras text-[15px] text-jaune">Annuler</Text>
+          <Text className="font-texte-gras text-[15px] text-jaune">{T.annuler}</Text>
         </Pressable>
       </View>
     </Animated.View>

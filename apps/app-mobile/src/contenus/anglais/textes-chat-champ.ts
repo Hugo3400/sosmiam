@@ -22,7 +22,7 @@ export const TEXTES_CHAT_CHAMP_ANGLAIS: Traduction<typeof TEXTES_CHAT_CHAMP> = {
   taReponseTonMessage: "Your reply to your own message",
   tonMessage: "Your message",
   reglagesFermes: "Settings wouldn't open. You'll find them in your phone's Settings app.",
-  ouvrirReglages: "Open your phone's Settings",
+  ouvrirReglages: "Open phone settings",
   vocalPoubelle: "🗑️ Voice note binned – nobody heard it",
   partager: "Share photos, a place or a GIF",
   mentionner: "Type @ to mention a friend",

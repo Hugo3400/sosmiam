@@ -1,13 +1,14 @@
 import { Image } from "expo-image";
 import { Pressable, Text, View, type ImageSourcePropType } from "react-native";
 
-import { DETAILS_MOTIFS_MODERATION } from "@sos-miam/commun/contenus/motifs-moderation";
+import { DETAILS_MOTIFS_MODERATION_PAR_LANGUE } from "@sos-miam/commun/contenus/motifs-moderation";
 import type { MonArticleActus } from "@sos-miam/commun/types/actus";
 import type { Traduction } from "@sos-miam/commun/types/traduction";
 import { Bouton } from "~/composants/interface/Bouton";
 import type { TEXTES_MES_ARTICLES_ACTUS } from "~/contenus/textes-mes-articles-actus";
 import { ecrireDateArticle } from "~/fonctions/actus/ecrire-date-article";
 import { utiliserLangue } from "~/hooks/utiliser-langue";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   article: MonArticleActus<ImageSourcePropType>;
@@ -29,6 +30,7 @@ const PASTILLES = {
 
 export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onContester, onSupprimer }: Props) {
   const { langue } = utiliserLangue();
+  const motifs = utiliserTextes(DETAILS_MOTIFS_MODERATION_PAR_LANGUE);
   const publie = article.statut === "publie";
   const details = publie && article.publieLe
     ? [T.publie(ecrireDateArticle(article.publieLe, langue), article.jaime, article.commentaires), article.lieuARepondu ? T.lieuARepondu : null].filter(Boolean).join(" · ")
@@ -88,7 +90,7 @@ export function CarteMonArticleActus({ article, T, onOuvrir, onRetoucher, onCont
       {article.refus ? (
         <>
           <Text className="font-texte text-[13px] leading-5 text-encre">{article.refus.motivation}</Text>
-          <Text className="font-texte text-xs text-gris">{T.refus(DETAILS_MOTIFS_MODERATION[article.refus.motif].enClair)}</Text>
+          <Text className="font-texte text-xs text-gris">{T.refus(motifs[article.refus.motif].enClair)}</Text>
           <Pressable accessibilityRole="button" onPress={onContester} className="min-h-11 justify-center self-start active:opacity-70">
             <Text className="font-texte-gras text-sm text-encre underline">{T.contester}</Text>
           </Pressable>

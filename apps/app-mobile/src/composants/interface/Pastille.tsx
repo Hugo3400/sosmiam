@@ -1,6 +1,8 @@
 import { Platform, Pressable, Text } from "react-native";
 
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   libelle: string;
@@ -22,7 +24,8 @@ type Props = {
 /** Un choix à toucher : blanc, ou encre et jaune une fois coché. Au moins 44 points de haut. */
 export function Pastille({ libelle, emoji, choisi, onPress, role = "checkbox", position, total, indice, desactive = false, mention, libelleLu }: Props) {
   const ios = Platform.OS === "ios";
-  const place = ios && position !== undefined && total !== undefined ? `, ${position} sur ${total}` : "";
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
+  const place = ios && position !== undefined && total !== undefined ? T.placeDansGroupe(position, total) : "";
   const lu = libelleLu ?? (mention ? `${libelle}, ${mention}` : libelle);
   return (
     <Pressable

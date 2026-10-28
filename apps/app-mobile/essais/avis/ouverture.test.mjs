@@ -9,18 +9,18 @@ const VISITE = { id: 42, lieu: { id: 13, nom: "La Cabane d'Émile" }, avis: { ou
 
 test("visite pas lue : on rend l'échec de lecture tel quel", () => {
   for (const erreur of ["hors-ligne", "erreur-serveur", "introuvable"]) {
-    assert.deepEqual(choisirRefusOuvertureAvis({ visite: null, echecLecture: { erreur }, refusEnvoi: null, etat: "ouvert", maintenant: MAINTENANT }), { erreur, details: undefined });
+    assert.deepEqual(choisirRefusOuvertureAvis({ visite: null, echecLecture: { erreur }, refusEnvoi: null, etat: "ouvert", maintenant: MAINTENANT }, "fr"), { erreur, details: undefined });
   }
-  assert.equal(choisirRefusOuvertureAvis({ visite: null, echecLecture: null, refusEnvoi: null, etat: "ouvert", maintenant: MAINTENANT }).erreur, "introuvable");
+  assert.equal(choisirRefusOuvertureAvis({ visite: null, echecLecture: null, refusEnvoi: null, etat: "ouvert", maintenant: MAINTENANT }, "fr").erreur, "introuvable");
 });
 
 test("visite lue : déjà donné, fermé, pas encore ouvert, ou rien à refuser", () => {
   const entree = { visite: VISITE, echecLecture: null, refusEnvoi: null, maintenant: MAINTENANT };
-  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "donne" }).erreur, "avis-deja-donne");
-  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "ferme" }).erreur, "avis-ferme");
-  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "a-venir" }).erreur, "avis-pas-ouvert");
-  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "ouvert" }), null);
-  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "ouvert", refusEnvoi: { ou: "ecran", erreur: "membre-du-lieu" } }).erreur, "membre-du-lieu");
+  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "donne" }, "fr").erreur, "avis-deja-donne");
+  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "ferme" }, "fr").erreur, "avis-ferme");
+  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "a-venir" }, "fr").erreur, "avis-pas-ouvert");
+  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "ouvert" }, "fr"), null);
+  assert.equal(choisirRefusOuvertureAvis({ ...entree, etat: "ouvert", refusEnvoi: { ou: "ecran", erreur: "membre-du-lieu" } }, "fr").erreur, "membre-du-lieu");
 });
 
 test("« Réessayer » seulement pour une lecture ratée en passant (réseau, serveur, trop de demandes, service)", () => {

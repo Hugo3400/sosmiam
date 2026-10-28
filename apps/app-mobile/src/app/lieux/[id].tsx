@@ -2,8 +2,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
 
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * La fiche d'un lieu ouverte depuis un lien du site (sosmiam.fr/lieux/<id>) : on ouvre la même fiche dans l'app. Sans
@@ -11,6 +13,7 @@ import { utiliserProfil } from "~/hooks/utiliser-profil";
  */
 export default function OuvrirFicheDuSite() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
   const router = useRouter();
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const { profil, invite, entrerEnInvite } = utiliserProfil();
@@ -25,7 +28,7 @@ export default function OuvrirFicheDuSite() {
 
   return (
     <View className="flex-1 items-center justify-center bg-creme">
-      <ActivityIndicator color={couleurs.encre} accessibilityLabel="On ouvre la fiche du lieu" />
+      <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.ouvertureLu} />
     </View>
   );
 }

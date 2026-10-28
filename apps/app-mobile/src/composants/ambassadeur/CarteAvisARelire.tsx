@@ -31,7 +31,7 @@ export function CarteAvisARelire({ avis: a, desactive, onOk, onLouche, onPasser 
       <EtoilesAvis note={a.note} taille={22} />
       <Text className="font-texte text-[15px] leading-[22px] text-encre">{lierPonctuation(a.texte)}</Text>
       {sourcePhoto ? <Image source={sourcePhoto} accessibilityLabel={T.photoLu} style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 12 }} contentFit="cover" /> : null}
-      <Text className="font-texte text-sm text-gris">{`${ecrirePreuveAvis({ verifie: a.preuve !== null, preuve: a.preuve })} · ${ecrireMoisAnneeLangue(a.mois, langue)}`}</Text>
+      <Text className="font-texte text-sm text-gris">{`${ecrirePreuveAvis({ verifie: a.preuve !== null, preuve: a.preuve }, langue)} · ${ecrireMoisAnneeLangue(a.mois, langue)}`}</Text>
       <Text className="font-texte text-sm italic text-gris">{lierPonctuation(raisons[a.raison])}</Text>
       <View className="gap-2">
         <Bouton libelle={T.ok} petit desactive={desactive} onPress={onOk} />

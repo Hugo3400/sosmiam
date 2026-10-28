@@ -2,12 +2,14 @@ import type { ReactNode } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import { ChevronPliable } from "~/composants/interface/ChevronPliable";
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { enchainerPhrases } from "~/fonctions/texte/enchainer-phrases";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserSectionDepliee } from "~/hooks/utiliser-section-depliee";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import type { IdSectionPliable } from "~/stockage/sections-depliees";
 
 type Compteur = {
@@ -30,6 +32,7 @@ const surIphone = Platform.OS === "ios";
 
 export function SectionPliable({ section, titre, sousTitre, resume, compteur, pliable = true, apercu, children }: Props) {
   const { deplie, basculer } = utiliserSectionDepliee(section);
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
   const ouvert = !pliable || deplie;
   const lignes = !ouvert && resume ? resume : sousTitre ? [sousTitre] : [];
   const textesLignes = lignes.map((ligne, i) => (
@@ -59,11 +62,11 @@ export function SectionPliable({ section, titre, sousTitre, resume, compteur, pl
   }
 
   const lignesLues = lignes.map((ligne) => retirerEmoji(ligne).replace(/ · /g, ", "));
-  const lu = enchainerPhrases([titre, surIphone ? (deplie ? "déplié" : "plié") : null, ...lignesLues, compteur?.lu]);
+  const lu = enchainerPhrases([titre, surIphone ? (deplie ? T.deplie : T.plie) : null, ...lignesLues, compteur?.lu]);
   const toucher = () => {
     vibrerLegerement();
     const maintenant = basculer();
-    annoncerLecteurEcran(`${titre}, ${maintenant ? "déplié" : "plié"}`);
+    annoncerLecteurEcran(T.sectionBasculee(titre, maintenant));
   };
 
   return (
@@ -71,7 +74,7 @@ export function SectionPliable({ section, titre, sousTitre, resume, compteur, pl
       <Pressable
         accessibilityRole={surIphone ? "header" : "button"}
         accessibilityLabel={lu}
-        accessibilityHint={deplie ? "Touche pour plier" : "Touche pour déplier"}
+        accessibilityHint={deplie ? T.indicePlier : T.indiceDeplier}
         aria-expanded={surIphone ? undefined : deplie}
         onPress={toucher}
         className="min-h-11 flex-row items-center gap-3 active:opacity-70"

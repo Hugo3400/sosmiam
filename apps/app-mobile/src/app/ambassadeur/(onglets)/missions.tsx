@@ -10,12 +10,14 @@ import { TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE } from "~/contenus/textes-espace
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Les missions confiées par l'équipe : à faire d'abord (échéance la plus proche), puis faites ou annulées. */
 export default function EcranMissions() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_MISSIONS_AMBASSADEUR_PAR_LANGUE);
   const router = useRouter();
   const { ambassadeur } = utiliserServices();
@@ -28,7 +30,7 @@ export default function EcranMissions() {
       ambassadeur.listerMissions().then((r) => {
         if (!actif) return;
         if (r.ok) setMissions(r.missions);
-        else setEchec(decrireEchecVisite(r.erreur, r.details).texte);
+        else setEchec(decrireEchecVisite(r.erreur, langue, r.details).texte);
       });
       return () => {
         actif = false;

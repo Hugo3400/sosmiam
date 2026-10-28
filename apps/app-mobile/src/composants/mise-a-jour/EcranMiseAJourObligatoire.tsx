@@ -6,18 +6,19 @@ import { remplirModele } from "@sos-miam/commun/fonctions/texte/remplir-modele";
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { CoucheMiseAJour } from "~/composants/mise-a-jour/CoucheMiseAJour";
-import { TEXTES_MISE_A_JOUR } from "~/contenus/textes-mise-a-jour";
+import { TEXTES_MISE_A_JOUR_PAR_LANGUE } from "~/contenus/textes-mise-a-jour";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserOuvertureStore } from "~/hooks/utiliser-ouverture-store";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { VERSION_INSTALLEE } from "~/services/version-installee";
 
-const T = TEXTES_MISE_A_JOUR.obligatoire;
 const DELAI_FOCUS_TITRE = 700;
 
 export function EcranMiseAJourObligatoire() {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_MISE_A_JOUR_PAR_LANGUE).obligatoire;
   const refTitre = useRef<Text>(null);
   const store = utiliserOuvertureStore();
 
@@ -26,7 +27,7 @@ export function EcranMiseAJourObligatoire() {
     annoncerLecteurEcran(T.annonceLecteurEcran);
     const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refTitre.current), DELAI_FOCUS_TITRE);
     return () => clearTimeout(minuterie);
-  }, []);
+  }, [T.annonceLecteurEcran]);
 
   return (
     <CoucheMiseAJour>

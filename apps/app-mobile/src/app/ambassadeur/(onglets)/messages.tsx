@@ -30,7 +30,7 @@ export default function EcranMessagesAmbassadeur() {
       ambassadeur.listerMessages().then((r) => {
         if (!actif) return;
         if (r.ok) setMessages([...r.messages].sort((a, b) => b.creeLe.localeCompare(a.creeLe)));
-        else setEchec(decrireEchecVisite(r.erreur, r.details).texte);
+        else setEchec(decrireEchecVisite(r.erreur, langue, r.details).texte);
       });
       return () => {
         actif = false;

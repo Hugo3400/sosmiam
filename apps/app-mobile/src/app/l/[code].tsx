@@ -4,9 +4,11 @@ import { ActivityIndicator, View } from "react-native";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
 import { utiliserSession } from "~/hooks/utiliser-session";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /**
  * Le QR de vitrine d'un lieu, ouvert dans l'app (sosmiam.fr/l/<code>) : on retrouve le lieu et on ouvre sa fiche. Sans
@@ -14,6 +16,7 @@ import { utiliserSession } from "~/hooks/utiliser-session";
  */
 export default function OuvrirQrVitrine() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
   const router = useRouter();
   const { code = "" } = useLocalSearchParams<{ code: string }>();
   const { contenu } = utiliserSession();
@@ -36,14 +39,14 @@ export default function OuvrirQrVitrine() {
 
   if (introuvable) {
     return (
-      <EcranReglage titre="Ce QR code ne mène nulle part" sousTitre="Le lieu n'est peut-être plus sur SOS Miam. Plein d'autres adresses t'attendent dans Explorer !">
-        <Bouton libelle="Voir les adresses" variante="blanc" onPress={() => router.replace("/explorer")} />
+      <EcranReglage titre={T.qrIntrouvable} sousTitre={T.qrIntrouvableTexte}>
+        <Bouton libelle={T.voirAdresses} variante="blanc" onPress={() => router.replace("/explorer")} />
       </EcranReglage>
     );
   }
   return (
     <View className="flex-1 items-center justify-center bg-creme">
-      <ActivityIndicator color={couleurs.encre} accessibilityLabel="On ouvre la fiche du lieu" />
+      <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.ouvertureLu} />
     </View>
   );
 }

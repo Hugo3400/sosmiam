@@ -4,12 +4,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { Mascotte } from "~/composants/marque/Mascotte";
-import { TEXTES_MISE_A_JOUR } from "~/contenus/textes-mise-a-jour";
+import { TEXTES_MISE_A_JOUR_PAR_LANGUE } from "~/contenus/textes-mise-a-jour";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
 import { utiliserOuvertureStore } from "~/hooks/utiliser-ouverture-store";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   visible: boolean;
@@ -17,11 +18,11 @@ type Props = {
   onMontree?: () => void;
 };
 
-const T = TEXTES_MISE_A_JOUR.nouvelle;
 const DELAI_FOCUS_TITRE = 700;
 
 export function FenetreNouvelleVersion({ visible, onFermer, onMontree }: Props) {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_MISE_A_JOUR_PAR_LANGUE).nouvelle;
   const { height: hauteurEcran } = useWindowDimensions();
   const refTitre = useRef<Text>(null);
   const { ouvrir, erreur, oublierErreur, indice } = utiliserOuvertureStore();
@@ -37,7 +38,7 @@ export function FenetreNouvelleVersion({ visible, onFermer, onMontree }: Props) 
     annoncerLecteurEcran(T.annonceLecteurEcran);
     const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refTitre.current), DELAI_FOCUS_TITRE);
     return () => clearTimeout(minuterie);
-  }, [visible]);
+  }, [visible, T.annonceLecteurEcran]);
 
   async function mettreAJour() {
     if (await ouvrir()) fermer();

@@ -13,12 +13,14 @@ import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Les avis à relire, sans leur auteur : « Ça me va », « Ça me paraît louche » (avec un motif) ou « Je passe mon tour ». */
 export default function EcranRelectures() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_RELECTURES_PAR_LANGUE);
   const { ambassadeur } = utiliserServices();
   const [avis, setAvis] = useState<AvisARelire[] | null>(null);
@@ -33,7 +35,7 @@ export default function EcranRelectures() {
       ambassadeur.listerAvisARelire().then((r) => {
         if (!actif) return;
         if (r.ok) setAvis(r.avis);
-        else setEchec(decrireEchecVisite(r.erreur, r.details).texte);
+        else setEchec(decrireEchecVisite(r.erreur, langue, r.details).texte);
       });
       return () => {
         actif = false;
@@ -49,7 +51,7 @@ export default function EcranRelectures() {
       setAvis((liste) => liste?.filter((a) => a.id !== avisId) ?? null);
       return setAnnonce({ texte: T.dejaRelu, numero: Date.now() });
     }
-    if (!r.ok) return setAnnonce({ texte: decrireEchecVisite(r.erreur, r.details).texte, numero: Date.now() });
+    if (!r.ok) return setAnnonce({ texte: decrireEchecVisite(r.erreur, langue, r.details).texte, numero: Date.now() });
     vibrerLegerement();
     setAvis((liste) => liste?.filter((a) => a.id !== avisId) ?? null);
     setAnnonce({ texte: T.merci[verdict.type], numero: Date.now() });

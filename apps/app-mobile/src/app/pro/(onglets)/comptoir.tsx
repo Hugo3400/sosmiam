@@ -65,7 +65,7 @@ export default function EcranComptoir() {
   /** Un geste a échoué : on le dit avec le texte des services (le même que sur le site) */
   const direEchec = (r: ReponseComptoir) => {
     if (r.ok) return;
-    const message = decrireEchecVisite(r.erreur, r.details, etat?.lieu.nom);
+    const message = decrireEchecVisite(r.erreur, langue, r.details, etat?.lieu.nom);
     annoncer(`${message.titre}. ${message.texte}`);
   };
 
@@ -92,7 +92,7 @@ export default function EcranComptoir() {
 
         {etat === null ? (
           comptoir.erreur ? (
-            <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(decrireEchecVisite(comptoir.erreur, undefined, lieuPro.nom).texte)}</Text>
+            <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(decrireEchecVisite(comptoir.erreur, langue, undefined, lieuPro.nom).texte)}</Text>
           ) : (
             <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.chargement} />
           )

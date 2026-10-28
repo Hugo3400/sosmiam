@@ -21,6 +21,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserAvisPro } from "~/hooks/utiliser-avis-pro";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLimitationCompte } from "~/hooks/utiliser-limitation-compte";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserSourcePhotoAvis } from "~/hooks/utiliser-source-photo-avis";
@@ -28,6 +29,7 @@ import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export default function EcranAvisPro() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_AVIS_PRO_PAR_LANGUE);
   const TA = utiliserTextes(TEXTES_AVIS_LIEU_PAR_LANGUE);
   const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
@@ -69,7 +71,7 @@ export default function EcranAvisPro() {
     if (r.erreur === "message-refuse") return setMotRefuse(true);
     setFeuilleOuverte(false);
     if (r.erreur === "compte-limite") return setLimiteVue(true);
-    const message = decrireEchecVisite(r.erreur, r.details, lieuPro?.nom);
+    const message = decrireEchecVisite(r.erreur, langue, r.details, lieuPro?.nom);
     annoncer(enchainerPhrases([message.titre, message.texte]));
   }
 
@@ -96,11 +98,11 @@ export default function EcranAvisPro() {
       );
     }
     if (lecture.etat === "erreur") {
-      const message = decrireEchecVisite(lecture.erreur, undefined, lieuPro.nom);
+      const message = decrireEchecVisite(lecture.erreur, langue, undefined, lieuPro.nom);
       const action = { libelle: T.reessayer, indice: T.indiceReessayer, onPress: () => void avisPro.relire() };
       return <CarteMessageReservations emoji={MESSAGES_SERVICE[lecture.erreur].emoji} titre={message.titre} texte={message.texte} action={action} />;
     }
-    const resume = ecrireResumeAvis(lecture.resume);
+    const resume = ecrireResumeAvis(lecture.resume, langue);
     if (!resume || lecture.avis.length === 0) return <CarteMessageReservations emoji="⭐" titre={T.videTitre} texte={T.videTexte} />;
     const sansReponse = lecture.avis.filter((a) => a.reponseLieu === null);
     const avecReponse = lecture.avis.filter((a) => a.reponseLieu !== null);

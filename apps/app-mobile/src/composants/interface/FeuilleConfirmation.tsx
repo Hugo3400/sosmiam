@@ -6,10 +6,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
 import { EmojiOuMiami } from "~/composants/profil/EmojiOuMiami";
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 import { utiliserTitreDansPoignee } from "~/hooks/utiliser-titre-dans-poignee";
 
 type Props = {
@@ -47,6 +49,7 @@ const DUREE_FERMETURE = 450;
  * et les deux boutons restent toujours à l'écran. Animations réduites dans les réglages : elle apparaît en fondu.
  */
 export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail, libelleConfirmer, libelleRester, indiceRester, onConfirmer, onRefermee, onFermer }: Props) {
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
   const marges = useSafeAreaInsets();
   utiliserInscriptionFeuille(visible, onFermer);
   const { height: hauteurEcran } = useWindowDimensions();
@@ -105,7 +108,7 @@ export function FeuilleConfirmation({ visible, emoji, personneId, titre, detail,
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={onFermer} onDismiss={finirFermeture}>
       {/* Le fond garde au moins la hauteur de la barre d'état : la feuille ne passe jamais dessous */}
-      <Pressable accessibilityRole="button" accessibilityLabel="Fermer, sans rien changer" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+      <Pressable accessibilityRole="button" accessibilityLabel={T.fermerSansChanger} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
       <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={onFermer}

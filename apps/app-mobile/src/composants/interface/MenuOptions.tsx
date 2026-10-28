@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
 import { PoigneeFeuille } from "~/composants/interface/PoigneeFeuille";
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
@@ -13,6 +14,7 @@ import { retirerEmoji } from "~/fonctions/texte/retirer-emoji";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserGlisserPourFermer } from "~/hooks/utiliser-glisser-pour-fermer";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 export type OptionMenu = {
   cle: string;
@@ -39,6 +41,7 @@ type Props = {
  */
 export function MenuOptions({ visible, titre, options, onFermer }: Props) {
   const marges = useSafeAreaInsets();
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
   const couleurs = utiliserCouleurs();
   utiliserInscriptionFeuille(visible, onFermer);
   const animationsReduites = useReducedMotion();
@@ -73,7 +76,7 @@ export function MenuOptions({ visible, titre, options, onFermer }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType={animationsReduites ? "fade" : "slide"} onRequestClose={reculer}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
+      <Pressable accessibilityRole="button" accessibilityLabel={T.fermerMenu} onPress={onFermer} style={{ minHeight: marges.top }} className="flex-1 bg-black/40" />
       <Animated.View
         accessibilityViewIsModal
         onAccessibilityEscape={reculer}
@@ -129,7 +132,7 @@ export function MenuOptions({ visible, titre, options, onFermer }: Props) {
                   </Pressable>
                 ))}
                 <Pressable accessibilityRole="button" onPress={onFermer} className="mt-3 min-h-12 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80">
-                  <Text className="font-texte-gras text-base text-encre">Annuler</Text>
+                  <Text className="font-texte-gras text-base text-encre">{T.annuler}</Text>
                 </Pressable>
               </>
             )}

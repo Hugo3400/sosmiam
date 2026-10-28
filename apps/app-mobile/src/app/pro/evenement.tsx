@@ -23,6 +23,7 @@ import { convertirBrouillonEvenement } from "~/fonctions/pro/convertir-brouillon
 import { creerBrouillonEvenement, type BrouillonEvenement } from "~/fonctions/pro/creer-brouillon-evenement";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
@@ -33,6 +34,7 @@ import { utiliserTextes } from "~/hooks/utiliser-textes";
  */
 export default function EcranEvenementPro() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_ECRAN_EVENEMENT_PAR_LANGUE);
   const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const TYPES = utiliserTextes(TYPES_EVENEMENT_ECRITS_PAR_LANGUE);
@@ -82,7 +84,7 @@ export default function EcranEvenementPro() {
     }
     if (r.erreur === "evenement-invalide" && r.champ) return setErreur(r.champ as ChampEvenement);
     if (r.erreur === "compte-limite") return setRefusLimite(TL.evenement);
-    echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    echouer(decrireEchecVisite(r.erreur, langue, r.details, lieuPro?.nom).texte);
   }
 
   async function annuler() {
@@ -90,7 +92,7 @@ export default function EcranEvenementPro() {
     setRefusLimite(null);
     const r = await service.annulerEvenement(lieuId, existant.id);
     if (!r.ok && r.erreur === "compte-limite") return setRefusLimite(TL.annulerEvenement);
-    if (!r.ok) return echouer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    if (!r.ok) return echouer(decrireEchecVisite(r.erreur, langue, r.details, lieuPro?.nom).texte);
     vibrerLegerement();
     router.back();
   }

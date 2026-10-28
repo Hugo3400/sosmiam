@@ -8,6 +8,7 @@ import type { ActivitePote, Pote } from "@sos-miam/commun/types/potes";
 import type { CibleMasque, MoiSocial, PersonneResume } from "@sos-miam/commun/types/social";
 import { convertirActiviteBande } from "~/fonctions/communaute/convertir-activite-bande";
 import { convertirPersonneEnPote, type DetailsPote } from "~/fonctions/communaute/convertir-personne-en-pote";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserPoulsSocial } from "~/hooks/utiliser-pouls-social";
 import { utiliserSession } from "~/hooks/utiliser-session";
 
@@ -70,6 +71,7 @@ const cle = (cible: CibleMasque, id: string) => `${cible}:${id}`;
  */
 export function utiliserBandeCompte(actif: boolean): BandeCompte {
   const { sociaux } = utiliserSession();
+  const { langue } = utiliserLangue();
   const { pouls, relire: relirePouls } = utiliserPoulsSocial();
   const [moiSocial, setMoiSocial] = useState<MoiSocial | null>(null);
   const [pseudoRequis, setPseudoRequis] = useState(false);
@@ -316,7 +318,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
       demandesEnvoyees: enPotes(bande?.demandesEnvoyees),
       activites: activitesApi
         .filter((a) => !idsBloques.has(a.personne.id) && !masques.has(cle("activite", a.id)))
-        .map(convertirActiviteBande)
+        .map((activite) => convertirActiviteBande(activite, langue))
         .sort((a, b) => b.date.localeCompare(a.date)),
       maPlace: maPlace ? { pointsDuMois: maPlace.pointsDuMois, rescoussesDuMois: maPlace.rescoussesDuMois } : null,
       trouverPote,
@@ -339,7 +341,7 @@ export function utiliserBandeCompte(actif: boolean): BandeCompte {
       },
     };
   }, [
-    pret, horsLigne, moiSocial, pseudoRequis, bande, bloquesApi, bloquesLus, activitesApi, classement, masques, annuaire, idsBloques, enPotes, trouverPote,
+    pret, horsLigne, moiSocial, pseudoRequis, bande, bloquesApi, bloquesLus, activitesApi, classement, masques, annuaire, idsBloques, enPotes, trouverPote, langue,
     ouvrirProfil, rejoindre, demander, accepter, retirerDemande, retirer, bloquer, debloquer, changerMasque, noterPersonne, chargerBande, chargerActivite, chargerMasques,
   ]);
 }

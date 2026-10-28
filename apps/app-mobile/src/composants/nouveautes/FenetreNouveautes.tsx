@@ -3,12 +3,13 @@ import { Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from "r
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Bouton } from "~/composants/interface/Bouton";
-import type { NouveautesVersion } from "~/contenus/nouveautes-versions";
-import { TEXTES_NOUVEAUTES } from "~/contenus/textes-nouveautes";
+import { NOUVEAUTES_VERSIONS_PAR_LANGUE, type NouveautesVersion } from "~/contenus/nouveautes-versions";
+import { TEXTES_NOUVEAUTES_PAR_LANGUE } from "~/contenus/textes-nouveautes";
 import { annoncerLecteurEcran } from "~/fonctions/interaction/annoncer-lecteur-ecran";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserInscriptionFeuille } from "~/hooks/utiliser-inscription-feuille";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   nouveautes: NouveautesVersion | null;
@@ -18,11 +19,13 @@ type Props = {
   onMontree?: () => void;
 };
 
-const T = TEXTES_NOUVEAUTES.fenetre;
 const DELAI_FOCUS_TITRE = 700;
 const POINTS_MAX = 4;
 
-export function FenetreNouveautes({ nouveautes, visible, onVoir, onFermer, onMontree }: Props) {
+export function FenetreNouveautes({ nouveautes: recues, visible, onVoir, onFermer, onMontree }: Props) {
+  const T = utiliserTextes(TEXTES_NOUVEAUTES_PAR_LANGUE).fenetre;
+  const versions = utiliserTextes(NOUVEAUTES_VERSIONS_PAR_LANGUE);
+  const nouveautes = recues ? (versions.find((v) => v.version === recues.version) ?? recues) : null;
   const marges = useSafeAreaInsets();
   const { height: hauteurEcran } = useWindowDimensions();
   const refTitre = useRef<Text>(null);
@@ -34,7 +37,7 @@ export function FenetreNouveautes({ nouveautes, visible, onVoir, onFermer, onMon
     annoncerLecteurEcran(T.annonceLecteurEcran(nouveautes.libelle));
     const minuterie = setTimeout(() => deplacerFocusLecteurEcran(refTitre.current), DELAI_FOCUS_TITRE);
     return () => clearTimeout(minuterie);
-  }, [ouverte, nouveautes]);
+  }, [ouverte, nouveautes, T]);
 
   if (!nouveautes) return null;
 

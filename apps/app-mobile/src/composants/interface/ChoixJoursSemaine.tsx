@@ -1,6 +1,8 @@
 import { View } from "react-native";
 
 import { Pastille } from "~/composants/interface/Pastille";
+import { TEXTES_INTERFACE_PAR_LANGUE } from "~/contenus/textes-interface";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   jours: readonly number[];
@@ -8,33 +10,26 @@ type Props = {
   desactive?: boolean;
 };
 
-const JOURS = [
-  { numero: 1, court: "Lun", long: "lundi" },
-  { numero: 2, court: "Mar", long: "mardi" },
-  { numero: 3, court: "Mer", long: "mercredi" },
-  { numero: 4, court: "Jeu", long: "jeudi" },
-  { numero: 5, court: "Ven", long: "vendredi" },
-  { numero: 6, court: "Sam", long: "samedi" },
-  { numero: 0, court: "Dim", long: "dimanche" },
-] as const;
+const JOURS = [1, 2, 3, 4, 5, 6, 0] as const;
 
 export function ChoixJoursSemaine({ jours, onChanger, desactive = false }: Props) {
+  const T = utiliserTextes(TEXTES_INTERFACE_PAR_LANGUE);
   const basculer = (numero: number) => {
     const suivants = jours.includes(numero) ? jours.filter((j) => j !== numero) : [...jours, numero];
     onChanger([...suivants].sort((a, b) => a - b));
   };
   return (
     <View className="flex-row flex-wrap gap-2">
-      {JOURS.map((jour, i) => (
+      {JOURS.map((numero, i) => (
         <Pastille
-          key={jour.numero}
-          libelle={jour.court}
-          libelleLu={jour.long}
-          choisi={jours.includes(jour.numero)}
+          key={numero}
+          libelle={T.joursCourts[numero]}
+          libelleLu={T.joursLongs[numero]}
+          choisi={jours.includes(numero)}
           position={i + 1}
           total={JOURS.length}
           desactive={desactive}
-          onPress={() => basculer(jour.numero)}
+          onPress={() => basculer(numero)}
         />
       ))}
     </View>

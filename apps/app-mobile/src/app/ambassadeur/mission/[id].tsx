@@ -141,7 +141,7 @@ export default function EcranMission() {
     setEnCours(true);
     const r = await ambassadeur.terminerMission(mission.id, compteRendu.trim());
     setEnCours(false);
-    if (!r.ok) return setAnnonce({ texte: decrireEchecVisite(r.erreur, r.details).texte, numero: Date.now() });
+    if (!r.ok) return setAnnonce({ texte: decrireEchecVisite(r.erreur, langue, r.details).texte, numero: Date.now() });
     vibrerLegerement();
     setMission(r.mission);
     setAnnonce({ texte: T.accomplie, numero: Date.now() });

@@ -16,6 +16,7 @@ import { LieuReserveAdultes } from "~/composants/lieux/LieuReserveAdultes";
 import { FeuilleMiamSafe } from "~/composants/miam-safe/FeuilleMiamSafe";
 import { SuiteFicheLieu } from "~/composants/lieux/SuiteFicheLieu";
 import { EnvoyerAPote } from "~/composants/potes/EnvoyerAPote";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { calculerKmLieu } from "~/fonctions/lieux/calculer-km-lieu";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
 import { ouvrirItineraire } from "~/fonctions/lieux/ouvrir-itineraire";
@@ -28,6 +29,7 @@ import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserMiamSafeLieu } from "~/hooks/utiliser-miam-safe-lieu";
 import { utiliserOrigineDistances } from "~/hooks/utiliser-origine-distances";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 /** Une feuille (« Envoyer à un pote », « Miam Safe ») : pas encore ouverte (donc pas encore préparée), ouverte, ou refermée */
 type EtatEnvoi = "jamais" | "ouvert" | "ferme";
@@ -43,6 +45,8 @@ const DEBORD_LU_EN_PREMIER = 1;
  */
 export default function FicheLieu() {
   const couleurs = utiliserCouleurs();
+  const T = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const R = T.rescousse;
   const router = useRouter();
   const focus = useIsFocused();
   const marges = useSafeAreaInsets();
@@ -88,8 +92,8 @@ export default function FicheLieu() {
     if (recherche.lieu) return <LieuReserveAdultes />;
     return (
       <View style={{ flex: 1, paddingTop: marges.top + 24 }} className="items-center gap-4 bg-creme px-8">
-        <Text className="text-center font-titre text-2xl text-encre">Ce lieu n'est pas disponible</Text>
-        <Bouton libelle="Retour" variante="blanc" onPress={retour} />
+        <Text className="text-center font-titre text-2xl text-encre">{T.indisponible}</Text>
+        <Bouton libelle={T.retour} variante="blanc" onPress={retour} />
       </View>
     );
   }
@@ -133,7 +137,7 @@ export default function FicheLieu() {
       >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={T.retour}
           hitSlop={8}
           onPress={retour}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -145,8 +149,8 @@ export default function FicheLieu() {
             secours restent accessibles) */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Miam Safe"
-          accessibilityHint="Tu ne te sens pas en sécurité ici ? Les secours, un pote, le comptoir"
+          accessibilityLabel={T.miamSafe}
+          accessibilityHint={T.miamSafeIndice}
           hitSlop={8}
           onPress={ouvrirMiamSafe}
           className="h-11 w-11 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -163,28 +167,22 @@ export default function FicheLieu() {
         {verifie || sauve ? (
           <Bouton
             className="flex-[3]"
-            libelle={sauve ? "Sauvé !" : epuisee ? "Reviens lundi" : "À la rescousse"}
+            libelle={sauve ? R.sauve : epuisee ? R.reviensLundi : R.aLaRescousse}
             variante={sauve ? "encre" : "jaune"}
             desactive={epuisee}
             indice={
-              !avecCompte
-                ? "Il te faut un compte pour donner une rescousse à ce lieu, une minute suffit"
-                : sauve
-                  ? "Reprend ta rescousse, elle te sera rendue pour un autre lieu"
-                  : epuisee
-                    ? "Plus de rescousse cette semaine, elles reviennent lundi"
-                    : `Donne une de tes rescousses à ce lieu, il t'en reste ${activite.restantes} cette semaine`
+              !avecCompte ? R.indiceSansCompte : sauve ? R.indiceSauve : epuisee ? R.indiceEpuisee : R.indiceDonner(activite.restantes)
             }
             onPress={basculerRescousse}
           />
         ) : (
-          <Bouton className="flex-[3]" libelle="Inviter ce lieu" indice="Partage-lui le lien d'inscription, c'est gratuit" onPress={() => inviter(lieu)} />
+          <Bouton className="flex-[3]" libelle={T.inviter} indice={T.inviterIndice} onPress={() => inviter(lieu)} />
         )}
         <Bouton
           className="flex-[2]"
-          libelle="Y aller"
+          libelle={T.yAller}
           variante="blanc"
-          indice={Platform.OS === "ios" ? "Ouvre l'itinéraire dans Plans" : "Ouvre l'itinéraire dans ton app de cartes"}
+          indice={Platform.OS === "ios" ? T.itineraireIos : T.itineraireAndroid}
           onPress={() => ouvrirItineraire(lieu)}
         />
       </View>

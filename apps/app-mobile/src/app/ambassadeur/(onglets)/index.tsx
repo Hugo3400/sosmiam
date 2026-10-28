@@ -13,6 +13,7 @@ import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
 import { utiliserEspaceAmbassadeur } from "~/hooks/utiliser-espace-ambassadeur";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
 
@@ -24,6 +25,7 @@ const SITE_ESPACE = "https://ambassadeur.sosmiam.fr/espace";
  */
 export default function EcranEspaceAmbassadeur() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_ECRAN_ESPACE_AMBASSADEUR_PAR_LANGUE);
   const textesMode = utiliserTextes(TEXTES_EN_TETE_MODE_PAR_LANGUE);
   const router = useRouter();
@@ -45,7 +47,7 @@ export default function EcranEspaceAmbassadeur() {
               <TuileEspace emoji="📬" nombre={espace.messagesNonLus} libelle={T.messagesNonLus(espace.messagesNonLus)} onPress={() => router.navigate("/ambassadeur/messages")} />
             </View>
           ) : erreur ? (
-            <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(decrireEchecVisite(erreur).texte)}</Text>
+            <Text className="font-texte text-base leading-6 text-gris">{lierPonctuation(decrireEchecVisite(erreur, langue).texte)}</Text>
           ) : (
             <ActivityIndicator color={couleurs.encre} accessibilityLabel={T.ouverture} />
           )

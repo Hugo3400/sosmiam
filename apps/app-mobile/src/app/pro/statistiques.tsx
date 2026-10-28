@@ -44,7 +44,7 @@ export default function EcranStatistiques() {
       service.lireStatistiques(lieuPro.id).then((r) => {
         if (!actif) return;
         if (r.ok) setSemaines(r.semaines);
-        else setEchec(decrireEchecVisite(r.erreur, r.details, lieuPro.nom).texte);
+        else setEchec(decrireEchecVisite(r.erreur, langue, r.details, lieuPro.nom).texte);
       });
       return () => {
         actif = false;

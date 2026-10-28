@@ -114,7 +114,7 @@ export default function EcranReservationsPro() {
       );
     }
     if (lecture.etat === "erreur") {
-      const message = decrireEchecVisite(lecture.erreur, undefined, lieuPro.nom);
+      const message = decrireEchecVisite(lecture.erreur, langue, undefined, lieuPro.nom);
       const action = { libelle: T.reessayer, indice: T.indiceReessayer, onPress: () => void relire() };
       return <CarteMessageReservations emoji={MESSAGES_SERVICE[lecture.erreur].emoji} titre={message.titre} texte={message.texte} action={action} />;
     }

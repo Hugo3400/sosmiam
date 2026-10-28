@@ -16,18 +16,23 @@ import { PastillesSectionsCarte } from "~/composants/lieux/PastillesSectionsCart
 import { Mascotte } from "~/composants/marque/Mascotte";
 import { MentionPrevention } from "~/composants/prevention/MentionPrevention";
 import { EcranReglage } from "~/composants/reglages/EcranReglage";
-import { regimesCarte } from "~/contenus/regimes-carte";
-import { formaterDateLongue } from "~/fonctions/dates/formater-date-longue";
+import { LIBELLES_REGIMES_CARTE_PAR_LANGUE, regimesCarte } from "~/contenus/regimes-carte";
+import { TEXTES_CARTE_LIEU_PAR_LANGUE } from "~/contenus/textes-carte-lieu";
+import { TEXTES_FICHE_LIEU_PAR_LANGUE } from "~/contenus/textes-fiche-lieu";
 import { deplacerFocusLecteurEcran } from "~/fonctions/interaction/deplacer-focus-lecteur-ecran";
+import { direDeLieuLangue } from "~/fonctions/langue/dire-de-lieu-langue";
+import { ecrireDateLongueLangue } from "~/fonctions/langue/ecrire-date-longue-langue";
+import { listerPrenomsLangue } from "~/fonctions/langue/lister-prenoms-langue";
 import { filtrerCarteSelonAge } from "~/fonctions/lieux/filtrer-carte-selon-age";
 import { filtrerCarteSelonRegimes } from "~/fonctions/lieux/filtrer-carte-selon-regimes";
 import { filtrerLieuxSelonAge } from "~/fonctions/lieux/filtrer-lieux-selon-age";
-import { direDeLieu } from "~/fonctions/visites/dire-de-lieu";
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { utiliserCarteDuLieu } from "~/hooks/utiliser-carte-du-lieu";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserLieuParId } from "~/hooks/utiliser-lieu-par-id";
 import { utiliserProfil } from "~/hooks/utiliser-profil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 // Le temps qu'un défilement lancé par une pastille se termine : pendant ce temps, la pastille touchée reste en avant
 const DUREE_DEFILEMENT_GUIDE = 700;
@@ -39,6 +44,10 @@ const DUREE_DEFILEMENT_GUIDE = 700;
  */
 export default function CarteDuLieu() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
+  const T = utiliserTextes(TEXTES_CARTE_LIEU_PAR_LANGUE);
+  const F = utiliserTextes(TEXTES_FICHE_LIEU_PAR_LANGUE);
+  const nomsRegimesCarte = utiliserTextes(LIBELLES_REGIMES_CARTE_PAR_LANGUE);
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { profil } = utiliserProfil();
@@ -65,24 +74,24 @@ export default function CarteDuLieu() {
     // Le lieu existe, mais c'est un bar ouvert en visite sans compte : même mot gentil que sur la fiche
     if (recherche.lieu) return <LieuReserveAdultes />;
     return (
-      <EcranReglage titre="Ce lieu n'est pas disponible" sousTitre="Il s'est peut-être éclipsé. Plein d'autres adresses t'attendent dans Explorer !">
-        <Bouton libelle="Retour" variante="blanc" onPress={() => router.back()} />
+      <EcranReglage titre={F.indisponible} sousTitre={F.indisponibleTexte}>
+        <Bouton libelle={F.retour} variante="blanc" onPress={() => router.back()} />
       </EcranReglage>
     );
   }
 
   const formules = lieu.type === "sortie";
-  const titre = formules ? "Les formules" : "La carte";
+  const titre = formules ? T.formules : T.carte;
 
   if (!carteAutorisee || carteAutorisee.sections.length === 0) {
     return (
       <EcranReglage
-        titre={formules ? "Pas encore de formules par ici" : "Pas encore de carte par ici"}
-        sousTitre={`${lieu.nom} n'a pas encore mis ${formules ? "ses formules" : "sa carte"} dans l'app. Demande sur place, on te dira tout !`}
+        titre={formules ? T.pasEncoreFormules : T.pasEncoreCarte}
+        sousTitre={T.pasEncoreTexte(lieu.nom, formules)}
       >
         <View className="items-center gap-6">
           <Mascotte expression="surprise" taille={120} />
-          <Bouton libelle="Retour à la fiche" variante="blanc" onPress={() => router.back()} />
+          <Bouton libelle={F.retourFiche} variante="blanc" onPress={() => router.back()} />
         </View>
       </EcranReglage>
     );
@@ -90,8 +99,8 @@ export default function CarteDuLieu() {
 
   // Seuls les régimes que la carte sait reconnaître (végétarien, vegan, sans gluten) font apparaître le filtre
   const regimes = (profil?.envies.regimes ?? []).filter((regime) => regimesCarte[regime] !== undefined);
-  const nomsRegimes = regimes.flatMap((regime) => regimesCarte[regime]?.libelle ?? []);
-  const listeRegimes = nomsRegimes.length > 1 ? `${nomsRegimes.slice(0, -1).join(", ")} et ${nomsRegimes[nomsRegimes.length - 1]}` : (nomsRegimes[0] ?? "");
+  const nomsRegimes = regimes.flatMap((regime) => nomsRegimesCarte[regime] ?? []);
+  const listeRegimes = listerPrenomsLangue(nomsRegimes, langue);
   const carte = seulementCeQuiMeVa ? filtrerCarteSelonRegimes(carteAutorisee, regimes) : carteAutorisee;
   const sections = carte.sections;
   const total = carteAutorisee.sections.reduce((somme, section) => somme + section.elements.length, 0);
@@ -141,7 +150,7 @@ export default function CarteDuLieu() {
       <View className="min-h-14 flex-row items-center px-5 pb-3 pt-2">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Retour"
+          accessibilityLabel={F.retour}
           hitSlop={12}
           onPress={() => router.back()}
           className="h-10 w-10 items-center justify-center rounded-full border-2 border-encre bg-carte active:opacity-80"
@@ -156,19 +165,15 @@ export default function CarteDuLieu() {
           <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="font-texte-semi text-base text-gris">
             {lieu.emoji} {lieu.nom}
           </Text>
-          <Text accessibilityRole="header" accessibilityLabel={`${titre} ${direDeLieu(lieu.nom)}`} className="mt-1 font-titre text-[32px] leading-[36px] text-encre">
+          <Text accessibilityRole="header" accessibilityLabel={`${titre} ${direDeLieuLangue(lieu.nom, langue)}`} className="mt-1 font-titre text-[32px] leading-[36px] text-encre">
             {formules ? "🎟️" : "🍽️"} {titre}
           </Text>
           {regimes.length > 0 ? (
             <View className="mt-3">
               <Interrupteur
                 emoji="🥗"
-                titre="Seulement ce qui me va"
-                detail={
-                  seulementCeQuiMeVa
-                    ? `${gardes} sur ${total} ${gardes > 1 ? "te vont" : "te va"}, d'après les repères du lieu (${listeRegimes})`
-                    : `D'après les repères indiqués par le lieu (${listeRegimes})`
-                }
+                titre={T.seulementCeQuiMeVa}
+                detail={seulementCeQuiMeVa ? T.gardes(gardes, total, listeRegimes) : T.reperes(listeRegimes)}
                 valeur={seulementCeQuiMeVa}
                 onChanger={changerFiltre}
               />
@@ -217,9 +222,9 @@ export default function CarteDuLieu() {
             <View className="items-center gap-4 rounded-carte border-2 border-dashed border-ligne px-6 py-8">
               <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-4xl">🥕</Text>
               <Text className="text-center font-texte text-base leading-6 text-gris">
-                {lierPonctuation(`Rien n'est indiqué ${listeRegimes} sur cette carte pour l'instant. Demande sur place : il y a parfois moyen d'adapter un plat !`)}
+                {lierPonctuation(T.rienIndique(listeRegimes))}
               </Text>
-              <Bouton libelle="Tout afficher" variante="blanc" petit onPress={toutAfficher} />
+              <Bouton libelle={T.toutAfficher} variante="blanc" petit onPress={toutAfficher} />
             </View>
           ) : null}
 
@@ -227,9 +232,9 @@ export default function CarteDuLieu() {
 
           <View className="gap-1 pt-1">
             <Text className="text-center font-texte text-sm leading-5 text-gris">
-              {lierPonctuation("Prix indicatifs : la carte peut changer, le lieu a toujours le dernier mot. Une allergie ? Signale-la toujours sur place.")}
+              {lierPonctuation(T.prixIndicatifs)}
             </Text>
-            {carte.majLe ? <Text className="text-center font-texte text-sm leading-5 text-gris">Mise à jour par le lieu le {formaterDateLongue(carte.majLe)}</Text> : null}
+            {carte.majLe ? <Text className="text-center font-texte text-sm leading-5 text-gris">{T.miseAJour(ecrireDateLongueLangue(carte.majLe, langue))}</Text> : null}
           </View>
         </View>
       </ScrollView>

@@ -14,6 +14,7 @@ import { TEXTES_ECRAN_CE_SOIR_PAR_LANGUE } from "~/contenus/textes-ecran-pro-mon
 import { vibrerLegerement } from "~/fonctions/interaction/vibrer-legerement";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
@@ -30,6 +31,7 @@ type BlocRefuse = "sos" | "arreter" | "message" | "effacer";
  */
 export default function EcranCeSoir() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_ECRAN_CE_SOIR_PAR_LANGUE);
   const TL = utiliserTextes(REFUS_LIMITATION_PAR_LANGUE);
   const { lieuPro } = utiliserModes();
@@ -81,7 +83,7 @@ export default function EcranCeSoir() {
     }
     if (r.erreur === "champ-invalide" && champs.includes(r.champ as C)) return r.champ as C;
     if (r.erreur === "compte-limite" && siLimite) setRefusLimite(siLimite);
-    else annoncer(decrireEchecVisite(r.erreur, r.details, lieuPro?.nom).texte);
+    else annoncer(decrireEchecVisite(r.erreur, langue, r.details, lieuPro?.nom).texte);
     return "refuse";
   }
   const refusDe = (bloc: BlocRefuse) => (refusLimite?.bloc === bloc ? refusLimite.texte : null);

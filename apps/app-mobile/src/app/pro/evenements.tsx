@@ -11,6 +11,7 @@ import { TEXTES_ECRAN_EVENEMENTS_PAR_LANGUE } from "~/contenus/textes-ecran-pro-
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
 import { utiliserCouleurs } from "~/hooks/utiliser-couleurs";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserModes } from "~/hooks/utiliser-modes";
 import { utiliserServices } from "~/hooks/utiliser-services";
 import { utiliserTextes } from "~/hooks/utiliser-textes";
@@ -21,6 +22,7 @@ import { utiliserTextes } from "~/hooks/utiliser-textes";
  */
 export default function EcranEvenementsPro() {
   const couleurs = utiliserCouleurs();
+  const { langue } = utiliserLangue();
   const T = utiliserTextes(TEXTES_ECRAN_EVENEMENTS_PAR_LANGUE);
   const router = useRouter();
   const { lieuPro } = utiliserModes();
@@ -35,7 +37,7 @@ export default function EcranEvenementsPro() {
       service.listerEvenements(lieuPro.id).then((r) => {
         if (!actif) return;
         if (r.ok) setEvenements(r.evenements);
-        else setEchec(decrireEchecVisite(r.erreur, r.details, lieuPro.nom).texte);
+        else setEchec(decrireEchecVisite(r.erreur, langue, r.details, lieuPro.nom).texte);
       });
       return () => {
         actif = false;

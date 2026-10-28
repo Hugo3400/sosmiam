@@ -8,6 +8,7 @@ import { TEXTES_RESERVATIONS_PRO } from "~/contenus/textes-reservations-pro";
 import { ecrireHeureParis } from "~/fonctions/dates/ecrire-heure-paris";
 import { nommerClientReservation } from "~/fonctions/reservations/nommer-client-reservation";
 import { decrireEchecVisite } from "~/fonctions/visites/decrire-echec-visite";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { utiliserReservationsPro, type ReponseGesteReservationPro } from "~/hooks/utiliser-reservations-pro";
 
 export type QuandMemeReservation = { reservation: ReservationPro; creneau: string; places: number | null; jourFerme: boolean };
@@ -15,6 +16,7 @@ export type QuandMemeReservation = { reservation: ReservationPro; creneau: strin
 type Options = { lieuNom: string | undefined; annoncer: (texte: string) => void; recaler: () => void };
 
 export function utiliserReponsesReservationsPro({ lieuNom, annoncer, recaler }: Options) {
+  const { langue } = utiliserLangue();
   const reservations = utiliserReservationsPro();
   const [choix, setChoix] = useState<Readonly<Record<number, string>>>({});
   const [deplies, setDeplies] = useState<ReadonlySet<number>>(new Set());
@@ -41,7 +43,7 @@ export function utiliserReponsesReservationsPro({ lieuNom, annoncer, recaler }: 
       const valeurs = { nom: nommerClientReservation(r), code: reponse.reservation.code ?? "", heure: ecrireHeureParis(reponse.reservation.creneau) };
       return annoncer(remplirModele(modele, valeurs));
     }
-    const message = decrireEchecVisite(reponse.erreur, reponse.details, lieuNom);
+    const message = decrireEchecVisite(reponse.erreur, langue, reponse.details, lieuNom);
     annoncer(`${message.titre}. ${message.texte}`);
   };
 
@@ -54,7 +56,7 @@ export function utiliserReponsesReservationsPro({ lieuNom, annoncer, recaler }: 
     if (!depasser && (reponse.erreur === "capacite-depassee" || reponse.erreur === "jour-ferme")) {
       return ouvrirQuandMeme({ reservation: r, creneau, places: reponse.details?.places ?? null, jourFerme: reponse.erreur === "jour-ferme" });
     }
-    const message = decrireEchecVisite(reponse.erreur, reponse.details, lieuNom);
+    const message = decrireEchecVisite(reponse.erreur, langue, reponse.details, lieuNom);
     annoncer(`${message.titre}. ${message.texte}`);
   }
 

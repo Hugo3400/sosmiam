@@ -29,10 +29,10 @@ test("visite sans compte : les avis qui parlent d'alcool (ou leur réponse) sont
 });
 
 test("le résumé : moyenne au dixième avec une virgule, nombre d'avis, part de clients qui reviennent quand elle existe", () => {
-  assert.equal(ecrireResumeAvis({ moyenne: null, nombre: 0, partRetour: null }), null);
-  assert.deepEqual(ecrireResumeAvis({ moyenne: 4.3, nombre: 12, partRetour: 0.68 }), {
+  assert.equal(ecrireResumeAvis({ moyenne: null, nombre: 0, partRetour: null }, "fr"), null);
+  assert.deepEqual(ecrireResumeAvis({ moyenne: 4.3, nombre: 12, partRetour: 0.68 }, "fr"), {
     visible: "4,3 sur 5 · 12 avis · 68 % des clients reviennent",
     lu: "Note de 4,3 sur 5, sur 12 avis. 68 % des clients reviennent",
   });
-  assert.equal(ecrireResumeAvis({ moyenne: 4, nombre: 1, partRetour: null }).visible, "4 sur 5 · 1 avis");
+  assert.equal(ecrireResumeAvis({ moyenne: 4, nombre: 1, partRetour: null }, "fr").visible, "4 sur 5 · 1 avis");
 });
