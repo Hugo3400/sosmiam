@@ -37,6 +37,8 @@ import { ecrireNombreCouverts } from "~/fonctions/reservations/ecrire-nombre-cou
 import { ecrireNombrePersonnes } from "~/fonctions/reservations/ecrire-nombre-personnes";
 import { ecrireMomentLong } from "~/fonctions/dates/ecrire-moment-long";
 import { ecrireMomentLongLangue } from "~/fonctions/langue/ecrire-moment-long-langue";
+import { decrireFinLimitation } from "~/fonctions/compte/decrire-fin-limitation";
+import { decrireFinLimitationLangue } from "~/fonctions/langue/decrire-fin-limitation-langue";
 
 const LIEUX = ["Chez Nonna Lia", "Restaurant du Capitaine Bouiboui", "Aux Pâtés de Lucette", "Le Chou Rieur", "Émile", "Sucre & Garrigue"];
 const MAINTENANT = new Date(2026, 9, 28, 15, 0);
@@ -159,4 +161,18 @@ test("moment long : le français rend ecrireMomentLong, l'anglais écrit la date
   assert.equal(ecrireMomentLongLangue(new Date(2026, 9, 23, 12, 0).toISOString(), "en"), "23 October 2026 at midday");
   assert.equal(ecrireMomentLongLangue(null, "en"), null);
   assert.equal(ecrireMomentLongLangue("pas une date", "en"), null);
+});
+
+test("fin d'une limitation : le français rend decrireFinLimitation, l'anglais écrit « until … » ou « until further notice »", () => {
+  for (const iso of [...INSTANTS.map((i) => i.toISOString()), null, undefined, "", "pas une date"]) assert.equal(decrireFinLimitationLangue(iso, "fr"), decrireFinLimitation(iso));
+  assert.equal(decrireFinLimitationLangue(new Date(2026, 9, 22, 21, 30).toISOString(), "en"), "until 22 October 2026 at 21:30");
+  assert.equal(decrireFinLimitationLangue(null, "en"), "until further notice");
+  assert.equal(decrireFinLimitationLangue("pas une date", "en"), "until further notice");
+});
+
+test("règlement lu : « Collaboration commerciale » reste en français, glosé en anglais, et sa clé passe en premier", () => {
+  const r = { type: "reduction", reductionPourcent: 20, avantages: ["happy-hour", "partenariat"] };
+  assert.deepEqual(decrireReglementLangue(r, "client", "fr").etiquettesLues, ["Collaboration commerciale", "Happy hour ou formule"]);
+  assert.deepEqual(decrireReglementLangue(r, "client", "en").etiquettesLues, ["Collaboration commerciale: a paid or gifted partnership", "Happy hour or set menu"]);
+  assert.deepEqual(decrireReglementLangue(r, "client", "en").avantages, ["partenariat", "happy-hour"]);
 });

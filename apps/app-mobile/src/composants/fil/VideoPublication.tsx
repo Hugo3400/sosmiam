@@ -7,9 +7,11 @@ import { Text, View } from "react-native";
 
 import { BarreProgressionVideo } from "~/composants/fil/BarreProgressionVideo";
 import { BoutonSon } from "~/composants/fil/BoutonSon";
+import { TEXTES_FIL_PAR_LANGUE } from "~/contenus/textes-fil";
 import type { MediaPublication } from "~/contenus/type-publication";
 import { utiliserRetoursPremierPlan } from "~/hooks/utiliser-retours-premier-plan";
 import { utiliserSonFil } from "~/hooks/utiliser-son-fil";
+import { utiliserTextes } from "~/hooks/utiliser-textes";
 
 type Props = {
   media: Extract<MediaPublication, { type: "video" }>;
@@ -45,6 +47,7 @@ const styleCommandes = { position: "absolute", top: 0, right: 0, bottom: 0, left
  */
 export function VideoPublication({ media, actif, enPause, acceleree, largeur, margeHaut, margeBas, onGlisserBarre }: Props) {
   const { sonCoupe, basculerSon } = utiliserSonFil();
+  const T = utiliserTextes(TEXTES_FIL_PAR_LANGUE).media;
   // En arrière-plan (verrouillage, autre app, appel), le téléphone met la vidéo en pause sans la relancer au retour : on s'en charge
   const retoursPremierPlan = utiliserRetoursPremierPlan();
   const lecteur = useVideoPlayer(media.video, (l) => {
@@ -128,7 +131,7 @@ export function VideoPublication({ media, actif, enPause, acceleree, largeur, ma
         {x2 ? (
           <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ top: margeHaut + 40 }} className="absolute inset-x-0 items-center">
             <View className="flex-row items-center gap-1 rounded-full bg-black/55 px-3 py-1.5">
-              <Text className="font-texte-gras text-sm text-white">2x</Text>
+              <Text className="font-texte-gras text-sm text-white">{T.vitesseDouble}</Text>
               <Text className="text-sm">⏩</Text>
             </View>
           </View>

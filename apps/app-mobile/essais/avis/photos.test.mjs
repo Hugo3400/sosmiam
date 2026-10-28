@@ -36,3 +36,11 @@ test("le résumé : moyenne au dixième avec une virgule, nombre d'avis, part de
   });
   assert.equal(ecrireResumeAvis({ moyenne: 4, nombre: 1, partRetour: null }, "fr").visible, "4 sur 5 · 1 avis");
 });
+
+test("le résumé en anglais : point décimal, reviews, pourcentage collé", () => {
+  assert.deepEqual(ecrireResumeAvis({ moyenne: 4.3, nombre: 12, partRetour: 0.68 }, "en"), {
+    visible: "4.3 out of 5 · 12 reviews · 68% of customers come back",
+    lu: "Rated 4.3 out of 5, from 12 reviews. 68% of customers come back",
+  });
+  assert.equal(ecrireResumeAvis({ moyenne: 4, nombre: 1, partRetour: null }, "en").visible, "4 out of 5 · 1 review");
+});

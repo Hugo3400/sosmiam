@@ -56,3 +56,8 @@ test("decrireRefusEnvoiAvis : photo, envoi, et rien pour le texte, la limite ou 
   assert.equal(decrireRefusEnvoiAvis({ ou: "ecran", erreur: "avis-ferme" }, "fr"), null);
   assert.equal(decrireRefusEnvoiAvis(null, "fr"), null);
 });
+
+test("en anglais : l'attente et le message de service suivent la langue", () => {
+  assert.match(decrireRefusPhotoAvis({ ou: "photo", erreur: "trop-de-demandes", details: { attenteS: 120 } }, "en").texte, /Try again in 2 minutes/);
+  assert.equal(decrireRefusEnvoiAvis({ ou: "envoi", erreur: "hors-ligne" }, "en").titre, "No signal here");
+});

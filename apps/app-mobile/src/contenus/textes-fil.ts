@@ -46,6 +46,7 @@ export const TEXTES_FIL = {
     sonOff: "Couper le son",
     avancer: "Avancer de 2 secondes",
     reculer: "Reculer de 2 secondes",
+    vitesseDouble: "2x",
     avanceeVideo: "Avancée de la vidéo",
     secondesLues: (lues: number, total: number) => `${lues} seconde${lues > 1 ? "s" : ""} sur ${total}`,
     photoSuivante: "Photo suivante",

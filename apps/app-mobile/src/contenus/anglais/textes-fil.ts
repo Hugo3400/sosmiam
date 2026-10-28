@@ -46,6 +46,7 @@ export const TEXTES_FIL_ANGLAIS: Traduction<typeof TEXTES_FIL> = {
     sonOff: "Mute",
     avancer: "Skip forward 2 seconds",
     reculer: "Go back 2 seconds",
+    vitesseDouble: "2x",
     avanceeVideo: "Video progress",
     secondesLues: (lues: number, total: number) => `${lues} second${lues === 1 ? "" : "s"} of ${total}`,
     photoSuivante: "Next photo",
