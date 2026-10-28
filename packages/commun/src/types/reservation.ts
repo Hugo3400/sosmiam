@@ -28,7 +28,6 @@ export type Reservation = {
   /** Code de rapprochement montré à l'arrivée */
   code: string | null;
   visiteId: number | null;
-  demo: boolean;
 };
 
 export type PropositionReservationPro = { creneau: string; places: number | null; horsReglages: boolean; jourFerme: boolean };

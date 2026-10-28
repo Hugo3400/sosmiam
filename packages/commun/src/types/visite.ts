@@ -55,8 +55,6 @@ export type Visite = {
   annulableJusqua: string | null;
   /** Comment elle a été réglée ; null tant qu'elle n'est pas validée (une visite validée sans règlement connu se lit « payée ») */
   reglement: ReglementVisite | null;
-  /** Visite de démo : reste sur le téléphone, jamais importée dans un vrai compte */
-  demo: boolean;
 };
 
 export type EvenementVisite =

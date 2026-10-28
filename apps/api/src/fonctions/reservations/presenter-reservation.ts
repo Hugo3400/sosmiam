@@ -27,6 +27,5 @@ export function presenterReservation(r: LigneReservation, lieu: LieuResume, visi
     presenceLe: iso(r.presenceLe),
     code: r.statut === "acceptee" || r.statut === "honoree" ? r.code : null,
     visiteId,
-    demo: false,
   };
 }

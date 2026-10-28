@@ -1,4 +1,4 @@
-// L'ensemble des services utilisés par l'app (et plus tard le site) : démo locale, API, ou indisponibles.
+// L'ensemble des services utilisés par l'app (et plus tard le site) : l'API, ou indisponibles.
 
 import type { ServiceAnnoncesApp } from "./contrat-annonces-app.ts";
 import type { ServiceAvis } from "./contrat-avis.ts";
@@ -14,7 +14,7 @@ import type { ServiceReservations } from "./contrat-reservations.ts";
 import type { ServiceSuggestions } from "./contrat-suggestions.ts";
 import type { ServiceVisites } from "./contrat-visites.ts";
 
-export type SourceServices = "demo" | "api" | "indisponible";
+export type SourceServices = "api" | "indisponible";
 
 export type Services = {
   source: SourceServices;

@@ -31,7 +31,7 @@ test("addition : demandée sur place, code à 4 chiffres, 30 min, une seule à l
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
   assert.equal(r.entetes.get("cache-control"), "private, no-store");
   const v = r.corps.visite;
-  assert.deepEqual([v.mode, v.statut, v.code, v.expireLe, v.demo, v.lieu.nom], ["addition", "demandee", "1234", "2026-10-09T10:30:00.000Z", false, "Chez Léa"]);
+  assert.deepEqual([v.mode, v.statut, v.code, v.expireLe, v.lieu.nom], ["addition", "demandee", "1234", "2026-10-09T10:30:00.000Z", "Chez Léa"]);
   const liste = await b.demander("GET", "/app/visites", lea.jeton);
   assert.deepEqual([liste.corps.enCours.id, liste.corps.visites, liste.corps.points], [v.id, [], 0]);
   b.visites.lieux.set(2, { ...b.visites.lieux.get(1)!, id: 2, nom: "Le Comptoir" });

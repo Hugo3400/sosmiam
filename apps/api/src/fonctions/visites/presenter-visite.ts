@@ -30,6 +30,5 @@ export function presenterVisite(v: LigneVisite, lieu: LieuResume): Visite {
     avis: v.avisOuvertLe && v.avisFermeLe ? { ouvertLe: v.avisOuvertLe.toISOString(), fermeLe: v.avisFermeLe.toISOString(), donne: v.avisDonne } : null,
     annulableJusqua: iso(v.annulableJusqua),
     reglement: v.reglement,
-    demo: false,
   };
 }

@@ -84,8 +84,8 @@ test("demande : en attente, créneau à l'heure de Paris, petit mot nettoyé ; l
   assert.equal(r.statut, 201, JSON.stringify(r.corps));
   const v = r.corps.reservation;
   assert.deepEqual(
-    [v.statut, v.creneau, v.personnes, v.message, v.code, v.motifRefus, v.tardive, v.presenceLe, v.visiteId, v.demo, v.lieu.nom, v.creeLe],
-    ["demandee", "2026-10-09T18:00:00.000Z", 2, "Une table en terrasse ?", null, null, false, null, null, false, "Chez Léa", "2026-10-09T10:00:00.000Z"],
+    [v.statut, v.creneau, v.personnes, v.message, v.code, v.motifRefus, v.tardive, v.presenceLe, v.visiteId, v.lieu.nom, v.creeLe],
+    ["demandee", "2026-10-09T18:00:00.000Z", 2, "Une table en terrasse ?", null, null, false, null, null, "Chez Léa", "2026-10-09T10:00:00.000Z"],
   );
   assert.deepEqual((await b.demander("GET", "/app/reservations", lea.jeton)).corps.reservations, [v]);
   assert.deepEqual((await b.demander("GET", `/app/reservations/${v.id}`, lea.jeton)).corps.reservation, v);
