@@ -18,9 +18,9 @@ import type { ParLangue, Traduction } from "../src/types/traduction.ts";
 
 const TOUTES: readonly Langue[] = ["fr", "en"];
 
-test("langues : seul le français est ouvert tant que l'anglais n'est pas relu", () => {
+test("langues : le site est ouvert en anglais, l'app reste en français tant que son anglais n'est pas relu", () => {
   assert.deepEqual(LANGUES_OUVERTES_APP, ["fr"]);
-  assert.deepEqual(LANGUES_OUVERTES_SITE, ["fr"]);
+  assert.deepEqual(LANGUES_OUVERTES_SITE, ["fr", "en"]);
 });
 
 test("lireLangue : codes, régions, casse et tiret bas acceptés ; le reste refusé", () => {
@@ -72,7 +72,7 @@ test("choisirLangueNavigateur : q, ordre, joker, q=0 et en-tête mal formé", ()
     [`${"de,".repeat(400)}en`, "fr"],
   ];
   for (const [entete, attendu] of cas) assert.equal(choisirLangueNavigateur(entete, TOUTES), attendu, String(entete));
-  assert.equal(choisirLangueNavigateur("en-GB,en;q=0.9", LANGUES_OUVERTES_SITE), "fr");
+  assert.equal(choisirLangueNavigateur("en-GB,en;q=0.9", LANGUES_OUVERTES_APP), "fr");
 });
 
 test("choisirTextes : la langue demandée, le français pour une langue inconnue", () => {

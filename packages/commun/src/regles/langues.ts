@@ -6,7 +6,7 @@ export const LANGUE_PAR_DEFAUT: Langue = "fr";
 
 export const LANGUES_OUVERTES_APP: readonly Langue[] = ["fr"];
 
-export const LANGUES_OUVERTES_SITE: readonly Langue[] = ["fr"];
+export const LANGUES_OUVERTES_SITE: readonly Langue[] = ["fr", "en"];
 
 export const ENTETE_LANGUE = "X-Langue";
 
