@@ -70,16 +70,27 @@ test("le JSON-LD est du JSON valide, sans « < », « > », « & » ni séparate
 });
 
 test("accueil : WebSite « SOS Miam » avec ses autres noms, sans SearchAction", () => {
-  const donnees = creerDonneesSite();
+  const donnees = creerDonneesSite("fr");
   assert.equal(donnees["@type"], "WebSite");
   assert.equal(donnees.name, "SOS Miam");
   assert.deepEqual(donnees.alternateName, ["SOS Miam app", "sosmiam"]);
   assert.equal(donnees.url, "https://sosmiam.fr/");
+  assert.equal(donnees.inLanguage, "fr-FR");
   assert.ok(!("potentialAction" in donnees));
 });
 
+test("accueil en anglais : même site (@id), adresse /en et langue en-GB, description de la marque en anglais", () => {
+  const site = creerDonneesSite("en");
+  assert.equal(site["@id"], creerDonneesSite("fr")["@id"]);
+  assert.equal(site.url, "https://sosmiam.fr/en");
+  assert.equal(site.inLanguage, "en-GB");
+  const organisation = creerDonneesOrganisation("en");
+  assert.equal(organisation["@id"], creerDonneesOrganisation("fr")["@id"]);
+  assert.notEqual(organisation.description, creerDonneesOrganisation("fr").description);
+});
+
 test("accueil : Organization avec un logo PNG carré d'au moins 512 px servi par le site, et nos vrais réseaux", () => {
-  const donnees = creerDonneesOrganisation();
+  const donnees = creerDonneesOrganisation("fr");
   assert.equal(donnees["@type"], "Organization");
   assert.equal(donnees.name, "SOS Miam");
   assert.match(donnees.logo.url, /^https:\/\/sosmiam\.fr\/.+\.png$/);

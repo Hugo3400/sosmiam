@@ -33,7 +33,7 @@ test("construirePlanDuSite : une <url> par adresse, <lastmod> seulement si la da
   ]);
   assert.equal(xml, [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     "  <url><loc>https://sosmiam.fr/</loc></url>",
     "  <url><loc>https://sosmiam.fr/lieux/12</loc><lastmod>2026-10-09T08:15:30Z</lastmod></url>",
     "  <url><loc>https://sosmiam.fr/lieux/13</loc></url>",
@@ -41,6 +41,12 @@ test("construirePlanDuSite : une <url> par adresse, <lastmod> seulement si la da
     "</urlset>",
     "",
   ].join("\n"));
+});
+
+test("construirePlanDuSite : les versions dans les autres langues en <xhtml:link hreflang>", () => {
+  const alternatives = [{ langue: "fr", adresse: "https://sosmiam.fr/faq" }, { langue: "en", adresse: "https://sosmiam.fr/en/faq" }];
+  const xml = construirePlanDuSite([{ adresse: "https://sosmiam.fr/en/faq", alternatives }]);
+  assert.match(xml, /<url><loc>https:\/\/sosmiam\.fr\/en\/faq<\/loc><xhtml:link rel="alternate" hreflang="fr" href="https:\/\/sosmiam\.fr\/faq"\/><xhtml:link rel="alternate" hreflang="en" href="https:\/\/sosmiam\.fr\/en\/faq"\/><\/url>/);
 });
 
 test("listerLieuxDuPlan : les fiches publiées de l'API, sans les lignes de forme inattendue", async () => {

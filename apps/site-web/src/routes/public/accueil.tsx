@@ -20,6 +20,7 @@ import { creerMeta } from "~/fonctions/seo/creer-meta";
 import { trouverLieuPropose } from "~/fonctions/texte/trouver-lieu-propose";
 import { verifierEmail } from "~/fonctions/texte/verifier-email";
 import { inscrireNewsletter } from "~/services/inscriptions.server";
+import { utiliserLangue } from "~/hooks/utiliser-langue";
 import { lireLangueRequete } from "~/services/langue.server";
 import { listerLieuxAccueil, listerVillesLieux } from "~/services/page-lieux.server";
 import { lireIpVisiteur } from "~/services/session-compte.server";
@@ -88,9 +89,10 @@ export async function action({ request }: Route.ActionArgs): Promise<ReponseInsc
 
 /** Page d'accueil : la promesse, le principe, les lieux, le BIG SOS, les pros, les ambassadeurs et l'inscription. */
 export default function Accueil({ loaderData }: Route.ComponentProps) {
+  const langue = utiliserLangue();
   return (
     <>
-      <DonneesStructurees donnees={[creerDonneesSite(), creerDonneesOrganisation()]} />
+      <DonneesStructurees donnees={[creerDonneesSite(langue), creerDonneesOrganisation(langue)]} />
       {loaderData.themeSaison && <BandeauThemeSaison theme={loaderData.themeSaison} />}
       <Hero />
       <CommentCaMarche />
