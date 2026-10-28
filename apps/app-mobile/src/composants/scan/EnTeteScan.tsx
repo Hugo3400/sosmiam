@@ -3,8 +3,8 @@ import { Text, View } from "react-native";
 
 import { lierPonctuation } from "~/fonctions/texte/lier-ponctuation";
 
-/** En-tête de l'onglet : le titre, la promesse, et le rappel de démo s'il le faut */
-export function EnTeteScan({ demo, enPlus }: { demo: boolean; enPlus?: ReactNode }) {
+/** En-tête de l'onglet : le titre et la promesse */
+export function EnTeteScan({ enPlus }: { enPlus?: ReactNode }) {
   return (
     <View className="gap-3">
       <View className="gap-1.5">

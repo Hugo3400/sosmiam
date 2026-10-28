@@ -23,7 +23,6 @@ import { utiliserFermerPile } from "~/hooks/utiliser-fermer-pile";
 import { utiliserLieux } from "~/hooks/utiliser-lieux";
 import { utiliserMargesPleinEcran } from "~/hooks/utiliser-marges-plein-ecran";
 import { utiliserPositionExpliquee } from "~/hooks/utiliser-position-expliquee";
-import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
 import { utiliserServices } from "~/hooks/utiliser-services";
 
 /** En dessous, un seul lieu proche, c'est sûrement là : « Tu es chez … ? » en grand */
@@ -43,17 +42,14 @@ function chercher(lieux: readonly Lieu[], recherche: string): Lieu[] {
 /**
  * « Tu es chez qui ? » (depuis l'onglet Scan ou le scanner) : choisir le lieu où l'on mange pour y demander l'addition.
  * Avec ta vraie position : les lieux qui valident à moins de 300 m (en grand s'il n'y en a qu'un tout près), et une recherche.
- * En démo : tous les lieux qui valident, par nom, et le téléphone est placé à 30 m de celui choisi. Chaque lieu a son
- * bouton « Demander l'addition ici ».
+ * Chaque lieu a son bouton « Demander l'addition ici ».
  */
 export default function TuEsChezQui() {
   const couleurs = utiliserCouleurs();
   const navigation = useNavigation();
   const services = utiliserServices();
-  const { reglages } = utiliserReglagesDemo();
   const position = utiliserPositionExpliquee();
   const indisponible = services.source === "indisponible";
-  const demo = services.source === "demo" && !reglages.vraiePosition;
 
   const [ids, setIds] = useState<number[] | null>(null);
   const [lecture, setLecture] = useState<Lecture>({ etat: "attente" });
@@ -95,8 +91,8 @@ export default function TuEsChezQui() {
 
   // Avec ta vraie position seulement : en démo, chaque lieu fait comme si tu y étais
   useEffect(() => {
-    if (!demo && !indisponible) void lirePosition();
-  }, [demo, indisponible, lirePosition]);
+    if (!indisponible) void lirePosition();
+  }, [indisponible, lirePosition]);
 
   const proches = lecture.etat === "ok" ? trierLieuxProches(validants, lecture.position, RAYON_LIEUX_PROCHES_M) : [];
   const tresProches = proches.filter((p) => p.distanceM < RAYON_EVIDENT_M);
@@ -104,7 +100,7 @@ export default function TuEsChezQui() {
   const autour = proches.filter((p) => p !== evident);
   // Démo : toute la liste, filtrée si l'on tape ; vraie position : la recherche ne sort qu'à partir de 2 lettres
   const assezDeLettres = normaliserRecherche(recherche).length >= LETTRES_RECHERCHE;
-  const trouves = demo ? chercher(validants, recherche) : assezDeLettres ? chercher(validants, recherche) : [];
+  const trouves = assezDeLettres ? chercher(validants, recherche) : [];
 
   const actionsEchec: ActionEchecVisite[] = [];
   if (lecture.etat === "echec" && (lecture.erreur === "position-bloquee" || lecture.erreur === "position-approximative")) {
@@ -144,33 +140,20 @@ export default function TuEsChezQui() {
           </View>
         ) : (
           <>
-            {demo ? (
-              <View accessible className="flex-row gap-3 rounded-carte border-2 border-dashed border-encre bg-jaune-clair p-4">
-                <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-xl">
-                  🧪
-                </Text>
-                <Text className="flex-1 font-texte text-sm leading-5 text-encre">
-                  {lierPonctuation(
-                    "Démo : on fait comme si tu étais à 30 m du lieu choisi. Pour tester ta vraie position, passe par les Coulisses de la démo.",
-                  )}
-                </Text>
-              </View>
-            ) : null}
-
-            {!demo && lecture.etat === "attente" ? (
+            {lecture.etat === "attente" ? (
               <View accessible accessibilityLabel="On regarde où tu es…" className="flex-row items-center justify-center gap-3 py-6">
                 <ActivityIndicator color={couleurs.encre} />
                 <Text className="font-texte-semi text-base text-encre">On regarde où tu es…</Text>
               </View>
             ) : null}
 
-            {!demo && lecture.etat === "echec" ? (
+            {lecture.etat === "echec" ? (
               <View className="rounded-carte border-2 border-encre bg-carte p-5">
                 <MessageEchecVisite erreur={lecture.erreur} actions={actionsEchec} />
               </View>
             ) : null}
 
-            {!demo && lecture.etat === "annulee" ? (
+            {lecture.etat === "annulee" ? (
               <View className="rounded-carte border-2 border-encre bg-carte p-5">
                 <MessageEchecVisite
                   erreur="position-refusee"
@@ -215,16 +198,16 @@ export default function TuEsChezQui() {
               </View>
             ) : null}
 
-            {!demo && lecture.etat === "ok" && proches.length === 0 ? (
+            {lecture.etat === "ok" && proches.length === 0 ? (
               <Text className="text-center font-texte text-base leading-6 text-gris">
                 {lierPonctuation(`Aucun lieu qui valide les visites à moins de ${RAYON_LIEUX_PROCHES_M} m. Cherche-le par son nom :`)}
               </Text>
             ) : null}
 
-            {demo || lecture.etat !== "attente" ? (
+            {lecture.etat !== "attente" ? (
               <View className="gap-3">
                 <ChampTexte
-                  libelle={demo ? "Filtrer les lieux" : proches.length > 0 ? "Pas dans la liste ? Cherche le lieu" : "Cherche le lieu"}
+                  libelle={proches.length > 0 ? "Pas dans la liste ? Cherche le lieu" : "Cherche le lieu"}
                   valeur={recherche}
                   onChangeTexte={setRecherche}
                   placeholder="Nom, quartier ou ville"
@@ -234,7 +217,7 @@ export default function TuEsChezQui() {
                 {trouves.map((lieu) => (
                   <LigneLieuProche key={lieu.id} lieu={lieu} />
                 ))}
-                {(demo || assezDeLettres) && trouves.length === 0 && ids !== null ? (
+                {assezDeLettres && trouves.length === 0 && ids !== null ? (
                   <Text className="text-center font-texte text-base text-gris">
                     {lierPonctuation("Aucun lieu qui valide les visites ne correspond. Il n'est peut-être pas encore équipé !")}
                   </Text>

@@ -34,7 +34,7 @@ export function AccueilScan() {
     if (source === "indisponible") {
       return (
         <>
-          <EnTeteScan demo={false} />
+          <EnTeteScan />
           <View className="items-center gap-3 rounded-carte border-2 border-encre bg-jaune-clair px-5 py-6">
             <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" className="text-5xl">
               🛠️
@@ -54,7 +54,7 @@ export function AccueilScan() {
     if (!pret) {
       return (
         <>
-          <EnTeteScan demo={source === "demo"} />
+          <EnTeteScan />
           <View className="items-center py-10">
             <ActivityIndicator color={couleurs.encre} accessibilityLabel="On rassemble tes visites…" />
           </View>
@@ -69,7 +69,7 @@ export function AccueilScan() {
 
     return (
       <>
-        <EnTeteScan demo={source === "demo"} />
+        <EnTeteScan />
 
         <View className="gap-4">
           <TuileScan

@@ -1,12 +1,8 @@
 import * as Location from "expo-location";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AGE_POSITION_MAX_MS, PRECISION_MAX_M } from "@sos-miam/commun/regles/visites";
-import type { PositionLieu } from "@sos-miam/commun/types/lieu";
 import type { LecturePosition } from "@sos-miam/commun/types/position";
-import { creerPositionDemo } from "~/fonctions/demo/creer-position-demo";
-import { utiliserReglagesDemo } from "~/hooks/utiliser-reglages-demo";
-import { utiliserServices } from "~/hooks/utiliser-services";
 
 export type ResultatLecturePosition =
   | { ok: true; position: LecturePosition }
@@ -61,22 +57,13 @@ async function lirePositionTelephone(): Promise<ResultatLecturePosition> {
 
 /**
  * Position du téléphone au moment de valider une visite (addition, QR du comptoir, « Je suis là », mission sur place).
- * Lue seulement quand on la demande, rendue telle quelle et jamais gardée ici. En démo, sans « Vérifier ma vraie position »
- * (Coulisses), le téléphone est placé à 30 m du lieu visé.
+ * Lue seulement quand on la demande, rendue telle quelle et jamais gardée ici.
  */
 export function utiliserPositionValidation(): {
-  lire: (cible: PositionLieu | null) => Promise<ResultatLecturePosition>;
+  lire: () => Promise<ResultatLecturePosition>;
   enCours: boolean;
 } {
-  const { source } = utiliserServices();
-  const { reglages } = utiliserReglagesDemo();
   const [enCours, setEnCours] = useState(false);
-
-  // Lu au moment de la lecture : la fonction rendue ne change pas quand on touche aux Coulisses
-  const vraiePosition = useRef(reglages.vraiePosition);
-  useLayoutEffect(() => {
-    vraiePosition.current = reglages.vraiePosition;
-  }, [reglages.vraiePosition]);
 
   const monte = useRef(true);
   useEffect(() => {
@@ -87,8 +74,7 @@ export function utiliserPositionValidation(): {
   }, []);
 
   const lire = useCallback(
-    async (cible: PositionLieu | null): Promise<ResultatLecturePosition> => {
-      if (source === "demo" && !vraiePosition.current && cible) return { ok: true, position: creerPositionDemo(cible) };
+    async (): Promise<ResultatLecturePosition> => {
       setEnCours(true);
       try {
         return await lirePositionTelephone();
@@ -96,7 +82,7 @@ export function utiliserPositionValidation(): {
         if (monte.current) setEnCours(false);
       }
     },
-    [source],
+    [],
   );
 
   return { lire, enCours };
